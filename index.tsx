@@ -1,14 +1,14 @@
 import React from 'react';
 import axios from 'axios';
-import * as express from 'express';
+import express from 'express';
 
 const app = express();
 const ReactDOMServer = require('react-dom/server');
 
 app.get('/', async (req, res) => {
-    const response = await axios.get('https://www.google.com');
+    const response = await axios.get('http://localhost:8000/test/');
     console.log(response.data);
-    const rendered = ReactDOMServer.renderToString(<div>Hello!</div>);
+    const rendered = ReactDOMServer.renderToString(<div>{response.data}</div>);
     res.send(rendered);
 });
 

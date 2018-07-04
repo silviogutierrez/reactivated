@@ -1,17 +1,23 @@
 import React from 'react';
 import axios from 'axios';
 import express from 'express';
+import ReactDOMServer from 'react-dom/server';
 
 const app = express();
-const ReactDOMServer = require('react-dom/server');
 
 app.get('/', async (req, res) => {
     const response = await axios.get('http://localhost:8000/test/');
-    console.log(response.data);
-    const rendered = ReactDOMServer.renderToString(<div>
-        <pre>{JSON.stringify(response.data, null, 2)}</pre>
-    </div>);
-    res.send(rendered);
+
+    if (req.query.raw) {
+        res.send(response.data);
+    }
+    else {
+        const {template_name, props} = response.data;
+        const Template = require(`./templates/${template_name}.tsx`).default;
+        const rendered = ReactDOMServer.renderToString(<Template {...props} />);
+        res.send(rendered);
+    }
+
 });
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'));

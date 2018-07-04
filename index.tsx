@@ -8,7 +8,9 @@ const ReactDOMServer = require('react-dom/server');
 app.get('/', async (req, res) => {
     const response = await axios.get('http://localhost:8000/test/');
     console.log(response.data);
-    const rendered = ReactDOMServer.renderToString(<div>{response.data}</div>);
+    const rendered = ReactDOMServer.renderToString(<div>
+        <pre>{JSON.stringify(response.data, null, 2)}</pre>
+    </div>);
     res.send(rendered);
 });
 

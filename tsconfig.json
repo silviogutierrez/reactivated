@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "types": [
+        ],
+        "strict": true,
+        "sourceMap": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es5",
+        "jsx": "react",
+        "allowSyntheticDefaultImports": true,
+        "lib": ["dom", "es6"]
+    },
+    "files": [
+        "index.tsx"
+    ]
+}

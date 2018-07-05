@@ -13,6 +13,6 @@
         "lib": ["dom", "es6"]
     },
     "files": [
-        "index.tsx"
+        "**/*.tsx"
     ]
 }

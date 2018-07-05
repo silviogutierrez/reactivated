@@ -6,7 +6,7 @@ import ReactDOMServer from 'react-dom/server';
 const app = express();
 
 app.get('/', async (req, res) => {
-    const response = await axios.get('http://localhost:8000/test/');
+    const response = await axios.get('http://localhost:8000/form/');
 
     if (req.query.raw) {
         res.send(response.data);

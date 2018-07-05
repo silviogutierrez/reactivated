@@ -19,3 +19,52 @@ def test(request: HttpRequest) -> HttpResponse:
         },
     ))
     return HttpResponse(content, content_type='application/json')
+
+
+class SSRFormRenderer:
+    def render(self, template_name, context, request=None):
+        return simplejson.dumps(context)
+
+
+def test_form(request: HttpRequest) -> HttpResponse:
+    from django import forms
+    from django.contrib.auth.models import User
+
+    class TestForm(forms.Form):
+        first_field = forms.CharField()
+        single = forms.ChoiceField(
+            required=False,
+            choices=(
+                (1, 'M'),
+                (2, 'F'),
+            ),
+        )
+        multiple = forms.MultipleChoiceField(
+            required=False,
+            choices=(
+                (1, 'Foo'),
+                (2, 'Bar'),
+            ),
+        )
+        model_single = forms.ModelChoiceField(
+            required=False,
+            queryset=User.objects.all(),
+        )
+        model_multiple = forms.ModelMultipleChoiceField(
+            required=False,
+            queryset=User.objects.all(),
+        )
+
+    form = TestForm({'first_field': 'foo', 'single': 1}, renderer=SSRFormRenderer())
+    serialized_form = [
+        simplejson.loads(str(field)) for field in form
+    ]
+
+    response = JSXResponse(
+        template_name='FormView',
+        props={
+            'form': serialized_form,
+        },
+    )
+
+    return HttpResponse(simplejson.dumps(response), content_type='application/json')

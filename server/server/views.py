@@ -67,5 +67,4 @@ def test_form(request: HttpRequest) -> HttpResponse:
             'form': serialized_form,
         },
     )
-
-    return HttpResponse(simplejson.dumps(response), content_type='application/json')
+    return HttpResponse(simplejson.dumps(response), content_type='application/x.ssr')

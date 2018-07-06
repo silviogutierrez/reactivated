@@ -10,19 +10,14 @@ const app = express();
 
 const ssrProxy = proxy('localhost:8000', {
     userResHeaderDecorator(headers: Request['headers'], userReq: Request, userRes: Response, proxyReq: Request, proxyRes: IncomingMessage) {
-        if (proxyRes.headers['content-type'] === 'application/x.ssr') {
-            if (!('raw' in userReq.query)) {
-                headers['content-type'] = 'text/html; charset=utf-8';
-            }
-            else {
-                headers['content-type'] = 'application/json';
-            }
+        if (!('raw' in userReq.query) && proxyRes.headers['content-type'] === 'application/ssr+json') {
+            headers['content-type'] = 'text/html; charset=utf-8';
         }
 
         return headers;
     },
     userResDecorator: (proxyRes: IncomingMessage, proxyResData: Buffer, userReq: Request, userRes: Response) => {
-        if ('raw' in userReq.query || proxyRes.headers['content-type'] !== 'application/x.ssr') {
+        if ('raw' in userReq.query || proxyRes.headers['content-type'] !== 'application/ssr+json') {
             return proxyResData;
         }
 

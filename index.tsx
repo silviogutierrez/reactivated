@@ -22,9 +22,9 @@ const ssrProxy = proxy('localhost:8000', {
         }
 
         const responseAsJSON: any = JSON.parse(proxyResData.toString('utf8'));
-        const {template_name, props} = responseAsJSON;
+        const {template_name, props, ...globalProps} = responseAsJSON;
         const Template = require(`./templates/${template_name}.tsx`).default;
-        const rendered = ReactDOMServer.renderToString(<Template {...props} />);
+        const rendered = ReactDOMServer.renderToString(<Template {...globalProps} {...props} />);
         return rendered;
     },
 });

@@ -1,5 +1,6 @@
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.middleware.csrf import get_token
+from django.shortcuts import render, redirect
 
 from typing import Any, NamedTuple
 
@@ -7,6 +8,7 @@ import simplejson
 
 
 class JSXResponse(NamedTuple):
+    csrf_token: str
     template_name: str
     props: Any
 
@@ -33,7 +35,7 @@ def test_form(request: HttpRequest) -> HttpResponse:
     class TestForm(forms.Form):
         first_field = forms.CharField()
         single = forms.ChoiceField(
-            required=False,
+            required=True,
             choices=(
                 (None, '----'),
                 (1, 'M'),
@@ -56,13 +58,22 @@ def test_form(request: HttpRequest) -> HttpResponse:
             queryset=User.objects.all(),
         )
 
-    form = TestForm(request.GET, renderer=SSRFormRenderer())
-    serialized_form = [
-        simplejson.loads(str(field)) for field in form
-    ]
+    if request.method == 'POST':
+        form = TestForm(request.POST, renderer=SSRFormRenderer())
+
+        if form.is_valid():
+            return redirect(request.path)
+    else:
+        form = TestForm(renderer=SSRFormRenderer())
+
+    serialized_form = {
+        'errors': form.errors,
+        'fields': [simplejson.loads(str(field)) for field in form],
+    }
 
     response = JSXResponse(
         template_name='FormView',
+        csrf_token=get_token(request),
         props={
             'form': serialized_form,
         },

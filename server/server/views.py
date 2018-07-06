@@ -35,6 +35,7 @@ def test_form(request: HttpRequest) -> HttpResponse:
         single = forms.ChoiceField(
             required=False,
             choices=(
+                (None, '----'),
                 (1, 'M'),
                 (2, 'F'),
             ),
@@ -55,7 +56,7 @@ def test_form(request: HttpRequest) -> HttpResponse:
             queryset=User.objects.all(),
         )
 
-    form = TestForm({'first_field': 'foo', 'single': 1}, renderer=SSRFormRenderer())
+    form = TestForm(request.GET, renderer=SSRFormRenderer())
     serialized_form = [
         simplejson.loads(str(field)) for field in form
     ]

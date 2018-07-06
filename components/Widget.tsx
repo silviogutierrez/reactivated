@@ -18,12 +18,15 @@ interface TextInput extends BaseWidget {
 
 type Optgroup = [
     null,
-    {
-        name: string;
-        value: string|number|boolean|null;
-        label: string;
-        selected: boolean;
-    },
+    [
+        {
+            name: string;
+            // value: string|number|boolean|null;
+            value: string|number|null;
+            label: string;
+            selected: boolean;
+        }
+    ],
     number
 ]
 
@@ -58,13 +61,22 @@ export const Widget = (props: Props) => {
 
     switch (widget.template_name) {
         case "django/forms/widgets/select.html": {
+            /*
             if (isMultiple(widget)) {
                 return <div>I am a select multiple</div>;
             }
-            return <div>I am a select single</div>;
+            */
+            // return <div>I am a select single</div>;
+            const value = isMultiple(widget) ? widget.value : (widget.value[0] || '');
+            return <select name={widget.name} multiple={isMultiple(widget)} defaultValue={value}>
+                {widget.optgroups.map((optgroup, index) => 
+                <option key={index} value={optgroup[1][0].value || []}>{optgroup[1][0].label}</option>
+                )}
+            </select>;
         }
         case "django/forms/widgets/text.html": {
-            return <div>I am a text</div>;
+            return <input defaultValue={widget.value || ""} name={widget.name} />;
+            // return <div>I am a text</div>;
         }
         default: {
             const _exhaustiveCheck: never = widget;

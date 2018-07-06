@@ -13,7 +13,8 @@ interface Props {
 }
 
 export const Form = (props: Props) => {
-    return <div>
+    return <form method="GET" action="">
         {props.form.map(field => <Widget key={field.widget.name} widget={field.widget} />)}
-    </div>;
+        <button type="submit">Submit</button>
+    </form>;
 };

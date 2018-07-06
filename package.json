@@ -5,10 +5,13 @@
   "main": "index.js",
   "dependencies": {
     "@types/express": "^4.16.0",
+    "@types/http-proxy-middleware": "^0.17.5",
     "@types/react": "^16.4.6",
     "@types/react-dom": "^16.0.6",
     "axios": "^0.18.0",
     "express": "^4.16.3",
+    "http-proxy-middleware": "^0.18.0",
+    "nodemon": "^1.17.5",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "ts-node": "^7.0.0",
@@ -17,6 +20,7 @@
   },
   "devDependencies": {},
   "scripts": {
+    "start": "NODE_PATH=./ nodemon --exec node_modules/.bin/ts-node --watch *.tsx -e ts,tsx index.tsx",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

@@ -55,7 +55,13 @@ def test_record(request: HttpRequest) -> HttpResponse:
 
     serialized_form = {
         'errors': form.errors,
-        'fields': [simplejson.loads(str(field)) for field in form],
+        'fields': [
+            {
+                **simplejson.loads(str(field)),
+                'name': field.name,
+                'label': field.label,
+            } for field in form
+        ],
     }
 
     response = JSXResponse(

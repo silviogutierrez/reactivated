@@ -3,6 +3,8 @@ import React from 'react';
 import {Widget, WidgetType} from './Widget';
 
 interface Field {
+    name: string;
+    label: string;
     widget: WidgetType;
 }
 
@@ -10,7 +12,7 @@ type FormError = string[];
 
 export type FormType = {
     errors: {
-        [name: string]: FormError;
+        [name: string]: FormError|null;
     };
     fields: Field[];
 }
@@ -23,12 +25,22 @@ interface Props {
 export const Form = (props: Props) => {
     return <form method="POST" action="">
         <input type="hidden" name="csrfmiddlewaretoken" value={props.csrf_token} />
-        {Object.keys(props.form.errors).length > 0 &&
+        {/*Object.keys(props.form.errors).length > 0 &&
         <pre>{JSON.stringify(props.form.errors, null, 2)}</pre>
-        }
+        */}
         {props.form.fields.map(field =>
         <div key={field.widget.name}>
-            <Widget widget={field.widget} />
+            <label>
+                {field.label}
+                <Widget widget={field.widget} />
+            </label>
+            {props.form.errors[field.name] != null &&
+            <ul>
+                {props.form.errors[field.name]!.map((error, index) =>
+                <li key={index}>{error}</li>
+                )}
+            </ul>
+            }
         </div>
         )}
         <button type="submit">Submit</button>

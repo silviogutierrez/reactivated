@@ -42,6 +42,13 @@ def test_form(request: HttpRequest) -> HttpResponse:
                 (2, 'F'),
             ),
         )
+        flag = forms.ChoiceField(
+            required=False,
+            choices=(
+                (False, 'No'),
+                (True, 'Yes'),
+            ),
+        )
         multiple = forms.MultipleChoiceField(
             required=False,
             choices=(
@@ -70,6 +77,8 @@ def test_form(request: HttpRequest) -> HttpResponse:
         'errors': form.errors,
         'fields': [simplejson.loads(str(field)) for field in form],
     }
+    base_form = TestForm()
+    # assert False
 
     response = JSXResponse(
         template_name='FormView',

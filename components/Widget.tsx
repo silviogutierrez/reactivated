@@ -22,7 +22,7 @@ type Optgroup = [
         {
             name: string;
             // value: string|number|boolean|null;
-            value: string|number|null;
+            value: string|number|boolean|null;
             label: string;
             selected: boolean;
         }
@@ -56,6 +56,21 @@ interface Props {
     widget: WidgetType;
 }
 
+const getValue = (optgroup: Optgroup) => {
+    const rawValue = optgroup[1][0].value;
+
+    if (rawValue == null) {
+        return '';
+    }
+    else if (rawValue === true) {
+        return 'True';
+    }
+    else if (rawValue === false) {
+        return 'False';
+    }
+    return rawValue;
+}
+
 export const Widget = (props: Props) => {
     const {widget} = props;
 
@@ -69,8 +84,8 @@ export const Widget = (props: Props) => {
             // return <div>I am a select single</div>;
             const value = isMultiple(widget) ? widget.value : (widget.value[0] || '');
             return <select name={widget.name} multiple={isMultiple(widget)} defaultValue={value}>
-                {widget.optgroups.map((optgroup, index) => 
-                <option key={index} value={optgroup[1][0].value || []}>{optgroup[1][0].label}</option>
+                {widget.optgroups.map((optgroup, index) =>
+                <option key={index} value={getValue(optgroup)}>{optgroup[1][0].label}</option>
                 )}
             </select>;
         }

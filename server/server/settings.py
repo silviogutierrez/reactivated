@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'django_extensions',
+    'server.testing',
 
     'django.contrib.admin',
     'django.contrib.auth',

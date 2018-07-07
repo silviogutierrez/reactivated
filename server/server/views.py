@@ -4,13 +4,21 @@ from django.shortcuts import render, redirect
 
 from typing import Any, NamedTuple
 
+from server.testing import models
+
 import simplejson
 
 
-class JSXResponse(NamedTuple):
-    csrf_token: str
-    template_name: str
-    props: Any
+class JSXResponse:
+    def __init__(self, *, csrf_token: str, template_name: str, props: Any) -> None:
+        self.props = {
+            'csrf_token': csrf_token,
+            'template_name': template_name,
+            **props,
+        }
+
+    def as_json(self) -> Any:
+        return simplejson.dumps(self.props)
 
 
 def test(request: HttpRequest) -> HttpResponse:
@@ -26,6 +34,41 @@ def test(request: HttpRequest) -> HttpResponse:
 class SSRFormRenderer:
     def render(self, template_name, context, request=None):
         return simplejson.dumps(context)
+
+
+def test_record(request: HttpRequest) -> HttpResponse:
+    from django import forms
+
+    class WidgetForm(forms.ModelForm):
+        class Meta:
+            model = models.Widget
+            fields = '__all__'
+
+    if request.method == 'POST':
+        form = WidgetForm(request.POST, renderer=SSRFormRenderer())
+
+        if form.is_valid():
+            form.save()
+            return redirect(request.path)
+    else:
+        form = WidgetForm(renderer=SSRFormRenderer())
+
+    serialized_form = {
+        'errors': form.errors,
+        'fields': [simplejson.loads(str(field)) for field in form],
+    }
+
+    response = JSXResponse(
+        template_name='FormView',
+        csrf_token=get_token(request),
+        props={
+            'form': serialized_form,
+            'widget_list': [
+                widget.name for widget in models.Widget.objects.all()
+            ],
+        },
+    )
+    return HttpResponse(response.as_json(), content_type='application/ssr+json')
 
 
 def test_form(request: HttpRequest) -> HttpResponse:

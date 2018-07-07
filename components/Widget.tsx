@@ -7,6 +7,7 @@ interface BaseWidget {
     attrs: {
         id: string;
         disabled?: boolean;
+        required?: boolean;
     };
 }
 
@@ -14,6 +15,18 @@ interface TextInput extends BaseWidget {
     type: 'text';
     template_name: 'django/forms/widgets/text.html';
     value: string;
+    attrs: BaseWidget['attrs'] & {
+        maxlength?: number;
+    }
+}
+
+interface NumberInput extends BaseWidget {
+    type: 'number';
+    template_name: 'django/forms/widgets/number.html';
+    value: string;
+    attrs: BaseWidget['attrs'] & {
+        step: string;
+    }
 }
 
 type Optgroup = [
@@ -50,7 +63,7 @@ interface SelectMultiple extends Select {
     }
 }
 
-export type WidgetType = TextInput|Select|SelectMultiple;
+export type WidgetType = TextInput|NumberInput|Select|SelectMultiple;
 
 interface Props {
     widget: WidgetType;
@@ -83,17 +96,23 @@ export const Widget = (props: Props) => {
             */
             // return <div>I am a select single</div>;
             const value = isMultiple(widget) ? widget.value : (widget.value[0] || '');
-            return <select name={widget.name} multiple={isMultiple(widget)} defaultValue={value}>
+            return <select
+                name={widget.name}
+                multiple={isMultiple(widget)}
+                defaultValue={value}
+            >
                 {widget.optgroups.map((optgroup, index) =>
                 <option key={index} value={getValue(optgroup)}>{optgroup[1][0].label}</option>
                 )}
             </select>;
         }
+        case "django/forms/widgets/number.html":
         case "django/forms/widgets/text.html": {
-            return <input defaultValue={widget.value || ""} name={widget.name} />;
+            return <input type={widget.type} defaultValue={widget.value || ""} name={widget.name} />;
             // return <div>I am a text</div>;
         }
         default: {
+            console.log(widget);
             const _exhaustiveCheck: never = widget;
             throw new Error('Cannot happen');
         }

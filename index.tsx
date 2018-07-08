@@ -6,7 +6,7 @@ import ReactDOMServer from 'react-dom/server';
 import middleware from 'webpack-dev-middleware';
 import {IncomingMessage} from 'http';
 import {getStyles} from 'typestyle';
-
+import {compile} from 'json-schema-to-typescript'
 
 import webpackConfig from './webpack.config';
 
@@ -77,6 +77,14 @@ const PATHS = [
     '/',
     '/form/',
 ]
+
+app.get('/schema/', async (req, res) => {
+    const response = await axios.get('http://localhost:8000/schema/');
+    const schema = response.data;
+
+    const compiled = await compile(schema, schema.title)
+    res.send(compiled);
+});
 
 /*
  * An example of a node-space route before we delegate to Django. Useful if we

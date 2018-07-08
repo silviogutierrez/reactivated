@@ -30,19 +30,19 @@ class FormViewProps(NamedTuple):
     form: FormType
 
 
+T = TypeVar('T')
+
+
 class JSXResponse:
-    def __init__(self, *, csrf_token: str, template_name: str, props: NamedTuple) -> None:
+    def __init__(self, *, csrf_token: str, template_name: str, props: T) -> None:
         self.props = {
             'csrf_token': csrf_token,
             'template_name': template_name,
-            **props._asdict(),
+            **props._asdict(),  # type: ignore
         }
 
     def as_json(self) -> Any:
         return simplejson.dumps(self.props)
-
-
-T = TypeVar('T')
 
 
 def render_jsx(request: HttpRequest, template_name: str, props: T) -> HttpResponse:
@@ -52,16 +52,6 @@ def render_jsx(request: HttpRequest, template_name: str, props: T) -> HttpRespon
         props=props,
     )
     return HttpResponse(response.as_json(), content_type='application/ssr+json')
-
-
-def test(request: HttpRequest) -> HttpResponse:
-    content = simplejson.dumps(JSXResponse(
-        template_name='DetailView',
-        props={
-            'thing': 'bar',
-        },
-    ))
-    return HttpResponse(content, content_type='application/json')
 
 
 class SSRFormRenderer:
@@ -77,6 +67,7 @@ def schema(request: HttpRequest) -> HttpResponse:
             return 'string'
         elif python_type == int:
             return 'number'
+        assert False, "Can't happen."
 
     schema = {
         'title': Type.__name__,

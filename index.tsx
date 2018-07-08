@@ -5,6 +5,7 @@ import express, {Request, Response} from 'express';
 import ReactDOMServer from 'react-dom/server';
 import middleware from 'webpack-dev-middleware';
 import {IncomingMessage} from 'http';
+import {getStyles} from 'typestyle';
 
 
 import webpackConfig from './webpack.config';
@@ -64,7 +65,11 @@ const ssrProxy = proxy('localhost:8000', {
         const props = responseAsJSON;
         const Template = require(`./templates/${props.template_name}.tsx`).default;
         const rendered = ReactDOMServer.renderToString(<Template {...props} />);
-        return renderPage({html: rendered, css: '', props});
+        return renderPage({
+            html: rendered,
+            css: getStyles(),
+            props,
+        });
     },
 });
 

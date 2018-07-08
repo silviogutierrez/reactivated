@@ -11,6 +11,7 @@
     "@types/webpack": "^4.4.5",
     "@types/webpack-dev-middleware": "^2.0.1",
     "axios": "^0.18.0",
+    "csstips": "^0.3.0",
     "express": "^4.16.3",
     "express-http-proxy": "^1.2.0",
     "nodemon": "^1.17.5",
@@ -20,6 +21,7 @@
     "ts-node": "^7.0.0",
     "tslint": "^5.10.0",
     "typescript": "^2.9.2",
+    "typestyle": "^2.0.1",
     "webpack": "^4.15.1",
     "webpack-dev-middleware": "^3.1.3"
   },

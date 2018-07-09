@@ -59,8 +59,55 @@ class SSRFormRenderer:
         return simplejson.dumps(context)
 
 
+def create_schema(Type: Any) -> Any:
+    if str(Type.__class__) == 'typing.Union':  # TODO: find a better way to do this.
+        return {
+            'anyOf': [
+                create_schema(field) for field in Type.__args__
+            ],
+        }
+    elif str(Type.__class__) == 'typing.Any':  # TODO: find a better way to do this.
+        return {
+        }
+    elif issubclass(Type, List):
+        return {
+            'type': 'array',
+            'items': create_schema(Type.__args__[0]),
+        }
+    elif issubclass(Type, Dict):
+        return {
+            'type': 'object',
+            'additionalProperties': create_schema(Type.__args__[1]),
+        }
+    elif issubclass(Type, str):
+        return {
+            'type': 'string',
+        }
+    elif Type is type(None):
+        return {
+            'type': 'null',
+        }
+    elif hasattr(Type, '_asdict'):
+        return {
+            'title': Type.__name__,
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                field_name: create_schema(SubType)
+                for field_name, SubType in Type.__annotations__.items()
+            },
+            'required': [
+                field_name for field_name, SubType in Type.__annotations__.items()
+            ],
+        }
+    assert False
+
+
 def schema(request: HttpRequest) -> HttpResponse:
     Type = Widget
+
+    schema = create_schema(FormViewProps)
+    return HttpResponse(simplejson.dumps(schema), content_type='application/json')
 
     def python_type_to_json_schema_type(python_type: Any) -> str:
         if python_type == str:

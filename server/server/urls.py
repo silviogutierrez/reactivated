@@ -19,6 +19,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('trinkets/', views.trinket_list),
+    path('trinkets/<int:pk>/', views.trinket_list),
     path('schema/', views.schema),
     path('record/', views.test_record),
     path('form/', views.test_form),

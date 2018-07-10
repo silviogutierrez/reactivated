@@ -142,7 +142,7 @@ def test_record(request: HttpRequest) -> HttpResponse:
 
         if form.is_valid():
             form.save()
-            return redirect(request.path)
+            return redirect(request.path)  # type: ignore
     else:
         form = TrinketForm(renderer=SSRFormRenderer())
 
@@ -211,7 +211,7 @@ def test_form(request: HttpRequest) -> HttpResponse:
         form = TestForm(request.POST, renderer=SSRFormRenderer())
 
         if form.is_valid():
-            return redirect(request.path)
+            return redirect(request.path)  # type: ignore
     else:
         form = TestForm(renderer=SSRFormRenderer())
 
@@ -230,3 +230,24 @@ def test_form(request: HttpRequest) -> HttpResponse:
         },
     )
     return HttpResponse(simplejson.dumps(response), content_type='application/ssr+json')
+
+
+class TrinketListProps(NamedTuple):
+    trinket_list: List[Trinket]
+
+
+def trinket_list(request: HttpRequest) -> HttpResponse:
+    trinket_list = [
+        Trinket(
+            name=trinket.name,
+            url=f'/trinkets/{trinket.pk}/',
+        ) for trinket in models.Trinket.objects.all()
+    ]
+
+    return TrinketListProps(
+        trinket_list=trinket_list,
+    )
+
+
+def trinket_detail(request: HttpRequest, *, pk: int) -> HttpResponse:
+    return HttpResponse('Ok')

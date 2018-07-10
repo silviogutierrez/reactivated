@@ -10,7 +10,7 @@ import abc
 import simplejson
 
 
-class Widget(NamedTuple):
+class Trinket(NamedTuple):
     name: str
     url: str
 
@@ -38,7 +38,7 @@ class FormType(NamedTuple):
 
 
 class FormViewProps(NamedTuple):
-    widget_list: List[Widget]
+    widget_list: List[Trinket]
     form: FormType
 
 
@@ -125,51 +125,26 @@ def create_schema(Type: Any) -> Any:
 
 
 def schema(request: HttpRequest) -> HttpResponse:
-    Type = Widget
-
     schema = create_schema(FormViewProps)
     return HttpResponse(simplejson.dumps(schema), content_type='application/json')
 
-    def python_type_to_json_schema_type(python_type: Any) -> str:
-        if python_type == str:
-            return 'string'
-        elif python_type == int:
-            return 'number'
-        assert False, "Can't happen."
-
-    schema = {
-        'title': Type.__name__,
-        'type': 'object',
-        'properties': {
-            field_name: {
-                'type': python_type_to_json_schema_type(field),
-            } for field_name, field in Type.__annotations__.items()
-            if not issubclass(field, TypeHint)
-        },
-        'required': [
-            field_name for field_name, field in Type.__annotations__.items()
-            if not issubclass(field, TypeHint)
-        ],
-        'additionalProperties': False,
-    }
-    return HttpResponse(simplejson.dumps(schema), content_type='application/json')
 
 def test_record(request: HttpRequest) -> HttpResponse:
     from django import forms
 
-    class WidgetForm(forms.ModelForm):
+    class TrinketForm(forms.ModelForm):
         class Meta:
-            model = models.Widget
+            model = models.Trinket
             fields = '__all__'
 
     if request.method == 'POST':
-        form = WidgetForm(request.POST, renderer=SSRFormRenderer())
+        form = TrinketForm(request.POST, renderer=SSRFormRenderer())
 
         if form.is_valid():
             form.save()
             return redirect(request.path)
     else:
-        form = WidgetForm(renderer=SSRFormRenderer())
+        form = TrinketForm(renderer=SSRFormRenderer())
 
     serialized_form = FormType(
         errors=form.errors,
@@ -185,10 +160,10 @@ def test_record(request: HttpRequest) -> HttpResponse:
     props = FormViewProps(
         form=serialized_form,
         widget_list=[
-            Widget(
-                name=widget.name,
+            Trinket(
+                name=trinket.name,
                 url='foo',
-            ) for widget in models.Widget.objects.all()
+            ) for trinket in models.Trinket.objects.all()
         ],
     )
 

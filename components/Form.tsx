@@ -1,7 +1,10 @@
 import React from 'react';
 
+import {FormType} from '../models';
 import {Widget, WidgetType} from './Widget';
 
+/*
+ * Manually-typed.
 interface Field {
     name: string;
     label: string;
@@ -16,6 +19,7 @@ export type FormType = {
     };
     fields: Field[];
 }
+*/
 
 interface Props {
     csrf_token: string;

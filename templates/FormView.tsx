@@ -2,7 +2,7 @@ import React from 'react';
 import {normalize, setupPage} from "csstips";
 
 import {Layout} from '../components/Layout';
-import {FormType, Form} from '../components/Form';
+import {Form} from '../components/Form';
 import {FormViewProps} from '../models';
 import {WidgetType as Foo} from '../components/Widget';
 

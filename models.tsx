@@ -1,10 +1,10 @@
 import {WidgetType} from './components/Widget';
 import {FieldType, FormViewProps} from './exports';
 
-declare module './interfaces' {
+declare module './exports' {
     interface FieldType {
         widget: WidgetType;
     }
 }
 
-export * from './interfaces';
+export * from './exports';

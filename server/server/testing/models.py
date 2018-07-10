@@ -10,7 +10,7 @@ class Category(models.Model):
         return self.name
 
 
-class Widget(models.Model):
+class Trinket(models.Model):
     name: str = models.CharField(max_length=200)
     category: Category = models.ForeignKey(Category, on_delete=models.CASCADE)
     price: decimal.Decimal = models.DecimalField(decimal_places=2, max_digits=10)

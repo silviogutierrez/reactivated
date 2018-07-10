@@ -6,6 +6,7 @@ from typing import Any, NamedTuple, Generic, TypeVar, Union, Dict, Optional, Lis
 
 from server.testing import models
 
+import abc
 import simplejson
 
 
@@ -14,10 +15,21 @@ class Widget(NamedTuple):
     url: str
 
 
+class TypeHint(abc.ABC):
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        pass
+
+
+class WidgetType(TypeHint):
+    name = 'WidgetType'
+
+
 class FieldType(NamedTuple):
     name: str
     label: str
-    widget: Any
+    widget: WidgetType
 
 
 class FormType(NamedTuple):
@@ -95,11 +107,20 @@ def create_schema(Type: Any) -> Any:
             'properties': {
                 field_name: create_schema(SubType)
                 for field_name, SubType in Type.__annotations__.items()
+                if not issubclass(SubType, TypeHint)
             },
             'required': [
                 field_name for field_name, SubType in Type.__annotations__.items()
             ],
         }
+    elif issubclass(Type, TypeHint):
+        """
+            return {
+                'title': Type().name,
+                'type': 'object',
+                'additionalProperties': False,
+           }
+        """
     assert False
 
 
@@ -123,9 +144,11 @@ def schema(request: HttpRequest) -> HttpResponse:
             field_name: {
                 'type': python_type_to_json_schema_type(field),
             } for field_name, field in Type.__annotations__.items()
+            if not issubclass(field, TypeHint)
         },
         'required': [
             field_name for field_name, field in Type.__annotations__.items()
+            if not issubclass(field, TypeHint)
         ],
         'additionalProperties': False,
     }

@@ -237,8 +237,8 @@ class TrinketListProps(NamedTuple):
 
 
 
-from typing import Callable, Tuple, Type
-from mypy_extensions import TypedDict
+from typing import Callable, Tuple, Type, cast
+from mypy_extensions import TypedDict, Arg, KwArg
 
 
 class Params(NamedTuple):
@@ -250,23 +250,26 @@ P = TypeVar('P')
 
 View = Callable[[HttpRequest, K], P]
 
-def ssr(*, props: Type[P], params: Type[K]) -> Callable[[View[K, P]], Callable[[HttpRequest, K], HttpResponse]]:
-    def render_jsx(original: View[K, P]) -> Callable[[HttpRequest, K], HttpResponse]:
-        def wrapper(request: HttpRequest, params: K) -> HttpResponse:
-            props = original(request, params)
-            return HttpResponse(simplejson.dumps(props), content_type='application/json')
-        return wrapper
-    return render_jsx
 
-"""
-def ssr(*, props: P) -> Callable[[Callable[[HttpRequest], P]], Callable[[HttpRequest], P]]:
-    def render_jsx(original: Callable[[HttpRequest], P]) -> Callable[[HttpRequest], P]:
-        def wrapper(request: HttpRequest) -> HttpResponse:
-            props = original(request)
-            return HttpResponse(simplejson.dumps(props), content_type='application/json')
+def to_camel_case(snake_str: str) -> str:
+    components = snake_str.split('_')
+    return ''.join(x.title() for x in components)
+
+
+def ssr(*,
+        props: Type[P],
+        params: Type[K]) -> Callable[[View[K, P]], Callable[[Arg(HttpRequest, 'request'), KwArg(Any)], HttpResponse]]:
+    def wrap_with_jsx(original: View[K, P]) -> Callable[[Arg(HttpRequest, 'request'), KwArg(Any)], HttpResponse]:
+        def wrapper(request: HttpRequest, **kwargs: Any) -> HttpResponse:
+            props = original(request, cast(Any, params)(**kwargs))
+            template_name = to_camel_case(original.__name__)
+
+            return render_jsx(request, template_name, props)
+
+            # props_with_template
+            # return HttpResponse(simplejson.dumps(props), content_type='application/ssr+json')
         return wrapper
-    return render_jsx
-"""
+    return wrap_with_jsx
 
 
 @ssr(props=TrinketListProps, params=Params)
@@ -283,5 +286,21 @@ def trinket_list(request: HttpRequest, params: Params) -> TrinketListProps:
     )
 
 
-def trinket_detail(request: HttpRequest, *, pk: int) -> HttpResponse:
-    return HttpResponse('Ok')
+class DetailParams(NamedTuple):
+    pk: int
+
+
+class DetailProps(NamedTuple):
+    trinket: Trinket
+
+
+@ssr(props=DetailProps, params=DetailParams)
+def trinket_detail(request: HttpRequest, params: DetailParams) -> DetailProps:
+    trinket = models.Trinket.objects.first()
+
+    return DetailProps(
+        trinket=Trinket(
+            name=trinket.name,
+            url=f'/trinkets/{trinket.pk}/',
+        ),
+    )

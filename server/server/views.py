@@ -238,16 +238,22 @@ class TrinketListProps(NamedTuple):
 
 
 from typing import Callable, Tuple, Type
+from mypy_extensions import TypedDict
 
 
+class Params(NamedTuple):
+    pk: int
+
+
+K = TypeVar('K')
 P = TypeVar('P')
 
-View = Callable[[HttpRequest], P]
+View = Callable[[HttpRequest, K], P]
 
-def ssr(*, props: Type[P]) -> Callable[[View[P]], Callable[[HttpRequest], HttpResponse]]:
-    def render_jsx(original: View[P]) -> Callable[[HttpRequest], HttpResponse]:
-        def wrapper(request: HttpRequest) -> HttpResponse:
-            props = original(request)
+def ssr(*, props: Type[P], params: Type[K]) -> Callable[[View[K, P]], Callable[[HttpRequest, K], HttpResponse]]:
+    def render_jsx(original: View[K, P]) -> Callable[[HttpRequest, K], HttpResponse]:
+        def wrapper(request: HttpRequest, params: K) -> HttpResponse:
+            props = original(request, params)
             return HttpResponse(simplejson.dumps(props), content_type='application/json')
         return wrapper
     return render_jsx
@@ -263,8 +269,8 @@ def ssr(*, props: P) -> Callable[[Callable[[HttpRequest], P]], Callable[[HttpReq
 """
 
 
-@ssr(props=TrinketListProps)
-def trinket_list(request: HttpRequest) -> TrinketListProps:
+@ssr(props=TrinketListProps, params=Params)
+def trinket_list(request: HttpRequest, params: Params) -> TrinketListProps:
     trinket_list = [
         Trinket(
             name=trinket.name,
@@ -275,9 +281,6 @@ def trinket_list(request: HttpRequest) -> TrinketListProps:
     return TrinketListProps(
         trinket_list=trinket_list,
     )
-
-# reveal_type(trinket_list)
-print(trinket_list.__annotations__)
 
 
 def trinket_detail(request: HttpRequest, *, pk: int) -> HttpResponse:

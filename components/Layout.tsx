@@ -1,8 +1,12 @@
 import React from 'react';
+
 import {style} from 'typestyle';
 import * as csstips from 'csstips';
 
 const bg = (color: string) => ({backgroundColor: color});
+
+csstips.normalize();
+csstips.setupPage('#root');
 
 interface Props {
     children?: React.ReactNode;

@@ -21,8 +21,9 @@ from . import views
 urlpatterns = [
     path('trinkets/', views.trinket_list),
     path('trinkets/<int:pk>/', views.trinket_detail),
+    path('form/', views.form_view),
     path('schema/', views.schema),
-    path('record/', views.test_record),
-    path('form/', views.test_form),
+    # path('record/', views.test_record),
+    # path('form/', views.test_form),
     path('admin/', admin.site.urls),
 ]

@@ -125,49 +125,11 @@ def create_schema(Type: Any) -> Any:
 
 
 def schema(request: HttpRequest) -> HttpResponse:
-    schema = create_schema(FormViewProps)
+    schema = [
+        create_schema(Props)
+        for Props in type_registry.values()
+    ]
     return HttpResponse(simplejson.dumps(schema), content_type='application/json')
-
-
-def test_record(request: HttpRequest) -> HttpResponse:
-    from django import forms
-
-    class TrinketForm(forms.ModelForm):
-        class Meta:
-            model = models.Trinket
-            fields = '__all__'
-
-    if request.method == 'POST':
-        form = TrinketForm(request.POST, renderer=SSRFormRenderer())
-
-        if form.is_valid():
-            form.save()
-            return redirect(request.path)  # type: ignore
-    else:
-        form = TrinketForm(renderer=SSRFormRenderer())
-
-    serialized_form = FormType(
-        errors=form.errors,
-        fields=[
-            FieldType(
-                widget=simplejson.loads(str(field))['widget'],
-                name=field.name,
-                label=field.label,
-            ) for field in form
-        ],
-   )
-
-    props = FormViewProps(
-        form=serialized_form,
-        widget_list=[
-            Trinket(
-                name=trinket.name,
-                url='foo',
-            ) for trinket in models.Trinket.objects.all()
-        ],
-    )
-
-    return render_jsx(request, 'FormView', props)
 
 
 def test_form(request: HttpRequest) -> HttpResponse:
@@ -232,6 +194,9 @@ def test_form(request: HttpRequest) -> HttpResponse:
     return HttpResponse(simplejson.dumps(response), content_type='application/ssr+json')
 
 
+type_registry: Dict[str, NamedTuple] = {}
+
+
 class TrinketListProps(NamedTuple):
     trinket_list: List[Trinket]
 
@@ -241,8 +206,12 @@ from typing import Callable, Tuple, Type, cast
 from mypy_extensions import TypedDict, Arg, KwArg
 
 
-class Params(NamedTuple):
-    pk: int
+class EmptyParams(NamedTuple):
+    pass
+
+
+class ListParams(NamedTuple):
+    pass
 
 
 K = TypeVar('K')
@@ -259,6 +228,10 @@ def to_camel_case(snake_str: str) -> str:
 def ssr(*,
         props: Type[P],
         params: Type[K]) -> Callable[[View[K, P]], Callable[[Arg(HttpRequest, 'request'), KwArg(Any)], HttpResponse]]:
+
+    type_registry[props.__name__] = props  # type: ignore
+
+
     def wrap_with_jsx(original: View[K, P]) -> Callable[[Arg(HttpRequest, 'request'), KwArg(Any)], HttpResponse]:
         def wrapper(request: HttpRequest, **kwargs: Any) -> HttpResponse:
             props = original(request, cast(Any, params)(**kwargs))
@@ -272,8 +245,8 @@ def ssr(*,
     return wrap_with_jsx
 
 
-@ssr(props=TrinketListProps, params=Params)
-def trinket_list(request: HttpRequest, params: Params) -> TrinketListProps:
+@ssr(props=TrinketListProps, params=ListParams)
+def trinket_list(request: HttpRequest, params: ListParams) -> TrinketListProps:
     trinket_list = [
         Trinket(
             name=trinket.name,
@@ -303,4 +276,44 @@ def trinket_detail(request: HttpRequest, params: DetailParams) -> DetailProps:
             name=trinket.name,
             url=f'/trinkets/{trinket.pk}/',
         ),
+    )
+
+
+@ssr(props=FormViewProps, params=EmptyParams)
+def form_view(request: HttpRequest, params: EmptyParams) -> FormViewProps:
+    from django import forms
+
+    class TrinketForm(forms.ModelForm):
+        class Meta:
+            model = models.Trinket
+            fields = '__all__'
+
+    if request.method == 'POST':
+        form = TrinketForm(request.POST, renderer=SSRFormRenderer())
+
+        if form.is_valid():
+            form.save()
+            return redirect(request.path)  # type: ignore
+    else:
+        form = TrinketForm(renderer=SSRFormRenderer())
+
+    serialized_form = FormType(
+        errors=form.errors,
+        fields=[
+            FieldType(
+                widget=simplejson.loads(str(field))['widget'],
+                name=field.name,
+                label=field.label,
+            ) for field in form
+        ],
+   )
+
+    return FormViewProps(
+        form=serialized_form,
+        widget_list=[
+            Trinket(
+                name=trinket.name,
+                url='foo',
+            ) for trinket in models.Trinket.objects.all()
+        ],
     )

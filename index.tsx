@@ -83,9 +83,14 @@ const PATHS = [
 async function init() {
     const response = await axios.get('http://localhost:8000/schema/');
     const schema = response.data;
-    const compiled = await compile(schema, schema.title)
 
-    fs.writeFileSync("exports.tsx", compiled);
+    const promises = schema.map((props: any, index: number) => compile(props, props.title));
+
+    const compiled = await Promise.all(promises);
+
+    // compile(schema, schema.title)
+
+    fs.writeFileSync("exports.tsx", compiled.join("\n"));
 
     /*
      * An example of a node-space route before we delegate to Django. Useful if we

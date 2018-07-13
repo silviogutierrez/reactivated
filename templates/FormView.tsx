@@ -1,5 +1,4 @@
 import React from 'react';
-import {normalize, setupPage} from "csstips";
 
 import {Layout} from '../components/Layout';
 import {Form} from '../components/Form';
@@ -17,9 +16,6 @@ interface Props extends FormViewProps {
     // widget_list: Widget[];
     csrf_token: string;
 }
-
-normalize();
-setupPage('#root');
 
 export default (props: Props) => <Layout>
     <ul>

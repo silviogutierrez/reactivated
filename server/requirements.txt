@@ -1,0 +1,7 @@
+Django==2.1b1
+django-extensions==2.0.7
+mypy==0.610
+mypy-extensions==0.3.0
+pytz==2018.5
+simplejson==3.16.0
+Werkzeug==0.14.1

@@ -84,7 +84,15 @@ async function init() {
     const response = await axios.get('http://localhost:8000/schema/');
     const schema = response.data;
 
-    const promises = schema.map((props: any, index: number) => compile(props, props.title));
+    const promises = schema.map((props: any, index: number) => compile({
+        ...props,
+        properties: {
+            ...props.properties,
+            template_name: {type: 'string'},
+            csrf_token: {type: 'string'},
+        },
+        required: [...props.required, 'template_name', 'csrf_token'],
+    }, props.title));
 
     const compiled = await Promise.all(promises);
 

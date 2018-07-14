@@ -210,7 +210,7 @@ class EmptyParams(NamedTuple):
     pass
 
 
-class ListParams(NamedTuple):
+class TrinketListParams(NamedTuple):
     pass
 
 
@@ -245,8 +245,8 @@ def ssr(*,
     return wrap_with_jsx
 
 
-@ssr(props=TrinketListProps, params=ListParams)
-def trinket_list(request: HttpRequest, params: ListParams) -> TrinketListProps:
+@ssr(props=TrinketListProps, params=TrinketListParams)
+def trinket_list(request: HttpRequest, params: TrinketListParams) -> TrinketListProps:
     trinket_list = [
         Trinket(
             name=trinket.name,
@@ -259,23 +259,25 @@ def trinket_list(request: HttpRequest, params: ListParams) -> TrinketListProps:
     )
 
 
-class DetailParams(NamedTuple):
+class TrinketDetailParams(NamedTuple):
     pk: int
 
 
-class DetailProps(NamedTuple):
+class TrinketDetailProps(NamedTuple):
     trinket: Trinket
+    back_url: str
 
 
-@ssr(props=DetailProps, params=DetailParams)
-def trinket_detail(request: HttpRequest, params: DetailParams) -> DetailProps:
+@ssr(props=TrinketDetailProps, params=TrinketDetailParams)
+def trinket_detail(request: HttpRequest, params: TrinketDetailParams) -> TrinketDetailProps:
     trinket = models.Trinket.objects.first()
 
-    return DetailProps(
+    return TrinketDetailProps(
         trinket=Trinket(
             name=trinket.name,
             url=f'/trinkets/{trinket.pk}/',
         ),
+        back_url='/trinkets/',
     )
 
 
@@ -313,7 +315,7 @@ def form_view(request: HttpRequest, params: EmptyParams) -> FormViewProps:
         widget_list=[
             Trinket(
                 name=trinket.name,
-                url='foo',
+                url=f'/trinkets/{trinket.pk}/',
             ) for trinket in models.Trinket.objects.all()
         ],
     )

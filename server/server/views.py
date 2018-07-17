@@ -2,7 +2,7 @@ from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 
-from typing import Any, NamedTuple, Generic, TypeVar, Union, Dict, Optional, List, Any, Tuple, Sequence, Mapping
+from typing import Any, NamedTuple, Generic, TypeVar, Union, Dict, Optional, List, Any, Tuple, Sequence, Mapping, overload
 
 from server.testing import models
 
@@ -90,6 +90,14 @@ def create_schema(Type: Any) -> Any:
         return {
             'type': 'object',
             'additionalProperties': create_schema(Type.__args__[1]),
+        }
+    elif issubclass(Type, bool):
+        return {
+            'type': 'bool',
+        }
+    elif issubclass(Type, int):
+        return {
+            'type': 'number',
         }
     elif issubclass(Type, str):
         return {
@@ -294,6 +302,7 @@ K = TypeVar('K')
 P = TypeVar('P', bound=Serializable)
 
 View = Callable[[HttpRequest, K], P]
+NoArgsView = Callable[[HttpRequest], P]
 
 
 def to_camel_case(snake_str: str) -> str:
@@ -301,12 +310,37 @@ def to_camel_case(snake_str: str) -> str:
     return ''.join(x.title() for x in components)
 
 
+    reveal_type(form_view)
+
+
+@overload
 def ssr(*,
         props: Type[P],
-        params: Type[K]) -> Callable[[View[K, P]], Callable[[Arg(HttpRequest, 'request'), KwArg(Any)], HttpResponse]]:
+        params: None = None) -> Callable[[NoArgsView[P]], Callable[[Arg(HttpRequest, 'request'), KwArg(Any)], HttpResponse]]: ...
 
+
+@overload
+def ssr(*,
+        props: Type[P],
+        params: Type[K]) -> Callable[[View[K, P]], Callable[[Arg(HttpRequest, 'request'), KwArg(Any)], HttpResponse]]: ...
+
+
+def ssr(*,
+        props: Type[P],
+        params: Optional[Type[K]] = None) -> Union[
+                                                 Callable[[NoArgsView[P]], Callable[[Arg(HttpRequest, 'request'), KwArg(Any)], HttpResponse]],
+                                                 Callable[[View[K, P]], Callable[[Arg(HttpRequest, 'request'), KwArg(Any)], HttpResponse]],
+                                             ]:
     type_registry[props.__name__] = props  # type: ignore
 
+    def no_args_wrap_with_jsx(original: NoArgsView[P]) -> Callable[[Arg(HttpRequest, 'request'), KwArg(Any)], HttpResponse]:
+        def wrapper(request: HttpRequest, **kwargs: Any) -> HttpResponse:
+            props = original(request)
+            template_name = to_camel_case(original.__name__)
+
+            return render_jsx(request, template_name, props)
+
+        return wrapper
 
     def wrap_with_jsx(original: View[K, P]) -> Callable[[Arg(HttpRequest, 'request'), KwArg(Any)], HttpResponse]:
         def wrapper(request: HttpRequest, **kwargs: Any) -> HttpResponse:
@@ -314,11 +348,12 @@ def ssr(*,
             template_name = to_camel_case(original.__name__)
 
             return render_jsx(request, template_name, props)
-
-            # props_with_template
-            # return HttpResponse(simplejson.dumps(props), content_type='application/ssr+json')
         return wrapper
-    return wrap_with_jsx
+
+    if params is None:
+        return no_args_wrap_with_jsx
+    else:
+        return wrap_with_jsx
 
 
 @ssr(props=TrinketListProps, params=TrinketListParams)
@@ -384,8 +419,8 @@ def do_something(thing: Serializable) -> None:
     pass
 
 
-@ssr(props=FormViewProps, params=EmptyParams)
-def form_view(request: HttpRequest, params: EmptyParams) -> FormViewProps:
+@ssr(props=FormViewProps)
+def form_view(request: HttpRequest) -> FormViewProps:
     from django import forms
 
     class TrinketForm(forms.ModelForm):

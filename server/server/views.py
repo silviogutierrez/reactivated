@@ -2,7 +2,7 @@ from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 
-from typing import Any, NamedTuple, Generic, TypeVar, Union, Dict, Optional, List, Any
+from typing import Any, NamedTuple, Generic, TypeVar, Union, Dict, Optional, List, Any, Tuple, Sequence
 
 from server.testing import models
 
@@ -39,7 +39,7 @@ class FormType(NamedTuple):
 
 class FormViewProps(NamedTuple):
     widget_list: List[Trinket]
-    form: FormType
+    # form: FormType
 
 
 T = TypeVar('T')
@@ -124,11 +124,33 @@ def create_schema(Type: Any) -> Any:
     assert False
 
 
+def wrap_with_globals(props: Any) -> Any:
+    return {
+        **props,
+        'properties': {
+            **props['properties'],
+            'template_name': {'type': 'string'},
+            'csrf_token': {'type': 'string'},
+        },
+        'required': [
+            *props['required'],
+            'template_name',
+            'csrf_token',
+        ],
+    }
+
+
 def schema(request: HttpRequest) -> HttpResponse:
-    schema = [
-        create_schema(Props)
-        for Props in type_registry.values()
-    ]
+    schema = {
+        'title': 'Schema',
+        'type': 'object',
+        'properties': {
+            name: wrap_with_globals(create_schema(Props))
+            for name, Props in type_registry.items()
+        },
+        'additionalProperties': False,
+        'required': [name for name in type_registry.keys()],
+    }
     return HttpResponse(simplejson.dumps(schema), content_type='application/json')
 
 
@@ -214,8 +236,50 @@ class TrinketListParams(NamedTuple):
     pass
 
 
+Serializable = Tuple[
+    Union[
+        str,
+        bool,
+        Dict[str, Union[str, int, float, bool, None]],
+        Sequence[
+            Tuple[
+                Union[
+                    str,
+                    bool,
+                    int,
+                    Dict[str, Union[str, int, float, bool, None]],
+                ],
+                ...
+            ]
+        ],
+        Dict[str, Any],
+        Tuple[
+            Union[
+                str,
+                bool,
+                int,
+                # Sequence[Any],
+                Dict[str, Union[
+                    str, 
+                    int, 
+                    float, 
+                    bool, 
+                    None,
+                    Sequence[
+                        str,
+                    ]
+                ]],
+                'TypeHint',
+            ],
+            ...
+        ]
+    ],
+    ...
+]
+
+
 K = TypeVar('K')
-P = TypeVar('P')
+P = TypeVar('P', bound=Serializable)
 
 View = Callable[[HttpRequest, K], P]
 
@@ -268,9 +332,20 @@ class TrinketDetailProps(NamedTuple):
     back_url: str
 
 
+class NestedNewThing(NamedTuple):
+    b: bool
+    f: int
+
+
+class NewThing(NamedTuple):
+    a: str
+    b: bool
+    c: NestedNewThing
+
+
 @ssr(props=TrinketDetailProps, params=TrinketDetailParams)
 def trinket_detail(request: HttpRequest, params: TrinketDetailParams) -> TrinketDetailProps:
-    trinket = models.Trinket.objects.first()
+    trinket = models.Trinket.objects.get(pk=params.pk)
 
     return TrinketDetailProps(
         trinket=Trinket(
@@ -279,6 +354,22 @@ def trinket_detail(request: HttpRequest, params: TrinketDetailParams) -> Trinket
         ),
         back_url='/trinkets/',
     )
+
+
+@ssr(props=NewThing, params=TrinketListParams)
+def my_thang(request: HttpRequest, params: TrinketListParams) -> NewThing:
+    return NewThing(
+        a='a',
+        b=True,
+        c=NestedNewThing(
+            b=True,
+            f=5,
+        ),
+    )
+
+
+def do_something(thing: Serializable) -> None:
+    pass
 
 
 @ssr(props=FormViewProps, params=EmptyParams)
@@ -311,7 +402,7 @@ def form_view(request: HttpRequest, params: EmptyParams) -> FormViewProps:
    )
 
     return FormViewProps(
-        form=serialized_form,
+        # form=serialized_form,
         widget_list=[
             Trinket(
                 name=trinket.name,

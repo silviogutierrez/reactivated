@@ -39,7 +39,7 @@ class FormType(NamedTuple):
 
 class FormViewProps(NamedTuple):
     widget_list: List[Trinket]
-    # form: FormType
+    form: FormType
 
 
 T = TypeVar('T')
@@ -252,22 +252,29 @@ Serializable = Tuple[
                 ...
             ]
         ],
-        Dict[str, Any],
+
         Tuple[
             Union[
                 str,
                 bool,
                 int,
                 # Sequence[Any],
+                Sequence[
+                    Tuple[
+                        str,
+                        str,
+                        'TypeHint',
+                    ]
+                ],
+
+                Dict[str, Optional[List[str]]],
+
                 Dict[str, Union[
                     str, 
                     int, 
                     float, 
                     bool, 
                     None,
-                    Sequence[
-                        str,
-                    ]
                 ]],
                 'TypeHint',
             ],
@@ -402,7 +409,7 @@ def form_view(request: HttpRequest, params: EmptyParams) -> FormViewProps:
    )
 
     return FormViewProps(
-        # form=serialized_form,
+        form=serialized_form,
         widget_list=[
             Trinket(
                 name=trinket.name,

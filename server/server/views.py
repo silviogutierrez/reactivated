@@ -2,7 +2,7 @@ from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 
-from typing import Any, NamedTuple, Generic, TypeVar, Union, Dict, Optional, List, Any, Tuple, Sequence
+from typing import Any, NamedTuple, Generic, TypeVar, Union, Dict, Optional, List, Any, Tuple, Sequence, Mapping
 
 from server.testing import models
 
@@ -256,25 +256,30 @@ Serializable = Tuple[
         Tuple[
             Union[
                 str,
-                bool,
                 int,
-                # Sequence[Any],
+                float,
+                bool,
+
                 Sequence[
                     Tuple[
-                        str,
-                        str,
-                        'TypeHint',
+                        Union[
+                            str,
+                            int,
+                            float,
+                            bool,
+                            'TypeHint',
+                        ],
+                        ...
                     ]
                 ],
 
-                Dict[str, Optional[List[str]]],
-
-                Dict[str, Union[
-                    str, 
-                    int, 
-                    float, 
-                    bool, 
-                    None,
+                Mapping[str, Union[
+                    str,
+                    int,
+                    float,
+                    bool,
+                    Sequence[str],
+                    None
                 ]],
                 'TypeHint',
             ],

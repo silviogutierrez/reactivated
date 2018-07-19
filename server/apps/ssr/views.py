@@ -58,6 +58,9 @@ class JSXResponse:
 
 
 def render_jsx(request: HttpRequest, template_name: str, props: T) -> HttpResponse:
+    if isinstance(props, HttpResponse):
+        return props
+
     response = JSXResponse(
         template_name=template_name,
         csrf_token=get_token(request),

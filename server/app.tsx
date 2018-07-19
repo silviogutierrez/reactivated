@@ -79,37 +79,33 @@ const PATHS = [
     '/form/',
 ]
 
-
-async function init() {
-    const response = await axios.get('http://localhost:8000/schema/');
-    const schema = response.data;
-    const compiled = await compile(schema, schema.title)
-    fs.writeFileSync("exports.tsx", compiled);
-
-    /*
-     * An example of a node-space route before we delegate to Django. Useful if we
-     * need websockets etc.
-    app.get('/', async (req, res) => {
-        res.send('ok!');
-    });
-    */
-
-    app.get('/schema/', async (req, res) => {
+export default {
+    listen: async (port: number|string, callback?: () => void) => {
         const response = await axios.get('http://localhost:8000/schema/');
         const schema = response.data;
         const compiled = await compile(schema, schema.title)
-        res.send(compiled);
-    });
+        fs.writeFileSync("exports.tsx", compiled);
 
-    app.use(middleware(compiler, {
-        publicPath: '/',
-    }));
+        /*
+         * An example of a node-space route before we delegate to Django. Useful if we
+         * need websockets etc.
+        app.get('/', async (req, res) => {
+            res.send('ok!');
+        });
+        */
 
-    app.use(PATHS, ssrProxy);
+        app.get('/schema/', async (req, res) => {
+            const response = await axios.get('http://localhost:8000/schema/');
+            const schema = response.data;
+            const compiled = await compile(schema, schema.title)
+            res.send(compiled);
+        });
 
-    // app.listen(3000, () => console.log('Example app listening on port 3000!'));
-}
+        app.use(middleware(compiler, {
+            publicPath: '/',
+        }));
 
-init();
-
-export default app;
+        app.use(PATHS, ssrProxy);
+        app.listen(port, callback);
+    },
+};

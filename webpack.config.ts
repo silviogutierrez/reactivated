@@ -1,7 +1,7 @@
 import path from 'path';
 
 export default {
-    entry: './app.tsx',
+    entry: './client/app.tsx',
     module: {
         rules: [
             {

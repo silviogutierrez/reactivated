@@ -28,7 +28,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "start": "NODE_PATH=./ nodemon --exec node_modules/.bin/ts-node --watch templates/ --watch components/ --watch index.tsx -e ts,tsx index.tsx",
+    "start": "NODE_PATH=./ nodemon --exec node_modules/.bin/ts-node --watch server/ --watch client/ -e ts,tsx index.tsx",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

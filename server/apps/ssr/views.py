@@ -1,6 +1,6 @@
 from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 
 from typing import Any, NamedTuple, Generic, TypeVar, Union, Dict, Optional, List, Any, Tuple, Sequence, Mapping, overload
 
@@ -41,32 +41,6 @@ class FormViewProps(NamedTuple):
     widget_list: List[Trinket]
     form: FormType
 
-
-T = TypeVar('T')
-
-
-class JSXResponse:
-    def __init__(self, *, csrf_token: str, template_name: str, props: T) -> None:
-        self.props = {
-            'csrf_token': csrf_token,
-            'template_name': template_name,
-            **props._asdict(),  # type: ignore
-        }
-
-    def as_json(self) -> Any:
-        return simplejson.dumps(self.props)
-
-
-def render_jsx(request: HttpRequest, template_name: str, props: T) -> HttpResponse:
-    if isinstance(props, HttpResponse):
-        return props
-
-    response = JSXResponse(
-        template_name=template_name,
-        csrf_token=get_token(request),
-        props=props,
-    )
-    return HttpResponse(response.as_json(), content_type='application/ssr+json')
 
 
 class SSRFormRenderer:
@@ -165,67 +139,6 @@ def schema(request: HttpRequest) -> HttpResponse:
     return HttpResponse(simplejson.dumps(schema), content_type='application/json')
 
 
-def test_form(request: HttpRequest) -> HttpResponse:
-    from django import forms
-    from django.contrib.auth.models import User
-
-    class TestForm(forms.Form):
-        first_field = forms.CharField()
-        single = forms.ChoiceField(
-            required=True,
-            choices=(
-                (None, '----'),
-                (1, 'M'),
-                (2, 'F'),
-            ),
-        )
-        flag = forms.ChoiceField(
-            required=False,
-            choices=(
-                (False, 'No'),
-                (True, 'Yes'),
-            ),
-        )
-        multiple = forms.MultipleChoiceField(
-            required=False,
-            choices=(
-                (1, 'Foo'),
-                (2, 'Bar'),
-            ),
-        )
-        model_single = forms.ModelChoiceField(
-            required=False,
-            queryset=User.objects.all(),
-        )
-        model_multiple = forms.ModelMultipleChoiceField(
-            required=False,
-            queryset=User.objects.all(),
-        )
-
-    if request.method == 'POST':
-        form = TestForm(request.POST, renderer=SSRFormRenderer())
-
-        if form.is_valid():
-            return redirect(request.path)  # type: ignore
-    else:
-        form = TestForm(renderer=SSRFormRenderer())
-
-    serialized_form = {
-        'errors': form.errors,
-        'fields': [simplejson.loads(str(field)) for field in form],
-    }
-    base_form = TestForm()
-    # assert False
-
-    response = JSXResponse(
-        template_name='FormView',
-        csrf_token=get_token(request),
-        props={
-            'form': serialized_form,
-        },
-    )
-    return HttpResponse(simplejson.dumps(response), content_type='application/ssr+json')
-
 
 type_registry: Dict[str, NamedTuple] = {}
 
@@ -304,8 +217,8 @@ Serializable = Tuple[
 K = TypeVar('K')
 P = TypeVar('P', bound=Serializable)
 
-View = Callable[[HttpRequest, K], P]
-NoArgsView = Callable[[HttpRequest], P]
+View = Callable[[HttpRequest, K], Union[P, HttpResponse]]
+NoArgsView = Callable[[HttpRequest], Union[P, HttpResponse]]
 
 
 def to_camel_case(snake_str: str) -> str:
@@ -314,6 +227,30 @@ def to_camel_case(snake_str: str) -> str:
 
 
     reveal_type(form_view)
+
+
+class JSXResponse:
+    def __init__(self, *, csrf_token: str, template_name: str, props: P) -> None:
+        self.props = {
+            'csrf_token': csrf_token,
+            'template_name': template_name,
+            **props._asdict(),  # type: ignore
+        }
+
+    def as_json(self) -> Any:
+        return simplejson.dumps(self.props)
+
+
+def render_jsx(request: HttpRequest, template_name: str, props: Union[P, HttpResponse]) -> HttpResponse:
+    if isinstance(props, HttpResponse):
+        return props
+
+    response = JSXResponse(
+        template_name=template_name,
+        csrf_token=get_token(request),
+        props=props,
+    )
+    return HttpResponse(response.as_json(), content_type='application/ssr+json')
 
 
 @overload
@@ -423,7 +360,7 @@ def do_something(thing: Serializable) -> None:
 
 
 @ssr(props=FormViewProps)
-def form_view(request: HttpRequest) -> FormViewProps:
+def form_view(request: HttpRequest) -> Union[FormViewProps, HttpResponse]:
     from django import forms
 
     class TrinketForm(forms.ModelForm):
@@ -436,7 +373,7 @@ def form_view(request: HttpRequest) -> FormViewProps:
 
         if form.is_valid():
             form.save()
-            return redirect(request.path)  # type: ignore
+            return redirect(request.path)
     else:
         form = TrinketForm(renderer=SSRFormRenderer())
 

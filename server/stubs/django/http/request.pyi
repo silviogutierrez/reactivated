@@ -6,3 +6,4 @@ class HttpRequest(object):
     POST: Any
     FILES: Any
     method: str
+    path: str

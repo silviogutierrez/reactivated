@@ -95,21 +95,29 @@ const ssrProxy2 = proxy2({
         });
         proxyRes.on('end', function () {
             const response = body.toString('utf8');
+
             if ('raw' in (req as any).query || proxyRes.headers['content-type'] !== 'application/ssr+json') {
+                // res.setHeader('content-type', proxyRes.headers['content-type'] || 'text/html; charset=utf-8');
+                // res.statusCode = proxyRes.statusCode!;
+                res.writeHead(proxyRes.statusCode!, proxyRes.headers)
                 res.end(response);
             }
             else {
                 const props = JSON.parse(response);
                 const Template = require(`../client/templates/${props.template_name}.tsx`).default;
                 const rendered = ReactDOMServer.renderToString(<Template {...props} />);
-
-                res.setHeader('content-type', 'text/html; charset=utf-8');
-
-                res.end(renderPage({
+                const body = renderPage({
                     html: rendered,
                     css: getStyles(),
                     props,
-                }));
+                });
+
+                res.writeHead(proxyRes.statusCode!, {
+                    ...proxyRes.headers,
+                    'Content-Type': 'text/html; charset=utf-8',
+                    'Content-Length': Buffer.byteLength(body),
+                });
+                res.end(body);
             }
 
         });

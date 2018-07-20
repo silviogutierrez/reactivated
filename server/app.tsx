@@ -1,6 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import webpack from 'webpack';
+import path from 'path';
 import express, {Request, Response} from 'express';
 import ReactDOMServer from 'react-dom/server';
 import middleware from 'webpack-dev-middleware';
@@ -101,6 +102,9 @@ const ssrProxy2 = proxy2({
                 const props = JSON.parse(response);
                 const Template = require(`../client/templates/${props.template_name}.tsx`).default;
                 const rendered = ReactDOMServer.renderToString(<Template {...props} />);
+
+                res.setHeader('content-type', 'text/html; charset=utf-8');
+
                 res.end(renderPage({
                     html: rendered,
                     css: getStyles(),
@@ -124,7 +128,7 @@ export default {
         const response = await axios.get('http://localhost:8000/schema/');
         const schema = response.data;
         const compiled = await compile(schema, schema.title)
-        fs.writeFileSync("exports.tsx", compiled);
+        fs.writeFileSync(path.join(__dirname, "../exports.tsx"), compiled);
 
         /*
          * An example of a node-space route before we delegate to Django. Useful if we

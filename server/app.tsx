@@ -134,10 +134,12 @@ const PATHS = [
 
 export default {
     listen: async (port: number|string, callback?: () => void) => {
+        /*
         const response = await axios.get('http://localhost:8000/schema/');
         const schema = response.data;
         const compiled = await compile(schema, schema.title)
         fs.writeFileSync(path.join(__dirname, "../exports.tsx"), compiled);
+        */
 
         /*
          * An example of a node-space route before we delegate to Django. Useful if we

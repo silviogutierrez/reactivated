@@ -9,6 +9,8 @@ import {getStyles} from 'typestyle';
 import {compile} from 'json-schema-to-typescript'
 import fs from 'fs';
 
+import proxy2 from 'http-proxy-middleware';
+
 import webpackConfig from '../webpack.config';
 
 const compiler = webpack({
@@ -74,6 +76,44 @@ const ssrProxy = proxy('localhost:8000', {
     },
 });
 
+declare module 'http-proxy-middleware' {
+    interface Config {
+        selfHandleResponse: boolean;
+    }
+}
+
+const ssrProxy2 = proxy2({
+    target: 'http://localhost:8000',
+    changeOrigin: true,
+    selfHandleResponse: true,
+    onProxyRes: (proxyRes, req, res) => {
+        let body = new Buffer('');
+
+        proxyRes.on('data', function (data: any) {
+            body = Buffer.concat([body, data as any]);
+        });
+        proxyRes.on('end', function () {
+            const response = body.toString('utf8');
+            if ('raw' in (req as any).query || proxyRes.headers['content-type'] !== 'application/ssr+json') {
+                res.end(response);
+            }
+            else {
+                const props = JSON.parse(response);
+                const Template = require(`../client/templates/${props.template_name}.tsx`).default;
+                const rendered = ReactDOMServer.renderToString(<Template {...props} />);
+                res.end(renderPage({
+                    html: rendered,
+                    css: getStyles(),
+                    props,
+                }));
+            }
+
+        });
+    },
+});
+
+// app.use('/api', proxy({target: 'http://www.example.org', changeOrigin: true}));
+
 const PATHS = [
     '/',
     '/form/',
@@ -105,7 +145,7 @@ export default {
             publicPath: '/',
         }));
 
-        app.use(PATHS, ssrProxy);
+        app.use(PATHS, ssrProxy2);
         app.listen(port, callback);
     },
 };

@@ -163,9 +163,53 @@ export default {
         // app.use(PATHS, ssrProxy2);
         const proxy = httpProxy.createProxyServer();
 
+        proxy.on('proxyRes', (proxyRes, req, res) => {
+            let body = new Buffer('');
+
+            proxyRes.on('data', function (data: any) {
+                body = Buffer.concat([body, data as any]);
+            });
+            proxyRes.on('end', function () {
+                const response = body.toString('utf8');
+
+                if ('raw' in (req as any).query || proxyRes.headers['content-type'] !== 'application/ssr+json') {
+                    // res.setHeader('content-type', proxyRes.headers['content-type'] || 'text/html; charset=utf-8');
+                    // res.statusCode = proxyRes.statusCode!;
+                    res.writeHead(proxyRes.statusCode!, proxyRes.headers)
+                    res.end(response);
+                }
+                else {
+                    const props = JSON.parse(response);
+                    const Template = require(`../client/templates/${props.template_name}.tsx`).default;
+                    const rendered = ReactDOMServer.renderToString(<Template {...props} />);
+                    const body = renderPage({
+                        html: rendered,
+                        css: getStyles(),
+                        props,
+                    });
+
+                    res.writeHead(proxyRes.statusCode!, {
+                        ...proxyRes.headers,
+                        'Content-Type': 'text/html; charset=utf-8',
+                        'Content-Length': Buffer.byteLength(body),
+                    });
+                    res.end(body);
+                }
+
+            });
+        });
+
         app.use(PATHS, (req, res, next) => {
-            proxy.web(req, res, { target: {socketPath: '/home/silviogutierrez/www/node.silviogutierrez.com/cgi/node.silviogutierrez.com.sock'} as any });
-        })
+            proxy.web(req, res, {
+                changeOrigin: true,
+                selfHandleResponse: true,
+                target: {
+                    socketPath: '/home/silviogutierrez/www/node.silviogutierrez.com/cgi/node.silviogutierrez.com.sock'
+                } as any,
+                // target: 'http://localhost:8000',
+
+            });
+        });
         app.listen(port, callback);
     },
 };

@@ -11,6 +11,7 @@ import {compile} from 'json-schema-to-typescript'
 import fs from 'fs';
 
 import proxy2 from 'http-proxy-middleware';
+import httpProxy from 'http-proxy';
 
 import webpackConfig from '../webpack.config';
 
@@ -159,7 +160,12 @@ export default {
         }));
         */
 
-        app.use(PATHS, ssrProxy2);
+        // app.use(PATHS, ssrProxy2);
+        const proxy = httpProxy.createProxyServer();
+
+        app.use(PATHS, (req, res, next) => {
+            proxy.web(req, res, { target: {socketPath: '/home/silviogutierrez/www/node.silviogutierrez.com/cgi/node.silviogutierrez.com.sock'} as any });
+        })
         app.listen(port, callback);
     },
 };

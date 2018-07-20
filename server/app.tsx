@@ -171,6 +171,7 @@ export default {
             });
             proxyRes.on('end', function () {
                 const response = body.toString('utf8');
+                console.log('Proxied request', proxyRes.statusCode);
 
                 if ('raw' in (req as any).query || proxyRes.headers['content-type'] !== 'application/ssr+json') {
                     // res.setHeader('content-type', proxyRes.headers['content-type'] || 'text/html; charset=utf-8');

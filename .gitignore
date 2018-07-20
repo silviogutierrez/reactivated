@@ -4,3 +4,4 @@
 node_modules
 .mypy_cache
 exports.tsx
+server/settings/__init__.py

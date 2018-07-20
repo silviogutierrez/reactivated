@@ -141,9 +141,11 @@ export default {
             res.send(compiled);
         });
 
+        /*
         app.use(middleware(compiler, {
             publicPath: '/',
         }));
+        */
 
         app.use(PATHS, ssrProxy2);
         app.listen(port, callback);

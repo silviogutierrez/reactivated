@@ -201,7 +201,8 @@ export default {
 
         app.use(PATHS, (req, res, next) => {
             proxy.web(req, res, {
-                changeOrigin: true,
+                // Change origin cannot be used with sockets.
+                // changeOrigin: true,
                 selfHandleResponse: true,
                 target: {
                     socketPath: '/home/silviogutierrez/www/node.silviogutierrez.com/cgi/node.silviogutierrez.com.sock'

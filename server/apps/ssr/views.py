@@ -125,7 +125,7 @@ def wrap_with_globals(props: Any) -> Any:
     }
 
 
-def schema(request: HttpRequest) -> HttpResponse:
+def generate_schema() -> str:
     schema = {
         'title': 'Schema',
         'type': 'object',
@@ -136,7 +136,11 @@ def schema(request: HttpRequest) -> HttpResponse:
         'additionalProperties': False,
         'required': [name for name in type_registry.keys()],
     }
-    return HttpResponse(simplejson.dumps(schema), content_type='application/json')
+    return simplejson.dumps(schema, indent=4)
+
+
+def schema(request: HttpRequest) -> HttpResponse:
+    return HttpResponse(generate_schema(), content_type='application/json')
 
 
 

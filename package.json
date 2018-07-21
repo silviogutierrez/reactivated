@@ -33,7 +33,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "build": "webpack -p",
+    "build:schema": "../../bin/python manage.py generate_types_schema | json2ts > exports.tsx",
+    "build": "npm run build:schema && webpack -p",
     "start": "NODE_PATH=./ nodemon --exec node_modules/.bin/ts-node --watch server/ --watch client/ -e ts,tsx index.tsx",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

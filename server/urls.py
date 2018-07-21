@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from apps.ssr import views
+from server.apps.ssr import views
 
 urlpatterns = [
     path('trinkets/', views.trinket_list),

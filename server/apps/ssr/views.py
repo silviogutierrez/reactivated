@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 
 from typing import Any, NamedTuple, Generic, TypeVar, Union, Dict, Optional, List, Any, Tuple, Sequence, Mapping, overload
 
-from apps.testing import models
+from server.apps.testing import models
 
 import abc
 import simplejson

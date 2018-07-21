@@ -48,7 +48,7 @@ export const renderPage = ({html, css, props}: {html: string, css: string, props
 </head>
 <body>
     <div id="root">${html}</div>
-    <script src="/bundle.js"></script>
+    <script src="/media/dist/bundle.js"></script>
 </body>
 </html>
 `;

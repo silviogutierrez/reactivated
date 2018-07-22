@@ -5,12 +5,10 @@ import path from 'path';
 import express, {Request, Response} from 'express';
 import ReactDOMServer from 'react-dom/server';
 import middleware from 'webpack-dev-middleware';
-import {IncomingMessage} from 'http';
 import {getStyles} from 'typestyle';
 import {compile} from 'json-schema-to-typescript'
 import fs from 'fs';
 
-import proxy2 from 'http-proxy-middleware';
 import httpProxy, {ServerOptions} from 'http-proxy';
 
 import webpackConfig from '../webpack.config';
@@ -19,18 +17,8 @@ const compiler = webpack({
     ...webpackConfig,
     mode: 'development',
 });
-const proxy = require('express-http-proxy');
 
 const app = express();
-
-const index = `
-<html>
-    <script src="/bundle.js"></script>
-    <body>
-
-    </body>
-</html>
-`;
 
 export const renderPage = ({html, css, props}: {html: string, css: string, props: any}) => `
 <!DOCTYPE html>
@@ -53,80 +41,6 @@ export const renderPage = ({html, css, props}: {html: string, css: string, props
 </html>
 `;
 
-const ssrProxy = proxy('localhost:8000', {
-    userResHeaderDecorator(headers: Request['headers'], userReq: Request, userRes: Response, proxyReq: Request, proxyRes: IncomingMessage) {
-        if (!('raw' in userReq.query) && proxyRes.headers['content-type'] === 'application/ssr+json') {
-            headers['content-type'] = 'text/html; charset=utf-8';
-        }
-
-        return headers;
-    },
-    userResDecorator: (proxyRes: IncomingMessage, proxyResData: Buffer, userReq: Request, userRes: Response) => {
-        if ('raw' in userReq.query || proxyRes.headers['content-type'] !== 'application/ssr+json') {
-            return proxyResData;
-        }
-
-        const responseAsJSON: any = JSON.parse(proxyResData.toString('utf8'));
-        const props = responseAsJSON;
-        const Template = require(`../client/templates/${props.template_name}.tsx`).default;
-        const rendered = ReactDOMServer.renderToString(<Template {...props} />);
-        return renderPage({
-            html: rendered,
-            css: getStyles(),
-            props,
-        });
-    },
-});
-
-declare module 'http-proxy-middleware' {
-    interface Config {
-        selfHandleResponse: boolean;
-    }
-}
-
-const ssrProxy2 = proxy2({
-    target: 'http://localhost:8000',
-    changeOrigin: true,
-    selfHandleResponse: true,
-    onProxyRes: (proxyRes, req, res) => {
-        let body = new Buffer('');
-
-        proxyRes.on('data', function (data: any) {
-            body = Buffer.concat([body, data as any]);
-        });
-        proxyRes.on('end', function () {
-            const response = body.toString('utf8');
-
-            if ('raw' in (req as any).query || proxyRes.headers['content-type'] !== 'application/ssr+json') {
-                // res.setHeader('content-type', proxyRes.headers['content-type'] || 'text/html; charset=utf-8');
-                // res.statusCode = proxyRes.statusCode!;
-                res.writeHead(proxyRes.statusCode!, proxyRes.headers)
-                res.end(response);
-            }
-            else {
-                const props = JSON.parse(response);
-                const Template = require(`../client/templates/${props.template_name}.tsx`).default;
-                const rendered = ReactDOMServer.renderToString(<Template {...props} />);
-                const body = renderPage({
-                    html: rendered,
-                    css: getStyles(),
-                    props,
-                });
-
-                res.writeHead(proxyRes.statusCode!, {
-                    ...proxyRes.headers,
-                    'Content-Type': 'text/html; charset=utf-8',
-                    'Content-Length': Buffer.byteLength(body),
-                });
-                res.end(body);
-            }
-
-        });
-    },
-});
-
-// app.use('/api', proxy({target: 'http://www.example.org', changeOrigin: true}));
-
 const PATHS = [
     '/',
     '/form/',
@@ -139,21 +53,6 @@ interface ListenOptions {
 
 export default {
     listen: async (options: ListenOptions, callback?: () => void) => {
-        /*
-        const response = await axios.get('http://localhost:8000/schema/');
-        const schema = response.data;
-        const compiled = await compile(schema, schema.title)
-        fs.writeFileSync(path.join(__dirname, "../exports.tsx"), compiled);
-        */
-
-        /*
-         * An example of a node-space route before we delegate to Django. Useful if we
-         * need websockets etc.
-        app.get('/', async (req, res) => {
-            res.send('ok!');
-        });
-        */
-
         app.get('/schema/', async (req, res) => {
             const response = await axios.get('http://localhost:8000/schema/');
             const schema = response.data;
@@ -167,7 +66,6 @@ export default {
         }));
         */
 
-        // app.use(PATHS, ssrProxy2);
         const proxy = httpProxy.createProxyServer();
 
         proxy.on('proxyRes', (proxyRes, req, res) => {
@@ -180,8 +78,6 @@ export default {
                 const response = body.toString('utf8');
 
                 if ('raw' in (req as any).query || proxyRes.headers['content-type'] !== 'application/ssr+json') {
-                    // res.setHeader('content-type', proxyRes.headers['content-type'] || 'text/html; charset=utf-8');
-                    // res.statusCode = proxyRes.statusCode!;
                     res.writeHead(proxyRes.statusCode!, proxyRes.headers)
                     res.end(response);
                 }
@@ -207,7 +103,7 @@ export default {
         });
 
         const target = typeof options.django == 'number' ? `http://localhost:${options.django}` : {
-            socketPath: '/home/silviogutierrez/www/node.silviogutierrez.com/cgi/node.silviogutierrez.com.sock'
+            socketPath: options.django,
         } as ServerOptions['target'];
 
         app.use(PATHS, (req, res, next) => {

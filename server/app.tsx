@@ -133,7 +133,7 @@ const PATHS = [
 ]
 
 interface ListenOptions {
-    port: number|string;
+    node: number|string;
     django: number|string;
 }
 
@@ -218,6 +218,6 @@ export default {
                 target,
             });
         });
-        app.listen(options.port, callback);
+        app.listen(options.node, callback);
     },
 };

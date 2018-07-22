@@ -11,7 +11,7 @@ import {compile} from 'json-schema-to-typescript'
 import fs from 'fs';
 
 import proxy2 from 'http-proxy-middleware';
-import httpProxy from 'http-proxy';
+import httpProxy, {ServerOptions} from 'http-proxy';
 
 import webpackConfig from '../webpack.config';
 
@@ -132,8 +132,13 @@ const PATHS = [
     '/form/',
 ]
 
+interface ListenOptions {
+    port: number|string;
+    django: number|string;
+}
+
 export default {
-    listen: async (port: number|string, callback?: () => void) => {
+    listen: async (options: ListenOptions, callback?: () => void) => {
         /*
         const response = await axios.get('http://localhost:8000/schema/');
         const schema = response.data;
@@ -166,14 +171,13 @@ export default {
         const proxy = httpProxy.createProxyServer();
 
         proxy.on('proxyRes', (proxyRes, req, res) => {
-            let body = new Buffer('');
+            let body = Buffer.from('', 'utf8');
 
-            proxyRes.on('data', function (data: any) {
-                body = Buffer.concat([body, data as any]);
+            proxyRes.on('data', function (data) {
+                body = Buffer.concat([body, data as Buffer]);
             });
             proxyRes.on('end', function () {
                 const response = body.toString('utf8');
-                console.log('Proxied request', proxyRes.statusCode);
 
                 if ('raw' in (req as any).query || proxyRes.headers['content-type'] !== 'application/ssr+json') {
                     // res.setHeader('content-type', proxyRes.headers['content-type'] || 'text/html; charset=utf-8');
@@ -202,18 +206,18 @@ export default {
             });
         });
 
+        const target = typeof options.django == 'number' ? `http://localhost:${options.django}` : {
+            socketPath: '/home/silviogutierrez/www/node.silviogutierrez.com/cgi/node.silviogutierrez.com.sock'
+        } as ServerOptions['target'];
+
         app.use(PATHS, (req, res, next) => {
             proxy.web(req, res, {
                 // Change origin cannot be used with sockets.
                 // changeOrigin: true,
                 selfHandleResponse: true,
-                target: {
-                    socketPath: '/home/silviogutierrez/www/node.silviogutierrez.com/cgi/node.silviogutierrez.com.sock'
-                } as any,
-                // target: 'http://localhost:8000',
-
+                target,
             });
         });
-        app.listen(port, callback);
+        app.listen(options.port, callback);
     },
 };

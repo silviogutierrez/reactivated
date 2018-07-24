@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from typing import Any
 
-from ...views import generate_schema
+from ... import generate_schema
 
 
 class Command(BaseCommand):

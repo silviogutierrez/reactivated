@@ -83,13 +83,22 @@ export default {
                 }
                 else {
                     const props = JSON.parse(response);
-                    const Template = require(`../client/templates/${props.template_name}.tsx`).default;
-                    const rendered = ReactDOMServer.renderToString(<Template {...props} />);
-                    const body = renderPage({
-                        html: rendered,
-                        css: getStyles(),
-                        props,
-                    });
+                    let body;
+
+                    try {
+                        const Template = require(`${process.cwd()}/client/templates/${props.template_name}.tsx`).default;
+                        const rendered = ReactDOMServer.renderToString(<Template {...props} />);
+                        const css = getStyles();
+
+                        body = renderPage({
+                            html: rendered,
+                            css,
+                            props,
+                        });
+                    }
+                    catch (error) {
+                        body = error.toString();
+                    }
 
                     res.writeHead(proxyRes.statusCode!, {
                         ...proxyRes.headers,

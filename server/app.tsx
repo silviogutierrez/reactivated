@@ -4,6 +4,7 @@ import webpack from 'webpack';
 import path from 'path';
 import express, {Request, Response} from 'express';
 import ReactDOMServer from 'react-dom/server';
+import Helmet, {HelmetData} from 'react-helmet';
 import middleware from 'webpack-dev-middleware';
 import {getStyles} from 'typestyle';
 import {compile} from 'json-schema-to-typescript'
@@ -22,11 +23,13 @@ const compiler = webpack({
 
 const app = express();
 
-export const renderPage = ({html, css, props}: {html: string, css: string, props: any}) => `
+export const renderPage = ({html, helmet, css, props}: {html: string, helmet: HelmetData, css: string, props: any}) => `
 <!DOCTYPE html>
 <html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<html ${helmet.htmlAttributes.toString()}>
+    ${helmet.title.toString()}
+    ${helmet.meta.toString()}
+    ${helmet.link.toString()}
     <style id="styles-target">
         ${css}
     </style>
@@ -36,7 +39,7 @@ export const renderPage = ({html, css, props}: {html: string, css: string, props
         window.__PRELOADED_STATE__ = ${JSON.stringify(props).replace(/</g, '\\u003c')}
     </script>
 </head>
-<body>
+<body ${helmet.bodyAttributes.toString()}>
     <div id="root">${html}</div>
     <script src="http://localhost:8080/media/dist/bundle.js"></script>
 </body>
@@ -97,10 +100,12 @@ export default {
 
                         const Template = require(template_path).default;
                         const rendered = ReactDOMServer.renderToString(<Template {...props} />);
+                        const helmet = Helmet.renderStatic();
                         const css = getStyles();
 
                         body = renderPage({
                             html: rendered,
+                            helmet,
                             css,
                             props,
                         });

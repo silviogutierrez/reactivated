@@ -13,10 +13,12 @@ import httpProxy, {ServerOptions} from 'http-proxy';
 
 import webpackConfig from '../webpack.config';
 
+/*
 const compiler = webpack({
     ...webpackConfig,
     mode: 'development',
 });
+*/
 
 const app = express();
 
@@ -36,7 +38,7 @@ export const renderPage = ({html, css, props}: {html: string, css: string, props
 </head>
 <body>
     <div id="root">${html}</div>
-    <script src="/media/dist/bundle.js"></script>
+    <script src="http://localhost:8080/media/dist/bundle.js"></script>
 </body>
 </html>
 `;
@@ -69,24 +71,31 @@ export default {
         const proxy = httpProxy.createProxyServer();
 
         proxy.on('proxyRes', (proxyRes, req, res) => {
-            let body = Buffer.from('', 'utf8');
+            let body = Buffer.from('') //, 'utf8');
 
             proxyRes.on('data', function (data) {
                 body = Buffer.concat([body, data as Buffer]);
             });
             proxyRes.on('end', function () {
-                const response = body.toString('utf8');
+                const response = body // .toString('utf8');
 
                 if ('raw' in (req as any).query || proxyRes.headers['content-type'] !== 'application/ssr+json') {
                     res.writeHead(proxyRes.statusCode!, proxyRes.headers)
                     res.end(response);
                 }
                 else {
-                    const props = JSON.parse(response);
                     let body;
 
                     try {
-                        const Template = require(`${process.cwd()}/client/templates/${props.template_name}.tsx`).default;
+                        const props = JSON.parse(response.toString('utf8'));
+                        const template_path = `${process.cwd()}/client/templates/${props.template_name}.tsx`;
+
+                        // TODO: disable this in production.
+                        if (process.env.NODE_ENV !== 'production') {
+                            delete require.cache[template_path];
+                        }
+
+                        const Template = require(template_path).default;
                         const rendered = ReactDOMServer.renderToString(<Template {...props} />);
                         const css = getStyles();
 

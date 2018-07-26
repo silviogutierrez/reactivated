@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {FormType} from '../models';
+import {FormType} from '../../models';
 import {Widget, WidgetType} from './Widget';
 
 /*

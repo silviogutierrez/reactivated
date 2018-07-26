@@ -14,7 +14,7 @@ interface BaseWidget {
 interface TextInput extends BaseWidget {
     type: 'text';
     template_name: 'django/forms/widgets/text.html';
-    value: string;
+    value: string|null;
     attrs: BaseWidget['attrs'] & {
         maxlength?: number;
     }
@@ -23,11 +23,33 @@ interface TextInput extends BaseWidget {
 interface NumberInput extends BaseWidget {
     type: 'number';
     template_name: 'django/forms/widgets/number.html';
-    value: string;
+    value: string|null;
     attrs: BaseWidget['attrs'] & {
         step: string;
     }
 }
+
+interface PasswordInput extends BaseWidget {
+    type: 'password';
+    template_name: 'django/forms/widgets/password.html';
+    value: string|null;
+}
+
+interface EmailInput extends BaseWidget {
+    type: 'email';
+    template_name: 'django/forms/widgets/email.html';
+    value: string|null;
+}
+
+interface Textarea extends BaseWidget {
+    template_name: 'django/forms/widgets/textarea.html';
+    value: string|null;
+    attrs: BaseWidget['attrs'] & {
+        cols: string;
+        rows: string;
+    }
+}
+
 
 type Optgroup = [
     null,
@@ -63,7 +85,7 @@ interface SelectMultiple extends Select {
     }
 }
 
-export type WidgetType = TextInput|NumberInput|Select|SelectMultiple;
+export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|Textarea|Select|SelectMultiple;
 
 interface Props {
     widget: WidgetType;
@@ -106,15 +128,18 @@ export const Widget = (props: Props) => {
                 )}
             </select>;
         }
+        case "django/forms/widgets/textarea.html":
+            return <textarea name={widget.name} defaultValue={widget.value || ""} />
         case "django/forms/widgets/number.html":
-        case "django/forms/widgets/text.html": {
+        case "django/forms/widgets/text.html":
+        case "django/forms/widgets/password.html":
+        case "django/forms/widgets/email.html": {
             return <input type={widget.type} defaultValue={widget.value || ""} name={widget.name} />;
             // return <div>I am a text</div>;
         }
         default: {
-            console.log(widget);
             const _exhaustiveCheck: never = widget;
-            throw new Error('Cannot happen');
+            throw new Error('Cannot happen, unknown widget type: \n' + JSON.stringify(widget, null, 2));
         }
     }
 };

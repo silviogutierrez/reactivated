@@ -50,25 +50,34 @@ class Template:
     def __init__(self, jsx_template_name):
         self.jsx_template_name = jsx_template_name
 
+    def get_props(self, context=None, request=None):
+        from server.apps.ssr import serialize_form
+
+        if self.jsx_template_name == 'registration/login.tsx':
+            return {
+                'form': serialize_form(context['form']),
+            }
+        elif self.jsx_template_name == 'flatpages/default.tsx':
+            flatpage = context['flatpage']
+
+            return {
+                'flatpage': {
+                    'title': flatpage.title,
+                    'url': flatpage.url,
+                    'content': markdown.markdown(flatpage.content),
+                },
+            }
+        else:
+            assert False
+
+
     def render(self, context=None, request=None):
-        flatpage = context['flatpage']
         request._is_jsx_response = True
+
+        props = self.get_props(context, request)
 
         return simplejson.dumps({
             'csrf_token': get_token(request),
             'template_name': self.jsx_template_name.replace('.tsx', ''),
-            'flatpage': {
-                'title': flatpage.title,
-                'url': flatpage.url,
-                'content': markdown.markdown(flatpage.content),
-            },
+            **props,
         })
-        """
-            if context is None:
-                context = {}
-            if request is not None:
-                context['request'] = request
-                context['csrf_input'] = csrf_input_lazy(request)
-                context['csrf_token'] = csrf_token_lazy(request)
-            return self.template.render(context)
-        """

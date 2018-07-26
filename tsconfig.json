@@ -13,7 +13,7 @@
         "esModuleInterop": true,
         "lib": ["dom", "es6"]
     },
-    "include": [
-        "**/*.tsx"
+    "files": [
+        "client/app.tsx"
     ]
 }

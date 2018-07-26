@@ -1,7 +1,8 @@
+from django import forms
 from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
 
-from typing import Any, Dict, Tuple, Union, Sequence, Mapping, TypeVar, Callable, Type, overload, Optional, cast, List
+from typing import Any, Dict, Tuple, Union, Sequence, Mapping, TypeVar, Callable, Type, overload, Optional, cast, List, NamedTuple
 
 from mypy_extensions import TypedDict, Arg, KwArg
 
@@ -244,3 +245,38 @@ def generate_schema() -> str:
         'required': [name for name in type_registry.keys()],
     }
     return simplejson.dumps(schema, indent=4)
+
+
+class WidgetType(TypeHint):
+    name = 'WidgetType'
+
+
+class FieldType(NamedTuple):
+    name: str
+    label: str
+    widget: WidgetType
+
+
+class FormType(NamedTuple):
+    errors: Dict[str, Optional[List[str]]]
+    fields: List[FieldType]
+
+
+class SSRFormRenderer:
+    def render(self, template_name, context, request=None):
+        return simplejson.dumps(context)
+
+
+def serialize_form(form: forms.BaseForm) -> FormType:
+    form.renderer = SSRFormRenderer()
+
+    return FormType(
+        errors=form.errors,
+        fields=[
+            FieldType(
+                widget=simplejson.loads(str(field))['widget'],
+                name=field.name,
+                label=str(field.label), # This can be a lazy proxy, so we must call str on it.
+            ) for field in form
+        ],
+   )

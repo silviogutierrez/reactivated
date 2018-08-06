@@ -186,12 +186,12 @@ class TypeHint(abc.ABC):
         pass
 
 
-def create_schema(Type: Any) -> Any:
+def create_schema(Type: Any, definitions: Dict, ref: bool = True) -> Any:
     if (getattr(Type, '__origin__', None) == Union or
         str(Type.__class__) == 'typing.Union'):  # TODO: find a better way to do this.
         return {
             'anyOf': [
-                create_schema(field) for field in Type.__args__
+                create_schema(field, definitions) for field in Type.__args__
             ],
         }
     elif str(Type.__class__) == 'typing.Any':  # TODO: find a better way to do this.
@@ -200,22 +200,22 @@ def create_schema(Type: Any) -> Any:
     elif getattr(Type, '_name', None) == 'Dict':
         return {
             'type': 'object',
-            'additionalProperties': create_schema(Type.__args__[1]),
+            'additionalProperties': create_schema(Type.__args__[1], definitions),
         }
     elif getattr(Type, '_name', None) == 'List':
         return {
             'type': 'array',
-            'items': create_schema(Type.__args__[0]),
+            'items': create_schema(Type.__args__[0], definitions),
         }
     elif issubclass(Type, List):
         return {
             'type': 'array',
-            'items': create_schema(Type.__args__[0]),
+            'items': create_schema(Type.__args__[0], definitions),
         }
     elif issubclass(Type, Dict):
         return {
             'type': 'object',
-            'additionalProperties': create_schema(Type.__args__[1]),
+            'additionalProperties': create_schema(Type.__args__[1], definitions),
         }
     elif issubclass(Type, bool):
         return {
@@ -234,23 +234,64 @@ def create_schema(Type: Any) -> Any:
             'type': 'null',
         }
     elif hasattr(Type, '_asdict'):
-        required = []
-        properties = {}
+        definition_name = f'{Type.__module__}.{Type.__qualname__}'
 
-        for field_name, SubType in Type.__annotations__.items():
-            field_schema = create_schema(SubType)
+        if ref is False or definition_name not in definitions:
+            required = []
+            properties = {}
 
-            if field_schema is not None:
+            for field_name, SubType in Type.__annotations__.items():
+                field_schema = create_schema(SubType, definitions)
 
-                required.append(field_name)
-                properties[field_name] = field_schema
+                if field_schema is not None:
+
+                    required.append(field_name)
+                    properties[field_name] = field_schema
+
+            definition = {
+                'title': Type.__name__,
+                'type': 'object',
+                'additionalProperties': False,
+                'properties': properties,
+                'required': required,
+            }
+
+            if ref is False:
+                return definition
+            definitions[definition_name] = definition
 
         return {
+            '$ref': f'#/definitions/{definition_name}',
+        }
+    elif issubclass(Type, forms.Form):
+        return None
+        required = []
+        properties = {}
+        form_schema = create_schema(FormType, definitions)
+        field_schema = create_schema(FieldType, definitions)
+
+        for field_name, SubType in Type.base_fields.items():
+            required.append(field_name)
+            properties[field_name] = field_schema
+
+        return {}
+        return {
+            **form_schema,
             'title': Type.__name__,
-            'type': 'object',
-            'additionalProperties': False,
-            'properties': properties,
-            'required': required,
+            'properties': {
+                **form_schema['properties'],
+                'map': {
+                    'type': 'object',
+                    'properties': properties,
+                    'required': required,
+                    'additionalProperties': False,
+                },
+            },
+            'required': [
+                *form_schema['required'],
+                'map',
+                'test',
+            ],
         }
     elif issubclass(Type, TypeHint):
         return None
@@ -305,11 +346,14 @@ def wrap_with_globals(props: Any) -> Any:
 
 
 def generate_schema() -> str:
+    definitions = {}
+
     schema = {
         'title': 'Schema',
         'type': 'object',
+        'definitions': definitions,
         'properties': {
-            name: wrap_with_globals(create_schema(Props))
+            name: wrap_with_globals(create_schema(Props, definitions, ref=False))
             for name, Props in type_registry.items()
         },
         'additionalProperties': False,

@@ -4,9 +4,9 @@ from django.shortcuts import redirect
 
 from typing import Any, NamedTuple, Generic, TypeVar, Union, Dict, Optional, List, Any, Tuple, Sequence, Mapping, overload
 
-from server.apps.testing import models
+# from server.apps.testing import models
 
-from . import ssr, generate_schema, TypeHint
+from . import ssr, generate_schema, TypeHint, FormType
 
 import abc
 import simplejson
@@ -15,21 +15,6 @@ import simplejson
 class Trinket(NamedTuple):
     name: str
     url: str
-
-
-class WidgetType(TypeHint):
-    name = 'WidgetType'
-
-
-class FieldType(NamedTuple):
-    name: str
-    label: str
-    widget: WidgetType
-
-
-class FormType(NamedTuple):
-    errors: Dict[str, Optional[List[str]]]
-    fields: List[FieldType]
 
 
 class FormViewProps(NamedTuple):

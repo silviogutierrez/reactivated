@@ -1,0 +1,6 @@
+from typing import Dict, Optional
+
+class Widget:
+    def __init__(self, *, attrs: Optional[Dict[str, str]] = None) -> None: ...
+
+class TextInput(Widget): ...

@@ -1,6 +1,8 @@
 from typing import Any, Dict, List, Optional, Iterator
 
 class BaseForm:
+    cleaned_data: Dict[str, Any]
+
     def __init__(self, *args: Any, **kwargs: Any) -> None: ...
 
     def is_valid(self) -> bool: ...

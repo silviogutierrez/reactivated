@@ -16,12 +16,23 @@ type_registry: Dict[str, Tuple] = {}
 
 Serializable = Tuple[
     Union[
+        None,
         str,
         bool,
         Dict[str, Union[str, int, float, bool, None]],
         Sequence[
             Tuple[
                 Union[
+                    Sequence[
+                        Tuple[
+                            Union[
+                                str,
+                                bool,
+                                int,
+                            ],
+                            ...
+                        ],
+                    ],
                     str,
                     bool,
                     int,

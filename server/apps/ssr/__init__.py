@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
 
@@ -82,12 +83,20 @@ def to_camel_case(snake_str: str) -> str:
     reveal_type(form_view)
 
 
+class Message(NamedTuple):
+    level: int
+    level_tag: str
+    message: str
+
+
 class JSXResponse:
-    def __init__(self, *, csrf_token: str, template_name: str, props: P) -> None:
+    def __init__(self, *, csrf_token: str, template_name: str, props: P, messages: List[Message]) -> None:
+
         self.props = {
             'csrf_token': csrf_token,
             'template_name': template_name,
-            **props._asdict(),  # type: ignore
+            'messages': messages,
+            **(props if isinstance(props, dict) else props._asdict()),  # type: ignore
         }
 
     def as_json(self) -> Any:
@@ -98,9 +107,19 @@ def render_jsx(request: HttpRequest, template_name: str, props: Union[P, HttpRes
     if isinstance(props, HttpResponse):
         return props
 
+
+    current_messages = messages.get_messages(request)
+
     response = JSXResponse(
         template_name=template_name,
         csrf_token=get_token(request),
+        messages=[
+            Message(
+                level=m.level,
+                level_tag=m.level_tag,
+                message=m.message,
+            ) for m in current_messages
+        ],
         props=props,
     )
     return HttpResponse(response.as_json(), content_type='application/ssr+json')
@@ -157,7 +176,8 @@ class TypeHint(abc.ABC):
 
 
 def create_schema(Type: Any) -> Any:
-    if str(Type.__class__) == 'typing.Union':  # TODO: find a better way to do this.
+    if (getattr(Type, '__origin__', None) == Union or
+        str(Type.__class__) == 'typing.Union'):  # TODO: find a better way to do this.
         return {
             'anyOf': [
                 create_schema(field) for field in Type.__args__
@@ -165,6 +185,16 @@ def create_schema(Type: Any) -> Any:
         }
     elif str(Type.__class__) == 'typing.Any':  # TODO: find a better way to do this.
         return {
+        }
+    elif getattr(Type, '_name', None) == 'Dict':
+        return {
+            'type': 'object',
+            'additionalProperties': create_schema(Type.__args__[1]),
+        }
+    elif getattr(Type, '_name', None) == 'List':
+        return {
+            'type': 'array',
+            'items': create_schema(Type.__args__[0]),
         }
     elif issubclass(Type, List):
         return {
@@ -193,20 +223,26 @@ def create_schema(Type: Any) -> Any:
             'type': 'null',
         }
     elif hasattr(Type, '_asdict'):
+        required = []
+        properties = {}
+
+        for field_name, SubType in Type.__annotations__.items():
+            field_schema = create_schema(SubType)
+
+            if field_schema is not None:
+
+                required.append(field_name)
+                properties[field_name] = field_schema
+
         return {
             'title': Type.__name__,
             'type': 'object',
             'additionalProperties': False,
-            'properties': {
-                field_name: create_schema(SubType)
-                for field_name, SubType in Type.__annotations__.items()
-                if not issubclass(SubType, TypeHint)
-            },
-            'required': [
-                field_name for field_name, SubType in Type.__annotations__.items()
-            ],
+            'properties': properties,
+            'required': required,
         }
     elif issubclass(Type, TypeHint):
+        return None
         """
             return {
                 'title': Type().name,
@@ -224,11 +260,35 @@ def wrap_with_globals(props: Any) -> Any:
             **props['properties'],
             'template_name': {'type': 'string'},
             'csrf_token': {'type': 'string'},
+            'messages': {
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'level': {
+                            'type': 'number',
+                        },
+                        'level_tag': {
+                            'type': 'string',
+                        },
+                        'message': {
+                            'type': 'string',
+                        },
+                    },
+                    'required': [
+                        'level',
+                        'level_tag',
+                        'message',
+                    ],
+                    'additionalProperties': False,
+                },
+            },
         },
         'required': [
             *props['required'],
             'template_name',
             'csrf_token',
+            'messages',
         ],
     }
 
@@ -244,6 +304,7 @@ def generate_schema() -> str:
         'additionalProperties': False,
         'required': [name for name in type_registry.keys()],
     }
+
     return simplejson.dumps(schema, indent=4)
 
 
@@ -267,7 +328,10 @@ class SSRFormRenderer:
         return simplejson.dumps(context)
 
 
-def serialize_form(form: forms.BaseForm) -> FormType:
+def serialize_form(form: Optional[forms.BaseForm]) -> Optional[FormType]:
+    if form is None:
+        return None
+
     form.renderer = SSRFormRenderer()
 
     return FormType(

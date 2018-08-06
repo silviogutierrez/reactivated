@@ -24,6 +24,7 @@ export type FormType = {
 interface Props {
     csrf_token: string;
     form: FormType;
+    children?: React.ReactNode;
 }
 
 export const Form = (props: Props) => {
@@ -47,6 +48,6 @@ export const Form = (props: Props) => {
             }
         </div>
         )}
-        <button type="submit">Submit</button>
+        {props.children}
     </form>;
 };

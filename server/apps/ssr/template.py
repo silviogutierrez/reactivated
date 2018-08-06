@@ -7,6 +7,8 @@ import os
 import simplejson
 import markdown
 
+from . import render_jsx
+
 
 class JSX(BaseEngine):
     # Name of the subdirectory containing the templates for this engine
@@ -75,9 +77,6 @@ class Template:
         request._is_jsx_response = True
 
         props = self.get_props(context, request)
+        template_name = self.jsx_template_name.replace('.tsx', '')
 
-        return simplejson.dumps({
-            'csrf_token': get_token(request),
-            'template_name': self.jsx_template_name.replace('.tsx', ''),
-            **props,
-        })
+        return render_jsx(request, template_name, props)

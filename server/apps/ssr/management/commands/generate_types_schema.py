@@ -9,4 +9,6 @@ class Command(BaseCommand):
     help = 'Generates a JSON schema for all registered types.'
 
     def handle(self, *args: Any, **options: Any) -> None:
+        schema = generate_schema()
+
         self.stdout.write(generate_schema())

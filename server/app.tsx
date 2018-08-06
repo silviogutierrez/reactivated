@@ -111,7 +111,7 @@ export default {
                         });
                     }
                     catch (error) {
-                        body = error.toString();
+                        body = error.stack;
                     }
 
                     res.writeHead(proxyRes.statusCode!, {

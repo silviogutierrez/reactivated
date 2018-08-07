@@ -8,6 +8,7 @@ from typing import Any, Dict, Tuple, Union, Sequence, Mapping, TypeVar, Callable
 from mypy_extensions import TypedDict, Arg, KwArg
 
 import abc
+import datetime
 import simplejson
 
 
@@ -20,6 +21,7 @@ Serializable = Tuple[
         str,
         bool,
         Dict[str, Union[str, int, float, bool, None]],
+        forms.Form,
         Sequence[
             Tuple[
                 Union[
@@ -100,6 +102,19 @@ class Message(NamedTuple):
     message: str
 
 
+def encode_complex_types(obj: Any) -> Serializable:
+    """
+    Handles dates, forms, and other types.
+    From: https://stackoverflow.com/a/22238613
+    """
+    if isinstance(obj, (datetime.datetime, datetime.date)):
+        return obj.isoformat()
+    elif isinstance(obj, forms.Form):
+        return serialize_form(obj)
+
+    raise TypeError("Type %s not serializable" % type(obj))
+
+
 class JSXResponse:
     def __init__(self, *, csrf_token: str, template_name: str, props: P, messages: List[Message]) -> None:
 
@@ -111,7 +126,7 @@ class JSXResponse:
         }
 
     def as_json(self) -> Any:
-        return simplejson.dumps(self.props)
+        return simplejson.dumps(self.props, default=encode_complex_types)  #, use_decimal=False)
 
 
 def render_jsx(request: HttpRequest, template_name: str, props: Union[P, HttpResponse]) -> HttpResponse:
@@ -264,35 +279,51 @@ def create_schema(Type: Any, definitions: Dict, ref: bool = True) -> Any:
             '$ref': f'#/definitions/{definition_name}',
         }
     elif issubclass(Type, forms.Form):
-        return None
+        definition_name = f'{Type.__module__}.{Type.__qualname__}'
         required = []
         properties = {}
-        form_schema = create_schema(FormType, definitions)
         field_schema = create_schema(FieldType, definitions)
+        error_schema = create_schema(FormErrors, definitions)
 
         for field_name, SubType in Type.base_fields.items():
             required.append(field_name)
             properties[field_name] = field_schema
 
-        return {}
-        return {
-            **form_schema,
+        definitions['Form'] = {
+            'title': 'Form',
+            'type': 'object',
+            'additionalProperties': False,
+        }
+        definitions[definition_name] = {
             'title': Type.__name__,
-            'properties': {
-                **form_schema['properties'],
-                'map': {
-                    'type': 'object',
-                    'properties': properties,
-                    'required': required,
-                    'additionalProperties': False,
+            'allOf': [
+                {
+                    '$ref': '#/definitions/Form',
                 },
-            },
-            'required': [
-                *form_schema['required'],
-                'map',
-                'test',
+                {
+                    'type': 'object',
+                    'properties': {
+                        'errors': error_schema,
+                        'fields': {
+                            'type': 'object',
+                            'properties': properties,
+                            'required': required,
+                            'additionalProperties': False,
+                        },
+                    },
+                    'additionalProperties': False,
+                    'required': [
+                        'fields',
+                        'errors',
+                    ],
+                },
             ],
         }
+
+        return {
+            '$ref': f'#/definitions/{definition_name}',
+        }
+
     elif issubclass(Type, TypeHint):
         return None
         """
@@ -373,9 +404,13 @@ class FieldType(NamedTuple):
     widget: WidgetType
 
 
+FormErrors = Dict[str, Optional[List[str]]]
+
+
 class FormType(NamedTuple):
-    errors: Dict[str, Optional[List[str]]]
-    fields: List[FieldType]
+    errors: FormErrors
+    fields: Dict[str, FieldType]
+    iterator: List[str]
 
 
 class SSRFormRenderer:
@@ -388,14 +423,16 @@ def serialize_form(form: Optional[forms.BaseForm]) -> Optional[FormType]:
         return None
 
     form.renderer = SSRFormRenderer()
+    fields = {
+        field.name: FieldType(
+            widget=simplejson.loads(str(field))['widget'],
+            name=field.name,
+            label=str(field.label), # This can be a lazy proxy, so we must call str on it.
+        ) for field in form
+    }
 
     return FormType(
         errors=form.errors,
-        fields=[
-            FieldType(
-                widget=simplejson.loads(str(field))['widget'],
-                name=field.name,
-                label=str(field.label), # This can be a lazy proxy, so we must call str on it.
-            ) for field in form
-        ],
+        fields=fields,
+        iterator=list(fields.keys()),
    )

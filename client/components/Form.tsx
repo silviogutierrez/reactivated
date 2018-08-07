@@ -1,30 +1,26 @@
 import React from 'react';
 
-import {FormType} from '../../models';
+import * as models from '../../models';
 import {Widget, WidgetType} from './Widget';
 
-/*
- * Manually-typed.
-interface Field {
-    name: string;
-    label: string;
-    widget: WidgetType;
-}
-
-type FormError = string[];
-
-export type FormType = {
+interface Form {
+    fields: {
+        [name: string]: models.FieldType;
+    },
     errors: {
-        [name: string]: FormError|null;
-    };
-    fields: Field[];
+        [P in keyof this['fields']]: string[]|null;
+    }
+    iterator: Array<keyof this['fields']>;
 }
-*/
 
 interface Props {
     csrf_token: string;
-    form: FormType;
+    form: Form;
     children?: React.ReactNode;
+}
+
+function iterate<T>(form: Form, callback: (field: models.FieldType, error: string[]|null) => T) {
+    return form.iterator.map((field_name) => callback(form.fields[field_name], form.errors[field_name]));
 }
 
 export const Form = (props: Props) => {
@@ -33,15 +29,15 @@ export const Form = (props: Props) => {
         {/*Object.keys(props.form.errors).length > 0 &&
         <pre>{JSON.stringify(props.form.errors, null, 2)}</pre>
         */}
-        {props.form.fields.map(field =>
+        {iterate(props.form, (field, error) =>
         <div key={field.widget.name}>
             <label>
                 {field.label}
                 <Widget widget={field.widget} />
             </label>
-            {props.form.errors[field.name] != null &&
+            {error != null &&
             <ul>
-                {props.form.errors[field.name]!.map((error, index) =>
+                {error.map((error, index) =>
                 <li key={index}>{error}</li>
                 )}
             </ul>

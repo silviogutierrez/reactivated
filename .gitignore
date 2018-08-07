@@ -3,5 +3,5 @@
 .DS_Store
 node_modules
 .mypy_cache
-exports.tsx
+client/exports.tsx
 server/settings/__init__.py

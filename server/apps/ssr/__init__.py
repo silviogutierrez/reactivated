@@ -336,7 +336,9 @@ def create_schema(Type: Any, definitions: Dict, ref: bool = True) -> Any:
     assert False
 
 
-def wrap_with_globals(props: Any) -> Any:
+def wrap_with_globals(props: Any, definitions: Dict) -> Any:
+    message_schema = create_schema(Message, definitions)
+
     return {
         **props,
         'properties': {
@@ -345,26 +347,7 @@ def wrap_with_globals(props: Any) -> Any:
             'csrf_token': {'type': 'string'},
             'messages': {
                 'type': 'array',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'level': {
-                            'type': 'number',
-                        },
-                        'level_tag': {
-                            'type': 'string',
-                        },
-                        'message': {
-                            'type': 'string',
-                        },
-                    },
-                    'required': [
-                        'level',
-                        'level_tag',
-                        'message',
-                    ],
-                    'additionalProperties': False,
-                },
+                'items': message_schema,
             },
         },
         'required': [
@@ -384,7 +367,7 @@ def generate_schema() -> str:
         'type': 'object',
         'definitions': definitions,
         'properties': {
-            name: wrap_with_globals(create_schema(Props, definitions, ref=False))
+            name: wrap_with_globals(create_schema(Props, definitions, ref=False), definitions)
             for name, Props in type_registry.items()
         },
         'additionalProperties': False,

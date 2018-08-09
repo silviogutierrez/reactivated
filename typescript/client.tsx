@@ -8,8 +8,10 @@ if ((module as any).hot) {
     (module as any).hot.accept()
 }
 
-const Template = require('templates/' + props.template_name + '.tsx').default;
+const Template = require('client/templates/' + props.template_name + '.tsx').default;
 
-hydrate(<Template {...props} />, document.getElementById('root'));
+export const bootstrap = () => {
+    hydrate(<Template {...props} />, document.getElementById('root'));
 
-setStylesTarget(document.getElementById('styles-target')!);
+    setStylesTarget(document.getElementById('styles-target')!);
+}

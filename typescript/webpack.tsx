@@ -20,7 +20,7 @@ export default {
     },
     resolve: {
         modules: [
-            path.resolve('./client'), 'node_modules',
+            path.resolve('./'), 'node_modules',
         ],
         extensions: [ '.tsx', '.ts', '.js' ],
         symlinks: false,

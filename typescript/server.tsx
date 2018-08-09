@@ -1,5 +1,4 @@
 import React from 'react';
-import axios from 'axios';
 import webpack from 'webpack';
 import path from 'path';
 import express, {Request, Response} from 'express';
@@ -12,7 +11,7 @@ import fs from 'fs';
 
 import httpProxy, {ServerOptions} from 'http-proxy';
 
-import webpackConfig from '../webpack.config';
+// import webpackConfig from '../webpack.config';
 
 /*
 const compiler = webpack({
@@ -41,7 +40,7 @@ export const renderPage = ({html, helmet, css, props}: {html: string, helmet: He
 </head>
 <body ${helmet.bodyAttributes.toString()}>
     <div id="root">${html}</div>
-    <script src="http://localhost:8080/media/dist/bundle.js"></script>
+    <script src="/media/dist/bundle.js"></script>
 </body>
 </html>
 `;
@@ -58,13 +57,6 @@ interface ListenOptions {
 
 export default {
     listen: async (options: ListenOptions, callback?: () => void) => {
-        app.get('/schema/', async (req, res) => {
-            const response = await axios.get('http://localhost:8000/schema/');
-            const schema = response.data;
-            const compiled = await compile(schema, schema.title)
-            res.send(compiled);
-        });
-
         /*
         app.use(middleware(compiler, {
             publicPath: '/',

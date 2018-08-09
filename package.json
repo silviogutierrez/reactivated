@@ -1,8 +1,7 @@
 {
-  "name": "ssr",
+  "name": "django_react",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "dependencies": {
     "@types/express": "^4.16.0",
     "@types/http-proxy": "^1.16.2",
@@ -33,6 +32,7 @@
     "webpack-dev-server": "^3.1.5"
   },
   "devDependencies": {},
+  "main": "lib/index.js",
   "scripts": {
     "build:schema": "../../bin/python manage.py generate_types_schema | json2ts > client/exports.tsx",
     "build": "npm run build:schema && webpack -p",

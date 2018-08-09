@@ -11,10 +11,9 @@
         "jsx": "react",
         // "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
-        "lib": ["dom", "es6"],
-        "outDir": "./lib",
-        "declaration": true
+        "lib": ["dom", "es6"]
     },
-    "include": ["typescript/**/*"],
-    "exclude": ["node_modules"]
+    "files": [
+        "client/app.tsx"
+    ]
 }

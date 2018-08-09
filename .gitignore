@@ -5,3 +5,5 @@ node_modules
 .mypy_cache
 client/exports.tsx
 server/settings/__init__.py
+dist/
+build/

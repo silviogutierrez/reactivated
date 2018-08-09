@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
@@ -419,3 +420,11 @@ def serialize_form(form: Optional[forms.BaseForm]) -> Optional[FormType]:
         fields=fields,
         iterator=list(fields.keys()),
    )
+
+
+def generate_settings() -> None:
+    settings_to_serialize = {
+        setting_name: setting_value
+        for setting_name, setting_value in settings._wrapped.__dict__.items() if setting_name not in ['_explicit_settings']
+    }
+    return simplejson.dumps(settings_to_serialize, indent=4)

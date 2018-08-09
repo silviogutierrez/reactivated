@@ -4,21 +4,11 @@ import path from 'path';
 import express, {Request, Response} from 'express';
 import ReactDOMServer from 'react-dom/server';
 import Helmet, {HelmetData} from 'react-helmet';
-import middleware from 'webpack-dev-middleware';
 import {getStyles} from 'typestyle';
 import {compile} from 'json-schema-to-typescript'
 import fs from 'fs';
 
 import httpProxy, {ServerOptions} from 'http-proxy';
-
-// import webpackConfig from '../webpack.config';
-
-/*
-const compiler = webpack({
-    ...webpackConfig,
-    mode: 'development',
-});
-*/
 
 const app = express();
 
@@ -57,12 +47,6 @@ interface ListenOptions {
 
 export default {
     listen: async (options: ListenOptions, callback?: () => void) => {
-        /*
-        app.use(middleware(compiler, {
-            publicPath: '/',
-        }));
-        */
-
         const proxy = httpProxy.createProxyServer();
 
         proxy.on('proxyRes', (proxyRes, req, res) => {

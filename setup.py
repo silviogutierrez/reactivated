@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/silviogutierrez/django-react",
     packages=setuptools.find_packages(),
     package_data={
-        'django_react': [
+        'react_django': [
             'conf/mypy.ini',
             'py.typed',
         ],

@@ -53,11 +53,9 @@ class Template:
         self.jsx_template_name = jsx_template_name
 
     def get_props(self, context=None, request=None):
-        from server.apps.ssr import serialize_form
-
         if self.jsx_template_name == 'registration/login.tsx':
             return {
-                'form': serialize_form(context['form']),
+                'form': context['form'],
             }
         elif self.jsx_template_name == 'flatpages/default.tsx':
             flatpage = context['flatpage']

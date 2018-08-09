@@ -7,3 +7,4 @@ client/exports.tsx
 server/settings/__init__.py
 dist/
 build/
+*.egg-info

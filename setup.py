@@ -4,8 +4,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="django_react",
-    version="0.0.2",
+    name="reactivated",
+    version="0.0.1",
     author="Silvio Gutierrez",
     author_email="silviogutierrez@gmail.com",
     description="A statically typed framework to create Django sites with a React frontend.",
@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/silviogutierrez/django-react",
     packages=setuptools.find_packages(),
     package_data={
-        'react_django': [
+        'reactivated': [
             'conf/mypy.ini',
             'py.typed',
         ],

@@ -2,9 +2,9 @@
 import sys
 import os
 
-import django_react
+import reactivated
 
-module_directory = os.path.dirname(django_react.__file__)
+module_directory = os.path.dirname(reactivated.__file__)
 conf_directory = os.path.join(module_directory, 'conf')
 
 mypy = os.path.join(conf_directory, 'mypy.ini')

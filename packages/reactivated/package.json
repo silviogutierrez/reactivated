@@ -1,6 +1,7 @@
 {
   "name": "reactivated",
   "version": "0.0.1",
+  "repository": "github:silviogutierrez/reactivated",
   "description": "",
   "dependencies": {
     "@types/express": "^4.16.0",

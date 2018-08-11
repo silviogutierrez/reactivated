@@ -1,11 +1,15 @@
 import React from 'react';
 
-import * as models from '../../models';
 import {Widget, WidgetType} from './Widget';
+
+interface FieldLike {
+    widget: WidgetType;
+    label: string;
+};
 
 interface Form {
     fields: {
-        [name: string]: models.FieldType;
+        [name: string]: FieldLike;
     },
     errors: {
         [P in keyof this['fields']]: string[]|null;
@@ -19,7 +23,7 @@ interface Props {
     children?: React.ReactNode;
 }
 
-function iterate<T>(form: Form, callback: (field: models.FieldType, error: string[]|null) => T) {
+function iterate<T>(form: Form, callback: (field: FieldLike, error: string[]|null) => T) {
     return form.iterator.map((field_name) => callback(form.fields[field_name], form.errors[field_name]));
 }
 

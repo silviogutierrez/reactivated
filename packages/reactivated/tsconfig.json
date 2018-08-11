@@ -14,5 +14,6 @@
         "lib": ["dom", "es6"],
         "outDir": "./",
         "declaration": true
-    }
+    },
+    "exclude": ["node_modules"]
 }

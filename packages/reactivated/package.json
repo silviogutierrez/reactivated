@@ -26,11 +26,7 @@
   },
   "main": "lib/index.js",
   "scripts": {
-    "build:schema": "../../bin/python manage.py generate_types_schema | json2ts > client/exports.tsx",
-    "build": "npm run build:schema && webpack -p",
-    "start:server": "NODE_PATH=./ nodemon --exec node -r ts-node/register --preserve-symlinks --watch server/ --watch exports.tsx -e ts,tsx index.tsx",
-    "start:client": "webpack-dev-server",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC"

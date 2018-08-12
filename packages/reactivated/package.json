@@ -30,6 +30,5 @@
   "scripts": {
     "build": "tsc"
   },
-  "author": "",
-  "license": "MIT"
+  "author": ""
 }

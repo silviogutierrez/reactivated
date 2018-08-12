@@ -31,5 +31,5 @@
     "build": "tsc"
   },
   "author": "",
-  "license": "ISC"
+  "license": "MIT"
 }

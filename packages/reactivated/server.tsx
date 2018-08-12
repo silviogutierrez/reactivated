@@ -10,9 +10,11 @@ import fs from 'fs';
 
 import httpProxy, {ServerOptions} from 'http-proxy';
 
+import {Settings} from './models';
+
 const app = express();
 
-export const renderPage = ({html, helmet, css, props}: {html: string, helmet: HelmetData, css: string, props: any}) => `
+export const bindRenderPage = (settings: Settings) => ({html, helmet, css, props}: {html: string, helmet: HelmetData, css: string, props: any}) => `
 <!DOCTYPE html>
 <html>
 <html ${helmet.htmlAttributes.toString()}>
@@ -30,7 +32,7 @@ export const renderPage = ({html, helmet, css, props}: {html: string, helmet: He
 </head>
 <body ${helmet.bodyAttributes.toString()}>
     <div id="root">${html}</div>
-    <script src="/media/dist/bundle.js"></script>
+    <script src="${settings.MEDIA_URL}dist/bundle.js"></script>
 </body>
 </html>
 `;
@@ -45,8 +47,10 @@ interface ListenOptions {
     django: number|string;
 }
 
-export default {
+export default (settings: Settings) => ({
+
     listen: async (options: ListenOptions, callback?: () => void) => {
+        const renderPage = bindRenderPage(settings);
         const proxy = httpProxy.createProxyServer();
 
         proxy.on('proxyRes', (proxyRes, req, res) => {
@@ -115,4 +119,4 @@ export default {
         });
         app.listen(options.node, callback);
     },
-};
+});

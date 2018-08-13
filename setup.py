@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="reactivated",
-    version="0.0.2",
+    version="0.0.3",
     author="Silvio Gutierrez",
     author_email="silviogutierrez@gmail.com",
     description="A statically typed framework to create Django sites with a React frontend.",

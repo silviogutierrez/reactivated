@@ -1,6 +1,8 @@
 import React from 'react';
 
 import {Widget, WidgetType} from './Widget';
+import {Consumer} from '../context';
+
 
 interface FieldLike {
     widget: WidgetType;
@@ -18,6 +20,7 @@ interface Form {
 }
 
 interface Props {
+    className?: string;
     csrf_token: string;
     form: Form;
     children?: React.ReactNode;
@@ -28,7 +31,10 @@ function iterate<T>(form: Form, callback: (field: FieldLike, error: string[]|nul
 }
 
 export const Form = (props: Props) => {
-    return <form method="POST" action="">
+    return <form method="POST" action="" className={props.className}>
+        <Consumer>
+            {value => <h1>{value.request.path}</h1>}
+        </Consumer>
         <input type="hidden" name="csrfmiddlewaretoken" value={props.csrf_token} />
         {/*Object.keys(props.form.errors).length > 0 &&
         <pre>{JSON.stringify(props.form.errors, null, 2)}</pre>

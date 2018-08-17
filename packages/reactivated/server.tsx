@@ -11,6 +11,7 @@ import fs from 'fs';
 import httpProxy, {ServerOptions} from 'http-proxy';
 
 import {Settings} from './models';
+import {Provider} from './context';
 
 const app = express();
 
@@ -79,7 +80,12 @@ export default (settings: Settings) => ({
                         }
 
                         const Template = require(template_path).default;
-                        const rendered = ReactDOMServer.renderToString(<Template {...props} />);
+                        const context = {
+                            request: {
+                                path: 'coming soon',
+                            },
+                        };
+                        const rendered = ReactDOMServer.renderToString(<Provider value={context}><Template {...props} /></Provider>);
                         const helmet = Helmet.renderStatic();
                         const css = getStyles();
 

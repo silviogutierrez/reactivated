@@ -15,26 +15,28 @@ import {Provider} from './context';
 
 const app = express();
 
-export const bindRenderPage = (settings: Settings) => ({html, helmet, css, props}: {html: string, helmet: HelmetData, css: string, props: any}) => `
+export const bindRenderPage = (settings: Settings) => ({html, helmet, css, context, props}: {html: string, helmet: HelmetData, css: string, context: any, props: any}) => `
 <!DOCTYPE html>
 <html>
-<html ${helmet.htmlAttributes.toString()}>
-    ${helmet.title.toString()}
-    ${helmet.meta.toString()}
-    ${helmet.link.toString()}
-    <style id="styles-target">
-        ${css}
-    </style>
-    <script>
-        // WARNING: See the following for security issues around embedding JSON in HTML:
-        // http://redux.js.org/recipes/ServerRendering.html#security-considerations
-        window.__PRELOADED_STATE__ = ${JSON.stringify(props).replace(/</g, '\\u003c')}
-    </script>
-</head>
-<body ${helmet.bodyAttributes.toString()}>
-    <div id="root">${html}</div>
-    <script src="${settings.MEDIA_URL}dist/bundle.js"></script>
-</body>
+    <head ${helmet.htmlAttributes.toString()}>
+        ${helmet.title.toString()}
+        ${helmet.meta.toString()}
+        ${helmet.link.toString()}
+        <style id="styles-target">
+            ${css}
+        </style>
+        <script>
+            // WARNING: See the following for security issues around embedding JSON in HTML:
+            // http://redux.js.org/recipes/ServerRendering.html#security-considerations
+            window.__PRELOADED_PROPS__ = ${JSON.stringify(props).replace(/</g, '\\u003c')}
+            window.__PRELOADED_CONTEXT__ = ${JSON.stringify(context).replace(/</g, '\\u003c')}
+        </script>
+        <link rel="shortcut icon" href="${settings.STATIC_URL}css/images/favicon.ico" type="image/x-icon" />
+    </head>
+    <body ${helmet.bodyAttributes.toString()}>
+        <div id="root">${html}</div>
+        <script src="${settings.MEDIA_URL}dist/bundle.js"></script>
+    </body>
 </html>
 `;
 
@@ -71,8 +73,8 @@ export default (settings: Settings) => ({
                     let body;
 
                     try {
-                        const props = JSON.parse(response.toString('utf8'));
-                        const template_path = `${process.cwd()}/client/templates/${props.template_name}.tsx`;
+                        const {context, props} = JSON.parse(response.toString('utf8'));
+                        const template_path = `${process.cwd()}/client/templates/${context.template_name}.tsx`;
 
                         // TODO: disable this in production.
                         if (process.env.NODE_ENV !== 'production') {
@@ -80,11 +82,6 @@ export default (settings: Settings) => ({
                         }
 
                         const Template = require(template_path).default;
-                        const context = {
-                            request: {
-                                path: 'coming soon',
-                            },
-                        };
                         const rendered = ReactDOMServer.renderToString(<Provider value={context}><Template {...props} /></Provider>);
                         const helmet = Helmet.renderStatic();
                         const css = getStyles();
@@ -94,6 +91,7 @@ export default (settings: Settings) => ({
                             helmet,
                             css,
                             props,
+                            context,
                         });
                     }
                     catch (error) {

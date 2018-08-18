@@ -89,6 +89,7 @@ export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|Textarea
 
 interface Props {
     widget: WidgetType;
+    className?: string;
 }
 
 const getValue = (optgroup: Optgroup) => {
@@ -107,7 +108,7 @@ const getValue = (optgroup: Optgroup) => {
 }
 
 export const Widget = (props: Props) => {
-    const {widget} = props;
+    const {className, widget} = props;
 
     switch (widget.template_name) {
         case "django/forms/widgets/select.html": {
@@ -120,6 +121,7 @@ export const Widget = (props: Props) => {
             const value = isMultiple(widget) ? widget.value : (widget.value[0] || '');
             return <select
                 name={widget.name}
+                className={className}
                 multiple={isMultiple(widget)}
                 defaultValue={value}
             >
@@ -129,12 +131,12 @@ export const Widget = (props: Props) => {
             </select>;
         }
         case "django/forms/widgets/textarea.html":
-            return <textarea name={widget.name} defaultValue={widget.value || ""} />
+            return <textarea name={widget.name} className={className} defaultValue={widget.value || ""} />
         case "django/forms/widgets/number.html":
         case "django/forms/widgets/text.html":
         case "django/forms/widgets/password.html":
         case "django/forms/widgets/email.html": {
-            return <input type={widget.type} defaultValue={widget.value || ""} name={widget.name} />;
+            return <input type={widget.type} className={className} defaultValue={widget.value || ""} name={widget.name} />;
             // return <div>I am a text</div>;
         }
         default: {

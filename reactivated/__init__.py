@@ -103,6 +103,17 @@ class Message(NamedTuple):
     message: str
 
 
+class Request(NamedTuple):
+    path: str
+
+
+class Context(NamedTuple):
+    template_name: str
+    csrf_token: str
+    request: Request
+    messages: List[Message]
+
+
 def encode_complex_types(obj: Any) -> Serializable:
     """
     Handles dates, forms, and other types.
@@ -117,17 +128,15 @@ def encode_complex_types(obj: Any) -> Serializable:
 
 
 class JSXResponse:
-    def __init__(self, *, csrf_token: str, template_name: str, props: P, messages: List[Message]) -> None:
+    def __init__(self, *, context: Context, props: P) -> None:
 
-        self.props = {
-            'csrf_token': csrf_token,
-            'template_name': template_name,
-            'messages': messages,
-            **(props if isinstance(props, dict) else props._asdict()),  # type: ignore
+        self.data = {
+            'context': context._asdict(),
+            'props': props if isinstance(props, dict) else props._asdict(),  # type: ignore
         }
 
     def as_json(self) -> Any:
-        return simplejson.dumps(self.props, default=encode_complex_types)  #, use_decimal=False)
+        return simplejson.dumps(self.data, default=encode_complex_types)  #, use_decimal=False)
 
 
 def render_jsx(request: HttpRequest, template_name: str, props: Union[P, HttpResponse]) -> HttpResponse:
@@ -138,15 +147,20 @@ def render_jsx(request: HttpRequest, template_name: str, props: Union[P, HttpRes
     current_messages = messages.get_messages(request)
 
     response = JSXResponse(
-        template_name=template_name,
-        csrf_token=get_token(request),
-        messages=[
-            Message(
-                level=m.level,
-                level_tag=m.level_tag,
-                message=m.message,
-            ) for m in current_messages
-        ],
+        context=Context(
+            request=Request(
+                path=request.path,
+            ),
+            template_name=template_name,
+            csrf_token=get_token(request),
+            messages=[
+                Message(
+                    level=m.level,
+                    level_tag=m.level_tag,
+                    message=m.message,
+                ) for m in current_messages
+            ],
+        ),
         props=props,
     )
 
@@ -341,6 +355,7 @@ def create_schema(Type: Any, definitions: Dict, ref: bool = True) -> Any:
     assert False
 
 
+"""
 def wrap_with_globals(props: Any, definitions: Dict) -> Any:
     message_schema = create_schema(Message, definitions)
 
@@ -362,6 +377,7 @@ def wrap_with_globals(props: Any, definitions: Dict) -> Any:
             'messages',
         ],
     }
+"""
 
 
 def generate_schema() -> str:
@@ -372,7 +388,8 @@ def generate_schema() -> str:
         'type': 'object',
         'definitions': definitions,
         'properties': {
-            name: wrap_with_globals(create_schema(Props, definitions, ref=False), definitions)
+            # name: wrap_with_globals(create_schema(Props, definitions, ref=False), definitions)
+            name: create_schema(Props, definitions, ref=False)
             for name, Props in type_registry.items()
         },
         'additionalProperties': False,

@@ -21,8 +21,7 @@ interface Form {
 
 interface Props {
     className?: string;
-    csrf_token: string;
-    form: Form;
+    form: Form|null;
     children?: React.ReactNode;
 }
 
@@ -33,27 +32,29 @@ function iterate<T>(form: Form, callback: (field: FieldLike, error: string[]|nul
 export const Form = (props: Props) => {
     return <form method="POST" action="" className={props.className}>
         <Consumer>
-            {value => <h1>{value.request.path}</h1>}
-        </Consumer>
-        <input type="hidden" name="csrfmiddlewaretoken" value={props.csrf_token} />
-        {/*Object.keys(props.form.errors).length > 0 &&
-        <pre>{JSON.stringify(props.form.errors, null, 2)}</pre>
-        */}
-        {iterate(props.form, (field, error) =>
-        <div key={field.widget.name}>
-            <label>
-                {field.label}
-                <Widget widget={field.widget} />
-            </label>
-            {error != null &&
-            <ul>
-                {error.map((error, index) =>
-                <li key={index}>{error}</li>
-                )}
-            </ul>
+            {context =>
+            <input type="hidden" name="csrfmiddlewaretoken" value={context.csrf_token} />
             }
-        </div>
-        )}
+        </Consumer>
+        {props.form != null &&
+        <>
+            {iterate(props.form, (field, error) =>
+            <div key={field.widget.name}>
+                <label>
+                    {field.label}
+                    <Widget widget={field.widget} />
+                </label>
+                {error != null &&
+                <ul>
+                    {error.map((error, index) =>
+                    <li key={index}>{error}</li>
+                    )}
+                </ul>
+                }
+            </div>
+            )}
+        </>
+        }
         {props.children}
     </form>;
 };

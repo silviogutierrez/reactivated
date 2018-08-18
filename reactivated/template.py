@@ -57,6 +57,10 @@ class Template:
             return {
                 'form': context['form'],
             }
+        elif self.jsx_template_name == '404.tsx':
+            return {
+                'request_path': context['request_path'],
+            }
         elif self.jsx_template_name == 'flatpages/default.tsx':
             flatpage = context['flatpage']
 

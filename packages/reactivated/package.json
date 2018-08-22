@@ -29,6 +29,8 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
+    "prepare": "npm run build",
+    "postpublish": "git clean -fd",
     "start": "tsc -w --outDir dist/"
   },
   "author": ""

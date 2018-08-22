@@ -33,6 +33,7 @@ Serializable = Tuple[
                                 str,
                                 bool,
                                 int,
+                                None,
                             ],
                             ...
                         ],
@@ -61,6 +62,7 @@ Serializable = Tuple[
                             float,
                             bool,
                             'TypeHint',
+                            None,
                         ],
                         ...
                     ]

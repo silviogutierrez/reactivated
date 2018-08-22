@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
+from django.template.defaultfilters import escape
 
 from typing import Any, Dict, Tuple, Union, Sequence, Mapping, TypeVar, Callable, Type, overload, Optional, cast, List, NamedTuple
 
@@ -22,7 +23,7 @@ Serializable = Tuple[
         str,
         bool,
         Dict[str, Union[str, int, float, bool, None]],
-        forms.Form,
+        forms.BaseForm,
         Sequence[
             Tuple[
                 Union[
@@ -121,7 +122,7 @@ def encode_complex_types(obj: Any) -> Serializable:
     """
     if isinstance(obj, (datetime.datetime, datetime.date)):
         return obj.isoformat()
-    elif isinstance(obj, forms.Form):
+    elif isinstance(obj, forms.BaseForm):
         return serialize_form(obj)
 
     raise TypeError("Type %s not serializable" % type(obj))
@@ -297,7 +298,7 @@ def create_schema(Type: Any, definitions: Dict, ref: bool = True) -> Any:
         return {
             '$ref': f'#/definitions/{definition_name}',
         }
-    elif issubclass(Type, forms.Form):
+    elif issubclass(Type, forms.BaseForm):
         definition_name = f'{Type.__module__}.{Type.__qualname__}'
         required = []
         properties = {}

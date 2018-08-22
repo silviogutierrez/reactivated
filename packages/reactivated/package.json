@@ -28,7 +28,8 @@
   },
   "main": "lib/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "start": "tsc -w --outDir dist/"
   },
   "author": ""
 }

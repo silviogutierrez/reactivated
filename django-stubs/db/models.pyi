@@ -1,6 +1,7 @@
 from typing import Any, Optional
 
 class Model:
+    id: Optional[int]
     pk: Optional[int]
 
 CharField: Any

@@ -41,6 +41,12 @@ interface EmailInput extends BaseWidget {
     value: string|null;
 }
 
+interface HiddenInput extends BaseWidget {
+    type: 'hidden';
+    template_name: 'django/forms/widgets/hidden.html';
+    value: string|null;
+}
+
 interface Textarea extends BaseWidget {
     template_name: 'django/forms/widgets/textarea.html';
     value: string|null;
@@ -85,7 +91,7 @@ interface SelectMultiple extends Select {
     }
 }
 
-export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|Textarea|Select|SelectMultiple;
+export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|HiddenInput|Textarea|Select|SelectMultiple;
 
 interface Props {
     widget: WidgetType;
@@ -132,6 +138,7 @@ export const Widget = (props: Props) => {
         }
         case "django/forms/widgets/textarea.html":
             return <textarea name={widget.name} className={className} defaultValue={widget.value || ""} />
+        case "django/forms/widgets/hidden.html":
         case "django/forms/widgets/number.html":
         case "django/forms/widgets/text.html":
         case "django/forms/widgets/password.html":

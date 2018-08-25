@@ -305,7 +305,8 @@ def create_schema(Type: Any, definitions: Dict, ref: bool = True) -> Any:
         required = []
         properties = {}
         field_schema = create_schema(FieldType, definitions)
-        error_schema = create_schema(FormErrors, definitions)
+        # We manually build errors using type augmentation.
+        # error_schema = create_schema(FormErrors, definitions)
 
         for field_name, SubType in Type.base_fields.items():
             required.append(field_name)
@@ -325,7 +326,7 @@ def create_schema(Type: Any, definitions: Dict, ref: bool = True) -> Any:
                 {
                     'type': 'object',
                     'properties': {
-                        'errors': error_schema,
+                        # 'errors': error_schema,
                         'fields': {
                             'type': 'object',
                             'properties': properties,
@@ -336,7 +337,7 @@ def create_schema(Type: Any, definitions: Dict, ref: bool = True) -> Any:
                     'additionalProperties': False,
                     'required': [
                         'fields',
-                        'errors',
+                        # 'errors',
                     ],
                 },
             ],
@@ -409,6 +410,7 @@ class WidgetType(TypeHint):
 class FieldType(NamedTuple):
     name: str
     label: str
+    help_text: str
     widget: WidgetType
 
 
@@ -436,6 +438,7 @@ def serialize_form(form: Optional[forms.BaseForm]) -> Optional[FormType]:
             widget=simplejson.loads(str(field))['widget'],
             name=field.name,
             label=str(field.label), # This can be a lazy proxy, so we must call str on it.
+            help_text=str(field.help_text), # This can be a lazy proxy, so we must call str on it.
         ) for field in form
     }
 

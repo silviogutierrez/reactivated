@@ -143,7 +143,13 @@ export const Widget = (props: Props) => {
         case "django/forms/widgets/text.html":
         case "django/forms/widgets/password.html":
         case "django/forms/widgets/email.html": {
-            return <input type={widget.type} className={className} defaultValue={widget.value || ""} name={widget.name} />;
+            return <input
+                readOnly={widget.attrs.disabled === true}
+                type={widget.type}
+                className={className}
+                defaultValue={widget.value || ""}
+                name={widget.name}
+            />;
             // return <div>I am a text</div>;
         }
         default: {

@@ -65,7 +65,14 @@ export default (settings: Settings) => ({
             proxyRes.on('end', function () {
                 const response = body // .toString('utf8');
 
-                if ('raw' in (req as any).query || proxyRes.headers['content-type'] !== 'application/ssr+json') {
+                // console.log(req.headers);
+                // console.log('first', req.headers['x-requested-with']);
+                // console.log('second', req.headers['X-Requested-With']);
+                // console.log('third', req.headers['Accept']);
+                // console.log('fourth', req.headers['accept']);
+                const isAjax = req.headers['x-requested-with'] === 'XMLHttpRequest'
+
+                if (isAjax === true || 'raw' in (req as any).query || proxyRes.headers['content-type'] !== 'application/ssr+json') {
                     res.writeHead(proxyRes.statusCode!, proxyRes.headers)
                     res.end(response);
                 }

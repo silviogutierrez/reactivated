@@ -10,7 +10,7 @@ export const createConfig = (settings: Settings) => {
 
     return {
         mode: 'development',
-        entry: './client/app.tsx',
+        entry: './client/index.tsx',
         module: {
             rules: [
                 {
@@ -44,7 +44,7 @@ export const createConfig = (settings: Settings) => {
             port: WEBPACK_DEBUG_PORT,
             proxy: {
                 '**': {
-                    target: `http://localhost:${NODE_DEBUG_PORT}`,
+                    target: `http://localhost:${DJANGO_DEBUG_PORT}`,
                 },
             },
         },

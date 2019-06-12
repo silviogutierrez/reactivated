@@ -457,7 +457,7 @@ def generate_settings() -> None:
     return simplejson.dumps(settings_to_serialize, indent=4)
 
 
-def reactivate(request: HttpRequest, template_name: str, context: Any) -> HttpResponse:
+def reactivate(request: HttpRequest, template_name: str, props: Any) -> HttpResponse:
     from django.conf import settings
     from django_jsx.templatetags import jsx
     from django.template import RequestContext
@@ -465,8 +465,9 @@ def reactivate(request: HttpRequest, template_name: str, context: Any) -> HttpRe
     import re
     import json
 
-    context = RequestContext(request, context)
+    # context = RequestContext(request, context)
 
+    """
     with open(os.path.join(settings.BASE_DIR, f'../client/templates/{template_name}'), 'r') as template_file:
         template = template_file.read().replace('props.', 'ctx.')
         _, component = template.split('export const Template = (props: Props) => ')
@@ -475,12 +476,20 @@ def reactivate(request: HttpRequest, template_name: str, context: Any) -> HttpRe
         ctx = jsx.serialize_opportunistically(context, expressions)
 
     props = json.loads(ctx)
-    props["template_name"] = "home_page"
-    ctx = json.dumps(props)
+    # props["template_name"] = "home_page"
+    """
+
+    data = json.dumps({
+        'context': {
+            'template_name': template_name,
+        },
+        'props': props,
+    })
 
     import subprocess
-    process = subprocess.Popen(["./node_modules/.bin/ts-node", "./server/renderer.tsx"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    # process = subprocess.Popen(["./node_modules/.bin/ts-node", "./server/renderer.tsx"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    process = subprocess.Popen(["./node_modules/.bin/ts-node", "./node_modules/reactivated/simple.js"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
 
-    out, error = process.communicate(ctx.encode())
+    out, error = process.communicate(data.encode())
 
     return HttpResponse(out)

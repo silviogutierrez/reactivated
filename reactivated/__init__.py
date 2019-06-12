@@ -455,3 +455,32 @@ def generate_settings() -> None:
         for setting_name, setting_value in settings._wrapped.__dict__.items() if setting_name not in ['_explicit_settings']
     }
     return simplejson.dumps(settings_to_serialize, indent=4)
+
+
+def reactivate(request: HttpRequest, template_name: str, context: Any) -> HttpResponse:
+    from django.conf import settings
+    from django_jsx.templatetags import jsx
+    from django.template import RequestContext
+    import os
+    import re
+    import json
+
+    context = RequestContext(request, context)
+
+    with open(os.path.join(settings.BASE_DIR, f'../client/templates/{template_name}'), 'r') as template_file:
+        template = template_file.read().replace('props.', 'ctx.')
+        _, component = template.split('export const Template = (props: Props) => ')
+
+        expressions = re.findall(jsx.R_CTXEXPR, component)
+        ctx = jsx.serialize_opportunistically(context, expressions)
+
+    props = json.loads(ctx)
+    props["template_name"] = "home_page"
+    ctx = json.dumps(props)
+
+    import subprocess
+    process = subprocess.Popen(["./node_modules/.bin/ts-node", "./server/renderer.tsx"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+
+    out, error = process.communicate(ctx.encode())
+
+    return HttpResponse(out)

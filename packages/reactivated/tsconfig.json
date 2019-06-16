@@ -10,6 +10,7 @@
         "target": "es5",
         "jsx": "react",
         // "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true,
         "esModuleInterop": true,
         "lib": ["dom", "es6"],
         "outDir": "./",

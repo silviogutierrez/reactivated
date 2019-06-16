@@ -1,12 +1,17 @@
 import {Project, StructureKind, WriterFunctions, SourceFile} from "ts-morph";
 
+import urls from './urls.json';
+import { NormalModuleReplacementPlugin } from "webpack";
+
 const project = new Project();
 
+/*
 const urls = {
     'widget_list': {'widget_id': 'number', 'category_id': 'string'},
     'create_widget': {},
     'widget_detail': {'pk': 'number'},
 };
+*/
 
 const interfaces = project.createSourceFile("generated/urls.tsx");
 
@@ -18,16 +23,17 @@ const withArguments = [];
 const withoutArguments = [];
 
 for (const name of Object.keys(urls)) {
-    const properties = urls[name as keyof typeof urls];
+    const properties = urls[name as keyof typeof urls]['args'];
+    const normalizedName = name.replace(/[^\w]/g, '_');
 
     const urlInterface = interfaces.addInterface({
-        name,
+        name: normalizedName,
         properties: [
             {name: 'name', type: `'${name}'`},
         ],
     });
     const argsInterface = interfaces.addInterface({
-        name: `${name}_args`,
+        name: `${normalizedName}_args`,
     })
 
     for (const propertyName of Object.keys(properties)) {
@@ -38,28 +44,39 @@ for (const name of Object.keys(urls)) {
     }
     urlInterface.addProperty({
         name: 'args',
-        type: `${name}_args`,
+        type: `${normalizedName}_args`,
     })
 
     urlMap.addProperty({
-        name,
-        type: name,
+        name: normalizedName,
+        type: normalizedName,
     });
 
     if (Object.keys(properties).length === 0) {
-        withoutArguments.push(name);
+        withoutArguments.push(normalizedName);
     }
     else {
-        withArguments.push(name);
+        withArguments.push(normalizedName);
     }
 }
 interfaces.addTypeAlias({name: 'WithArguments', type: withArguments.join('|')});
 interfaces.addTypeAlias({name: 'WithoutArguments', type: withoutArguments.join('|')});
 interfaces.addStatements(`
+
+import urls from '../urls.json';
+
 type All = WithArguments|WithoutArguments;
-export function reverse<T extends WithoutArguments['name']>(name: T): void;
-export function reverse<T extends WithArguments['name']>(name: T, args: Extract<WithArguments, {name: T}>['args']): void;
-export function reverse<T extends All['name']>(name: T, args?: Extract<WithArguments, {name: T}>['args']): void {
+export function reverse<T extends WithoutArguments['name']>(name: T): string;
+export function reverse<T extends WithArguments['name']>(name: T, args: Extract<WithArguments, {name: T}>['args']): string;
+export function reverse<T extends All['name']>(name: T, args?: Extract<WithArguments, {name: T}>['args']): string {
+    let route = urls[name].route;
+
+    if (args != null) {
+        for (const token of Object.keys(args)) {
+            route = route.replace(new RegExp('<(.+?:)' + token + '>'), (args as any)[token]);
+        }
+    }
+    return route;
 }`);
 
 project.save();

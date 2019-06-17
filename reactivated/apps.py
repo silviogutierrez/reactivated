@@ -1,17 +1,36 @@
 from django.apps import AppConfig
 from django.conf import settings
 
+import logging
 import importlib
 import subprocess
 import json
+import os
 
 from . import extract_views_from_urlpatterns
+
+logger = logging.getLogger("django.server")
 
 
 class ReactivatedConfig(AppConfig):
     name = "reactivated"
 
     def ready(self):
+        """
+        Django's dev server actually starts twice. So we prevent generation on
+        the first start. TODO: handle noreload.
+        """
+        if settings.DEBUG is False:
+            return
+
+        is_server_started = "DJANGO_SEVER_STARTING" in os.environ
+
+        if is_server_started is False:
+            os.environ["DJANGO_SEVER_STARTING"] = "true"
+            return
+
+        logger.info("Generating interfaces and client side code")
+
         urlconf = importlib.import_module(settings.ROOT_URLCONF)
         urlpatterns = urlconf.urlpatterns
 
@@ -57,3 +76,4 @@ class ReactivatedConfig(AppConfig):
 
         with open("client/generated.tsx", "w+b") as output:
             output.write(out)
+        logger.info("Finished generating.")

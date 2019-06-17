@@ -19,6 +19,8 @@
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "react-helmet": "^5.2.0",
+    "ts-morph": "^2.3.0",
+    "ts-node": "^8.3.0",
     "typestyle": "^2.0.1",
     "webpack": "^4.15.1"
   },

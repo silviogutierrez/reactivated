@@ -2,6 +2,8 @@ from django.apps import AppConfig
 from django.conf import settings
 
 import importlib
+import subprocess
+import json
 
 from . import extract_views_from_urlpatterns
 
@@ -42,5 +44,8 @@ class ReactivatedConfig(AppConfig):
                 },
             }
 
-        with open('urls.json', 'w') as output:
-            json.dump(reverse, output)
+        # process = subprocess.Popen(["./node_modules/.bin/ts-node", "./server/renderer.tsx"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+
+        with open('client/generated.tsx', 'w') as output:
+            process = subprocess.Popen(["node", "./node_modules/reactivated/generator.js"], stdout=output, stdin=subprocess.PIPE)
+            out, error = process.communicate(json.dumps(reverse).encode())

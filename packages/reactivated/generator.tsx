@@ -1,6 +1,10 @@
-import {Project, StructureKind, WriterFunctions, SourceFile} from "ts-morph";
+import {Project, StructureKind, VariableDeclarationKind, WriterFunctions, SourceFile} from "ts-morph";
+import fs from 'fs';
 
-import urls from './urls.json';
+const stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
+
+const urls = JSON.parse(stdinBuffer.toString('utf8'));
+
 import { NormalModuleReplacementPlugin } from "webpack";
 
 const project = new Project();
@@ -12,8 +16,14 @@ const urls = {
     'widget_detail': {'pk': 'number'},
 };
 */
-
 const interfaces = project.createSourceFile("generated/urls.tsx");
+interfaces.addVariableStatement({
+    declarationKind: VariableDeclarationKind.Const,
+    declarations: [{
+        name: 'urls',
+        initializer: JSON.stringify(urls),
+    }],
+})
 
 const urlMap = interfaces.addInterface({
     name: 'URLMap',
@@ -63,8 +73,6 @@ interfaces.addTypeAlias({name: 'WithArguments', type: withArguments.join('|')});
 interfaces.addTypeAlias({name: 'WithoutArguments', type: withoutArguments.join('|')});
 interfaces.addStatements(`
 
-import urls from '../urls.json';
-
 type All = WithArguments|WithoutArguments;
 export function reverse<T extends WithoutArguments['name']>(name: T): string;
 export function reverse<T extends WithArguments['name']>(name: T, args: Extract<WithArguments, {name: T}>['args']): string;
@@ -79,7 +87,10 @@ export function reverse<T extends All['name']>(name: T, args?: Extract<WithArgum
     return route;
 }`);
 
-project.save();
+// project.save();
+// const result = project.emitToMemory();
+// project.emi
+process.stdout.write(interfaces.getText());
 
 interface First {
     name: 'foo';

@@ -9,7 +9,7 @@ from . import extract_views_from_urlpatterns
 
 
 class ReactivatedConfig(AppConfig):
-    name = 'reactivated'
+    name = "reactivated"
 
     def ready(self):
         urlconf = importlib.import_module(settings.ROOT_URLCONF)
@@ -37,15 +37,23 @@ class ReactivatedConfig(AppConfig):
             if not isinstance(pattern, RoutePattern):
                 continue
             reverse[name or regex] = {
-                'route': pattern._route,
-                'args': {
+                "route": f"/{regex}",
+                "args": {
                     arg_name: converter_mapping.get(arg_converter.__class__, "string")
                     for arg_name, arg_converter in pattern.converters.items()
                 },
             }
 
-        # process = subprocess.Popen(["./node_modules/.bin/ts-node", "./server/renderer.tsx"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        #: Note that we don't pass the file object to stdout, because otherwise
+        # webpack gets confused with the half-written file when we make updates.
+        # Maybe there's a way to force it to be a single atomic write? I tried
+        # open('w+b', buffering=0) but no luck.
+        process = subprocess.Popen(
+            ["node", "./node_modules/reactivated/generator.js"],
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+        )
+        out, error = process.communicate(json.dumps(reverse).encode())
 
-        with open('client/generated.tsx', 'w') as output:
-            process = subprocess.Popen(["node", "./node_modules/reactivated/generator.js"], stdout=output, stdin=subprocess.PIPE)
-            out, error = process.communicate(json.dumps(reverse).encode())
+        with open("client/generated.tsx", "w+b") as output:
+            output.write(out)

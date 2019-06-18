@@ -484,6 +484,9 @@ def reactivate(request: HttpRequest, template_name: str, props: Any) -> HttpResp
     data = json.dumps({
         'context': {
             'template_name': template_name,
+            'request': {
+                'path': request.path,
+            },
         },
         'props': props,
     })

@@ -461,7 +461,6 @@ def generate_settings() -> None:
 
 def reactivate(request: HttpRequest, template_name: str, props: Any) -> HttpResponse:
     from django.conf import settings
-    from django_jsx.templatetags import jsx
     from django.template import RequestContext
     import os
     import re

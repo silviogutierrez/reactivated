@@ -48,8 +48,10 @@ export const createConfig = (settings: Settings) => {
                 },
             },
         },
-        plugins: [
-            new webpack.HotModuleReplacementPlugin(),
-        ],
+        // Docs say to put this in.
+        // But others say to leave it out. Currently, HMR only works if left out.
+        // plugins: [
+        //     new webpack.HotModuleReplacementPlugin(),
+        // ],
     }
 };

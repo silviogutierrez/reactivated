@@ -172,7 +172,8 @@ def render_jsx(request: HttpRequest, template_name: str, props: Union[P, HttpRes
     if 'debug' in request.GET:
         return HttpResponse('<html><body><h1>Debug response</h1><pre>' + escape(response.as_json()) + '</pre></body></html>', content_type='text/html')
 
-    return HttpResponse(response.as_json(), content_type='application/ssr+json')
+    # return HttpResponse(response.as_json(), content_type='application/ssr+json')
+    return reactivate(request, template_name, response.as_json())
 
 
 @overload

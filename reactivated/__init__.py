@@ -14,6 +14,7 @@ from mypy_extensions import TypedDict, Arg, KwArg
 import abc
 import datetime
 import simplejson
+import subprocess
 
 
 type_registry: Dict[str, Tuple] = {}
@@ -141,7 +142,7 @@ class JSXResponse:
         }
 
     def as_json(self) -> Any:
-        return simplejson.dumps(self.data, default=encode_complex_types)  #, use_decimal=False)
+        return simplejson.dumps(self.data, indent=4, default=encode_complex_types)  #, use_decimal=False)
 
 
 def render_jsx(request: HttpRequest, template_name: str, props: Union[P, HttpResponse]) -> HttpResponse:
@@ -171,9 +172,16 @@ def render_jsx(request: HttpRequest, template_name: str, props: Union[P, HttpRes
 
     if 'debug' in request.GET:
         return HttpResponse('<html><body><h1>Debug response</h1><pre>' + escape(response.as_json()) + '</pre></body></html>', content_type='text/html')
+    elif 'raw' in request.GET:
+        return HttpResponse(response.as_json(), content_type='application/json')
 
-    # return HttpResponse(response.as_json(), content_type='application/ssr+json')
-    return reactivate(request, template_name, response.as_json())
+    if True:
+        process = subprocess.Popen(["./node_modules/.bin/ts-node", "./node_modules/reactivated/simple.js"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        out, error = process.communicate(response.as_json().encode())
+
+        return HttpResponse(out)
+    else:
+        return HttpResponse(response.as_json(), content_type='application/ssr+json')
 
 
 @overload
@@ -461,43 +469,7 @@ def generate_settings() -> None:
 
 
 def reactivate(request: HttpRequest, template_name: str, props: Any) -> HttpResponse:
-    from django.conf import settings
-    from django.template import RequestContext
-    import os
-    import re
-    import json
-
-    # context = RequestContext(request, context)
-
-    """
-    with open(os.path.join(settings.BASE_DIR, f'../client/templates/{template_name}'), 'r') as template_file:
-        template = template_file.read().replace('props.', 'ctx.')
-        _, component = template.split('export const Template = (props: Props) => ')
-
-        expressions = re.findall(jsx.R_CTXEXPR, component)
-        ctx = jsx.serialize_opportunistically(context, expressions)
-
-    props = json.loads(ctx)
-    # props["template_name"] = "home_page"
-    """
-
-    data = json.dumps({
-        'context': {
-            'template_name': template_name,
-            'request': {
-                'path': request.path,
-            },
-        },
-        'props': props,
-    })
-
-    import subprocess
-    # process = subprocess.Popen(["./node_modules/.bin/ts-node", "./server/renderer.tsx"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-    process = subprocess.Popen(["./node_modules/.bin/ts-node", "./node_modules/reactivated/simple.js"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-
-    out, error = process.communicate(data.encode())
-
-    return HttpResponse(out)
+    return render_jsx(request, template_name, props)
 
 
 from django.urls import URLPattern, URLResolver

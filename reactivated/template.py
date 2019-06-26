@@ -72,7 +72,7 @@ class Template:
                 },
             }
         else:
-            assert False
+            return context
 
 
     def render(self, context=None, request=None):

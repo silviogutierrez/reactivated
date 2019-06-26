@@ -30,8 +30,7 @@
   },
   "main": "lib/index.js",
   "scripts": {
-    "build": "tsc",
-    "prepare": "npm run build",
+    "prepare": "tsc",
     "postpublish": "git clean -fd",
     "start": "tsc -w --outDir dist/"
   },

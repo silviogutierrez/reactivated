@@ -56,6 +56,12 @@ interface Textarea extends BaseWidget {
     }
 }
 
+interface DateInput extends BaseWidget {
+    template_name: 'django/forms/widgets/date.html';
+    type: 'date',
+    value: string|null;
+}
+
 
 type Optgroup = [
     null,
@@ -91,7 +97,7 @@ interface SelectMultiple extends Select {
     }
 }
 
-export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|HiddenInput|Textarea|Select|SelectMultiple;
+export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|HiddenInput|Textarea|Select|SelectMultiple|DateInput;
 
 interface Props {
     widget: WidgetType;
@@ -142,7 +148,8 @@ export const Widget = (props: Props) => {
         case "django/forms/widgets/number.html":
         case "django/forms/widgets/text.html":
         case "django/forms/widgets/password.html":
-        case "django/forms/widgets/email.html": {
+        case "django/forms/widgets/email.html":
+        case "django/forms/widgets/date.html": {
             return <input
                 readOnly={widget.attrs.disabled === true}
                 type={widget.type}

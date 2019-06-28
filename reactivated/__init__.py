@@ -429,7 +429,7 @@ FormErrors = Dict[str, Optional[List[str]]]
 
 
 class FormType(NamedTuple):
-    errors: FormErrors
+    errors: Optional[FormErrors]
     fields: Dict[str, FieldType]
     iterator: List[str]
     is_read_only: bool = False
@@ -455,7 +455,7 @@ def serialize_form(form: Optional[forms.BaseForm]) -> Optional[FormType]:
     }
 
     return FormType(
-        errors=form.errors,
+        errors=form.errors or None,
         fields=fields,
         iterator=list(fields.keys()),
         is_read_only=getattr(form, 'is_read_only', False),

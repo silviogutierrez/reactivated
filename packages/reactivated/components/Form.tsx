@@ -1,7 +1,11 @@
 import React from 'react';
 
-import {Widget, WidgetType} from './Widget';
+import {Widget, WidgetType, getValueForSelect} from './Widget';
 import {Consumer} from '../context';
+
+import { Button, FormGroup, Label, Input, FormText, FormFeedback } from 'reactstrap';
+
+type TODO = any;
 
 
 interface FieldLike {
@@ -28,7 +32,7 @@ interface FieldMap {
 
 interface FormLike<T extends FieldMap> {
     fields: T;
-    errors: {[P in keyof T]: string[]|null};
+    errors: {[P in keyof T]: string[]|null}|null;
     iterator: Array<keyof T>;
 }
 
@@ -36,47 +40,84 @@ interface Props<U extends FieldMap> {
     className?: string;
     form: FormLike<U>|null;
     children?: React.ReactNode;
+    onChange?: (name: string, value: any) => {};
+    getFields?: (state: any) => Array<keyof U>;
 }
 
 function iterate<T, U extends FieldMap>(form: FormLike<U>, callback: (field: FieldLike, error: string[]|null) => T) {
-    return form.iterator.map((field_name) => callback(form.fields[field_name], form.errors[field_name]));
+    return form.iterator.map((field_name) => callback(form.fields[field_name], form.errors != null ? form.errors[field_name] :  null));
 }
 
-export const Form = <U extends FieldMap>(props: Props<U>) => {
-    return <form method="POST" action="" className={props.className}>
-        <Consumer>
-            {context =>
-            <input type="hidden" name="csrfmiddlewaretoken" value={context.csrf_token} />
-            }
-        </Consumer>
-        {props.form != null &&
-        <>
-            {iterate(props.form, (field, error) =>
-            <React.Fragment key={field.widget.name}>
-                {'type' in field.widget && field.widget.type === 'hidden' ?
-                <Widget widget={field.widget} />
-                :
-                <div>
-                    <label>
-                        <strong>{field.label}</strong>
-                        <Widget widget={field.widget} />
-                        {field.help_text !== '' &&
-                        <small>{field.help_text}</small>
-                        }
-                    </label>
-                    {error != null &&
-                    <ul>
-                        {error.map((error, index) =>
-                        <li key={index}>{error}</li>
-                        )}
-                    </ul>
-                    }
-                </div>
-                }
-            </React.Fragment>
-            )}
-        </>
-        }
-        {props.children}
-    </form>;
+export const Form2 = <U extends FieldMap>(props: Props<U>) => {
 };
+
+export class Form<U extends FieldMap> extends React.Component<Props<U>> {
+    constructor(props: Props<U>) {
+        super(props)
+        let state: any = {};
+
+        if (props.form != null) {
+            iterate(props.form, (field, error) => {
+                const widget = field.widget;
+
+                if (widget.template_name == "django/forms/widgets/select.html") {
+                    state[field.widget.name] = getValueForSelect(widget);
+                }
+                else {
+                    state[field.widget.name] = widget.value;
+                }
+            });
+        }
+
+        this.state = state;
+    }
+
+    handleOnChange = (event: React.FormEvent<HTMLFormElement>) => {
+        const target = event.target as TODO;
+        this.setState({
+            [target.name]: target.value,
+        })
+    }
+
+    render() {
+        const {props} = this;
+
+        return <form method="POST" action="" className={props.className} onChange={this.handleOnChange}>
+            <Consumer>
+                {context =>
+                <input type="hidden" name="csrfmiddlewaretoken" value={context.csrf_token} />
+                }
+            </Consumer>
+            {props.form != null &&
+            <>
+                {iterate(props.form, (field, error) =>
+                <React.Fragment key={field.widget.name}>
+                    {'type' in field.widget && field.widget.type === 'hidden' ?
+                    <Widget widget={field.widget} has_errors={error != null} passed_validation={false} />
+                    :
+                    <FormGroup>
+                        <Label for={field.widget.name}>{field.label}</Label>
+                        <Widget widget={field.widget} has_errors={error != null} passed_validation={props.form!.errors != null && error == null} />
+                        <h5>{(this.state as any)[field.widget.name]}</h5>
+                        {field.help_text !== '' &&
+                        <FormText color="muted">
+                            {field.help_text}
+                        </FormText>
+                        }
+                        {error != null &&
+                        <FormFeedback>
+                            {error.map((error, index) =>
+                            <div key={index}>{error}</div>
+                            )}
+                        </FormFeedback>
+                        }
+                    </FormGroup>
+                    }
+                </React.Fragment>
+                )}
+            </>
+            }
+            {props.children}
+        </form>;
+    }
+}

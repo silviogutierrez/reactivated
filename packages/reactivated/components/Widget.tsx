@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
+
 interface BaseWidget {
     name: string;
     is_hidden: boolean;
@@ -101,6 +103,8 @@ export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|HiddenIn
 
 interface Props {
     widget: WidgetType;
+    has_errors: boolean;
+    passed_validation: boolean;
     className?: string;
 }
 
@@ -119,6 +123,10 @@ const getValue = (optgroup: Optgroup) => {
     return rawValue;
 }
 
+export const getValueForSelect = (widget: Select|SelectMultiple) => {
+    return isMultiple(widget) ? widget.value : (widget.value[0] || '');
+}
+
 export const Widget = (props: Props) => {
     const {className, widget} = props;
 
@@ -130,8 +138,13 @@ export const Widget = (props: Props) => {
             }
             */
             // return <div>I am a select single</div>;
-            const value = isMultiple(widget) ? widget.value : (widget.value[0] || '');
-            return <select
+            const value = getValueForSelect(widget);
+
+            return <Input
+                type="select"
+                readOnly={widget.attrs.disabled === true}
+                invalid={props.has_errors}
+                valid={!!value && props.passed_validation}
                 name={widget.name}
                 className={className}
                 multiple={isMultiple(widget)}
@@ -140,21 +153,24 @@ export const Widget = (props: Props) => {
                 {widget.optgroups.map((optgroup, index) =>
                 <option key={index} value={getValue(optgroup)}>{optgroup[1][0].label}</option>
                 )}
-            </select>;
+            </Input>;
         }
         case "django/forms/widgets/textarea.html":
-            return <textarea name={widget.name} className={className} defaultValue={widget.value || ""} />
+            return <Input type="textarea" name={widget.name} id={widget.name} defaultValue={widget.value || ""} />
         case "django/forms/widgets/hidden.html":
         case "django/forms/widgets/number.html":
         case "django/forms/widgets/text.html":
         case "django/forms/widgets/password.html":
         case "django/forms/widgets/email.html":
         case "django/forms/widgets/date.html": {
-            return <input
+            return <Input
                 readOnly={widget.attrs.disabled === true}
+                invalid={props.has_errors}
+                valid={!!widget.value && props.passed_validation}
                 type={widget.type}
                 className={className}
                 defaultValue={widget.value || ""}
+                id={widget.name}
                 name={widget.name}
             />;
             // return <div>I am a text</div>;

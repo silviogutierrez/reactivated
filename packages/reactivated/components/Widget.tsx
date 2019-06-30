@@ -156,7 +156,16 @@ export const Widget = (props: Props) => {
             </Input>;
         }
         case "django/forms/widgets/textarea.html":
-            return <Input type="textarea" name={widget.name} id={widget.name} defaultValue={widget.value || ""} />
+            return <Input
+                readOnly={widget.attrs.disabled === true}
+                invalid={props.has_errors}
+                valid={!!widget.value && props.passed_validation}
+                type="textarea"
+                className={className}
+                defaultValue={widget.value || ""}
+                id={widget.name}
+                name={widget.name}
+            />;
         case "django/forms/widgets/hidden.html":
         case "django/forms/widgets/number.html":
         case "django/forms/widgets/text.html":

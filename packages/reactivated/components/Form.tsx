@@ -41,7 +41,7 @@ interface Props<U extends FieldMap> {
     form: FormLike<U>|null;
     children?: React.ReactNode;
     onChange?: (name: string, value: any) => {};
-    getFields?: (state: any) => Array<keyof U>;
+    getFields?: (form: FormLike<U>, state: any) => Array<keyof U>;
 }
 
 function iterate<T, U extends FieldMap>(form: FormLike<U>, callback: (field: FieldLike, error: string[]|null) => T) {
@@ -52,12 +52,24 @@ export const Form2 = <U extends FieldMap>(props: Props<U>) => {
 };
 
 export class Form<U extends FieldMap> extends React.Component<Props<U>> {
+    getFields<T>(filter: boolean, callback: (field: FieldLike, error: string[]|null) => T) {
+        const {form} = this.props;
+
+        if (form == null) {
+            return [];
+        }
+
+        const filteredIterator = filter === true && this.props.getFields != null ? this.props.getFields(form, this.state) : form.iterator;
+
+        return filteredIterator.map((field_name) => callback(form.fields[field_name], form.errors != null ? form.errors[field_name] :  null));
+    }
+
     constructor(props: Props<U>) {
         super(props)
         let state: any = {};
 
         if (props.form != null) {
-            iterate(props.form, (field, error) => {
+            this.getFields(false, (field, error) => {
                 const widget = field.widget;
 
                 if (widget.template_name == "django/forms/widgets/select.html") {
@@ -90,7 +102,7 @@ export class Form<U extends FieldMap> extends React.Component<Props<U>> {
             </Consumer>
             {props.form != null &&
             <>
-                {iterate(props.form, (field, error) =>
+                {this.getFields(true, (field, error) =>
                 <React.Fragment key={field.widget.name}>
                     {'type' in field.widget && field.widget.type === 'hidden' ?
                     <Widget widget={field.widget} has_errors={error != null} passed_validation={false} />
@@ -98,7 +110,7 @@ export class Form<U extends FieldMap> extends React.Component<Props<U>> {
                     <FormGroup>
                         <Label for={field.widget.name}>{field.label}</Label>
                         <Widget widget={field.widget} has_errors={error != null} passed_validation={props.form!.errors != null && error == null} />
-                        <h5>{(this.state as any)[field.widget.name]}</h5>
+                        {/*<h5>{(this.state as any)[field.widget.name]}</h5>*/}
                         {field.help_text !== '' &&
                         <FormText color="muted">
                             {field.help_text}

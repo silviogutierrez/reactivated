@@ -32,7 +32,7 @@
   "scripts": {
     "prepare": "tsc",
     "postpublish": "git clean -fd",
-    "start": "rm -rf './node_modules/@types/react' && rm -rf ./node_modules/typestyle && tsc -w --outDir dist/"
+    "start": "rm -rf ./node_modules/react-helmet && rm -rf './node_modules/@types/react' && rm -rf ./node_modules/typestyle && tsc -w --outDir dist/"
   },
   "author": ""
 }

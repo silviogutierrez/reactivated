@@ -165,6 +165,7 @@ export const Widget = (props: Props) => {
                 defaultValue={widget.value || ""}
                 id={widget.name}
                 name={widget.name}
+                rows={10}
             />;
         case "django/forms/widgets/hidden.html":
         case "django/forms/widgets/number.html":

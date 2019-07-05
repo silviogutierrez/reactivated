@@ -15,6 +15,7 @@ import abc
 import datetime
 import simplejson
 import subprocess
+import requests
 
 
 type_registry: Dict[str, Tuple] = {}
@@ -176,8 +177,10 @@ def render_jsx(request: HttpRequest, template_name: str, props: Union[P, HttpRes
         return HttpResponse(response.as_json(), content_type='application/json')
 
     if True:
-        process = subprocess.Popen(["./node_modules/.bin/ts-node", "./node_modules/reactivated/simple.js"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-        out, error = process.communicate(response.as_json().encode())
+        # process = subprocess.Popen(["./node_modules/.bin/ts-node", "./node_modules/reactivated/simple.js"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        ## out, error = process.communicate(response.as_json().encode())
+
+        out = requests.post(f'{settings.REACTIVATED_SERVER}/__ssr/', json=simplejson.loads(response.as_json())).json()['rendered']
 
         return HttpResponse(out)
     else:

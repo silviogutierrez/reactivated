@@ -1,7 +1,11 @@
 import webpack from 'webpack';
 import path from 'path';
 
+import express, {Application} from 'express';
+
 import {Settings} from './models';
+import {render} from './server';
+
 
 export const createConfig = (settings: Settings) => {
     const DJANGO_DEBUG_PORT = settings.DEBUG_PORT;
@@ -46,6 +50,13 @@ export const createConfig = (settings: Settings) => {
                 '**': {
                     target: `http://localhost:${DJANGO_DEBUG_PORT}`,
                 },
+            },
+            before: (app: Application) => {
+                app.use(express.json())
+                app.post('/__ssr/', (req, res) => {
+                    const rendered = render(Buffer.from(JSON.stringify(req.body)));
+                    res.json({rendered});
+                });
             },
         },
         // Docs say to put this in.

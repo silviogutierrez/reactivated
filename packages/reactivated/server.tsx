@@ -53,7 +53,9 @@ export const render = (input: Buffer, renderPage: typeof defaultRenderPage = def
 
     // TODO: disable this in production.
     if (process.env.NODE_ENV !== 'production') {
-        delete require.cache[template_path];
+        // Our template names have no extension by design, for when we transpile.
+        delete require.cache[`${template_path}.tsx`];
+        delete require.cache[`${template_path}.jsx`];
     }
 
     const Template = require(template_path).default;

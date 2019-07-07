@@ -12,6 +12,7 @@ export const createConfig = (settings: Settings) => {
     const NODE_DEBUG_PORT = DJANGO_DEBUG_PORT + 100;
     const WEBPACK_DEBUG_PORT = DJANGO_DEBUG_PORT + 200;
 
+
     return {
         mode: 'development',
         entry: './client/index.tsx',
@@ -24,6 +25,9 @@ export const createConfig = (settings: Settings) => {
             ]
         },
         resolve: {
+            alias: {
+                '@client': path.resolve(process.cwd(), 'client/'),
+            },
             modules: [
                 path.resolve('./'), 'node_modules',
             ],

@@ -12,7 +12,7 @@ class CustomPlugin(Plugin):
         return None
 
     def get_function_hook(self, fullname: str):
-        if False and fullname == 'types.ssr':
+        if fullname == 'types.ssr':
             return analyze_ssr
 
         return None
@@ -27,8 +27,26 @@ def analyze_some_name(ctx):
 
 
 def analyze_ssr(ctx):
-    # breakpoint()
-    return ctx.api.named_type('types.ssr')
+    arg_type = ctx.arg_types[0][0]
+    print(arg_type.arg_types)
+    print(arg_type.arg_kinds)
+    print(arg_type.arg_names)
+    print(arg_type.ret_type)
+    # print(arg_type.variables)
+    print(ctx.api.named_type('builtins.int'), arg_type.arg_types[0])
+
+    try:
+        del ctx.api.errors.error_info_map['types.py'][1]
+    except Exception:
+        pass
+
+    return ctx.default_return_type.copy_modified(
+        arg_types=[],
+        arg_kinds=[],
+        arg_names=[],
+        ret_type=ctx.api.named_type('builtins.int'),
+    )
+    # return ctx.api.named_type('types.ssr')
 
 
 def plugin(version: str):

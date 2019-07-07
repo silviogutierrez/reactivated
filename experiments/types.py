@@ -51,8 +51,14 @@ def ssr(foo: X) -> X:
 
 
 @ssr
-def to_be_ssred() -> bool:
+def to_be_ssred_without_types(thing, bar):
+    return True
+
+
+@ssr
+def to_be_ssred(thing: int, bar: str) -> bool:
     return True
 
 
 reveal_type(to_be_ssred)
+reveal_type(to_be_ssred_without_types)

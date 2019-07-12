@@ -49,6 +49,7 @@ const defaultRenderPage = bindRenderPage({DEBUG: true, DEBUG_PORT: 200, MEDIA_UR
 
 export const render = (input: Buffer, renderPage: typeof defaultRenderPage = defaultRenderPage) => {
     const {context, props} = JSON.parse(input.toString('utf8'));
+    console.log(input.toString('utf8'), context, props);
     const template_path = `${process.cwd()}/client/templates/${context.template_name}`;
 
     // TODO: disable this in production.

@@ -131,7 +131,15 @@ def encode_complex_types(obj: Any) -> Serializable:
     elif isinstance(obj, forms.BaseForm):
         return serialize_form(obj)
 
-    raise TypeError("Type %s not serializable" % type(obj))
+    # Processor: django.contrib.messages.context_processors.messages
+    from django.contrib.messages.storage.base import BaseStorage
+
+    if isinstance(obj, BaseStorage):
+        return list(obj)
+
+    return f'[Unserializable: {type(obj)}]'
+
+    # raise TypeError("Type %s not serializable" % type(obj))
 
 
 class JSXResponse:
@@ -144,6 +152,22 @@ class JSXResponse:
 
     def as_json(self) -> Any:
         return simplejson.dumps(self.data, indent=4, default=encode_complex_types)  #, use_decimal=False)
+
+
+
+def render_jsx_to_string(request: HttpRequest, template_name: str, context: Any, props: Any) -> str:
+    payload = {
+        'context': {
+            **context,
+            'template_name': template_name,
+        },
+        'props': props,
+    }
+    data = simplejson.dumps(payload, indent=4, default=encode_complex_types)
+    headers = {
+        'Content-Type': 'application/json',
+    }
+    return requests.post(f'{settings.REACTIVATED_SERVER}/__ssr/', headers=headers, data=data).json()['rendered']
 
 
 def render_jsx(request: HttpRequest, template_name: str, props: Union[P, HttpResponse]) -> HttpResponse:

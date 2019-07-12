@@ -2,12 +2,16 @@ from django.conf import settings
 from django.middleware.csrf import get_token
 from django.template import TemplateDoesNotExist, TemplateSyntaxError
 from django.template.backends.base import BaseEngine
+from django.template.context import make_context
+from django.utils.functional import cached_property
+from django.utils.module_loading import import_string
+
 
 import os
 import simplejson
 import markdown
 
-from . import render_jsx
+from . import render_jsx_to_string
 
 
 class JSX(BaseEngine):
@@ -18,6 +22,8 @@ class JSX(BaseEngine):
     def __init__(self, params):
         # params = params.copy()
         options = params.pop('OPTIONS').copy()
+
+        self.context_processors = options.pop('context_processors', [])
         super().__init__(params)
 
         # self.engine = foobar.Engine(**options)
@@ -36,7 +42,7 @@ class JSX(BaseEngine):
             jsx_template_name = template_name.replace('.html', '.tsx')
 
             if os.path.isfile(os.path.join(settings.BASE_DIR, 'client/templates', jsx_template_name)):
-                return Template(jsx_template_name)
+                return Template(jsx_template_name, self)
 
         raise TemplateDoesNotExist([], backend=self)
 
@@ -47,10 +53,15 @@ class JSX(BaseEngine):
         except foobar.TemplateCompilationFailed as exc:
             raise TemplateSyntaxError(exc.args)
 
+    @cached_property
+    def template_context_processors(self):
+        return [import_string(path) for path in self.context_processors]
+
 
 class Template:
-    def __init__(self, jsx_template_name):
+    def __init__(self, jsx_template_name, backend):
         self.jsx_template_name = jsx_template_name
+        self.backend = backend
 
     def get_props(self, context=None, request=None):
         if self.jsx_template_name == 'registration/login.tsx':
@@ -76,9 +87,28 @@ class Template:
 
 
     def render(self, context=None, request=None):
-        request._is_jsx_response = True
-
-        props = self.get_props(context, request)
+        react_context = make_context({}, request, autoescape=False).__dict__
+        props = context
+        # request._is_jsx_response = True
+        # props = self.get_props(context, request)
         template_name = self.jsx_template_name.replace('.tsx', '')
 
-        return render_jsx(request, template_name, props)
+        return render_jsx_to_string(request, template_name, react_context, props)
+
+    def render(self, context=None, request=None):
+        template_name = self.jsx_template_name.replace('.tsx', '')
+
+        from django.template.backends.utils import csrf_input_lazy, csrf_token_lazy
+
+        props = context or {}
+        context = {}
+
+        if request is not None:
+            context['request'] = request
+            # context['csrf_input'] = csrf_input_lazy(request)
+            context['csrf_token'] = str(csrf_token_lazy(request))
+
+            for context_processor in self.backend.template_context_processors:
+                context.update(context_processor(request))
+
+        return render_jsx_to_string(request, template_name, context, props)

@@ -111,4 +111,6 @@ class Template:
             for context_processor in self.backend.template_context_processors:
                 context.update(context_processor(request))
 
-        return render_jsx_to_string(request, template_name, context, props)
+            return render_jsx_to_string(request, template_name, context, props)
+
+        assert False, "At this time, only templates with the request object can be rendered with reactivated"

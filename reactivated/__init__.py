@@ -167,6 +167,13 @@ def render_jsx_to_string(request: HttpRequest, template_name: str, context: Any,
     headers = {
         'Content-Type': 'application/json',
     }
+
+    if 'debug' in request.GET:
+        return f'<html><body><h1>Debug response</h1><pre>{escape(data)}</pre></body></html>'
+    elif 'raw' in request.GET or settings.REACTIVATED_SERVER is None:
+        request._is_reactivated_response = True
+        return data
+
     return requests.post(f'{settings.REACTIVATED_SERVER}/__ssr/', headers=headers, data=data).json()['rendered']
 
 

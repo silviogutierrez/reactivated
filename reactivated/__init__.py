@@ -505,7 +505,7 @@ def generate_settings() -> None:
 
 
 def reactivate(request: HttpRequest, template_name: str, props: Any) -> HttpResponse:
-    return render_jsx(request, template_name, props)
+    return HttpResponse(render_jsx_to_string(request, template_name, props))
 
 
 from django.urls import URLPattern, URLResolver

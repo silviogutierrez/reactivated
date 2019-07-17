@@ -44,6 +44,10 @@ class JSX(BaseEngine):
             if os.path.isfile(os.path.join(settings.BASE_DIR, 'client/templates', jsx_template_name)):
                 return Template(jsx_template_name, self)
 
+        if template_name.endswith('.tsx') or template_name.endswith('.jsx'):
+            if os.path.isfile(os.path.join(settings.BASE_DIR, 'client/templates', template_name)):
+                return Template(template_name, self)
+
         raise TemplateDoesNotExist([], backend=self)
 
         try:
@@ -96,7 +100,7 @@ class Template:
         return render_jsx_to_string(request, template_name, react_context, props)
 
     def render(self, context=None, request=None):
-        template_name = self.jsx_template_name.replace('.tsx', '')
+        template_name = self.jsx_template_name.replace('.tsx', '').replace('.jsx', '')
 
         from django.template.backends.utils import csrf_input_lazy, csrf_token_lazy
 

@@ -49,7 +49,7 @@ const defaultRenderPage = bindRenderPage({DEBUG: true, DEBUG_PORT: 200, MEDIA_UR
 
 export const render = (input: Buffer, renderPage: typeof defaultRenderPage = defaultRenderPage) => {
     const {context, props} = JSON.parse(input.toString('utf8'));
-    console.log(input.toString('utf8'), context, props);
+
     const template_path = `${process.cwd()}/client/templates/${context.template_name}`;
 
     // TODO: disable this in production.
@@ -57,6 +57,13 @@ export const render = (input: Buffer, renderPage: typeof defaultRenderPage = def
         // Our template names have no extension by design, for when we transpile.
         delete require.cache[`${template_path}.tsx`];
         delete require.cache[`${template_path}.jsx`];
+
+        // When developing reactivated itself locally, including Widget.tsx etc.
+        for (const cacheKey of Object.keys(require.cache)) {
+            if (cacheKey.includes('reactivated/dist')) {
+                delete require.cache[cacheKey];
+            }
+        }
     }
 
     const Template = require(template_path).default;

@@ -1,6 +1,6 @@
 default_app_config = 'reactivated.apps.ReactivatedConfig'
 
-from django import forms
+from django import forms as django_forms
 from django.conf import settings
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
@@ -27,7 +27,7 @@ Serializable = Tuple[
         str,
         bool,
         Dict[str, Union[str, int, float, bool, None]],
-        forms.BaseForm,
+        django_forms.BaseForm,
         Sequence[
             Tuple[
                 Union[
@@ -128,7 +128,7 @@ def encode_complex_types(obj: Any) -> Serializable:
     """
     if isinstance(obj, (datetime.datetime, datetime.date)):
         return obj.isoformat()
-    elif isinstance(obj, forms.BaseForm):
+    elif isinstance(obj, django_forms.BaseForm):
         return serialize_form(obj)
 
     # Processor: django.contrib.messages.context_processors.messages
@@ -345,7 +345,7 @@ def create_schema(Type: Any, definitions: Dict, ref: bool = True) -> Any:
         return {
             '$ref': f'#/definitions/{definition_name}',
         }
-    elif issubclass(Type, forms.BaseForm):
+    elif issubclass(Type, django_forms.BaseForm):
         definition_name = f'{Type.__module__}.{Type.__qualname__}'
         required = []
         properties = {}
@@ -474,7 +474,7 @@ class SSRFormRenderer:
         return simplejson.dumps(context)
 
 
-def serialize_form(form: Optional[forms.BaseForm]) -> Optional[FormType]:
+def serialize_form(form: Optional[django_forms.BaseForm]) -> Optional[FormType]:
     if form is None:
         return None
 

@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
+import Downshift from 'downshift'
 
 interface BaseWidget {
     name: string;
@@ -93,13 +94,19 @@ interface Select extends BaseWidget {
     optgroups: Optgroup[];
 }
 
+interface Autocomplete extends BaseWidget {
+    value: string[];
+    template_name: 'reactivated/autocomplete';
+    optgroups: Optgroup[];
+}
+
 interface SelectMultiple extends Select {
     attrs: BaseWidget['attrs'] & {
         multiple: 'multiple';
     }
 }
 
-export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|HiddenInput|Textarea|Select|SelectMultiple|DateInput;
+export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|HiddenInput|Textarea|Select|Autocomplete|SelectMultiple|DateInput;
 
 interface Props {
     widget: WidgetType;
@@ -123,7 +130,7 @@ const getValue = (optgroup: Optgroup) => {
     return rawValue;
 }
 
-export const getValueForSelect = (widget: Select|SelectMultiple) => {
+export const getValueForSelect = (widget: Select|Autocomplete|SelectMultiple) => {
     return isMultiple(widget) ? widget.value : (widget.value[0] || '');
 }
 
@@ -131,6 +138,25 @@ export const Widget = (props: Props) => {
     const {className, widget} = props;
 
     switch (widget.template_name) {
+        case "reactivated/autocomplete": {
+            return <Downshift
+                onChange={selection => alert(
+                    selection ? `You selected ${selection.value}` : 'Selection Cleared'
+                )}
+                itemToString={item => (item ? item.value : '')}
+            >
+                {({
+                    getInputProps,
+                    getItemProps,
+                    getLabelProps,
+                    getMenuProps,
+                    isOpen,
+                    inputValue,
+                    highlightedIndex,
+                    selectedItem,
+                }) => <div>Ok</div> }
+            </Downshift>;
+        }
         case "django/forms/widgets/select.html": {
             /*
             if (isMultiple(widget)) {

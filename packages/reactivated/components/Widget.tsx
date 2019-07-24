@@ -134,6 +134,14 @@ export const getValueForSelect = (widget: Select|Autocomplete|SelectMultiple) =>
     return isMultiple(widget) ? widget.value : (widget.value[0] || '');
 }
 
+const items = [
+  {value: 'apple'},
+  {value: 'pear'},
+  {value: 'orange'},
+  {value: 'grape'},
+  {value: 'banana'},
+]
+
 export const Widget = (props: Props) => {
     const {className, widget} = props;
 
@@ -154,7 +162,35 @@ export const Widget = (props: Props) => {
                     inputValue,
                     highlightedIndex,
                     selectedItem,
-                }) => <div>Ok</div> }
+                }) =>
+                    <div>
+                        <label {...getLabelProps()}>Hello</label>
+                        <input name={widget.name} defaultValue={inputValue || ''} type="hidden" />
+                        <input {...getInputProps()} />
+                        <ul {...getMenuProps()}>
+                          {isOpen
+                            ? items
+                                .filter(item => !inputValue || item.value.includes(inputValue))
+                                .map((item, index) => (
+                                  <li
+                                    {...getItemProps({
+                                      key: item.value,
+                                      index,
+                                      item,
+                                      style: {
+                                        backgroundColor:
+                                          highlightedIndex === index ? 'lightgray' : 'white',
+                                        fontWeight: selectedItem === item ? 'bold' : 'normal',
+                                      },
+                                    })}
+                                  >
+                                    {item.value}
+                                  </li>
+                                ))
+                            : null}
+                        </ul>
+                    </div>
+                }
             </Downshift>;
         }
         case "django/forms/widgets/select.html": {

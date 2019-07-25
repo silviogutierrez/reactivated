@@ -14,6 +14,7 @@
     "@types/reactstrap": "^8.0.1",
     "@types/webpack": "^4.4.5",
     "csstips": "^0.3.0",
+    "downshift": "^3.2.10",
     "express": "^4.16.3",
     "http-proxy": "^1.17.0",
     "json-schema-to-typescript": "^5.5.0",

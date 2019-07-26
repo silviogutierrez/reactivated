@@ -4,7 +4,7 @@ import path from 'path';
 import express, {Application} from 'express';
 
 import {Settings} from './models';
-import {render} from './server';
+import {render, BODY_SIZE_LIMIT} from './server';
 
 
 export const createConfig = (settings: Settings) => {
@@ -56,7 +56,7 @@ export const createConfig = (settings: Settings) => {
                 },
             },
             before: (app: Application) => {
-                app.use(express.json())
+                app.use(express.json({limit: BODY_SIZE_LIMIT}))
                 app.post('/__ssr/', (req, res) => {
                     const rendered = render(Buffer.from(JSON.stringify(req.body)));
                     res.json({rendered});

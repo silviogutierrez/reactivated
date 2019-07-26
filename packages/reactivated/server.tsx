@@ -6,12 +6,16 @@ import ReactDOMServer from 'react-dom/server';
 import Helmet, {HelmetData} from 'react-helmet';
 import {getStyles} from 'typestyle';
 import {compile} from 'json-schema-to-typescript'
+import {resetIdCounter} from 'downshift';
 import fs from 'fs';
 
 import httpProxy, {ServerOptions} from 'http-proxy';
 
 import {Settings} from './models';
 import {Provider} from './context';
+
+// TODO: WHAT DOES THIS NEED TO BE? Even 100k was super fragile and a 10 choice field broke it.
+export const BODY_SIZE_LIMIT = '100000000k'
 
 const app = express();
 
@@ -67,6 +71,8 @@ export const render = (input: Buffer, renderPage: typeof defaultRenderPage = def
     }
 
     const Template = require(template_path).default;
+    // See https://github.com/downshift-js/downshift#resetidcounter
+    resetIdCounter();
     const rendered = ReactDOMServer.renderToString(<Provider value={context}><Template {...props} /></Provider>);
     const helmet = Helmet.renderStatic();
     const css = getStyles();

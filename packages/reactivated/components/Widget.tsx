@@ -1,5 +1,7 @@
 import React from 'react';
 
+import {classes} from 'typestyle';
+
 import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
 import Downshift from 'downshift'
 
@@ -134,24 +136,28 @@ export const getValueForSelect = (widget: Select|Autocomplete|SelectMultiple) =>
     return isMultiple(widget) ? widget.value : (widget.value[0] || '');
 }
 
-const items = [
-  {value: 'apple'},
-  {value: 'pear'},
-  {value: 'orange'},
-  {value: 'grape'},
-  {value: 'banana'},
-]
-
 export const Widget = (props: Props) => {
     const {className, widget} = props;
 
     switch (widget.template_name) {
         case "reactivated/autocomplete": {
+
+            const value = getValueForSelect(widget);
+            const items = widget.optgroups.map((optgroup, index) => ({value: getValue(optgroup), label: optgroup[1][0].label}));
+            const selectedOptgroup = widget.optgroups.filter(optgroup => {return getValue(optgroup).toString() === value})[0];
+            const initialSelectedItem = selectedOptgroup != null ? {value: getValue(selectedOptgroup), label: selectedOptgroup[1][0].label} : null;
+
+            const classNames = classes('form-control', {
+                'is-invalid': props.has_errors,
+                'is-valid': props.passed_validation,
+            });
+
             return <Downshift
                 onChange={selection => alert(
                     selection ? `You selected ${selection.value}` : 'Selection Cleared'
                 )}
-                itemToString={item => (item ? item.value : '')}
+                initialSelectedItem={initialSelectedItem}
+                itemToString={item => (item && item.value != '' ? item.label : '')}
             >
                 {({
                     getInputProps,
@@ -163,14 +169,14 @@ export const Widget = (props: Props) => {
                     highlightedIndex,
                     selectedItem,
                 }) =>
-                    <div>
-                        <label {...getLabelProps()}>Hello</label>
-                        <input name={widget.name} defaultValue={inputValue || ''} type="hidden" />
+                    <div className={classNames}>
+                        {/*<label {...getLabelProps()}>Hello</label>*/}
+                        <input name={widget.name} defaultValue={selectedItem != null ? selectedItem.value : ''} type="hidden" />
                         <input {...getInputProps()} />
                         <ul {...getMenuProps()}>
                           {isOpen
                             ? items
-                                .filter(item => !inputValue || item.value.includes(inputValue))
+                                .filter(item => !inputValue || item.value.toString().includes(inputValue))
                                 .map((item, index) => (
                                   <li
                                     {...getItemProps({
@@ -184,7 +190,7 @@ export const Widget = (props: Props) => {
                                       },
                                     })}
                                   >
-                                    {item.value}
+                                    {item.label}
                                   </li>
                                 ))
                             : null}

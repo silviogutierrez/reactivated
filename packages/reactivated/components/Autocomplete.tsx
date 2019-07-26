@@ -1,16 +1,78 @@
 import React from 'react';
+import Context from "../context";
 
 import {classes} from 'typestyle';
 import {getValueForSelect, getValue, Autocomplete as AutocompleteType, Props as WidgetProps} from './Widget';
-import Downshift from 'downshift'
+import Downshift, {ChildrenFunction} from 'downshift'
 
 
-type Props = Omit<WidgetProps, 'widget'> & {
+interface Props extends WidgetProps {
     widget: AutocompleteType;
 }
 
 
-export class Autocomplete extends React.Component<Props, {}> {
+interface Item {
+    value: string|number;
+    label: string;
+}
+
+interface State {
+    isLoading: boolean;
+    results: Item[];
+}
+
+
+export class Autocomplete extends React.Component<Props, State> {
+    static contextType = Context;
+
+    state = {
+        isLoading: false,
+        results: [],
+    };
+
+    renderMenu: ChildrenFunction<Item> = ({
+        getInputProps,
+        getItemProps,
+        getLabelProps,
+        getMenuProps,
+        isOpen,
+        inputValue,
+        highlightedIndex,
+        selectedItem,
+    }) => {
+        const items = this.props.widget.optgroups.map((optgroup, index) => ({value: getValue(optgroup), label: optgroup[1][0].label}));
+
+        if (isOpen) {
+            return <>
+                {items
+                .filter(item => !inputValue || item.value.toString().includes(inputValue))
+                .map((item, index) => (
+                  <li
+                    {...getItemProps({
+                      key: item.value,
+                      index,
+                      item,
+                      style: {
+                        backgroundColor:
+                          highlightedIndex === index ? 'lightgray' : 'white',
+                        fontWeight: selectedItem === item ? 'bold' : 'normal',
+                      },
+                    })}
+                  >
+                    {item.label}
+                  </li>
+                ))
+                }
+            </>
+        }
+
+        return null;
+    }
+
+    handleOnInputValueChange = (value: string) => {
+        console.log(this.context);
+    }
+
     render() {
         const {className, widget} = this.props;
         const value = getValueForSelect(widget);
@@ -27,6 +89,7 @@ export class Autocomplete extends React.Component<Props, {}> {
             onChange={selection => alert(
                 selection ? `You selected ${selection.value}` : 'Selection Cleared'
             )}
+            onInputValueChange={this.handleOnInputValueChange}
             initialSelectedItem={initialSelectedItem}
             itemToString={item => (item && item.value != '' ? item.label : '')}
         >
@@ -39,32 +102,25 @@ export class Autocomplete extends React.Component<Props, {}> {
                 inputValue,
                 highlightedIndex,
                 selectedItem,
+                ...otherDownshiftProps
             }) =>
                 <div className={classNames}>
                     {/*<label {...getLabelProps()}>Hello</label>*/}
                     <input name={widget.name} defaultValue={selectedItem != null ? selectedItem.value : ''} type="hidden" />
                     <input {...getInputProps()} />
+
                     <ul {...getMenuProps()}>
-                      {isOpen
-                        ? items
-                            .filter(item => !inputValue || item.value.toString().includes(inputValue))
-                            .map((item, index) => (
-                              <li
-                                {...getItemProps({
-                                  key: item.value,
-                                  index,
-                                  item,
-                                  style: {
-                                    backgroundColor:
-                                      highlightedIndex === index ? 'lightgray' : 'white',
-                                    fontWeight: selectedItem === item ? 'bold' : 'normal',
-                                  },
-                                })}
-                              >
-                                {item.label}
-                              </li>
-                            ))
-                        : null}
+                        {this.renderMenu({
+                            getInputProps,
+                            getItemProps,
+                            getLabelProps,
+                            getMenuProps,
+                            isOpen,
+                            inputValue,
+                            highlightedIndex,
+                            selectedItem,
+                            ...otherDownshiftProps,
+                        })}
                     </ul>
                 </div>
             }

@@ -106,7 +106,7 @@ export class Autocomplete extends React.Component<Props, State> {
         url.searchParams.append('autocomplete', this.props.widget.name)
         url.searchParams.append('query', value);
 
-        fetch(url as any)
+        fetch(url.toString())
           .then(response => response.json())
           .then(({results}) => {
               this.setState({results});

@@ -1,9 +1,39 @@
 import React from 'react';
 import Context from "../context";
 
-import {classes} from 'typestyle';
+import {classes, style} from 'typestyle';
 import {getValueForSelect, getValue, Autocomplete as AutocompleteType, Props as WidgetProps} from './Widget';
+
+import {Input} from 'reactstrap';
 import Downshift, {ChildrenFunction} from 'downshift'
+
+
+const Styles = {
+    autocomplete: style({
+        position: 'relative',
+    }),
+    menu: style({
+        position: 'absolute',
+        margin: 0,
+        maxHeight: '20rem',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        outline: 0,
+        width: '100%',
+        padding: 0,
+        backgroundColor: 'white',
+        border: '1px solid #CCC',
+    }),
+
+    empty: style({
+        fontStyle: 'italic',
+    }),
+
+    menuItem: style({
+        listStyleType: 'none',
+        padding: '5px',
+    }),
+} as const;
 
 
 interface Props extends WidgetProps {
@@ -43,31 +73,32 @@ export class Autocomplete extends React.Component<Props, State> {
         // const items = this.props.widget.optgroups.map((optgroup, index) => ({value: getValue(optgroup), label: optgroup[1][0].label}));
         const items = this.state.results;
 
-        if (isOpen) {
-            return <>
-                {items
-                // .filter(item => !inputValue || item.value.toString().includes(inputValue))
-                .map((item, index) => (
-                  <li
-                    {...getItemProps({
-                      key: item.value,
-                      index,
-                      item,
-                      style: {
-                        backgroundColor:
-                          highlightedIndex === index ? 'lightgray' : 'white',
-                        fontWeight: selectedItem === item ? 'bold' : 'normal',
-                      },
-                    })}
-                  >
-                    {item.label}
-                  </li>
-                ))
-                }
-            </>
+        if (items.length === 0) {
+            return <li className={classes(Styles.menuItem, Styles.empty)}>No matching items</li>
         }
 
-        return null;
+        return <>
+            {items
+            // .filter(item => !inputValue || item.value.toString().includes(inputValue))
+            .map((item, index) => (
+              <li
+                className={Styles.menuItem}
+                {...getItemProps({
+                  key: item.value,
+                  index,
+                  item,
+                  style: {
+                    backgroundColor:
+                      highlightedIndex === index ? 'lightgray' : 'white',
+                    fontWeight: selectedItem != null && selectedItem.value === item.value ? 'bold' : 'normal',
+                  },
+                })}
+              >
+                {item.label}
+              </li>
+            ))
+            }
+        </>
     }
 
     handleOnInputValueChange = (value: string) => {
@@ -83,23 +114,12 @@ export class Autocomplete extends React.Component<Props, State> {
     }
 
     render() {
+        const {props} = this;
         const {className, widget} = this.props;
-        const value = getValueForSelect(widget);
-        const items = widget.optgroups.map((optgroup, index) => ({value: getValue(optgroup), label: optgroup[1][0].label}));
-        const selectedOptgroup = widget.optgroups.filter(optgroup => {return getValue(optgroup).toString() === value})[0];
-        const initialSelectedItem = selectedOptgroup != null ? {value: getValue(selectedOptgroup), label: selectedOptgroup[1][0].label} : null;
-
-        const classNames = classes('form-control', {
-            'is-invalid': this.props.has_errors,
-            'is-valid': this.props.passed_validation,
-        });
 
         return <Downshift
-            onChange={selection => alert(
-                selection ? `You selected ${selection.value}` : 'Selection Cleared'
-            )}
             onInputValueChange={this.handleOnInputValueChange}
-            initialSelectedItem={initialSelectedItem}
+            initialSelectedItem={widget.selected}
             itemToString={item => (item && item.value != '' ? item.label : '')}
         >
             {({
@@ -113,12 +133,17 @@ export class Autocomplete extends React.Component<Props, State> {
                 selectedItem,
                 ...otherDownshiftProps
             }) =>
-                <div className={classNames}>
+                <div className={Styles.autocomplete}>
                     {/*<label {...getLabelProps()}>Hello</label>*/}
                     <input name={widget.name} defaultValue={selectedItem != null ? selectedItem.value : ''} type="hidden" />
-                    <input {...getInputProps()} />
+                    <Input
+                        invalid={props.has_errors}
+                        valid={!!widget.value && props.passed_validation}
+                        {...getInputProps()}
+                    />
 
-                    <ul {...getMenuProps()}>
+                    {isOpen &&
+                    <ul className={Styles.menu} {...getMenuProps()}>
                         {this.renderMenu({
                             getInputProps,
                             getItemProps,
@@ -131,6 +156,7 @@ export class Autocomplete extends React.Component<Props, State> {
                             ...otherDownshiftProps,
                         })}
                     </ul>
+                    }
                 </div>
             }
         </Downshift>;

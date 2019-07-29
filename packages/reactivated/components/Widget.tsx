@@ -99,7 +99,10 @@ interface Select extends BaseWidget {
 export interface Autocomplete extends BaseWidget {
     value: string[];
     template_name: 'reactivated/autocomplete';
-    optgroups: Optgroup[];
+    selected: {
+        value: string|number;
+        label: string;
+    } | null;
 }
 
 interface SelectMultiple extends Select {

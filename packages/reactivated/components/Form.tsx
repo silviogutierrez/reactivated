@@ -1,11 +1,21 @@
 import React from 'react';
 
+import {style} from 'typestyle';
 import {Widget, WidgetType, getValueForSelect} from './Widget';
 import {Consumer} from '../context';
 
 import { Button, FormGroup, Label, Input, FormText, FormFeedback } from 'reactstrap';
 
 type TODO = any;
+
+const Styles = {
+    // Bootstrap hides error messages unless they are general siblings of
+    // a form-control. This isn't the case with the autocomplete and other
+    // composite widgets. So we force it to always display.
+    feedback: style({
+        display: 'block',
+    }),
+} as const;
 
 
 interface FieldLike {
@@ -117,7 +127,7 @@ export class Form<U extends FieldMap> extends React.Component<Props<U>> {
                         </FormText>
                         }
                         {error != null &&
-                        <FormFeedback>
+                        <FormFeedback className={Styles.feedback}>
                             {error.map((error, index) =>
                             <div key={index}>{error}</div>
                             )}

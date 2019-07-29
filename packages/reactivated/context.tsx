@@ -5,6 +5,7 @@ import * as models from './models';
 const Context = React.createContext({
     request: {
         path: '',
+        url: '',
     },
     template_name: '',
     csrf_token: '',

@@ -27,7 +27,7 @@ export class Autocomplete extends React.Component<Props, State> {
 
     state = {
         isLoading: false,
-        results: [],
+        results: [] as Item[],
     };
 
     renderMenu: ChildrenFunction<Item> = ({
@@ -40,12 +40,13 @@ export class Autocomplete extends React.Component<Props, State> {
         highlightedIndex,
         selectedItem,
     }) => {
-        const items = this.props.widget.optgroups.map((optgroup, index) => ({value: getValue(optgroup), label: optgroup[1][0].label}));
+        // const items = this.props.widget.optgroups.map((optgroup, index) => ({value: getValue(optgroup), label: optgroup[1][0].label}));
+        const items = this.state.results;
 
         if (isOpen) {
             return <>
                 {items
-                .filter(item => !inputValue || item.value.toString().includes(inputValue))
+                // .filter(item => !inputValue || item.value.toString().includes(inputValue))
                 .map((item, index) => (
                   <li
                     {...getItemProps({
@@ -70,7 +71,15 @@ export class Autocomplete extends React.Component<Props, State> {
     }
 
     handleOnInputValueChange = (value: string) => {
-        console.log(this.context);
+        const url = new URL(this.context.request.url);
+        url.searchParams.append('autocomplete', this.props.widget.name)
+        url.searchParams.append('query', value);
+
+        fetch(url as any)
+          .then(response => response.json())
+          .then(({results}) => {
+              this.setState({results});
+          })
     }
 
     render() {

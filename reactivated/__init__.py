@@ -137,6 +137,14 @@ def encode_complex_types(obj: Any) -> Serializable:
     if isinstance(obj, BaseStorage):
         return list(obj)
 
+    # Processor: django.template.context_processors.request
+    if isinstance(obj, HttpRequest):
+        return {
+            'path': obj.path,
+            'url': obj.build_absolute_uri(),
+        }
+
+
     return f'[Unserializable: {type(obj)}]'
 
     # raise TypeError("Type %s not serializable" % type(obj))

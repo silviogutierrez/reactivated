@@ -63,11 +63,12 @@ export const render = (input: Buffer, renderPage: typeof defaultRenderPage = def
         delete require.cache[`${template_path}.jsx`];
 
         // When developing reactivated itself locally, including Widget.tsx etc.
-        for (const cacheKey of Object.keys(require.cache)) {
-            if (cacheKey.includes('reactivated/dist')) {
-                delete require.cache[cacheKey];
-            }
-        }
+        // TODO: has a bug with context.
+        // for (const cacheKey of Object.keys(require.cache)) {
+        //     if (cacheKey.includes('reactivated/dist')) {
+        //         delete require.cache[cacheKey];
+        //     }
+        // }
     }
 
     const Template = require(template_path).default;

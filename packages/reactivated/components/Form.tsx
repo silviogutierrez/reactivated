@@ -4,7 +4,7 @@ import {style} from 'typestyle';
 import {Widget, WidgetType, getValueForSelect} from './Widget';
 import {Consumer} from '../context';
 
-import { Button, FormGroup, Label, Input, FormText, FormFeedback } from 'reactstrap';
+import { Alert, Button, FormGroup, Label, Input, FormText, FormFeedback } from 'reactstrap';
 
 type TODO = any;
 
@@ -112,6 +112,15 @@ export class Form<U extends FieldMap> extends React.Component<Props<U>> {
             </Consumer>
             {props.form != null &&
             <>
+                {props.form.errors != null && props.form.errors.__all__ != null &&
+                <>
+                    {props.form.errors.__all__.map((error, index) =>
+                    <Alert key={index} color="danger">
+                        {error}
+                    </Alert>
+                    )}
+                </>
+                }
                 {this.getFields(true, (field, error) =>
                 <React.Fragment key={field.widget.name}>
                     {'type' in field.widget && field.widget.type === 'hidden' ?

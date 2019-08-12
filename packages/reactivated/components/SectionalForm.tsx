@@ -3,7 +3,7 @@ import React from "react";
 import {Widget, WidgetType, getValueForSelect} from "./Widget";
 import {Consumer} from "../context";
 
-import {Button, FormGroup, Label, Input, FormText, FormFeedback} from "reactstrap";
+import {Alert, Button, FormGroup, Label, Input, FormText, FormFeedback} from "reactstrap";
 
 type TODO = any;
 
@@ -108,6 +108,16 @@ export class SectionalForm<U extends FieldMap> extends React.Component<Props<U>>
                         />
                     )}
                 </Consumer>
+
+                {props.form.errors != null && props.form.errors.__all__ != null &&
+                <>
+                    {props.form.errors.__all__.map((error, index) =>
+                    <Alert key={index} color="danger">
+                        {error}
+                    </Alert>
+                    )}
+                </>
+                }
 
                 {props.form.sections.map((section, index) => (
                     <fieldset key={index}>

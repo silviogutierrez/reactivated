@@ -1,6 +1,6 @@
 {
   "name": "reactivated",
-  "version": "0.0.7",
+  "version": "0.1.0",
   "repository": "github:silviogutierrez/reactivated",
   "license": "MIT",
   "description": "",
@@ -33,6 +33,8 @@
   },
   "main": "lib/index.js",
   "scripts": {
+    "prepublishOnly": "tsc",
+    "postpublish": "git clean -fd",
     "build": "tsc --outDir dist",
     "start": "rm -rf ./node_modules/react-helmet && rm -rf './node_modules/@types/react' && rm -rf ./node_modules/typestyle && tsc -w --outDir dist/"
   },

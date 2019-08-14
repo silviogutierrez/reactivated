@@ -1,6 +1,6 @@
 {
   "name": "reactivated",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repository": "github:silviogutierrez/reactivated",
   "license": "MIT",
   "description": "",
@@ -9,6 +9,7 @@
     "express": "^4.16.3",
     "http-proxy": "^1.17.0",
     "json-schema-to-typescript": "^5.5.0",
+    "module-alias": "^2.2.1",
     "react": "^16.4.1",
     "reactstrap": "^8.0.0",
     "ts-morph": "^2.3.0",
@@ -26,7 +27,6 @@
     "@types/reactstrap": "^8.0.1",
     "@types/webpack": "^4.4.5",
     "csstips": "^0.3.0",
-    "module-alias": "^2.2.1",
     "react-dom": "^16.4.1",
     "react-helmet": "^5.2.0",
     "tslint": "^5.10.0",

@@ -9,6 +9,9 @@ import {compile} from 'json-schema-to-typescript'
 import {resetIdCounter} from 'downshift';
 import fs from 'fs';
 
+import moduleAlias from 'module-alias';
+moduleAlias.addAlias('@client', `${process.cwd()}/client`)
+
 import httpProxy, {ServerOptions} from 'http-proxy';
 
 import {Settings} from './models';

@@ -67,6 +67,18 @@ interface DateInput extends BaseWidget {
     value: string|null;
 }
 
+interface ClearableFileInput extends BaseWidget {
+    template_name: 'django/forms/widgets/clearable_file_input.html';
+    type: 'file';
+    value: string|null;
+    checkbox_name: string;
+    checkbox_id: string;
+    is_initial: boolean;
+    input_text: string;
+    initial_text: string;
+    clear_checkbox_label: string;
+}
+
 
 type Optgroup = [
     null,
@@ -111,7 +123,7 @@ interface SelectMultiple extends Select {
     }
 }
 
-export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|HiddenInput|Textarea|Select|Autocomplete|SelectMultiple|DateInput;
+export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|HiddenInput|Textarea|Select|Autocomplete|SelectMultiple|DateInput|ClearableFileInput;
 
 export interface Props {
     widget: WidgetType;
@@ -182,6 +194,7 @@ export const Widget = (props: Props) => {
                 name={widget.name}
                 rows={10}
             />;
+        case "django/forms/widgets/clearable_file_input.html":
         case "django/forms/widgets/hidden.html":
         case "django/forms/widgets/number.html":
         case "django/forms/widgets/text.html":

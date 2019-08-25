@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
 from django.template.defaultfilters import escape
+from django.utils.functional import Promise
 
 from typing import Any, Dict, Tuple, Union, Sequence, Mapping, TypeVar, Callable, Type, overload, Optional, cast, List, NamedTuple
 
@@ -130,6 +131,12 @@ def encode_complex_types(obj: Any) -> Serializable:
         return obj.isoformat()
     elif isinstance(obj, django_forms.BaseForm):
         return serialize_form(obj)
+    elif isinstance(obj, django_forms.BaseFormSet):
+        return serialize_form_set(obj)
+
+    # Handle lazy strings for Django. This is the parent class.
+    if isinstance(obj, Promise):
+        return str(obj)
 
     # Processor: django.contrib.messages.context_processors.messages
     from django.contrib.messages.storage.base import BaseStorage
@@ -477,9 +484,22 @@ class FormType(NamedTuple):
     is_read_only: bool = False
 
 
+class FormSetType(NamedTuple):
+    initial: int
+    total: int
+    max_num: int
+    min_num: int
+    can_delete: bool
+    can_order: bool
+
+    forms: List[FormType]
+    empty_form: FormType
+    management_form: FormType
+
+
 class SSRFormRenderer:
     def render(self, template_name, context, request=None):
-        return simplejson.dumps(context)
+        return simplejson.dumps(context, default=encode_complex_types)
 
 
 def serialize_form(form: Optional[django_forms.BaseForm]) -> Optional[FormType]:
@@ -502,6 +522,20 @@ def serialize_form(form: Optional[django_forms.BaseForm]) -> Optional[FormType]:
         iterator=list(fields.keys()),
         is_read_only=getattr(form, 'is_read_only', False),
    )
+
+def serialize_form_set(form_set: django_forms.BaseFormSet) -> FormSetType:
+    return FormSetType(
+        initial=form_set.initial_form_count(),
+        total=form_set.total_form_count(),
+        max_num=form_set.max_num,
+        min_num=form_set.min_num,
+        can_delete=form_set.can_delete,
+        can_order=form_set.can_order,
+
+        forms=[serialize_form(form) for form in form_set],
+        empty_form=serialize_form(form_set.empty_form),
+        management_form=serialize_form(form_set.management_form),
+    )
 
 
 def generate_settings() -> None:

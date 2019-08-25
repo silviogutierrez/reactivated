@@ -38,7 +38,7 @@
     "prepublishOnly": "tsc",
     "postpublish": "git clean -fd",
     "build": "tsc --outDir dist",
-    "start": "rm -rf ./node_modules/react-helmet && rm -rf './node_modules/@types/react' && rm -rf ./node_modules/typestyle && tsc -w --outDir dist/"
+    "start": "rm -rf ../../../../gotterdammerung/node_modules/reactivated && tsc -w --outDir ../../../../gotterdammerung/node_modules/reactivated"
   },
   "author": ""
 }

@@ -98,6 +98,7 @@ export class SectionalForm<U extends FieldMap> extends React.Component<Props<U>>
                 action=""
                 className={props.className}
                 onChange={this.handleOnChange}
+                encType="multipart/form-data"
             >
                 <Consumer>
                     {context => (

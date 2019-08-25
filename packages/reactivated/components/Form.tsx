@@ -40,7 +40,7 @@ interface FieldMap {
     [name: string]: FieldLike;
 }
 
-interface FormLike<T extends FieldMap> {
+export interface FormLike<T extends FieldMap> {
     fields: T;
     errors: {[P in keyof T]: string[]|null}|null;
     iterator: Array<keyof T>;
@@ -104,7 +104,7 @@ export class Form<U extends FieldMap> extends React.Component<Props<U>> {
     render() {
         const {props} = this;
 
-        return <form method="POST" action="" className={props.className} onChange={this.handleOnChange}>
+        return <form method="POST" action="" className={props.className} onChange={this.handleOnChange} encType="multipart/form-data">
             <Consumer>
                 {context =>
                 <input type="hidden" name="csrfmiddlewaretoken" value={context.csrf_token} />

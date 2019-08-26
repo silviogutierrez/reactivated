@@ -1,6 +1,8 @@
 import React from "react";
 
 import {Widget, WidgetType, getValueForSelect} from "./Widget";
+import {FieldMap, FormLike} from "./Form";
+import {Field} from "./Field";
 import {Consumer} from "../context";
 
 import {Alert, Button, FormGroup, Label, Input, FormText, FormFeedback} from "reactstrap";
@@ -25,20 +27,9 @@ interface Form {
 }
 */
 
-interface FieldMap {
-    [name: string]: FieldLike;
-}
-
-interface FormLike<T extends FieldMap> {
-    fields: T;
-    errors: {[P in keyof T]: string[] | null} | null;
-    iterator: Array<keyof T>;
-    sections: Array<{label: string; fields: Array<keyof T>}>;
-}
-
 interface Props<U extends FieldMap> {
     className?: string;
-    form: FormLike<U>;
+    form: FormLike<U> & {sections: Array<{label: string; fields: Array<keyof U>}>};
     children?: React.ReactNode;
     filterFields?: (
         form: FormLike<U>,
@@ -127,28 +118,7 @@ export class SectionalForm<U extends FieldMap> extends React.Component<Props<U>>
                             props.form,
                             this.filterFields(section.fields),
                             (field, error) => (
-                                <FormGroup key={field.widget.name}>
-                                    <Label for={field.widget.name}>{field.label}</Label>
-                                    <Widget
-                                        widget={field.widget}
-                                        has_errors={error != null}
-                                        passed_validation={
-                                            props.form!.errors != null && error == null
-                                        }
-                                    />
-                                    {field.help_text !== "" && (
-                                        <FormText color="muted">
-                                            {field.help_text}
-                                        </FormText>
-                                    )}
-                                    {error != null && (
-                                        <FormFeedback>
-                                            {error.map((error, index) => (
-                                                <div key={index}>{error}</div>
-                                            ))}
-                                        </FormFeedback>
-                                    )}
-                                </FormGroup>
+                            <Field key={field.widget.name} field={field} error={error} passed_validation={props.form!.errors != null && error == null} />
                             ),
                         )}
                     </fieldset>

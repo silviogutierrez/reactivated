@@ -2,6 +2,7 @@ import React from 'react';
 
 import {style} from 'typestyle';
 import {Widget, WidgetType, getValueForSelect} from './Widget';
+import {Field} from './Field';
 import {Consumer} from '../context';
 
 import { Alert, Button, FormGroup, Label, Input, FormText, FormFeedback } from 'reactstrap';
@@ -36,7 +37,7 @@ interface Form {
 }
 */
 
-interface FieldMap {
+export interface FieldMap {
     [name: string]: FieldLike;
 }
 
@@ -44,6 +45,7 @@ export interface FormLike<T extends FieldMap> {
     fields: T;
     errors: {[P in keyof T]: string[]|null}|null;
     iterator: Array<keyof T>;
+    prefix: string;
 }
 
 interface Props<U extends FieldMap> {
@@ -54,7 +56,7 @@ interface Props<U extends FieldMap> {
     getFields?: (form: FormLike<U>, state: any) => Array<keyof U>;
 }
 
-function iterate<T, U extends FieldMap>(form: FormLike<U>, callback: (field: FieldLike, error: string[]|null) => T) {
+export function iterate<T, U extends FieldMap>(form: FormLike<U>, callback: (field: FieldLike, error: string[]|null) => T) {
     return form.iterator.map((field_name) => callback(form.fields[field_name], form.errors != null ? form.errors[field_name] :  null));
 }
 
@@ -122,29 +124,7 @@ export class Form<U extends FieldMap> extends React.Component<Props<U>> {
                 </>
                 }
                 {this.getFields(true, (field, error) =>
-                <React.Fragment key={field.widget.name}>
-                    {'type' in field.widget && field.widget.type === 'hidden' ?
-                    <Widget widget={field.widget} has_errors={error != null} passed_validation={false} />
-                    :
-                    <FormGroup>
-                        <Label for={field.widget.name}>{field.label}</Label>
-                        <Widget widget={field.widget} has_errors={error != null} passed_validation={props.form!.errors != null && error == null} />
-                        {/*<h5>{(this.state as any)[field.widget.name]}</h5>*/}
-                        {field.help_text !== '' &&
-                        <FormText color="muted">
-                            {field.help_text}
-                        </FormText>
-                        }
-                        {error != null &&
-                        <FormFeedback className={Styles.feedback}>
-                            {error.map((error, index) =>
-                            <div key={index}>{error}</div>
-                            )}
-                        </FormFeedback>
-                        }
-                    </FormGroup>
-                    }
-                </React.Fragment>
+                <Field key={field.widget.name} field={field} error={error} passed_validation={props.form!.errors != null && error == null} />
                 )}
             </>
             }

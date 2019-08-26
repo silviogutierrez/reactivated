@@ -481,6 +481,7 @@ class FormType(NamedTuple):
     errors: Optional[FormErrors]
     fields: Dict[str, FieldType]
     iterator: List[str]
+    prefix: str
     is_read_only: bool = False
 
 
@@ -495,6 +496,7 @@ class FormSetType(NamedTuple):
     forms: List[FormType]
     empty_form: FormType
     management_form: FormType
+    prefix: str
 
 
 class SSRFormRenderer:
@@ -521,6 +523,7 @@ def serialize_form(form: Optional[django_forms.BaseForm]) -> Optional[FormType]:
         fields=fields,
         iterator=list(fields.keys()),
         is_read_only=getattr(form, 'is_read_only', False),
+        prefix=form.prefix or '',
    )
 
 def serialize_form_set(form_set: django_forms.BaseFormSet) -> FormSetType:
@@ -535,6 +538,7 @@ def serialize_form_set(form_set: django_forms.BaseFormSet) -> FormSetType:
         forms=[serialize_form(form) for form in form_set],
         empty_form=serialize_form(form_set.empty_form),
         management_form=serialize_form(form_set.management_form),
+        prefix=form_set.prefix,
     )
 
 

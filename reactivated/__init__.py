@@ -142,7 +142,13 @@ def encode_complex_types(obj: Any) -> Serializable:
     from django.contrib.messages.storage.base import BaseStorage
 
     if isinstance(obj, BaseStorage):
-        return list(obj)
+        return [
+            Message(
+                level=m.level,
+                level_tag=m.level_tag,
+                message=m.message,
+            ) for m in obj
+        ]
 
     # Processor: django.template.context_processors.request
     if isinstance(obj, HttpRequest):
@@ -154,7 +160,7 @@ def encode_complex_types(obj: Any) -> Serializable:
 
     return f'[Unserializable: {type(obj)}]'
 
-    # raise TypeError("Type %s not serializable" % type(obj))
+    raise TypeError("Type %s not serializable" % type(obj))
 
 
 class JSXResponse:

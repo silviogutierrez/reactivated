@@ -35,9 +35,6 @@ export const FormSet = ({formSet, children}: Props) => (
             value={formSet.total}
         />
 
-        {iterate(formSet.management_form, field => (
-            <th key={field.widget.name}>{field.label}</th>
-        ))}
         <table>
             <thead>
                 <tr>

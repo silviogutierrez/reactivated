@@ -1,6 +1,7 @@
 import React from "react";
+import {Alert, FormFeedback} from 'reactstrap';
 
-import {Form, FormLike, iterate} from "./Form";
+import {Form, FormLike, iterate, Styles} from "./Form";
 import {Widget} from "./Widget";
 
 interface FormSetType {
@@ -10,6 +11,7 @@ interface FormSetType {
     min_num: number;
     can_delete: boolean;
     can_order: boolean;
+    non_form_errors: string[];
 
     forms: Array<FormLike<any>>;
     empty_form: FormLike<any>;
@@ -35,6 +37,12 @@ export const FormSet = ({formSet, children}: Props) => (
             value={formSet.total}
         />
 
+        {formSet.non_form_errors.map((error, index) =>
+        <Alert key={index} color="danger" fade={false}>
+            {error}
+        </Alert>
+        )}
+
         <table>
             <thead>
                 <tr>
@@ -55,6 +63,14 @@ export const FormSet = ({formSet, children}: Props) => (
                                         form.errors != null && error == null
                                     }
                                 />
+
+                                {error != null &&
+                                <FormFeedback className={Styles.feedback}>
+                                    {error.map((error, index) =>
+                                    <div key={index}>{error}</div>
+                                    )}
+                                </FormFeedback>
+                                }
                             </td>
                         ))}
                     </tr>

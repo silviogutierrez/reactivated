@@ -16,7 +16,7 @@ export const Messages = (props: {}) => (
         {context => (
             <>
                 {context.messages.map((message, index) =>
-                    <Alert key={index} color={MESSAGE_LEVEL_CLASSES[message.level_tag]}>
+                    <Alert key={index} color={MESSAGE_LEVEL_CLASSES[message.level_tag]} fade={false}>
                         {message.message}
                     </Alert>
                 )}

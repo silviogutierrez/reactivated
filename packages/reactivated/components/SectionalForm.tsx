@@ -104,7 +104,7 @@ export class SectionalForm<U extends FieldMap> extends React.Component<Props<U>>
                 {props.form.errors != null && props.form.errors.__all__ != null &&
                 <>
                     {props.form.errors.__all__.map((error, index) =>
-                    <Alert key={index} color="danger">
+                    <Alert key={index} color="danger" fade={false}>
                         {error}
                     </Alert>
                     )}

@@ -9,7 +9,7 @@ import { Alert, Button, FormGroup, Label, Input, FormText, FormFeedback } from '
 
 type TODO = any;
 
-const Styles = {
+export const Styles = {
     // Bootstrap hides error messages unless they are general siblings of
     // a form-control. This isn't the case with the autocomplete and other
     // composite widgets. So we force it to always display.
@@ -117,7 +117,7 @@ export class Form<U extends FieldMap> extends React.Component<Props<U>> {
                 {props.form.errors != null && props.form.errors.__all__ != null &&
                 <>
                     {props.form.errors.__all__.map((error, index) =>
-                    <Alert key={index} color="danger">
+                    <Alert key={index} color="danger" fade={false}>
                         {error}
                     </Alert>
                     )}

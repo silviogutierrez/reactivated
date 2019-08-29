@@ -498,6 +498,7 @@ class FormSetType(NamedTuple):
     min_num: int
     can_delete: bool
     can_order: bool
+    non_form_errors: List[str]
 
     forms: List[FormType]
     empty_form: FormType
@@ -540,7 +541,7 @@ def serialize_form_set(form_set: django_forms.BaseFormSet) -> FormSetType:
         min_num=form_set.min_num,
         can_delete=form_set.can_delete,
         can_order=form_set.can_order,
-
+        non_form_errors=form_set.non_form_errors(),
         forms=[serialize_form(form) for form in form_set],
         empty_form=serialize_form(form_set.empty_form),
         management_form=serialize_form(form_set.management_form),

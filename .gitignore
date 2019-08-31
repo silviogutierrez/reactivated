@@ -1,4 +1,5 @@
 *.pyc
+*.sqlite3
 .coverage
 .DS_Store
 node_modules

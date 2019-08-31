@@ -38,7 +38,7 @@
     "prepublishOnly": "tsc",
     "postpublish": "git clean -fd",
     "build": "tsc --outDir dist",
-    "start": "rm -rf ../../../../gotterdammerung/node_modules/reactivated && tsc -w --outDir ../../../../gotterdammerung/node_modules/reactivated"
+    "start": "rm -rf ../../site/node_modules/reactivated && tsc -w --outDir ../../site/node_modules/reactivated"
   },
   "author": ""
 }

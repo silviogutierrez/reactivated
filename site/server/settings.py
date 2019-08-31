@@ -25,7 +25,7 @@ SECRET_KEY = "clearly fake"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -53,6 +53,16 @@ MIDDLEWARE = [
 ROOT_URLCONF = "server.urls"
 
 TEMPLATES = [
+    {
+        "BACKEND": "reactivated.template.JSX",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.contrib.messages.context_processors.messages",
+            ]
+        },
+    },
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
@@ -116,8 +126,6 @@ STATIC_URL = "/static/"
 
 
 DEBUG_PORT = int(os.environ.get("DEBUG_PORT", 8000))
-
-ALLOWED_HOSTS = ["*"]
 
 RUNSERVERPLUS_SERVER_ADDRESS_PORT = f"0.0.0.0:{DEBUG_PORT}"
 

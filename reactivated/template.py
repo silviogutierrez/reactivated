@@ -9,7 +9,6 @@ from django.utils.module_loading import import_string
 
 import os
 import simplejson
-import markdown
 
 from . import render_jsx_to_string
 
@@ -78,6 +77,7 @@ class Template:
             }
         elif self.jsx_template_name == 'flatpages/default.tsx':
             flatpage = context['flatpage']
+            import markdown
 
             return {
                 'flatpage': {

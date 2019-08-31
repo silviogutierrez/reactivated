@@ -1,6 +1,8 @@
 Django==2.2.4
-django-extensions==2.2.1
-mypy==0.720
-mypy-extensions==0.4.1
-simplejson==3.16.0
 Werkzeug==0.15.5
+black==19.3b0
+django-extensions==2.2.1
+isort==4.3.21
+mypy-extensions==0.4.1
+mypy==0.720
+simplejson==3.16.0

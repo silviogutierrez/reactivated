@@ -7,6 +7,7 @@ from django.http import HttpRequest, HttpResponse
 from django.middleware.csrf import get_token
 from django.template.defaultfilters import escape
 from django.utils.functional import Promise
+from django.db.models.query import QuerySet, ValuesIterable
 
 from typing import Any, Dict, Tuple, Union, Sequence, Mapping, TypeVar, Callable, Type, overload, Optional, cast, List, NamedTuple
 
@@ -157,8 +158,13 @@ def encode_complex_types(obj: Any) -> Serializable:
             'url': obj.build_absolute_uri(),
         }
 
+    if isinstance(obj, QuerySet):
+        if obj._iterable_class is ValuesIterable:
+            return list(obj)
+        raise TypeError("Type %s not serializable. Only when you call values() does it become serializable." % type(obj))
 
-    return f'[Unserializable: {type(obj)}]'
+
+    # return f'[Unserializable: {type(obj)}]'
 
     raise TypeError("Type %s not serializable" % type(obj))
 

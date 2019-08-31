@@ -17,9 +17,12 @@ from django.contrib import admin
 from django.urls import path
 
 from . import views
+from .apps.samples import views as samples
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("hello-world/", views.hello_world),
     path("sample-form/", views.sample_form),
+    path("composers/", samples.composer_list),
+    path("composers/create/", samples.create_composer),
 ]

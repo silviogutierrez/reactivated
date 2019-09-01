@@ -25,4 +25,5 @@ urlpatterns = [
     path("sample-form/", views.sample_form),
     path("composers/", samples.composer_list),
     path("composers/create/", samples.create_composer),
+    path("operas/create/", samples.create_opera),
 ]

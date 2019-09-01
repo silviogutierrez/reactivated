@@ -8,6 +8,7 @@ from typing import TypeVar, cast, Any, Union
 
 T = TypeVar('T')
 
+
 def autocomplete(view_func: T) -> T:
     def wrapped_view(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         response: HttpResponse = view_func(request, *args, **kwargs)  # type: ignore

@@ -1,21 +1,29 @@
-from .widgets import Autocomplete
+from .widgets import Autocomplete as Autocomplete
 
 from django import forms as django_forms
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, HttpRequest
+from django.template.response import TemplateResponse
 
+from typing import TypeVar, cast, Any, Union
 
-def autocomplete(view_func):
-    def wrapped_view(request, *args, **kwargs):
-        response = view_func(request, *args, **kwargs)
+T = TypeVar('T')
+
+def autocomplete(view_func: T) -> T:
+    def wrapped_view(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        response: HttpResponse = view_func(request, *args, **kwargs)  # type: ignore
         autocomplete = request.GET.get("autocomplete", None)
         query = request.GET.get("query", "")
+
+        assert isinstance(response, TemplateResponse)
 
         if autocomplete is None:
             return response
 
-        for key, item in response.context_data.items():
+        context_data = response.context_data or {}
+
+        for key, item in context_data.items():
             if isinstance(item, django_forms.BaseForm):
-                form = item
+                form: Union[django_forms.BaseForm, None] = item
                 break
         else:
             form = None
@@ -37,4 +45,4 @@ def autocomplete(view_func):
 
         return response
 
-    return wrapped_view
+    return cast(T, wrapped_view)

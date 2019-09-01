@@ -1,13 +1,4 @@
 import setuptools
-import os
-
-def find_stubs(package):
-    stubs = []
-    for root, dirs, files in os.walk(package):
-        for file in files:
-            path = os.path.join(root, file).replace(package + os.sep, '', 1)
-            stubs.append(path)
-    return {package: stubs}
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -24,14 +15,10 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     package_data={
         'reactivated': [
-            'conf/mypy.ini',
             'py.typed',
         ],
-        **find_stubs('django-stubs'),
-        **find_stubs('custom_user-stubs'),
     },
     scripts=[
-        'scripts/to-be-renamed.py',
     ],
     classifiers=(
         "Programming Language :: Python :: 3",

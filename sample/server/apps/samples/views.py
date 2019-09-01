@@ -1,11 +1,14 @@
-from django.http import HttpRequest
+from typing import Union
+from django.http import HttpRequest, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
 from . import forms, models
 
 
-def create_composer(request: HttpRequest) -> TemplateResponse:
+def create_composer(
+    request: HttpRequest
+) -> Union[TemplateResponse, HttpResponseRedirect]:
     if request.method == "POST":
         form = forms.ComposerForm(request.POST)
 

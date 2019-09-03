@@ -18,6 +18,7 @@ const Styles = {
 
 interface FieldType {
     widget: WidgetType;
+    prefix: string;
     label: string;
     help_text: string;
 };

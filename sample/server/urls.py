@@ -26,4 +26,5 @@ urlpatterns = [
     path("composers/", samples.composer_list),
     path("composers/create/", samples.create_composer),
     path("operas/create/", samples.create_opera),
+    path("browser/", samples.data_browser),
 ]

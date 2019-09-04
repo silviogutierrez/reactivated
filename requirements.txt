@@ -10,3 +10,6 @@ requests==2.22.0
 simplejson==3.16.0
 pytest==5.1.2
 pytest-django==3.5.1
+
+# Install reactivated package locally
+-e .

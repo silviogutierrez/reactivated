@@ -9,4 +9,7 @@ pip install -r requirements.txt
 cd packages/reactivated/
 yarn
 
+cd $PROJECT_ROOT/sample
+yarn
+
 cd $PROJECT_ROOT

@@ -6,10 +6,11 @@ flake8==3.7.8
 isort==4.3.21
 mypy-extensions==0.4.1
 mypy==0.720
+django-stubs==1.1.0
+pytest-django==3.5.1
+pytest==5.1.2
 requests==2.22.0
 simplejson==3.16.0
-pytest==5.1.2
-pytest-django==3.5.1
 
 # Install reactivated package locally
 -e .

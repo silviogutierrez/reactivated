@@ -4,7 +4,7 @@ from django.http import HttpRequest, HttpResponseRedirect
 from django.template.response import TemplateResponse
 
 from reactivated.forms import autocomplete
-from server.apps.samples import forms
+from server.apps.samples import forms  # type: ignore
 
 
 @autocomplete

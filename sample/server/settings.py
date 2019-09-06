@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    "reactivated",
     "django_extensions",
     "server.apps.samples",
     "django.contrib.admin",

@@ -9,6 +9,11 @@ from server.apps.samples import models
 def test_autocomplete(client):
     models.Composer.objects.create(name="Richard Wagner")
     models.Composer.objects.create(name="Wolfgang Amadeus Mozart")
+
+    response = client.get(
+        "/autocomplete-view/",
+    )
+
     response = client.get(
         "/autocomplete-view/", {"autocomplete": "composer", "query": "Wagner"}
     )

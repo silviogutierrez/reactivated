@@ -13,6 +13,9 @@ class Autocomplete(forms.Select):
         choices = cast(ModelChoiceIterator, self.choices)
 
         assert choices.queryset is not None
+        assert hasattr(
+            choices.queryset, "autocomplete"
+        ), "Models marked for autocompletion must implement autocomplete(query: str) at the manager level"
 
         to_field_name = choices.field.to_field_name or "pk"
 

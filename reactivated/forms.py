@@ -78,8 +78,8 @@ def autocomplete(view_func: T) -> T:
         ):
             results = [
                 {"value": result.pk, "label": str(result)}
-                for result in form.fields[descriptor.field_name].queryset.filter(
-                    name__icontains=query
+                for result in form.fields[descriptor.field_name].queryset.autocomplete(
+                    query
                 )[:50]
             ]
 

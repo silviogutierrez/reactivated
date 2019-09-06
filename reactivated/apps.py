@@ -14,14 +14,10 @@ logger = logging.getLogger("django.server")
 
 def get_types_schema() -> str:
     urlconf = importlib.import_module(settings.ROOT_URLCONF)
-    urlpatterns = urlconf.urlpatterns
+    urlpatterns = urlconf.urlpatterns  # type: ignore
 
-    from server.urls import urlpatterns
-    from django_extensions.management.commands.show_urls import Command
-    from django.contrib.admindocs.views import simplify_regex
     from django.urls import converters
     from django.urls.resolvers import RoutePattern
-    import json
 
     converter_mapping = {
         converters.IntConverter: "number",
@@ -31,7 +27,7 @@ def get_types_schema() -> str:
         converters.PathConverter: "string",
     }
 
-    urls = extract_views_from_urlpatterns(urlpatterns)
+    urls = extract_views_from_urlpatterns(urlpatterns)  # type: ignore
     reverse = {}
 
     for _, regex, name, pattern in urls:
@@ -51,7 +47,7 @@ def get_types_schema() -> str:
 class ReactivatedConfig(AppConfig):
     name = "reactivated"
 
-    def ready(self):
+    def ready(self) -> None:
         """
         Django's dev server actually starts twice. So we prevent generation on
         the first start. TODO: handle noreload.
@@ -66,7 +62,6 @@ class ReactivatedConfig(AppConfig):
             return
 
         logger.info("Generating interfaces and client side code")
-
 
         #: Note that we don't pass the file object to stdout, because otherwise
         # webpack gets confused with the half-written file when we make updates.

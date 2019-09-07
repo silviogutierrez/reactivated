@@ -151,6 +151,10 @@ export const getValueForSelect = (widget: Select|Autocomplete|SelectMultiple) =>
     return isMultiple(widget) ? widget.value : (widget.value[0] || '');
 }
 
+
+export const isHidden = (widget: WidgetType) => 'type' in widget && widget.type === 'hidden';
+
+
 export const Widget = (props: Props) => {
     const {className, widget} = props;
 

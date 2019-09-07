@@ -1,8 +1,13 @@
 import React from "react";
-import {Alert, FormFeedback} from 'reactstrap';
+import {Alert, FormFeedback} from "reactstrap";
+import {style, classes} from "typestyle";
 
 import {Form, FormLike, iterate, Styles} from "./Form";
-import {Widget} from "./Widget";
+import {Widget, isHidden} from "./Widget";
+
+const styles = {
+    hidden: style({display: "none"}),
+} as const;
 
 interface FormSetType {
     initial: number;
@@ -37,17 +42,22 @@ export const FormSet = ({formSet, children}: Props) => (
             value={formSet.total}
         />
 
-        {formSet.non_form_errors.map((error, index) =>
-        <Alert key={index} color="danger" fade={false}>
-            {error}
-        </Alert>
-        )}
+        {formSet.non_form_errors.map((error, index) => (
+            <Alert key={index} color="danger" fade={false}>
+                {error}
+            </Alert>
+        ))}
 
         <table>
             <thead>
                 <tr>
                     {iterate(formSet.empty_form, field => (
-                        <th key={field.widget.name}>{field.label}</th>
+                        <th
+                            key={field.widget.name}
+                            className={classes(isHidden(field.widget) && styles.hidden)}
+                        >
+                            {field.label}
+                        </th>
                     ))}
                 </tr>
             </thead>
@@ -55,7 +65,12 @@ export const FormSet = ({formSet, children}: Props) => (
                 {formSet.forms.map(form => (
                     <tr key={form.prefix}>
                         {iterate(form, (field, error) => (
-                            <td key={field.widget.name}>
+                            <td
+                                key={field.widget.name}
+                                className={classes(
+                                    isHidden(field.widget) && styles.hidden,
+                                )}
+                            >
                                 <Widget
                                     widget={field.widget}
                                     has_errors={error != null}
@@ -64,13 +79,13 @@ export const FormSet = ({formSet, children}: Props) => (
                                     }
                                 />
 
-                                {error != null &&
-                                <FormFeedback className={Styles.feedback}>
-                                    {error.map((error, index) =>
-                                    <div key={index}>{error}</div>
-                                    )}
-                                </FormFeedback>
-                                }
+                                {error != null && (
+                                    <FormFeedback className={Styles.feedback}>
+                                        {error.map((error, index) => (
+                                            <div key={index}>{error}</div>
+                                        ))}
+                                    </FormFeedback>
+                                )}
                             </td>
                         ))}
                     </tr>

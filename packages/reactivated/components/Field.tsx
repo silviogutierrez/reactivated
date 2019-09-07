@@ -3,7 +3,7 @@ import {style} from 'typestyle';
 
 import {Alert, Button, FormGroup, Label, Input, FormText, FormFeedback} from 'reactstrap';
 
-import {Widget, WidgetType, getValueForSelect} from './Widget';
+import {Widget, isHidden, WidgetType, getValueForSelect} from './Widget';
 
 
 const Styles = {
@@ -31,7 +31,7 @@ interface Props {
 export const Field = (props: Props) => {
     const {field, error, passed_validation} = props;
 
-    if ('type' in field.widget && field.widget.type === 'hidden') {
+    if (isHidden(field.widget)) {
         return <Widget widget={field.widget} has_errors={error != null} passed_validation={false} />
     }
     return <FormGroup>

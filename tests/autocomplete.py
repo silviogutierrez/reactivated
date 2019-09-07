@@ -7,12 +7,22 @@ from server.apps.samples import models
 @pytest.mark.django_db
 @pytest.mark.urls("tests.urls")
 def test_autocomplete(client):
-    models.Composer.objects.create(name="Richard Wagner")
+    composer = models.Composer.objects.create(name="Richard Wagner")
     models.Composer.objects.create(name="Wolfgang Amadeus Mozart")
 
-    response = client.get(
-        "/autocomplete-view/",
+    assert client.get("/autocomplete-view/").status_code == 200
+
+    assert (
+        client.post(
+            "/autocomplete-view/", {"name": "Zarzuela", "composer": composer.pk}
+        ).status_code
+        == 302
     )
+
+    response = client.get(
+        "/autocomplete-view/", {"autocomplete": "name", "query": "Wagner"}
+    )
+    assert "Rendered form" in str(response.content)
 
     response = client.get(
         "/autocomplete-view/", {"autocomplete": "composer", "query": "Wagner"}

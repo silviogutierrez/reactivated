@@ -59,9 +59,7 @@ def autocomplete(view_func: T) -> T:
         autocomplete = request.GET.get("autocomplete", None)
         query = request.GET.get("query", "")
 
-        assert isinstance(response, TemplateResponse)
-
-        if autocomplete is None:
+        if autocomplete is None or not isinstance(response, TemplateResponse):
             return response
 
         context_data = response.context_data or {}

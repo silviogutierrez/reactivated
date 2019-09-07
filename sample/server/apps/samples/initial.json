@@ -1,0 +1,63 @@
+[
+{
+    "model": "samples.composer",
+    "pk": 1,
+    "fields": {
+        "name": "Richard Wagner"
+    }
+},
+{
+    "model": "samples.composer",
+    "pk": 2,
+    "fields": {
+        "name": "Wolfgang Amadeus Mozart"
+    }
+},
+{
+    "model": "samples.composer",
+    "pk": 3,
+    "fields": {
+        "name": "Fr\u00e9d\u00e9ric Chopin"
+    }
+},
+{
+    "model": "samples.opera",
+    "pk": 1,
+    "fields": {
+        "name": "Das Rheingold",
+        "composer": 1
+    }
+},
+{
+    "model": "samples.opera",
+    "pk": 2,
+    "fields": {
+        "name": "Das Rheingold",
+        "composer": 1
+    }
+},
+{
+    "model": "samples.opera",
+    "pk": 3,
+    "fields": {
+        "name": "Die Walk\u00fcre",
+        "composer": 1
+    }
+},
+{
+    "model": "samples.opera",
+    "pk": 4,
+    "fields": {
+        "name": "Siegfried",
+        "composer": 1
+    }
+},
+{
+    "model": "samples.opera",
+    "pk": 5,
+    "fields": {
+        "name": "G\u00f6tterd\u00e4mmerung",
+        "composer": 1
+    }
+}
+]

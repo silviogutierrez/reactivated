@@ -35,6 +35,8 @@ def analyze_ssr(ctx):
     # print(arg_type.variables)
     print(ctx.api.named_type('builtins.int'), arg_type.arg_types[0])
 
+    # breakpoint()
+
     try:
         del ctx.api.errors.error_info_map['types.py'][1]
     except Exception:

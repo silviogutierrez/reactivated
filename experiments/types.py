@@ -39,8 +39,8 @@ c: Mapping[str, str] = {"foo": "a"}
 a == b == c  # Works
 
 
-# mapping_test(c)  # Works, of course
-# mapping_test(a)  # Does not work
+mapping_test(c)  # Works, of course
+mapping_test(a)  # Does not work
 
 
 X = TypeVar("X")
@@ -53,7 +53,6 @@ def ssr(foo: X) -> X:
 @ssr
 def to_be_ssred_without_types(thing, bar):
     return True
-
 
 @ssr
 def to_be_ssred(thing: int, bar: str) -> bool:

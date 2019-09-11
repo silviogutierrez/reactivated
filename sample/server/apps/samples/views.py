@@ -5,7 +5,7 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from reactivated.forms import autocomplete
 
-from . import forms, models
+from . import forms, models, templates
 
 
 def create_composer(
@@ -71,3 +71,14 @@ def data_browser(
         "opera_form_set": opera_form_set,
         "opera_form": opera_form,
     })
+
+
+@autocomplete
+def typed_template(
+    request: HttpRequest
+) -> Union[TemplateResponse, HttpResponseRedirect]:
+
+    opera = models.Opera.objects.first()
+    composer = models.Opera.objects.first()
+
+    return templates.TypedTemplateTemplate(opera=opera, composer=composer).render(request)

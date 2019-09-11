@@ -5,6 +5,13 @@ from mypy.types import UnionType, TypeType
 
 class CustomPlugin(Plugin):
     def get_type_analyze_hook(self, fullname: str):
+        if fullname == "reactivated.templates2.Data":
+            return analyze_data
+
+        if fullname == "reactivated.templates2.Data2":
+            return analyze_data
+
+        # print(fullname)
         # if fullname == "reactivated.templates.Template":
         #    return replace_type
         return None
@@ -15,6 +22,10 @@ class CustomPlugin(Plugin):
         if fullname == "reactivated.templates.Template":
             return analyze_template
         return None
+
+
+def analyze_data(ctx):
+    return ctx.api.named_type('builtins.int')
 
 from mypy.nodes import NamedTupleExpr
 

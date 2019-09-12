@@ -1,7 +1,7 @@
 from django.db import models
 
 
-models.QuerySet.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ignore
+# models.QuerySet.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ignore
 
 
 class ComposerQuerySet(models.QuerySet["Composer"]):
@@ -12,7 +12,7 @@ class ComposerQuerySet(models.QuerySet["Composer"]):
 class Composer(models.Model):
     name = models.CharField(max_length=100)
 
-    objects = ComposerQuerySet.as_manager()
+    # objects = ComposerQuerySet.as_manager()
 
     def __str__(self) -> str:
         return self.name
@@ -27,7 +27,7 @@ class Opera(models.Model):
     name = models.CharField(max_length=100)
     composer = models.ForeignKey(Composer, on_delete=models.CASCADE)
 
-    objects = OperaQuerySet.as_manager()
+    # objects = OperaQuerySet.as_manager()
 
     def __str__(self) -> str:
         return f"{self.name}: {self.composer.name}"

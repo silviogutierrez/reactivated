@@ -79,6 +79,9 @@ def typed_template(
 ) -> Union[TemplateResponse, HttpResponseRedirect]:
 
     opera = models.Opera.objects.first()
-    composer = models.Opera.objects.first()
+    composer = models.Composer.objects.first()
+
+    assert opera is not None
+    assert composer is not None
 
     return templates.TypedTemplateTemplate(opera=opera, composer=composer).render(request)

@@ -4,6 +4,7 @@ from django.db import models
 
 
 models.QuerySet.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ignore
+models.Manager.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ignore
 
 
 class ComposerQuerySet(models.QuerySet["Composer"]):
@@ -33,7 +34,7 @@ class Opera(models.Model):
     name = models.CharField(max_length=100)
     composer = models.ForeignKey(Composer, on_delete=models.CASCADE)
 
-    objects = cast(OperaManager, OperaManager.from_queryset(OperaQuerySet)())
+    # objects = cast(OperaManager, OperaManager.from_queryset(OperaQuerySet)())
 
     def __str__(self) -> str:
         return f"{self.name}: {self.composer.name}"

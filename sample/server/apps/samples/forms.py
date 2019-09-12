@@ -2,7 +2,7 @@ from django import forms
 
 from reactivated.forms import Autocomplete
 
-from . import models
+from sample.server.apps.samples import models
 
 
 class ComposerForm(forms.ModelForm):

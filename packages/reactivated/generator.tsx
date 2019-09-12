@@ -16,7 +16,7 @@ const urls = {
     'widget_detail': {'pk': 'number'},
 };
 */
-const interfaces = project.createSourceFile("generated/urls.tsx");
+const interfaces = project.createSourceFile("");
 interfaces.addVariableStatement({
     declarationKind: VariableDeclarationKind.Const,
     declarations: [{

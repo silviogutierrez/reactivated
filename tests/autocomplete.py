@@ -1,7 +1,7 @@
 import pytest
 
 from reactivated import forms
-from server.apps.samples import models
+from sample.server.apps.samples import models
 
 
 @pytest.mark.django_db

@@ -1,7 +1,9 @@
+from typing import cast
+
 from django.db import models
 
 
-# models.QuerySet.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ignore
+models.QuerySet.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ignore
 
 
 class ComposerQuerySet(models.QuerySet["Composer"]):
@@ -12,10 +14,14 @@ class ComposerQuerySet(models.QuerySet["Composer"]):
 class Composer(models.Model):
     name = models.CharField(max_length=100)
 
-    # objects = ComposerQuerySet.as_manager()
+    objects: ComposerQuerySet = cast(ComposerQuerySet, ComposerQuerySet.as_manager())  # type: ignore
 
     def __str__(self) -> str:
         return self.name
+
+
+class OperaManager(models.Manager["Opera"]):
+    pass
 
 
 class OperaQuerySet(models.QuerySet["Opera"]):
@@ -27,7 +33,7 @@ class Opera(models.Model):
     name = models.CharField(max_length=100)
     composer = models.ForeignKey(Composer, on_delete=models.CASCADE)
 
-    # objects = OperaQuerySet.as_manager()
+    objects = cast(OperaManager, OperaManager.from_queryset(OperaQuerySet)())
 
     def __str__(self) -> str:
         return f"{self.name}: {self.composer.name}"

@@ -431,7 +431,7 @@ def generate_schema() -> str:
     definitions: Dict[str, Any] = {}
 
     schema = {
-        "title": "Schema",
+        # "title": "Schema",
         "type": "object",
         "definitions": definitions,
         "properties": {
@@ -443,7 +443,7 @@ def generate_schema() -> str:
         "required": [name for name in type_registry.keys()],
     }
 
-    return simplejson.dumps(schema, indent=4)
+    return schema
 
 
 class WidgetType(TypeHint):

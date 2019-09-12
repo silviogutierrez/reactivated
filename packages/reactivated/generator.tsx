@@ -1,9 +1,11 @@
 import {Project, StructureKind, VariableDeclarationKind, WriterFunctions, SourceFile} from "ts-morph";
+import {compile} from "json-schema-to-typescript";
 import fs from 'fs';
 
 const stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
 
-const urls = JSON.parse(stdinBuffer.toString('utf8'));
+const schema = JSON.parse(stdinBuffer.toString('utf8'));
+const {urls, templates, types} = schema;
 
 import { NormalModuleReplacementPlugin } from "webpack";
 
@@ -90,7 +92,25 @@ export function reverse<T extends All['name']>(name: T, args?: Extract<WithArgum
 // project.save();
 // const result = project.emitToMemory();
 // project.emi
-process.stdout.write(interfaces.getText());
+
+
+interfaces.addStatements(`
+import React from "react"
+`);
+
+compile(types, "Types").then(ts => {
+    process.stdout.write(ts);
+
+    for (const name of templates) {
+        interfaces.addStatements(`
+export class ${name} extends React.Component<Types["${name}"], {}> {
+}
+        `);
+    }
+
+
+    process.stdout.write(interfaces.getText());
+})
 
 interface First {
     name: 'foo';

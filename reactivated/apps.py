@@ -1,3 +1,5 @@
+from typing import Dict, Any, List
+
 from django.apps import AppConfig
 from django.conf import settings
 
@@ -12,7 +14,7 @@ from . import extract_views_from_urlpatterns
 logger = logging.getLogger("django.server")
 
 
-def get_types_schema() -> str:
+def get_urls_schema() -> Dict[str, Any]:
     urlconf = importlib.import_module(settings.ROOT_URLCONF)
     urlpatterns = urlconf.urlpatterns  # type: ignore
 
@@ -41,7 +43,33 @@ def get_types_schema() -> str:
             },
         }
 
-    return json.dumps(reverse)
+    return reverse
+
+
+def get_types_schema() -> Dict[str, Any]:
+    from typing import NamedTuple
+    from . import type_registry, generate_schema
+
+    class Foo(NamedTuple):
+        thing: str
+        bar: int
+
+    type_registry['Foo'] = Foo
+
+    return generate_schema()
+
+
+def get_templates() -> List[str]:
+    return ['Foo']
+
+
+def get_schema() -> str:
+    schema = {
+        "urls": get_urls_schema(),
+        "templates": get_templates(),
+        "types": get_types_schema(),
+    }
+    return json.dumps(schema, indent=4)
 
 
 class ReactivatedConfig(AppConfig):
@@ -72,8 +100,10 @@ class ReactivatedConfig(AppConfig):
             stdout=subprocess.PIPE,
             stdin=subprocess.PIPE,
         )
-        out, error = process.communicate(get_types_schema().encode())
+        schema = get_schema().encode()
+        out, error = process.communicate(schema)
 
         with open("client/generated.tsx", "w+b") as output:
             output.write(out)
+
         logger.info("Finished generating.")

@@ -17,9 +17,23 @@ def test_generate_schema_for_type():
     assert 1 == 1
 
 
+from django.db import models as django_models
 from sample.server.apps.samples import models
 
 
 def test_get_field_descriptor():
-    descriptor = get_field_descriptor(models.Opera, ['composer', 'name'])
-    breakpoint()
+    descriptor, path = get_field_descriptor(models.Opera, ['has_piano_transcription'])
+    assert isinstance(descriptor, django_models.BooleanField)
+    assert path == ()
+
+    descriptor, path = get_field_descriptor(models.Opera, ['composer', 'name'])
+    assert isinstance(descriptor, django_models.CharField)
+    assert path == (('composer', False),)
+
+    descriptor, path = get_field_descriptor(models.Opera, ['composer', 'countries', 'name'])
+    assert isinstance(descriptor, django_models.CharField)
+    assert path == (('composer', False), ('countries', True))
+
+    descriptor, path = get_field_descriptor(models.Opera, ['composer', 'composer_countries', 'was_born'])
+    assert isinstance(descriptor, django_models.BooleanField)
+    assert path == (('composer', False), ('composer_countries', True))

@@ -2,21 +2,25 @@ from __future__ import annotations
 
 from django.db import models
 
-from typing import Any, List, Type
+from typing import Any, List, Type, Sequence, Tuple
 
 FieldDescriptor = Any
 
+FieldSegment = Tuple[str, bool]
 
-def get_field_descriptor(model_class: Type[models.Model], field_chain: List[str]) -> models.Field[Any, Any]:
+
+def get_field_descriptor(model_class: Type[models.Model], field_chain: List[str]) -> Tuple[models.Field[Any, Any], Sequence[FieldSegment]]:
     field_name, *remaining = field_chain
 
     field_descriptor = model_class._meta.get_field(field_name)
 
-    if isinstance(field_descriptor, (models.ForeignKey, models.OneToOneField, models.ManyToOneRel)):
+    if isinstance(field_descriptor, (models.ForeignKey, models.OneToOneField, models.ManyToOneRel, models.ManyToManyField, models.ManyToOneRel)):
         nested_descriptor, nested_field_names = get_field_descriptor(field_descriptor.related_model, remaining)
-        return nested_descriptor, ((field_name, True), *nested_field_names)
 
-    return field_descriptor, ((field_name, False),)
+        is_multiple = isinstance(field_descriptor, (models.ManyToManyField, models.ManyToOneRel))
+        return nested_descriptor, ((field_name, is_multiple), *nested_field_names)
+
+    return field_descriptor, ()
 
 
 MAPPING = {

@@ -9,11 +9,12 @@ models.Manager.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ig
 
 class Continent(models.Model):
     name = models.CharField(max_length=100)
+    hemisphere = models.CharField(max_length=20)
 
 
 class Country(models.Model):
     name = models.CharField(max_length=100)
-    continent = models.ForeignKey(Continent, on_delete=models.CASCADE)
+    continent = models.ForeignKey(Continent, on_delete=models.CASCADE, related_name="countries")
 
 
 class ComposerCountry(models.Model):

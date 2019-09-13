@@ -4,6 +4,21 @@ from django.db import models
 
 from typing import Any, List, Type
 
+FieldDescriptor = Any
+
+
+def get_field_descriptor(model_class: Type[models.Model], field_chain: List[str]) -> models.Field[Any, Any]:
+    field_name, *remaining = field_chain
+
+    field_descriptor = model_class._meta.get_field(field_name)
+
+    if isinstance(field_descriptor, (models.ForeignKey, models.OneToOneField, models.ManyToOneRel)):
+        nested_descriptor, nested_field_names = get_field_descriptor(field_descriptor.related_model, remaining)
+        return nested_descriptor, ((field_name, True), *nested_field_names)
+
+    return field_descriptor, ((field_name, False),)
+
+
 MAPPING = {
     models.CharField: "string",
     models.BooleanField: "boolean",

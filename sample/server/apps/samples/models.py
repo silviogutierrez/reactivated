@@ -7,6 +7,16 @@ models.QuerySet.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: i
 models.Manager.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ignore
 
 
+class Country(models.Model):
+    name = models.CharField(max_length=100)
+
+
+class ComposerCountry(models.Model):
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    composer = models.ForeignKey("Composer", on_delete=models.CASCADE)
+    was_born = models.BooleanField(default=False)
+
+
 class ComposerQuerySet(models.QuerySet["Composer"]):
     def autocomplete(self, query: str) -> models.QuerySet["Composer"]:
         return self.filter(name__icontains=query)
@@ -14,8 +24,9 @@ class ComposerQuerySet(models.QuerySet["Composer"]):
 
 class Composer(models.Model):
     name = models.CharField(max_length=100)
-
     objects: ComposerQuerySet = cast(ComposerQuerySet, ComposerQuerySet.as_manager())  # type: ignore
+
+    countries = models.ManyToManyField(Country, through=ComposerCountry)
 
     def __str__(self) -> str:
         return self.name

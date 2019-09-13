@@ -1,0 +1,25 @@
+'favorite_book.authors.name',
+'favorite_book.authors.age','
+'favorite_book.name','
+'name','
+
+{
+   name: string;
+   favorite_book: {
+      name: string;
+      authors: Array<{name: string; age: number}>;
+   }
+}
+
+
+type: object,
+properties: {
+    'name': {type: string},
+    'authors': {type: array
+}
+
+
+# descriptor, path = get_field_descriptor
+CharFieldInstance, [('favorite_book', False), ('authors', True)]
+
+

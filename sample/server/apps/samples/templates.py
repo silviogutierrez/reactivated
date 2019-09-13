@@ -8,7 +8,7 @@ from . import models
 
 @template
 class TypedTemplateTemplate(NamedTuple):
-    opera: Pick[models.Opera, "name", "composer", "has_piano_transcription"]
+    opera: Pick[models.Opera, "name", "composer.name", "has_piano_transcription"]
     composer: Pick[models.Composer, "name"]
 
     def render(self, request: HttpRequest) -> TemplateResponse:

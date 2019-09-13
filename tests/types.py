@@ -26,6 +26,10 @@ def test_get_field_descriptor():
     assert isinstance(descriptor, django_models.BooleanField)
     assert path == ()
 
+    descriptor, path = get_field_descriptor(models.Opera, ['composer'])
+    assert isinstance(descriptor, django_models.ForeignKey)
+    assert path == ()
+
     descriptor, path = get_field_descriptor(models.Opera, ['composer', 'name'])
     assert isinstance(descriptor, django_models.CharField)
     assert path == (('composer', False),)
@@ -37,3 +41,7 @@ def test_get_field_descriptor():
     descriptor, path = get_field_descriptor(models.Opera, ['composer', 'composer_countries', 'was_born'])
     assert isinstance(descriptor, django_models.BooleanField)
     assert path == (('composer', False), ('composer_countries', True))
+
+    descriptor, path = get_field_descriptor(models.Composer, ['countries'])
+    assert isinstance(descriptor, django_models.ManyToManyField)
+    assert path == ()

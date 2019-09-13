@@ -2,61 +2,97 @@ from __future__ import annotations
 
 from django.db import models
 
-from typing import Any, List, Type, Sequence, Tuple
+from typing import Any, List, Type, Sequence, Tuple, Dict
 
 FieldDescriptor = Any
 
 FieldSegment = Tuple[str, bool]
 
 
-def get_field_descriptor(model_class: Type[models.Model], field_chain: List[str]) -> Tuple[models.Field[Any, Any], Sequence[FieldSegment]]:
+def get_field_descriptor(
+    model_class: Type[models.Model], field_chain: List[str]
+) -> Tuple[models.Field[Any, Any], Sequence[FieldSegment]]:
     field_name, *remaining = field_chain
 
     field_descriptor = model_class._meta.get_field(field_name)
 
-    if isinstance(field_descriptor, (models.ForeignKey, models.OneToOneField, models.ManyToOneRel, models.ManyToManyField, models.ManyToOneRel)):
-        nested_descriptor, nested_field_names = get_field_descriptor(field_descriptor.related_model, remaining)
+    if len(remaining) == 0:
+        return field_descriptor, ()
+    elif isinstance(
+        field_descriptor,
+        (
+            models.ForeignKey,
+            models.OneToOneField,
+            models.ManyToOneRel,
+            models.ManyToManyField,
+            models.ManyToOneRel,
+        ),
+    ):
+        nested_descriptor, nested_field_names = get_field_descriptor(
+            field_descriptor.related_model, remaining
+        )
 
-        is_multiple = isinstance(field_descriptor, (models.ManyToManyField, models.ManyToOneRel))
+        is_multiple = isinstance(
+            field_descriptor, (models.ManyToManyField, models.ManyToOneRel)
+        )
         return nested_descriptor, ((field_name, is_multiple), *nested_field_names)
 
-    return field_descriptor, ()
+    assert False
 
 
 MAPPING = {
     models.CharField: "string",
     models.BooleanField: "boolean",
+    models.ForeignKey: "string",
 }
 
 
 class BasePickHolder:
-    model: Type[models.Model]
+    model_class: Type[models.Model]
     fields: List[str] = []
 
     @classmethod
     def get_json_schema(cls) -> Any:
-        properties = {}
-        required = []
+        schema = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {},
+            "required": [],
+        }
 
         for field_name in cls.fields:
-            field_descriptor = cls.model._meta.get_field(field_name)
+            field_descriptor, path = get_field_descriptor(
+                cls.model_class, field_name.split(".")
+            )
+
+            reference: Dict[str, Any] = schema
+
+            for item, is_multiple in path:
+                existing_subschema = reference["properties"].get(item)
+
+                if is_multiple:
+                    assert False
+
+                if existing_subschema is None:
+                    reference["properties"][item] = {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {},
+                        "required": [],
+                    }
+                    reference["required"].append(item)
+                reference = reference["properties"][item]
+
             json_schema_type = MAPPING.get(field_descriptor.__class__)
 
             if json_schema_type:
-                properties[field_name] = {"type": json_schema_type}
+                reference["properties"][field_descriptor.name] = {"type": json_schema_type}
             else:
-                properties[field_name] = {}
+                reference["properties"][field_descriptor.name] = {}
 
-            required.append(field_name)
+            reference["required"].append(field_descriptor.name)
 
-        definition = {
-            "type": "object",
-            "additionalProperties": False,
-            "properties": properties,
-            "required": required,
-        }
-
-        return definition
+        return schema
 
 
 class Pick:
@@ -64,7 +100,7 @@ class Pick:
         meta_model, *meta_fields = item
 
         class PickHolder(BasePickHolder):
-            model = meta_model
+            model_class = meta_model
             fields = meta_fields
 
         return PickHolder

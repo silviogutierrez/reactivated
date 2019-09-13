@@ -101,7 +101,7 @@ import React from "react"
 compile(types, "Types").then(ts => {
     process.stdout.write(ts);
 
-    for (const name of templates) {
+    for (const name of Object.keys(templates)) {
         interfaces.addStatements(`
 export class ${name} extends React.Component<Types["${name}"], {}> {
 }

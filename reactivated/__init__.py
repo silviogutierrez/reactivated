@@ -31,9 +31,13 @@ from django.urls import URLPattern, URLResolver
 from django.utils.functional import Promise
 from mypy_extensions import Arg, KwArg
 
+from .pick import Pick as Pick, BasePickHolder
+from .templates import template as template
+
 default_app_config = "reactivated.apps.ReactivatedConfig"
 
 type_registry: Dict[str, Tuple[Any]] = {}
+template_registry: Dict[str, Tuple[Any]] = {}
 
 
 _SingleSerializable = Union[
@@ -390,6 +394,8 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
 
         return {"$ref": f"#/definitions/{definition_name}"}
 
+    elif issubclass(Type, BasePickHolder):
+        return Type.get_json_schema()
     elif issubclass(Type, TypeHint):
         return None
         """

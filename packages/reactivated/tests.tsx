@@ -184,11 +184,13 @@ class BarImplementation extends Bar {
 
 }
 
-type Checker<T, U extends T> = {};
+type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
 
 
-type FooCheck = Checker<Foo,FooImplementation>
-type BarCheck = Checker<Foo,FooImplementation>
+// type FooCheck = Checker<FooProps,FooImplementation>
+// type BarCheck = Checker<Foo,FooImplementation>
+//
+type FooCheck1 = Checker<FooProps, typeof fooRFC>;
+type FooCheck2 = Checker<FooProps, typeof FooImplementation>;
 
-const FooCheckValue: typeof Foo = FooImplementation;
 const FooCheckValue: typeof Foo = FooImplementation;

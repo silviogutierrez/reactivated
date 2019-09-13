@@ -9,7 +9,7 @@ import subprocess
 import json
 import os
 
-from . import extract_views_from_urlpatterns
+from . import extract_views_from_urlpatterns, generate_schema, template_registry
 
 logger = logging.getLogger("django.server")
 
@@ -47,20 +47,11 @@ def get_urls_schema() -> Dict[str, Any]:
 
 
 def get_types_schema() -> Dict[str, Any]:
-    from typing import NamedTuple
-    from . import type_registry, generate_schema
-
-    class Foo(NamedTuple):
-        thing: str
-        bar: int
-
-    type_registry['Foo'] = Foo
-
     return generate_schema()
 
 
 def get_templates() -> List[str]:
-    return ['Foo']
+    return template_registry
 
 
 def get_schema() -> str:

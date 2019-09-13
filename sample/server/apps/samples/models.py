@@ -33,6 +33,7 @@ class OperaQuerySet(models.QuerySet["Opera"]):
 class Opera(models.Model):
     name = models.CharField(max_length=100)
     composer = models.ForeignKey(Composer, on_delete=models.CASCADE)
+    has_piano_transcription = models.BooleanField(default=False)
 
     # objects = cast(OperaManager, OperaManager.from_queryset(OperaQuerySet)())
 

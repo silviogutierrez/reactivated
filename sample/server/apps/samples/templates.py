@@ -9,7 +9,7 @@ from . import models
 @template
 class TypedTemplateTemplate(NamedTuple):
     opera: Pick[models.Opera, "name", "composer.name", "has_piano_transcription"]
-    composer: Pick[models.Composer, "name"]
+    composer: Pick[models.Composer, "name", "countries.name", "countries.continent.name"]
 
     def render(self, request: HttpRequest) -> TemplateResponse:
         from reactivated.pick import BasePickHolder

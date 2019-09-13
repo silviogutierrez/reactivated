@@ -8,6 +8,8 @@ FieldDescriptor = Any
 
 FieldSegment = Tuple[str, bool]
 
+JSONSchema = Any
+
 
 def get_field_descriptor(
     model_class: Type[models.Model], field_chain: List[str]
@@ -40,6 +42,36 @@ def get_field_descriptor(
     assert False
 
 
+def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSONSchema:
+    for item, is_multiple in path:
+        existing_subschema = schema["properties"].get(item)
+
+        if is_multiple:
+            if existing_subschema is None:
+                schema["properties"][item] = {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {},
+                        "required": [],
+                    }
+                }
+                schema["required"].append(item)
+            schema = schema["properties"][item]["items"]
+        else:
+            if existing_subschema is None:
+                schema["properties"][item] = {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {},
+                    "required": [],
+                }
+                schema["required"].append(item)
+            schema = schema["properties"][item]
+    return schema
+
+
 MAPPING = {
     models.CharField: "string",
     models.BooleanField: "boolean",
@@ -64,32 +96,13 @@ class BasePickHolder:
             field_descriptor, path = get_field_descriptor(
                 cls.model_class, field_name.split(".")
             )
-
-            reference: Dict[str, Any] = schema
-
-            for item, is_multiple in path:
-                existing_subschema = reference["properties"].get(item)
-
-                if is_multiple:
-                    assert False
-
-                if existing_subschema is None:
-                    reference["properties"][item] = {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "properties": {},
-                        "required": [],
-                    }
-                    reference["required"].append(item)
-                reference = reference["properties"][item]
-
             json_schema_type = MAPPING.get(field_descriptor.__class__)
+            reference = build_nested_schema(schema, path)
 
             if json_schema_type:
                 reference["properties"][field_descriptor.name] = {"type": json_schema_type}
             else:
                 reference["properties"][field_descriptor.name] = {}
-
             reference["required"].append(field_descriptor.name)
 
         return schema

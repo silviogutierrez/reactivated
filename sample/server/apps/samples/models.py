@@ -7,8 +7,13 @@ models.QuerySet.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: i
 models.Manager.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ignore
 
 
+class Continent(models.Model):
+    name = models.CharField(max_length=100)
+
+
 class Country(models.Model):
     name = models.CharField(max_length=100)
+    continent = models.ForeignKey(Continent, on_delete=models.CASCADE)
 
 
 class ComposerCountry(models.Model):

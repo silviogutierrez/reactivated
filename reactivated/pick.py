@@ -42,6 +42,25 @@ def get_field_descriptor(
     assert False
 
 
+
+def serialize(instance: models.Model, schema: JSONSchema) -> Any:
+    serialized = {}
+
+    for field_name, field in schema["properties"].items():
+        if field["type"] == "array":
+            related_manager = getattr(instance, field_name)
+            serialized[field_name] = [
+                serialize(nested_instance, field["items"]) for nested_instance in related_manager.all()
+            ]
+        elif field["type"] == "object":
+            nested_instance = getattr(instance, field_name)
+            serialized[field_name] = serialize(nested_instance, field)
+        else:
+            serialized[field_name] = getattr(instance, field_name)
+
+    return serialized
+
+
 def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSONSchema:
     for item, is_multiple in path:
         existing_subschema = schema["properties"].get(item)
@@ -55,7 +74,7 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
                         "additionalProperties": False,
                         "properties": {},
                         "required": [],
-                    }
+                    },
                 }
                 schema["required"].append(item)
             schema = schema["properties"][item]["items"]
@@ -100,7 +119,9 @@ class BasePickHolder:
             reference = build_nested_schema(schema, path)
 
             if json_schema_type:
-                reference["properties"][field_descriptor.name] = {"type": json_schema_type}
+                reference["properties"][field_descriptor.name] = {
+                    "type": json_schema_type
+                }
             else:
                 reference["properties"][field_descriptor.name] = {}
             reference["required"].append(field_descriptor.name)

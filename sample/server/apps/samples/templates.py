@@ -19,7 +19,7 @@ class TypedTemplate(NamedTuple):
     ]
 
     def render(self, request: HttpRequest) -> TemplateResponse:
-        from reactivated.pick import BasePickHolder
+        from reactivated.pick import BasePickHolder, serialize
         from reactivated import utils
         from typing import get_type_hints
 
@@ -31,14 +31,8 @@ class TypedTemplate(NamedTuple):
             to_be_picked = members.get(key)
 
             if issubclass(to_be_picked, BasePickHolder):
-                instance_fields = {}
-
-                for field in to_be_picked.fields:
-                    instance_fields[field] = str(
-                        utils.get_attribute(value, field.split("."))
-                    )
-                serialized[key] = instance_fields
+                serialized[key] = serialize(value, to_be_picked.get_json_schema())
             else:
                 serialized[key] = value
 
-        return TemplateResponse(request, "typed_template.tsx", serialized)
+        return TemplateResponse(request, f"{self.__class__.__name__}.tsx", serialized)

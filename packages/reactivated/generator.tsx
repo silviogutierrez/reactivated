@@ -96,6 +96,9 @@ export function reverse<T extends All['name']>(name: T, args?: Extract<WithArgum
 
 interfaces.addStatements(`
 import React from "react"
+
+type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
+
 `);
 
 compile(types, "Types").then(ts => {
@@ -105,6 +108,11 @@ compile(types, "Types").then(ts => {
         interfaces.addStatements(`
 export class ${name} extends React.Component<Types["${name}"], {}> {
 }
+
+import ${name}Implementation from "@client/templates/${name}"
+type ${name}Check = Checker<Types["${name}"], typeof ${name}Implementation>;
+
+
         `);
     }
 

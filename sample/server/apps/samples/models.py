@@ -14,12 +14,18 @@ class Continent(models.Model):
 
 class Country(models.Model):
     name = models.CharField(max_length=100)
-    continent = models.ForeignKey(Continent, on_delete=models.CASCADE, related_name="countries")
+    continent = models.ForeignKey(
+        Continent, on_delete=models.CASCADE, related_name="countries"
+    )
 
 
 class ComposerCountry(models.Model):
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="composer_countries")
-    composer = models.ForeignKey("Composer", on_delete=models.CASCADE, related_name="composer_countries")
+    country = models.ForeignKey(
+        Country, on_delete=models.CASCADE, related_name="composer_countries"
+    )
+    composer = models.ForeignKey(
+        "Composer", on_delete=models.CASCADE, related_name="composer_countries"
+    )
     was_born = models.BooleanField(default=False)
 
 
@@ -30,9 +36,13 @@ class ComposerQuerySet(models.QuerySet["Composer"]):
 
 class Composer(models.Model):
     name = models.CharField(max_length=100)
-    objects: ComposerQuerySet = cast(ComposerQuerySet, ComposerQuerySet.as_manager())  # type: ignore
+    objects: ComposerQuerySet = cast(  # type: ignore
+        ComposerQuerySet, ComposerQuerySet.as_manager()
+    )
 
-    countries = models.ManyToManyField(Country, through=ComposerCountry, related_name="composers")
+    countries = models.ManyToManyField(
+        Country, through=ComposerCountry, related_name="composers"
+    )
 
     def __str__(self) -> str:
         return self.name

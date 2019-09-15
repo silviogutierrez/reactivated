@@ -95,6 +95,7 @@ MAPPING = {
     models.CharField: "string",
     models.BooleanField: "boolean",
     models.ForeignKey: "string",
+    models.AutoField: "string",
 }
 
 

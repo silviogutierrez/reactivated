@@ -11,8 +11,9 @@ T = TypeVar("T", bound=NamedTuple)
 
 def template(cls: T) -> T:
     from . import type_registry, template_registry
-    type_registry[cls.__name__] = cls  # type: ignore
-    template_registry[cls.__name__] = {}  # type: ignore
+    type_name = f"{cls.__name__}Props"
+    type_registry[type_name] = cls  # type: ignore
+    template_registry[cls.__name__] = type_name  # type: ignore
 
     class Augmented(cls):  # type: ignore
         def render(self, request: HttpRequest) -> TemplateResponse:

@@ -339,7 +339,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
                     properties[field_name] = field_schema
 
             definition = {
-                "title": Type.__name__,
+                # "title": Type.__name__,
                 "type": "object",
                 "additionalProperties": False,
                 "properties": properties,

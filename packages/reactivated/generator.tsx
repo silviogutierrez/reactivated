@@ -105,12 +105,13 @@ compile(types, "Types").then(ts => {
     process.stdout.write(ts);
 
     for (const name of Object.keys(templates)) {
+        const propsName=templates[name];
         interfaces.addStatements(`
-export class ${name} extends React.Component<Types["${name}"], {}> {
+export class ${name} extends React.Component<Types["${propsName}"], {}> {
 }
 
 import ${name}Implementation from "@client/templates/${name}"
-type ${name}Check = Checker<Types["${name}"], typeof ${name}Implementation>;
+type ${name}Check = Checker<Types["${propsName}"], typeof ${name}Implementation>;
 
 
         `);

@@ -11,6 +11,7 @@ class TypedTemplate(NamedTuple):
         models.Composer,
         "name",
         "countries.name",
+        "countries.id",
         "countries.continent.name",
         "countries.continent.hemisphere",
         "countries.continent.countries.name",

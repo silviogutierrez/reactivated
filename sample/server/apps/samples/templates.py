@@ -1,7 +1,7 @@
 from reactivated import template, Pick
 from typing import NamedTuple
 
-from . import models
+from . import forms, models
 
 
 @template
@@ -16,3 +16,11 @@ class TypedTemplate(NamedTuple):
         "countries.continent.hemisphere",
         "countries.continent.countries.name",
     ]
+
+
+@template
+class DataBrowser(NamedTuple):
+    composer_form_set: forms.ComposerFormSet
+    composer_form: forms.ComposerForm
+    opera_form_set: forms.OperaFormSet
+    opera_form: forms.OperaForm

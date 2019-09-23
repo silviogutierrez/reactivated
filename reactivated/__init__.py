@@ -316,7 +316,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
             "additionalProperties": create_schema(Type.__args__[1], definitions),
         }
     elif issubclass(Type, bool):
-        return {"type": "bool"}
+        return {"type": "boolean"}
     elif issubclass(Type, int):
         return {"type": "number"}
     elif issubclass(Type, str):
@@ -352,7 +352,31 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
 
         return {"$ref": f"#/definitions/{definition_name}"}
     elif issubclass(Type, django_forms.formsets.BaseFormSet):
-        return {}
+        form_set_schema = create_schema(FormSetType, definitions, ref=False)
+        form_schema = create_schema(Type.form, definitions)
+
+        # We use our own management form because base_fields is set dynamically
+        # by Django in django.forms.formsets.
+        class ManagementForm(django_forms.formsets.ManagementForm):
+            pass
+
+        ManagementForm.base_fields = ManagementForm().base_fields
+
+        management_form_schema = create_schema(ManagementForm, definitions)
+
+        return {
+            **form_set_schema,
+            "properties": {
+                **form_set_schema["properties"],
+                "empty_form": form_schema,
+                "forms": {
+                    "type": "array",
+                    "items": form_schema,
+                },
+                "management_form": management_form_schema,
+            },
+        }
+
     elif issubclass(Type, django_forms.BaseForm):
         definition_name = f"{Type.__module__}.{Type.__qualname__}"
         required = []

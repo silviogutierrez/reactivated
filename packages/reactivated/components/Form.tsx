@@ -43,7 +43,7 @@ export interface FieldMap {
 
 export interface FormLike<T extends FieldMap> {
     fields: T;
-    errors: {[P in keyof T]: string[]|null}|null;
+    errors: {[P in keyof T]?: string[]}|null;
     iterator: Array<keyof T>;
     prefix: string;
 }
@@ -56,7 +56,7 @@ interface Props<U extends FieldMap> {
     getFields?: (form: FormLike<U>, state: any) => Array<keyof U>;
 }
 
-export function iterate<T, U extends FieldMap>(form: FormLike<U>, callback: (field: FieldLike, error: string[]|null) => T) {
+export function iterate<T, U extends FieldMap>(form: FormLike<U>, callback: (field: FieldLike, error: string[]|null|undefined) => T) {
     return form.iterator.map((field_name) => callback(form.fields[field_name], form.errors != null ? form.errors[field_name] :  null));
 }
 
@@ -64,7 +64,7 @@ export const Form2 = <U extends FieldMap>(props: Props<U>) => {
 };
 
 export class Form<U extends FieldMap> extends React.Component<Props<U>> {
-    getFields<T>(filter: boolean, callback: (field: FieldLike, error: string[]|null) => T) {
+    getFields<T>(filter: boolean, callback: (field: FieldLike, error: string[]|null|undefined) => T) {
         const {form} = this.props;
 
         if (form == null) {
@@ -124,7 +124,7 @@ export class Form<U extends FieldMap> extends React.Component<Props<U>> {
                 </>
                 }
                 {this.getFields(true, (field, error) =>
-                <Field key={field.widget.name} field={field} error={error} passed_validation={props.form!.errors != null && error == null} />
+                <Field key={field.widget.name} field={field} error={error || null} passed_validation={props.form!.errors != null && error == null} />
                 )}
             </>
             }

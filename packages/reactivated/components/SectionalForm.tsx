@@ -41,7 +41,7 @@ interface Props<U extends FieldMap> {
 function iterate<T, U extends FieldMap>(
     form: FormLike<U>,
     fields: Array<keyof U>,
-    callback: (field: FieldLike, error: string[] | null) => T,
+    callback: (field: FieldLike, error: string[] | null | undefined) => T,
 ) {
     return fields.map(field_name =>
         callback(
@@ -118,7 +118,7 @@ export class SectionalForm<U extends FieldMap> extends React.Component<Props<U>>
                             props.form,
                             this.filterFields(section.fields),
                             (field, error) => (
-                            <Field key={field.widget.name} field={field} error={error} passed_validation={props.form!.errors != null && error == null} />
+                            <Field key={field.widget.name} field={field} error={error || null} passed_validation={props.form!.errors != null && error == null} />
                             ),
                         )}
                     </fieldset>

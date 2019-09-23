@@ -351,17 +351,22 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
             definitions[definition_name] = definition
 
         return {"$ref": f"#/definitions/{definition_name}"}
+    elif issubclass(Type, django_forms.formsets.BaseFormSet):
+        return {}
     elif issubclass(Type, django_forms.BaseForm):
         definition_name = f"{Type.__module__}.{Type.__qualname__}"
         required = []
         properties = {}
+        error_properties = {}
         field_schema = create_schema(FieldType, definitions)
+
         # We manually build errors using type augmentation.
-        # error_schema = create_schema(FormErrors, definitions)
+        error_schema = create_schema(FormError, definitions)
 
         for field_name, SubType in Type.base_fields.items():
             required.append(field_name)
             properties[field_name] = field_schema
+            error_properties[field_name] = error_schema
 
         definitions["Form"] = {
             "title": "Form",
@@ -375,18 +380,34 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
                 {
                     "type": "object",
                     "properties": {
-                        # 'errors': error_schema,
+                        'errors': {
+                            "type": "object",
+                            "properties": error_properties,
+                            "additionalProperties": False,
+                        },
                         "fields": {
                             "type": "object",
                             "properties": properties,
                             "required": required,
                             "additionalProperties": False,
-                        }
+                        },
+                        "prefix": {
+                            "type": "string",
+                        },
+                        "iterator": {
+                            "type": "array",
+                            "items": {
+                                "enum": required,
+                                "type": "string",
+                            },
+                        },
                     },
                     "additionalProperties": False,
                     "required": [
+                        "prefix",
                         "fields",
-                        # 'errors',
+                        "iterator",
+                        "errors",
                     ],
                 },
             ],
@@ -397,14 +418,9 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
     elif issubclass(Type, BasePickHolder):
         return Type.get_json_schema()
     elif issubclass(Type, TypeHint):
-        return None
-        """
-            return {
-                'title': Type().name,
-                'type': 'object',
-                'additionalProperties': False,
-           }
-        """
+        return {
+            "tsType": Type.name,
+        }
     assert False
 
 
@@ -463,7 +479,9 @@ class FieldType(NamedTuple):
     widget: WidgetType
 
 
-FormErrors = Dict[str, Optional[List[str]]]
+FormError = Optional[List[str]]
+
+FormErrors = Dict[str, FormError]
 
 
 class FormType(NamedTuple):

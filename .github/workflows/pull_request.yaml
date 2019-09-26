@@ -20,7 +20,7 @@ jobs:
             CFOO: blahasdsad
             D_CORDERO: "$GITHUB_WORKSPACE"
             D_CORDERO2: "${GITHUB_WORKSPACE}"
-            D_CORDERO3: "${{ GITHUB_WORKSPACE }}"
+            # D_CORDERO3: "${{ GITHUB_WORKSPACE }}"
             D_CORDERO4: "${{ echo GITHUB_WORKSPACE }}"
             D_CORDERO5: "${{ $GITHUB_WORKSPACE }}"
             PYTHONPATH: "./sample"

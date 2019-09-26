@@ -1,6 +1,5 @@
 from typing import NamedTuple
 
-import pytest
 from django.db import models as django_models
 
 from reactivated import create_schema

@@ -42,7 +42,6 @@ def get_field_descriptor(
     assert False
 
 
-
 def serialize(instance: models.Model, schema: JSONSchema) -> Any:
     serialized = {}
 
@@ -50,7 +49,8 @@ def serialize(instance: models.Model, schema: JSONSchema) -> Any:
         if field["type"] == "array":
             related_manager = getattr(instance, field_name)
             serialized[field_name] = [
-                serialize(nested_instance, field["items"]) for nested_instance in related_manager.all()
+                serialize(nested_instance, field["items"])
+                for nested_instance in related_manager.all()
             ]
         elif field["type"] == "object":
             nested_instance = getattr(instance, field_name)

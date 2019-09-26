@@ -10,7 +10,7 @@ class ReactivatedMiddleware:
     def __call__(self, request: HttpRequest) -> HttpResponse:
         response = self.get_response(request)
 
-        if getattr(request, '_is_reactivated_response', False) is True:
-            response['content-type'] = 'application/ssr+json'
+        if getattr(request, "_is_reactivated_response", False) is True:
+            response["content-type"] = "application/ssr+json"
 
         return response

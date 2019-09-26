@@ -13,13 +13,8 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/silviogutierrez/django-react",
     packages=setuptools.find_packages(),
-    package_data={
-        'reactivated': [
-            'py.typed',
-        ],
-    },
-    scripts=[
-    ],
+    package_data={"reactivated": ["py.typed"]},
+    scripts=[],
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

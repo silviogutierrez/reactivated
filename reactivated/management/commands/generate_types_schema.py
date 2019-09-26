@@ -7,7 +7,7 @@ from ...apps import get_schema
 
 
 class Command(BaseCommand):
-    help = 'Generates a JSON schema for all registered types.'
+    help = "Generates a JSON schema for all registered types."
 
     def handle(self, *args: Any, **options: Any) -> None:
         self.stdout.write(get_schema())

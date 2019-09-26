@@ -369,10 +369,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
             "properties": {
                 **form_set_schema["properties"],
                 "empty_form": form_schema,
-                "forms": {
-                    "type": "array",
-                    "items": form_schema,
-                },
+                "forms": {"type": "array", "items": form_schema},
                 "management_form": management_form_schema,
             },
         }
@@ -404,7 +401,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
                 {
                     "type": "object",
                     "properties": {
-                        'errors': {
+                        "errors": {
                             "type": "object",
                             "properties": error_properties,
                             "additionalProperties": False,
@@ -415,24 +412,14 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
                             "required": required,
                             "additionalProperties": False,
                         },
-                        "prefix": {
-                            "type": "string",
-                        },
+                        "prefix": {"type": "string"},
                         "iterator": {
                             "type": "array",
-                            "items": {
-                                "enum": required,
-                                "type": "string",
-                            },
+                            "items": {"enum": required, "type": "string"},
                         },
                     },
                     "additionalProperties": False,
-                    "required": [
-                        "prefix",
-                        "fields",
-                        "iterator",
-                        "errors",
-                    ],
+                    "required": ["prefix", "fields", "iterator", "errors"],
                 },
             ],
         }
@@ -442,9 +429,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
     elif issubclass(Type, BasePickHolder):
         return Type.get_json_schema()
     elif issubclass(Type, TypeHint):
-        return {
-            "tsType": Type.name,
-        }
+        return {"tsType": Type.name}
     assert False
 
 
@@ -532,7 +517,9 @@ class FormSetType(NamedTuple):
 
 
 class SSRFormRenderer:
-    def render(self, template_name: str, context: Any, request: Optional[HttpRequest] = None) -> str:
+    def render(
+        self, template_name: str, context: Any, request: Optional[HttpRequest] = None
+    ) -> str:
         return simplejson.dumps(context, default=encode_complex_types)
 
 
@@ -561,7 +548,9 @@ def serialize_form(form: django_forms.BaseForm) -> FormType:
     )
 
 
-def serialize_form_set(typed_form_set: django_forms.formsets.BaseFormSet) -> FormSetType:
+def serialize_form_set(
+    typed_form_set: django_forms.formsets.BaseFormSet
+) -> FormSetType:
     form_set = cast(Any, typed_form_set)
 
     return FormSetType(
@@ -596,7 +585,9 @@ def describe_pattern(p):  # type: ignore
     return str(p.pattern)
 
 
-def extract_views_from_urlpatterns(urlpatterns, base="", namespace=None):  # type: ignore
+def extract_views_from_urlpatterns(
+    urlpatterns, base="", namespace=None
+):  # type: ignore
     """
     Heavily modified version of the functiuon from django_extensions/management/commands/show_urls.py
 

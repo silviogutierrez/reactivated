@@ -12,11 +12,7 @@ class ComposerForm(forms.ModelForm):
 
 
 ComposerFormSet = forms.modelformset_factory(
-    model=models.Composer,
-    form=ComposerForm,
-    extra=0,
-    min_num=1,
-    validate_min=True,
+    model=models.Composer, form=ComposerForm, extra=0, min_num=1, validate_min=True
 )
 
 
@@ -28,9 +24,5 @@ class OperaForm(forms.ModelForm):
 
 
 OperaFormSet = forms.modelformset_factory(
-    model=models.Opera,
-    form=OperaForm,
-    extra=0,
-    min_num=1,
-    validate_min=True,
+    model=models.Opera, form=OperaForm, extra=0, min_num=1, validate_min=True
 )

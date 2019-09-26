@@ -11,6 +11,7 @@ T = TypeVar("T", bound=NamedTuple)
 
 def template(cls: T) -> T:
     from . import type_registry, template_registry
+
     type_name = f"{cls.__name__}Props"
     type_registry[type_name] = cls  # type: ignore
     template_registry[cls.__name__] = type_name  # type: ignore
@@ -31,7 +32,9 @@ def template(cls: T) -> T:
                 else:
                     serialized[key] = value
 
-            return TemplateResponse(request, f"{self.__class__.__name__}.tsx", serialized)
+            return TemplateResponse(
+                request, f"{self.__class__.__name__}.tsx", serialized
+            )
 
     Augmented.__name__ = cls.__name__  # type: ignore
     return Augmented  # type: ignore

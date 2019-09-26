@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('samples', '0001_initial'),
-    ]
+    dependencies = [("samples", "0001_initial")]
 
     operations = [
         migrations.AddField(
-            model_name='opera',
-            name='has_piano_transcription',
+            model_name="opera",
+            name="has_piano_transcription",
             field=models.BooleanField(default=False),
-        ),
+        )
     ]

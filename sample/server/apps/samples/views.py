@@ -32,9 +32,7 @@ def composer_list(request: HttpRequest) -> TemplateResponse:
 
 
 @autocomplete
-def create_opera(
-    request: HttpRequest
-) -> Union[TemplateResponse, HttpResponseRedirect]:
+def create_opera(request: HttpRequest) -> Union[TemplateResponse, HttpResponseRedirect]:
     if request.method == "POST":
         form = forms.OperaForm(request.POST)
 
@@ -48,9 +46,7 @@ def create_opera(
 
 
 @autocomplete
-def data_browser(
-    request: HttpRequest
-) -> Union[TemplateResponse, HttpResponseRedirect]:
+def data_browser(request: HttpRequest) -> Union[TemplateResponse, HttpResponseRedirect]:
     if request.method == "POST":
         form = forms.OperaForm(request.POST)
 
@@ -65,12 +61,16 @@ def data_browser(
     opera_form_set = forms.OperaFormSet(prefix="opera_form_set")
     opera_form = forms.OperaForm(prefix="opera_form-0")
 
-    return TemplateResponse(request, "data_browser.tsx", {
-        "composer_form_set": composer_form_set,
-        "composer_form": composer_form,
-        "opera_form_set": opera_form_set,
-        "opera_form": opera_form,
-    })
+    return TemplateResponse(
+        request,
+        "data_browser.tsx",
+        {
+            "composer_form_set": composer_form_set,
+            "composer_form": composer_form,
+            "opera_form_set": opera_form_set,
+            "opera_form": opera_form,
+        },
+    )
 
 
 @autocomplete

@@ -6,20 +6,22 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('samples', '0004_auto_20190913_2051'),
-    ]
+    dependencies = [("samples", "0004_auto_20190913_2051")]
 
     operations = [
         migrations.AddField(
-            model_name='continent',
-            name='hemisphere',
-            field=models.CharField(default='', max_length=20),
+            model_name="continent",
+            name="hemisphere",
+            field=models.CharField(default="", max_length=20),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='country',
-            name='continent',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='countries', to='samples.Continent'),
+            model_name="country",
+            name="continent",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="countries",
+                to="samples.Continent",
+            ),
         ),
     ]

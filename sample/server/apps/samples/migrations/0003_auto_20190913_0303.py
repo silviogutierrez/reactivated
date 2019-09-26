@@ -6,30 +6,58 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('samples', '0002_opera_has_piano_transcription'),
-    ]
+    dependencies = [("samples", "0002_opera_has_piano_transcription")]
 
     operations = [
         migrations.CreateModel(
-            name='Country',
+            name="Country",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
             ],
         ),
         migrations.CreateModel(
-            name='ComposerCountry',
+            name="ComposerCountry",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('was_born', models.BooleanField(default=False)),
-                ('composer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='samples.Composer')),
-                ('country', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='samples.Country')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("was_born", models.BooleanField(default=False)),
+                (
+                    "composer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="samples.Composer",
+                    ),
+                ),
+                (
+                    "country",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="samples.Country",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='composer',
-            name='countries',
-            field=models.ManyToManyField(through='samples.ComposerCountry', to='samples.Country'),
+            model_name="composer",
+            name="countries",
+            field=models.ManyToManyField(
+                through="samples.ComposerCountry", to="samples.Country"
+            ),
         ),
     ]

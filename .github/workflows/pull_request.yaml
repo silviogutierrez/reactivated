@@ -2,8 +2,8 @@ name: Continuous Integration
 on: pull_request
 
 jobs:
-  tests_again:
-    name: Chris Cordero
+  tests:
+    name: Tests
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1

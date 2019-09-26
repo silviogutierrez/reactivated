@@ -3,7 +3,7 @@ on: pull_request
 
 jobs:
   tests_again:
-    name: Tests
+    name: Chris Cordero
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1

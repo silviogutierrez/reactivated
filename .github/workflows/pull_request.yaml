@@ -14,5 +14,7 @@ jobs:
         run: pip install -r requirements.txt
       - name: Set python path
         run: export PYTHONPATH="$PWD/sample"
+      - name: Foo
+        run: export
       - name: Run tests
         run: scripts/test.sh

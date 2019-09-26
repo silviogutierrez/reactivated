@@ -15,6 +15,9 @@ jobs:
       - name: Set python path
         run: export PYTHONPATH="$PWD/sample"
       - name: Foo
+        env:
+            CHRIS_CORDERO: $GITHUB_WORKSPACE
+            CFOO: blahasdsad
         run: export
       - name: Run tests
         run: scripts/test.sh

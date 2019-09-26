@@ -18,7 +18,9 @@ jobs:
         env:
             CHRIS_CORDERO: $GITHUB_WORKSPACE
             CFOO: blahasdsad
-            D_CORDERO: "$GITHUB_WORKSPACE"
+            D_CORDERO: "${GITHUB_WORKSPACE}"
         run: export
       - name: Run tests
         run: scripts/test.sh
+        env:
+            PYTHONPATH: ./sample

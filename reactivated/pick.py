@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from django.db import models
+from typing import Any, Dict, List, Sequence, Tuple, Type
 
-from typing import Any, List, Type, Sequence, Tuple, Dict
+from django.db import models
 
 FieldDescriptor = Any
 

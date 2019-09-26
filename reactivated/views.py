@@ -1,29 +1,33 @@
-from django.http import HttpRequest, HttpResponse
-from django.middleware.csrf import get_token
-from django.shortcuts import redirect
-
+import abc
 from typing import (
     Any,
-    NamedTuple,
+    Callable,
+    Dict,
     Generic,
+    List,
+    Mapping,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
     TypeVar,
     Union,
-    Dict,
-    Optional,
-    List,
-    Any,
-    Tuple,
-    Sequence,
-    Mapping,
+    cast,
     overload,
 )
 
+import simplejson
+from django.http import HttpRequest, HttpResponse
+from django.middleware.csrf import get_token
+from django.shortcuts import redirect
+from mypy_extensions import Arg, KwArg, TypedDict
+
+from . import FormType, TypeHint, generate_schema, ssr
+
 # from server.apps.testing import models
 
-from . import ssr, generate_schema, TypeHint, FormType
 
-import abc
-import simplejson
 
 
 class Trinket(NamedTuple):
@@ -52,8 +56,6 @@ class TrinketListProps(NamedTuple):
     trinket_list: List[Trinket]
 
 
-from typing import Callable, Tuple, Type, cast
-from mypy_extensions import TypedDict, Arg, KwArg
 
 
 class EmptyParams(NamedTuple):

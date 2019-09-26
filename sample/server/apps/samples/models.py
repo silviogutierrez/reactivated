@@ -2,7 +2,6 @@ from typing import cast
 
 from django.db import models
 
-
 models.QuerySet.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ignore
 models.Manager.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ignore
 

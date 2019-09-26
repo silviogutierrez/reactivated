@@ -1,13 +1,12 @@
-from typing import Dict, Any, List
+import importlib
+import json
+import logging
+import os
+import subprocess
+from typing import Any, Dict, List
 
 from django.apps import AppConfig
 from django.conf import settings
-
-import logging
-import importlib
-import subprocess
-import json
-import os
 
 from . import extract_views_from_urlpatterns, generate_schema, template_registry
 

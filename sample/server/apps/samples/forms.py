@@ -1,7 +1,6 @@
 from django import forms
 
 from reactivated.forms import Autocomplete
-
 from sample.server.apps.samples import models
 
 

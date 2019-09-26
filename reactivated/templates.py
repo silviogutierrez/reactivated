@@ -1,10 +1,9 @@
 from typing import NamedTuple, TypeVar, get_type_hints
 
-from django.template.response import TemplateResponse
 from django.http import HttpRequest
+from django.template.response import TemplateResponse
 
 from .pick import BasePickHolder, serialize
-
 
 T = TypeVar("T", bound=NamedTuple)
 

@@ -1,12 +1,11 @@
+import os
+
 from django.conf import settings
 from django.template import TemplateDoesNotExist
-from django.template.backends.utils import csrf_token_lazy
 from django.template.backends.base import BaseEngine
+from django.template.backends.utils import csrf_token_lazy
 from django.utils.functional import cached_property
 from django.utils.module_loading import import_string
-
-
-import os
 
 from . import render_jsx_to_string
 

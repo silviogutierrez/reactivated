@@ -3,6 +3,7 @@ from typing import Union
 from django.http import HttpRequest, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
+
 from reactivated.forms import autocomplete
 
 from . import forms, models, templates

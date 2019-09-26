@@ -1,10 +1,10 @@
-from typing import Optional, Callable, Type as TypingType
+from typing import Callable, Optional
+from typing import Type as TypingType
 
-from mypy.plugin import Plugin, AnalyzeTypeContext, ClassDefContext
-
-from mypy.types import UnionType, TypeType, Type, NoneType, Instance
-from mypy.nodes import ARG_POS, Var, Argument
+from mypy.nodes import ARG_POS, Argument, Var
+from mypy.plugin import AnalyzeTypeContext, ClassDefContext, Plugin
 from mypy.plugins.common import add_method
+from mypy.types import Instance, NoneType, Type, TypeType, UnionType
 
 
 class ReactivatedPlugin(Plugin):

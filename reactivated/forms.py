@@ -1,11 +1,11 @@
-from .widgets import Autocomplete as Autocomplete
-
 import re
+from typing import Any, Dict, NamedTuple, Optional, TypeVar, Union, cast
+
 from django import forms as django_forms
-from django.http import JsonResponse, HttpResponse, HttpRequest
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 
-from typing import TypeVar, cast, Any, Union, Dict, Optional, NamedTuple
+from .widgets import Autocomplete as Autocomplete
 
 T = TypeVar("T")
 

@@ -1,8 +1,11 @@
+from typing import NamedTuple
+
 import pytest
+from django.db import models as django_models
 
 from reactivated import create_schema
-from reactivated.pick import get_field_descriptor, build_nested_schema
-from typing import NamedTuple
+from reactivated.pick import build_nested_schema, get_field_descriptor
+from sample.server.apps.samples import models
 
 
 class NamedTupleType(NamedTuple):
@@ -17,8 +20,6 @@ def test_generate_schema_for_type():
     assert 1 == 1
 
 
-from django.db import models as django_models
-from sample.server.apps.samples import models
 
 
 def test_get_field_descriptor():

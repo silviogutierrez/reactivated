@@ -31,7 +31,8 @@ from django.urls import URLPattern, URLResolver
 from django.utils.functional import Promise
 from mypy_extensions import Arg, KwArg
 
-from .pick import Pick as Pick, BasePickHolder
+from .pick import BasePickHolder
+from .pick import Pick as Pick
 from .templates import template as template
 
 default_app_config = "reactivated.apps.ReactivatedConfig"

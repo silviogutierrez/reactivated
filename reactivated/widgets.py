@@ -1,7 +1,7 @@
+from typing import Any, Dict, Optional, cast
+
 from django import forms
 from django.forms.models import ModelChoiceIterator
-
-from typing import Any, Optional, Dict, cast
 
 
 class Autocomplete(forms.Select):

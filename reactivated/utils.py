@@ -1,8 +1,8 @@
+import collections
 from typing import Any, Sequence
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Manager
-
-import collections
 
 
 # Mock is_simple_callable for now

@@ -1,0 +1,13 @@
+name: Continuous Integration
+on: pull_request
+
+jobs:
+  tests:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@master 
+        with:
+            python-version: '3.7'
+      - name: Run tests
+        run: pip install -r requirements.txt

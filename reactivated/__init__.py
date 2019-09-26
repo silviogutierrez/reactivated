@@ -32,8 +32,8 @@ from django.utils.functional import Promise
 from mypy_extensions import Arg, KwArg
 
 from .pick import BasePickHolder
-from .pick import Pick as Pick
-from .templates import template as template
+from .pick import Pick as Pick  # noqa: F401
+from .templates import template as template  # noqa: F401
 
 default_app_config = "reactivated.apps.ReactivatedConfig"
 
@@ -359,7 +359,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
         # We use our own management form because base_fields is set dynamically
         # by Django in django.forms.formsets.
         class ManagementForm(django_forms.formsets.ManagementForm):
-            pass
+            base_fields: Any
 
         ManagementForm.base_fields = ManagementForm().base_fields
 
@@ -383,7 +383,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
         field_schema = create_schema(FieldType, definitions)
 
         # We manually build errors using type augmentation.
-        error_schema = create_schema(FormError, definitions)
+        error_schema = create_schema(FormError, definitions)  # type: ignore
 
         for field_name, SubType in Type.base_fields.items():
             required.append(field_name)
@@ -459,7 +459,7 @@ def wrap_with_globals(props: Any, definitions: Dict) -> Any:
 """
 
 
-def generate_schema() -> str:
+def generate_schema() -> Dict[str, Any]:
     definitions: Dict[str, Any] = {}
 
     schema = {
@@ -586,9 +586,9 @@ def describe_pattern(p):  # type: ignore
     return str(p.pattern)
 
 
-def extract_views_from_urlpatterns(
+def extract_views_from_urlpatterns(  # type: ignore
     urlpatterns, base="", namespace=None
-):  # type: ignore
+):
     """
     Heavily modified version of the functiuon from django_extensions/management/commands/show_urls.py
 

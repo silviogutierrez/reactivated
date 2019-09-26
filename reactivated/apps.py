@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import subprocess
-from typing import Any, Dict, List
+from typing import Any, Dict, Tuple
 
 from django.apps import AppConfig
 from django.conf import settings
@@ -49,7 +49,7 @@ def get_types_schema() -> Dict[str, Any]:
     return generate_schema()
 
 
-def get_templates() -> List[str]:
+def get_templates() -> Dict[str, Tuple[Any]]:
     return template_registry
 
 

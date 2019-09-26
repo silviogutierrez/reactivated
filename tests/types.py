@@ -20,8 +20,6 @@ def test_generate_schema_for_type():
     assert 1 == 1
 
 
-
-
 def test_get_field_descriptor():
     descriptor, path = get_field_descriptor(models.Opera, ["has_piano_transcription"])
     assert isinstance(descriptor, django_models.BooleanField)

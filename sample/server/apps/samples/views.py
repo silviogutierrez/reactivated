@@ -86,3 +86,16 @@ def typed_template(
     assert composer is not None
 
     return templates.TypedTemplate(opera=opera, composer=composer).render(request)
+
+
+@autocomplete
+def typed_data_browser(
+    request: HttpRequest
+) -> Union[TemplateResponse, HttpResponseRedirect]:
+
+    return templates.DataBrowser(
+        composer_form_set=forms.ComposerFormSet(prefix="composer_form_set"),
+        composer_form=forms.ComposerForm(prefix="composer_form"),
+        opera_form_set=forms.OperaFormSet(prefix="opera_form_set"),
+        opera_form=forms.OperaForm(prefix="opera_form-0"),
+    ).render(request)

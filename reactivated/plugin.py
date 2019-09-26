@@ -4,7 +4,7 @@ from typing import Type as TypingType
 from mypy.nodes import ARG_POS, Argument, Var
 from mypy.plugin import AnalyzeTypeContext, ClassDefContext, Plugin
 from mypy.plugins.common import add_method
-from mypy.types import Instance, NoneType, Type, TypeType, UnionType
+from mypy.types import Instance, Type
 
 
 class ReactivatedPlugin(Plugin):
@@ -45,8 +45,8 @@ def analyze_template(ctx: ClassDefContext) -> None:
         return
 
     request_arg = Argument(
-        variable=Var("request", Instance(http_request.node, [])),
-        type_annotation=Instance(http_request.node, []),
+        variable=Var("request", Instance(http_request.node, [])),  # type: ignore
+        type_annotation=Instance(http_request.node, []),  # type: ignore
         initializer=None,
         kind=ARG_POS,
     )
@@ -55,7 +55,7 @@ def analyze_template(ctx: ClassDefContext) -> None:
         ctx,
         "render",
         args=[request_arg],
-        return_type=Instance(template_response.node, []),
+        return_type=Instance(template_response.node, []),  # type: ignore
     )
 
 

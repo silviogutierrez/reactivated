@@ -28,8 +28,6 @@ from . import FormType, TypeHint, generate_schema, ssr
 # from server.apps.testing import models
 
 
-
-
 class Trinket(NamedTuple):
     name: str
     url: str
@@ -54,8 +52,6 @@ type_registry: Dict[str, NamedTuple] = {}
 
 class TrinketListProps(NamedTuple):
     trinket_list: List[Trinket]
-
-
 
 
 class EmptyParams(NamedTuple):

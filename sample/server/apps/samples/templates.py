@@ -5,7 +5,6 @@ from reactivated import Pick, template
 from . import forms, models
 
 
-@template
 class TypedTemplate(NamedTuple):
     opera: Pick[models.Opera, "name", "composer.name", "has_piano_transcription"]
     composer: Pick[

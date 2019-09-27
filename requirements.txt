@@ -4,4 +4,4 @@ mypy==0.620
 mypy-extensions==0.3.0
 pytz==2018.5
 simplejson==3.16.0
-Werkzeug==0.14.1
+Werkzeug==0.15.3

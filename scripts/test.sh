@@ -15,7 +15,7 @@ cd $PROJECT_ROOT
 capture_stdout_and_stderr_if_successful pytest
 capture_stdout_and_stderr_if_successful black --check .
 capture_stdout_and_stderr_if_successful isort --recursive -c .
-capture_stdout_and_stderr_if_successful mypy .
+capture_stdout_and_stderr_if_successful mypy --no-incremental .
 capture_stdout_and_stderr_if_successful flake8
 cd $PWD
 

@@ -1,23 +1,24 @@
-from mypy.mro import calculate_mro, MroError
-from typing import Callable, Optional, TypeVar, List
+from typing import Callable, List, Optional
 from typing import Type as TypingType
+from typing import TypeVar
 
+from mypy.mro import MroError, calculate_mro
 from mypy.nodes import (
     ARG_POS,
-    TypeInfo,
-    ClassDef,
-    Block,
-    SymbolTable,
-    SymbolTableNode,
     GDEF,
     Argument,
+    Block,
+    ClassDef,
+    SymbolTable,
+    SymbolTableNode,
+    TypeInfo,
     Var,
 )
 from mypy.plugin import (
     AnalyzeTypeContext,
     ClassDefContext,
-    Plugin,
     DynamicClassDefContext,
+    Plugin,
 )
 from mypy.plugins.common import add_method
 from mypy.types import Instance, Type
@@ -50,7 +51,10 @@ class ReactivatedPlugin(Plugin):
 
 
 def analyze_modelformset_factory(ctx: DynamicClassDefContext) -> None:
-    form_set_class = ctx.api.lookup_fully_qualified("django.forms.formsets.BaseFormSet")
+    form_set_class = ctx.api.lookup_fully_qualified_or_none(
+        "django.forms.formsets.BaseFormSet"
+    )
+    assert form_set_class is not None
 
     form_set_class_instance = Instance(form_set_class.node, [])  # type: ignore
 

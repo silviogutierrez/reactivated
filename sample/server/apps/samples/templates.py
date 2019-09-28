@@ -21,7 +21,7 @@ class TypedTemplate(NamedTuple):
 
 @template
 class DataBrowser(NamedTuple):
-    composer_form_set: forms.ComposerFormSet  # type: ignore
+    composer_form_set: forms.ComposerFormSet
     composer_form: forms.ComposerForm
-    opera_form_set: forms.OperaFormSet  # type: ignore
+    opera_form_set: forms.OperaFormSet
     opera_form: forms.OperaForm

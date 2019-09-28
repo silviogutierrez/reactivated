@@ -1,10 +1,29 @@
-from typing import Callable, Optional
+from mypy.mro import calculate_mro, MroError
+from typing import Callable, Optional, TypeVar, List
 from typing import Type as TypingType
 
-from mypy.nodes import ARG_POS, Argument, Var
-from mypy.plugin import AnalyzeTypeContext, ClassDefContext, Plugin
+from mypy.nodes import (
+    ARG_POS,
+    TypeInfo,
+    ClassDef,
+    Block,
+    SymbolTable,
+    SymbolTableNode,
+    GDEF,
+    Argument,
+    Var,
+)
+from mypy.plugin import (
+    AnalyzeTypeContext,
+    ClassDefContext,
+    Plugin,
+    DynamicClassDefContext,
+)
 from mypy.plugins.common import add_method
 from mypy.types import Instance, Type
+
+T = TypeVar("T")
+CB = Optional[Callable[[T], None]]
 
 
 class ReactivatedPlugin(Plugin):
@@ -23,6 +42,34 @@ class ReactivatedPlugin(Plugin):
             return analyze_template
 
         return None
+
+    def get_dynamic_class_hook(self, fullname: str) -> "CB[DynamicClassDefContext]":
+        if fullname == "django.forms.models.modelformset_factory":
+            return analyze_modelformset_factory
+        return None
+
+
+def analyze_modelformset_factory(ctx: DynamicClassDefContext) -> None:
+    form_set_class = ctx.api.lookup_fully_qualified("django.forms.formsets.BaseFormSet")
+
+    form_set_class_instance = Instance(form_set_class.node, [])  # type: ignore
+
+    cls_bases: List[Instance] = [form_set_class_instance]
+    class_def = ClassDef(ctx.name, Block([]))
+    class_def.fullname = ctx.api.qualified_name(ctx.name)
+
+    info = TypeInfo(SymbolTable(), class_def, ctx.api.cur_mod_id)
+    class_def.info = info
+    obj = ctx.api.builtin_type("builtins.object")
+    info.bases = cls_bases or [obj]
+    try:
+        calculate_mro(info)
+    except MroError:
+        ctx.api.fail("Not able to calculate MRO for declarative base", ctx.call)
+        info.bases = [obj]
+        info.fallback_to_any = True
+
+    ctx.api.add_symbol_table_node(ctx.name, SymbolTableNode(GDEF, info))
 
 
 def analyze_pick(ctx: AnalyzeTypeContext) -> Type:

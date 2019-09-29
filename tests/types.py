@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import Any, Dict, List, NamedTuple, Tuple
 
 from django.db import models as django_models
 
@@ -13,10 +13,54 @@ class NamedTupleType(NamedTuple):
     third: int
 
 
-def test_generate_schema_for_type():
+def test_named_tuple():
     definitions = {}
-    create_schema(NamedTupleType, definitions)
-    assert 1 == 1
+    assert create_schema(NamedTupleType, definitions) == {
+        "$ref": "#/definitions/tests.types.NamedTupleType"
+    }
+    assert definitions == {
+        "tests.types.NamedTupleType": {
+            "additionalProperties": False,
+            "properties": {
+                "first": {"type": "string"},
+                "second": {"type": "boolean"},
+                "third": {"type": "number"},
+            },
+            "required": ["first", "second", "third"],
+            "type": "object",
+        }
+    }
+
+
+def test_tuple():
+    assert create_schema(Tuple[str, str], {}) == {
+        "items": [{"type": "string"}, {"type": "string"}],
+        "type": "array",
+    }
+
+    assert create_schema(Tuple[str, ...], {}) == {
+        "items": {"type": "string"},
+        "type": "array",
+    }
+
+
+def test_list():
+    assert create_schema(List[str], {}) == {
+        "type": "array",
+        "items": {"type": "string"},
+    }
+
+
+def test_dict():
+    assert create_schema(Dict[str, Any], {}) == {
+        "type": "object",
+        "additionalProperties": {},
+    }
+
+    assert create_schema(Dict[str, str], {}) == {
+        "type": "object",
+        "additionalProperties": {"type": "string"},
+    }
 
 
 def test_get_field_descriptor():

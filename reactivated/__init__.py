@@ -1,6 +1,7 @@
 import abc
 import datetime
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -294,13 +295,44 @@ class TypeHint(abc.ABC):
         pass
 
 
+if TYPE_CHECKING:
+
+    class _GenericAlias:
+        __origin__: type
+        __args__: List[Any]
+
+
+else:
+    from typing import _GenericAlias
+
+
 def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> Any:
+
+    if isinstance(Type, _GenericAlias):
+        if Type.__origin__ == tuple:
+            *tuple_args, last_arg = Type.__args__
+
+            if last_arg is Ellipsis:
+                return {
+                    "type": "array",
+                    "items": create_schema(tuple_args[0], definitions),
+                }
+
+            return {
+                "type": "array",
+                "items": [
+                    create_schema(Subtype, definitions) for Subtype in Type.__args__
+                ],
+            }
+
     if (
         getattr(Type, "__origin__", None) == Union
         or str(Type.__class__) == "typing.Union"
     ):  # TODO: find a better way to do this.
         return {"anyOf": [create_schema(field, definitions) for field in Type.__args__]}
     elif str(Type.__class__) == "typing.Any":  # TODO: find a better way to do this.
+        return {}
+    elif Type == Any:  # TODO: find a better way to do this.
         return {}
     elif getattr(Type, "_name", None) == "Dict":
         return {

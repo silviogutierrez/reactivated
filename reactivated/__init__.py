@@ -1,7 +1,6 @@
 import abc
 import datetime
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -34,6 +33,7 @@ from mypy_extensions import Arg, KwArg
 
 from .pick import BasePickHolder
 from .pick import Pick as Pick  # noqa: F401
+from .stubs import _GenericAlias
 from .templates import template as template  # noqa: F401
 
 default_app_config = "reactivated.apps.ReactivatedConfig"
@@ -293,17 +293,6 @@ class TypeHint(abc.ABC):
     @abc.abstractmethod
     def name(self) -> str:
         pass
-
-
-if TYPE_CHECKING:
-
-    class _GenericAlias:
-        __origin__: type
-        __args__: List[Any]
-
-
-else:
-    from typing import _GenericAlias
 
 
 def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> Any:

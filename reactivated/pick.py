@@ -69,6 +69,7 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
             if existing_subschema is None:
                 schema["properties"][item] = {
                     "type": "array",
+                    "serializer": "queryset",
                     "items": {
                         "type": "object",
                         "additionalProperties": False,

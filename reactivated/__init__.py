@@ -353,7 +353,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
             properties = {}
 
             for field_name, SubType in Type.__annotations__.items():
-                field_schema = create_schema(SubType, definitions)
+                field_schema = create_schema(SubType, definitions, ref=ref)
 
                 if field_schema is not None:
 

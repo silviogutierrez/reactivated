@@ -23,3 +23,59 @@ properties: {
 CharFieldInstance, [('favorite_book', False), ('authors', True)]
 
 
+def Spam:
+    thing: Iterable[str]
+    again: str
+
+
+def Bar:
+    a: str
+    b: bool
+
+
+def Foo:
+    bar: Bar
+    spam: Spam
+
+
+interface Foo {
+    bar: {
+        a: string
+        b: boolean
+    }
+    spam: {
+        thing: Array<str>
+        again: string
+    }
+}
+
+{
+    "type": "object",
+    "properties": {
+        "bar": {
+            "type": "object",
+            "properties": {
+                "a": {
+                    "type": "string",
+                },
+                "b": {
+                    "type": "boolean",
+                },
+            },
+        },
+        "spam": {
+            "type": "object":,
+            "properties": {
+                "thing": {
+                    type: "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+                "again": {
+                    "type": "string"
+                },
+            },
+        },
+    },
+}

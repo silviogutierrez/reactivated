@@ -27,8 +27,14 @@ def template(cls: T) -> T:
 
                 assert to_be_picked is not None
 
-                if isinstance(to_be_picked, _GenericAlias) and to_be_picked.__origin__ is Union and issubclass(to_be_picked.__args__[0], BasePickHolder):
-                    serialized[key] = serialize(value, to_be_picked.__args__[0].get_json_schema())
+                if (
+                    isinstance(to_be_picked, _GenericAlias)
+                    and to_be_picked.__origin__ is Union
+                    and issubclass(to_be_picked.__args__[0], BasePickHolder)
+                ):
+                    serialized[key] = serialize(
+                        value, to_be_picked.__args__[0].get_json_schema()
+                    )
                 elif isinstance(to_be_picked, _GenericAlias):
                     serialized[key] = value
                 elif issubclass(to_be_picked, BasePickHolder):

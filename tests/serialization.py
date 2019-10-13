@@ -1,6 +1,6 @@
-import pytest
-
 from typing import List, NamedTuple
+
+import pytest
 
 from reactivated import Pick, create_schema
 from sample.server.apps.samples import models
@@ -115,14 +115,3 @@ def test_serialization():
         "spam": {"thing": ["one", "two", "three", "four"], "again": "ok"},
         "pick": {"name": composer.name, "operas": [{"name": opera.name}]},
     }
-
-
-def test_create_schema():
-    from reactivated.serialization import create_schema
-    from typing import Union
-    schema = create_schema(Union[str, bool], {})
-    foo = create_schema(Foo, {})
-    import pprint
-    pprint.pprint(foo.schema)
-    pprint.pprint(foo.definitions)
-    assert False

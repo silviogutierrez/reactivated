@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union, Tuple, NamedTuple, Mapping, List, Sequence
+from typing import Any, Mapping, NamedTuple, Sequence, Union
 
 from .stubs import _GenericAlias
 
@@ -22,10 +22,7 @@ def generic_alias_schema(Type: _GenericAlias, definitions: Definitions) -> Thing
             items_schema = create_schema(tuple_args[0], definitions)
 
             return Thing(
-                schema={
-                    "type": "array",
-                    "items": items_schema.schema,
-                },
+                schema={"type": "array", "items": items_schema.schema},
                 definitions=items_schema.definitions,
             )
 
@@ -37,11 +34,7 @@ def generic_alias_schema(Type: _GenericAlias, definitions: Definitions) -> Thing
             definitions = {**definitions, **subschema.definitions}
 
         return Thing(
-            schema={
-                "type": "array",
-                "items": subschemas,
-            },
-            definitions=definitions,
+            schema={"type": "array", "items": subschemas}, definitions=definitions
         )
     elif Type.__origin__ == Union:
         subschemas = ()
@@ -51,20 +44,19 @@ def generic_alias_schema(Type: _GenericAlias, definitions: Definitions) -> Thing
             subschemas = (*subschemas, subschema.schema)
             definitions = {**definitions, **subschema.definitions}
 
-        return Thing(
-            schema={
-                "anyOf": subschemas,
-            },
-            definitions=definitions,
-        )
+        return Thing(schema={"anyOf": subschemas}, definitions=definitions)
     elif Type.__origin__ == list:
         subschema = create_schema(Type.__args__[0], definitions=definitions)
         return Thing(
-            schema={
-                "type": "array",
-                "items": subschema.schema,
-            },
-            definitions=definitions,
+            schema={"type": "array", "items": subschema.schema},
+            definitions=subschema.definitions,
+        )
+    elif Type.__origin__ == dict:
+        subschema = create_schema(Type.__args__[1], definitions=definitions)
+
+        return Thing(
+            schema={"type": "object", "additionalProperties": subschema.schema},
+            definitions=subschema.definitions,
         )
     assert False, f"Unsupported _GenericAlias {Type}"
 
@@ -74,21 +66,16 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
 
     if definition_name in definitions:
         return Thing(
-            schema={"$ref": f"#/definitions/{definition_name}"},
-            definitions=definitions,
+            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
         )
 
     required = []
     properties = {}
-    definitions = {
-        **definitions,
-    }
+    definitions = {**definitions}
 
     for field_name, Subtype in Type.__annotations__.items():
         field_schema = create_schema(Subtype, definitions)
-        definitions = {
-            **field_schema.definitions,
-        }
+        definitions = {**field_schema.definitions}
 
         required.append(field_name)
         properties[field_name] = field_schema.schema
@@ -110,6 +97,8 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
 def create_schema(Type: Any, definitions: Definitions) -> Thing:
     if isinstance(Type, _GenericAlias):
         return generic_alias_schema(Type, definitions)
+    elif Type == Any:
+        return Thing(schema={}, definitions=definitions)
     elif issubclass(Type, tuple) and callable(getattr(Type, "_asdict", None)):
         return named_tuple_schema(Type, definitions)
     elif issubclass(Type, bool):
@@ -119,8 +108,5 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     elif issubclass(Type, str):
         return Thing(schema={"type": "string"}, definitions={})
     elif callable(getattr(Type, "get_json_schema", None)):
-        return Thing(
-            schema=Type.get_json_schema(),
-            definitions=definitions,
-        )
+        return Thing(schema=Type.get_json_schema(), definitions=definitions)
     assert False, f"Unsupported type {Type}"

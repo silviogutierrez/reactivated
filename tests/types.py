@@ -2,8 +2,8 @@ from typing import Any, Dict, List, NamedTuple, Tuple
 
 from django.db import models as django_models
 
-from reactivated import create_schema
 from reactivated.pick import build_nested_schema, get_field_descriptor
+from reactivated.serialization import create_schema
 from sample.server.apps.samples import models
 
 
@@ -14,53 +14,52 @@ class NamedTupleType(NamedTuple):
 
 
 def test_named_tuple():
-    definitions = {}
-    assert create_schema(NamedTupleType, definitions) == {
-        "$ref": "#/definitions/tests.types.NamedTupleType"
-    }
-    assert definitions == {
-        "tests.types.NamedTupleType": {
-            "additionalProperties": False,
-            "properties": {
-                "first": {"type": "string"},
-                "second": {"type": "boolean"},
-                "third": {"type": "number"},
-            },
-            "required": ["first", "second", "third"],
-            "type": "object",
-        }
-    }
+    assert create_schema(NamedTupleType, {}) == (
+        {"$ref": "#/definitions/tests.types.NamedTupleType"},
+        {
+            "tests.types.NamedTupleType": {
+                "additionalProperties": False,
+                "properties": {
+                    "first": {"type": "string"},
+                    "second": {"type": "boolean"},
+                    "third": {"type": "number"},
+                },
+                "required": ["first", "second", "third"],
+                "type": "object",
+            }
+        },
+    )
 
 
 def test_tuple():
-    assert create_schema(Tuple[str, str], {}) == {
-        "items": [{"type": "string"}, {"type": "string"}],
-        "type": "array",
-    }
+    assert create_schema(Tuple[str, str], {}) == (
+        {"items": ({"type": "string"}, {"type": "string"}), "type": "array"},
+        {},
+    )
 
-    assert create_schema(Tuple[str, ...], {}) == {
-        "items": {"type": "string"},
-        "type": "array",
-    }
+    assert create_schema(Tuple[str, ...], {}) == (
+        {"items": {"type": "string"}, "type": "array"},
+        {},
+    )
 
 
 def test_list():
-    assert create_schema(List[str], {}) == {
-        "type": "array",
-        "items": {"type": "string"},
-    }
+    assert create_schema(List[str], {}) == (
+        {"type": "array", "items": {"type": "string"}},
+        {},
+    )
 
 
 def test_dict():
-    assert create_schema(Dict[str, Any], {}) == {
-        "type": "object",
-        "additionalProperties": {},
-    }
+    assert create_schema(Dict[str, Any], {}) == (
+        {"type": "object", "additionalProperties": {}},
+        {},
+    )
 
-    assert create_schema(Dict[str, str], {}) == {
-        "type": "object",
-        "additionalProperties": {"type": "string"},
-    }
+    assert create_schema(Dict[str, str], {}) == (
+        {"type": "object", "additionalProperties": {"type": "string"}},
+        {},
+    )
 
 
 def test_get_field_descriptor():

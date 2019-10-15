@@ -1,6 +1,8 @@
-from typing import Any, Mapping, NamedTuple, Sequence, Union
+from typing import Any, Mapping, NamedTuple, Sequence, Union, Type
 
-from .stubs import _GenericAlias
+from django import forms as django_forms
+
+from . import stubs
 
 Schema = Mapping[Any, Any]
 
@@ -12,7 +14,7 @@ class Thing(NamedTuple):
     definitions: Definitions
 
 
-def generic_alias_schema(Type: _GenericAlias, definitions: Definitions) -> Thing:
+def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) -> Thing:
     subschemas: Sequence[Schema]
 
     if Type.__origin__ == tuple:
@@ -75,7 +77,7 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
 
     for field_name, Subtype in Type.__annotations__.items():
         field_schema = create_schema(Subtype, definitions)
-        definitions = {**field_schema.definitions}
+        definitions = {**definitions, **field_schema.definitions}
 
         required.append(field_name)
         properties[field_name] = field_schema.schema
@@ -94,8 +96,69 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
     )
 
 
+def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> Thing:
+    definition_name = f"{Type.__module__}.{Type.__qualname__}"
+
+    if definition_name in definitions:
+        return Thing(
+            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+        )
+
+    schema = named_tuple_schema(stubs.FormType, definitions)
+    """
+    form_type_definition = schema.definitions[
+        f"{stubs.FormType.__module__}.{stubs.FormType.__qualname__}"
+    ]
+    """
+    field_type_definition = schema.definitions[
+        f"{stubs.FieldType.__module__}.{stubs.FieldType.__qualname__}"
+    ]
+
+    error_definition = create_schema(stubs.FormError, definitions).schema  # type: ignore
+
+    required = []
+    properties = {}
+    error_properties = {}
+
+    for field_name, SubType in Type.base_fields.items():  # type: ignore
+        required.append(field_name)
+        properties[field_name] = field_type_definition
+        error_properties[field_name] = error_definition
+
+    definitions = {
+        **definitions,
+        definition_name: {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "object",
+                    "properties": error_properties,
+                    "additionalProperties": False,
+                },
+                "fields": {
+                    "type": "object",
+                    "properties": properties,
+                    "required": required,
+                    "additionalProperties": False,
+                },
+                "prefix": {"type": "string"},
+                "iterator": {
+                    "type": "array",
+                    "items": {"enum": required, "type": "string"},
+                },
+            },
+            "additionalProperties": False,
+            "required": ["prefix", "fields", "iterator", "errors"],
+        },
+    }
+
+    return Thing(
+        schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+    )
+
+
 def create_schema(Type: Any, definitions: Definitions) -> Thing:
-    if isinstance(Type, _GenericAlias):
+    if isinstance(Type, stubs._GenericAlias):
         return generic_alias_schema(Type, definitions)
     elif Type == Any:
         return Thing(schema={}, definitions=definitions)
@@ -107,6 +170,10 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return Thing(schema={"type": "number"}, definitions={})
     elif issubclass(Type, str):
         return Thing(schema={"type": "string"}, definitions={})
+    elif Type is type(None):  # noqa: E721
+        return Thing(schema={"type": "null"}, definitions={})
+    elif issubclass(Type, django_forms.BaseForm):
+        return form_schema(Type, definitions)
     elif callable(getattr(Type, "get_json_schema", None)):
         return Thing(schema=Type.get_json_schema(), definitions=definitions)
     assert False, f"Unsupported type {Type}"

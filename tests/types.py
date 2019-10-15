@@ -4,7 +4,7 @@ from django.db import models as django_models
 
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import create_schema
-from sample.server.apps.samples import models
+from sample.server.apps.samples import models, forms
 
 
 class NamedTupleType(NamedTuple):
@@ -60,6 +60,94 @@ def test_dict():
         {"type": "object", "additionalProperties": {"type": "string"}},
         {},
     )
+
+
+def test_none():
+    assert create_schema(type(None), {}) == ({"type": "null"}, {})
+
+
+def test_form():
+    schema = create_schema(forms.OperaForm, {})
+
+    assert schema.schema == {
+        "$ref": "#/definitions/sample.server.apps.samples.forms.OperaForm"
+    }
+    assert schema.definitions["sample.server.apps.samples.forms.OperaForm"] == {
+        "type": "object",
+        "properties": {
+            "errors": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "anyOf": (
+                            {"type": "array", "items": {"type": "string"}},
+                            {"type": "null"},
+                        )
+                    },
+                    "composer": {
+                        "anyOf": (
+                            {"type": "array", "items": {"type": "string"}},
+                            {"type": "null"},
+                        )
+                    },
+                    "has_piano_transcription": {
+                        "anyOf": (
+                            {"type": "array", "items": {"type": "string"}},
+                            {"type": "null"},
+                        )
+                    },
+                },
+                "additionalProperties": False,
+            },
+            "fields": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {
+                            "name": {"type": "string"},
+                            "label": {"type": "string"},
+                            "help_text": {"type": "string"},
+                        },
+                        "required": ["name", "label", "help_text"],
+                    },
+                    "composer": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {
+                            "name": {"type": "string"},
+                            "label": {"type": "string"},
+                            "help_text": {"type": "string"},
+                        },
+                        "required": ["name", "label", "help_text"],
+                    },
+                    "has_piano_transcription": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {
+                            "name": {"type": "string"},
+                            "label": {"type": "string"},
+                            "help_text": {"type": "string"},
+                        },
+                        "required": ["name", "label", "help_text"],
+                    },
+                },
+                "required": ["name", "composer", "has_piano_transcription"],
+                "additionalProperties": False,
+            },
+            "prefix": {"type": "string"},
+            "iterator": {
+                "type": "array",
+                "items": {
+                    "enum": ["name", "composer", "has_piano_transcription"],
+                    "type": "string",
+                },
+            },
+        },
+        "additionalProperties": False,
+        "required": ["prefix", "fields", "iterator", "errors"],
+    }
 
 
 def test_get_field_descriptor():

@@ -3,7 +3,7 @@ from typing import List, NamedTuple
 import pytest
 
 from reactivated import Pick, create_schema
-from sample.server.apps.samples import models
+from sample.server.apps.samples import models, forms
 
 schema = {
     "type": "object",
@@ -115,3 +115,7 @@ def test_serialization():
         "spam": {"thing": ["one", "two", "three", "four"], "again": "ok"},
         "pick": {"name": composer.name, "operas": [{"name": opera.name}]},
     }
+
+
+def test_form():
+    form = forms.OperaForm()

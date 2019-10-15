@@ -2,7 +2,8 @@ from typing import List, NamedTuple
 
 import pytest
 
-from reactivated import Pick, create_schema
+from reactivated import Pick
+from reactivated.serialization import create_schema
 from sample.server.apps.samples import models, forms
 
 schema = {
@@ -102,7 +103,7 @@ def test_serialization():
         pick=composer,
     )
     definitions = {}
-    generated_schema = create_schema(Foo, definitions, ref=False)
+    generated_schema = create_schema(Foo, definitions)
 
     assert serialize(instance, schema) == {
         "bar": {"a": "a", "b": True},
@@ -110,7 +111,7 @@ def test_serialization():
         "pick": {"name": composer.name, "operas": [{"name": opera.name}]},
     }
 
-    assert serialize(instance, generated_schema) == {
+    assert serialize(instance, generated_schema.schema) == {
         "bar": {"a": "a", "b": True},
         "spam": {"thing": ["one", "two", "three", "four"], "again": "ok"},
         "pick": {"name": composer.name, "operas": [{"name": opera.name}]},
@@ -118,4 +119,7 @@ def test_serialization():
 
 
 def test_form():
+    generated_schema = create_schema(forms.OperaForm, {})
     form = forms.OperaForm()
+    serialized = serialize(form, generated_schema.schema)
+    assert False

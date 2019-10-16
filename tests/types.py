@@ -4,7 +4,7 @@ from django.db import models as django_models
 
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import create_schema
-from sample.server.apps.samples import models, forms
+from sample.server.apps.samples import forms, models
 
 
 class NamedTupleType(NamedTuple):

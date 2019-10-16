@@ -1,12 +1,15 @@
-from typing import Any, Mapping, NamedTuple, Sequence, Union, Type
+from typing import Any, Mapping, NamedTuple, Sequence, Type, Union
 
 from django import forms as django_forms
+from django.db.models import QuerySet
 
 from . import stubs
 
 Schema = Mapping[Any, Any]
 
 Definitions = Mapping[str, Schema]
+
+JSON = Any
 
 
 class Thing(NamedTuple):
@@ -114,7 +117,9 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         f"{stubs.FieldType.__module__}.{stubs.FieldType.__qualname__}"
     ]
 
-    error_definition = create_schema(stubs.FormError, definitions).schema  # type: ignore
+    error_definition = create_schema(
+        stubs.FormError, definitions  # type: ignore
+    ).schema
 
     required = []
     properties = {}
@@ -177,3 +182,74 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     elif callable(getattr(Type, "get_json_schema", None)):
         return Thing(schema=Type.get_json_schema(), definitions=definitions)
     assert False, f"Unsupported type {Type}"
+
+
+def object_serializer(value: object, schema: Thing) -> JSON:
+    representation = {}
+
+    for field_name, field_schema in schema.schema["properties"].items():
+        attribute = (
+            value.get(field_name, None)
+            if isinstance(value, Mapping)
+            else getattr(value, field_name, None)
+        )
+
+        representation[field_name] = serialize(
+            attribute, Thing(schema=field_schema, definitions=schema.definitions)
+        )
+
+    return representation
+
+
+def array_serializer(value: Sequence[Any], schema: Thing) -> JSON:
+    # TODO: this could be the tuple type.
+    item_schema = schema.schema["items"]
+
+    return [
+        serialize(item, Thing(schema=item_schema, definitions=schema.definitions))
+        for item in value
+    ]
+
+
+def queryset_serializer(value: QuerySet[Any], schema: Thing) -> JSON:
+    return [
+        serialize(
+            item, Thing(schema=schema.schema["items"], definitions=schema.definitions)
+        )
+        for item in value.all()
+    ]
+
+
+SERIALIZERS = {
+    "object": object_serializer,
+    "string": lambda value, schema: str(value),
+    "boolean": lambda value, schema: bool(value),
+    "array": array_serializer,
+    "queryset": queryset_serializer,
+}
+
+
+def serialize(value: Any, schema: Thing) -> JSON:
+    if value is None:
+        return None
+
+    dereferenced_schema = (
+        schema.definitions[schema.schema["$ref"].replace("#/definitions/", "")]
+        if "$ref" in schema.schema
+        else schema.schema
+    )
+
+    if "anyOf" in dereferenced_schema:
+        for any_of_schema in dereferenced_schema["anyOf"]:
+            return serialize(
+                value, Thing(schema=any_of_schema, definitions=schema.definitions)
+            )
+
+    serializer = SERIALIZERS.get(
+        dereferenced_schema.get("serializer", dereferenced_schema["type"]), None
+    )
+    assert serializer is not None
+
+    return serializer(
+        value, Thing(schema=dereferenced_schema, definitions=schema.definitions)
+    )

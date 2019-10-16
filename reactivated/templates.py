@@ -3,7 +3,7 @@ from typing import Any, NamedTuple, TypeVar, Union, get_type_hints
 from django.http import HttpRequest
 from django.template.response import TemplateResponse
 
-from .pick import BasePickHolder, serialize
+from .pick import BasePickHolder
 from .stubs import _GenericAlias
 
 T = TypeVar("T", bound=NamedTuple)
@@ -18,6 +18,11 @@ def template(cls: T) -> T:
 
     class Augmented(cls):  # type: ignore
         def get_serialized(self) -> Any:
+            from .serialization import serialize, create_schema
+            generated_schema = create_schema(self.__class__, {})
+            assert False
+            return serialize(self, generated_schema)
+
             members = get_type_hints(self)
 
             serialized = {}

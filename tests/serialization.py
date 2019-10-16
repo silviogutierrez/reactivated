@@ -86,4 +86,9 @@ def test_serialization():
 def test_form():
     generated_schema = create_schema(forms.OperaForm, {})
     form = forms.OperaForm()
-    serialize(form, generated_schema)
+    serialized_form = serialize(form, generated_schema)
+
+    form_with_errors = forms.OperaForm({})
+    form_with_errors.is_valid()
+    serialized_form = serialize(form_with_errors, generated_schema)
+    assert "name" in serialized_form.errors

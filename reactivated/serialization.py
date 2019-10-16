@@ -1,7 +1,8 @@
-from typing import Any, Mapping, NamedTuple, Sequence, Type, Union
+from typing import Any, Mapping, NamedTuple, Sequence, Type, Union, Optional, Dict, List
 
 from django import forms as django_forms
 from django.db.models import QuerySet
+import simplejson
 
 from . import stubs
 
@@ -10,6 +11,59 @@ Schema = Mapping[Any, Any]
 Definitions = Mapping[str, Schema]
 
 JSON = Any
+
+
+FormError = Optional[List[str]]
+
+FormErrors = Dict[str, FormError]
+
+
+class WidgetType(NamedTuple):
+    @classmethod
+    def get_json_schema(Type: Type["WidgetType"], definitions: Definitions) -> "Thing":
+        return Thing(
+            schema={"tsType": str(Type.__class__)},
+            definitions=definitions,
+        )
+
+
+class FieldType(NamedTuple):
+    name: str
+    label: str
+    help_text: str
+    widget: WidgetType
+
+    @classmethod
+    def get_json_schema(Type: Type["FieldType"], definitions: Definitions) -> "Thing":
+        definition_name = f"{Type.__module__}.{Type.__qualname__}"
+
+        if definition_name in definitions:
+            return Thing(
+                schema={"$ref": f"#/definitions/{definition_name}"},
+                definitions=definitions,
+            )
+
+        schema = named_tuple_schema(Type, definitions)
+
+        definitions = {
+            **definitions,
+            definition_name: {
+                **schema.definitions[definition_name],
+                "serializer": "field_serializer",
+            },
+        }
+
+        return Thing(
+            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+        )
+
+
+class FormType(NamedTuple):
+    errors: Optional[FormErrors]
+    fields: Dict[str, FieldType]
+    iterator: List[str]
+    prefix: str
+    is_read_only: bool = False
 
 
 class Thing(NamedTuple):
@@ -107,18 +161,18 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
         )
 
-    schema = named_tuple_schema(stubs.FormType, definitions)
+    schema = named_tuple_schema(FormType, definitions)
     """
     form_type_definition = schema.definitions[
-        f"{stubs.FormType.__module__}.{stubs.FormType.__qualname__}"
+        f"{FormType.__module__}.{FormType.__qualname__}"
     ]
     """
     field_type_definition = schema.definitions[
-        f"{stubs.FieldType.__module__}.{stubs.FieldType.__qualname__}"
+        f"{FieldType.__module__}.{FieldType.__qualname__}"
     ]
 
     error_definition = create_schema(
-        stubs.FormError, definitions  # type: ignore
+        FormError, definitions  # type: ignore
     ).schema
 
     required = []
@@ -152,6 +206,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
                     "items": {"enum": required, "type": "string"},
                 },
             },
+            "serializer": "form_serializer",
             "additionalProperties": False,
             "required": ["prefix", "fields", "iterator", "errors"],
         },
@@ -167,6 +222,8 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return generic_alias_schema(Type, definitions)
     elif Type == Any:
         return Thing(schema={}, definitions=definitions)
+    elif callable(getattr(Type, "get_json_schema", None)):
+        return Type.get_json_schema(definitions)  # type: ignore
     elif issubclass(Type, tuple) and callable(getattr(Type, "_asdict", None)):
         return named_tuple_schema(Type, definitions)
     elif issubclass(Type, bool):
@@ -179,8 +236,6 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return Thing(schema={"type": "null"}, definitions={})
     elif issubclass(Type, django_forms.BaseForm):
         return form_schema(Type, definitions)
-    elif callable(getattr(Type, "get_json_schema", None)):
-        return Thing(schema=Type.get_json_schema(), definitions=definitions)
     assert False, f"Unsupported type {Type}"
 
 
@@ -211,7 +266,7 @@ def array_serializer(value: Sequence[Any], schema: Thing) -> JSON:
     ]
 
 
-def queryset_serializer(value: QuerySet[Any], schema: Thing) -> JSON:
+def queryset_serializer(value: "QuerySet[Any]", schema: Thing) -> JSON:
     return [
         serialize(
             item, Thing(schema=schema.schema["items"], definitions=schema.definitions)
@@ -220,12 +275,41 @@ def queryset_serializer(value: QuerySet[Any], schema: Thing) -> JSON:
     ]
 
 
+def form_serializer(value: django_forms.BaseForm, schema: Thing) -> JSON:
+    from . import SSRFormRenderer
+
+    form = value
+
+    form.renderer = SSRFormRenderer()
+    fields = {
+        field.name: FieldType(
+            widget=simplejson.loads(str(field))["widget"],
+            name=field.name,
+            label=str(
+                field.label
+            ),  # This can be a lazy proxy, so we must call str on it.
+            help_text=str(
+                field.help_text
+            ),  # This can be a lazy proxy, so we must call str on it.
+        )
+        for field in form
+    }
+
+    return FormType(
+        errors=form.errors or None,
+        fields=fields,
+        iterator=list(fields.keys()),
+        prefix=form.prefix or "",
+    )
+
+
 SERIALIZERS = {
     "object": object_serializer,
     "string": lambda value, schema: str(value),
     "boolean": lambda value, schema: bool(value),
     "array": array_serializer,
     "queryset": queryset_serializer,
+    "form_serializer": form_serializer,
 }
 
 

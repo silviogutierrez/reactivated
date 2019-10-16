@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, List, Sequence, Tuple, Type
 
+from .serialization import Definitions, Thing
 from django.db import models
 
 FieldDescriptor = Any
@@ -105,7 +106,7 @@ class BasePickHolder:
     fields: List[str] = []
 
     @classmethod
-    def get_json_schema(cls) -> Any:
+    def get_json_schema(cls: Type[BasePickHolder], definitions: Definitions) -> Thing:
         schema = {
             "type": "object",
             "additionalProperties": False,
@@ -128,7 +129,7 @@ class BasePickHolder:
                 reference["properties"][field_descriptor.name] = {}
             reference["required"].append(field_descriptor.name)
 
-        return schema
+        return Thing(schema=schema, definitions=definitions)
 
 
 class Pick:

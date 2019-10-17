@@ -52,12 +52,16 @@ def test_list():
 
 def test_dict():
     assert create_schema(Dict[str, Any], {}) == (
-        {"type": "object", "additionalProperties": {}},
+        {"type": "object", "properties": {}, "additionalProperties": {}},
         {},
     )
 
     assert create_schema(Dict[str, str], {}) == (
-        {"type": "object", "additionalProperties": {"type": "string"}},
+        {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": {"type": "string"},
+        },
         {},
     )
 
@@ -72,81 +76,89 @@ def test_form():
     assert schema.schema == {
         "$ref": "#/definitions/sample.server.apps.samples.forms.OperaForm"
     }
+
     assert schema.definitions["sample.server.apps.samples.forms.OperaForm"] == {
-        "type": "object",
+        "additionalProperties": False,
         "properties": {
             "errors": {
-                "type": "object",
+                "additionalProperties": False,
                 "properties": {
-                    "name": {
-                        "anyOf": (
-                            {"type": "array", "items": {"type": "string"}},
-                            {"type": "null"},
-                        )
-                    },
                     "composer": {
                         "anyOf": (
-                            {"type": "array", "items": {"type": "string"}},
+                            {"items": {"type": "string"}, "type": "array"},
                             {"type": "null"},
                         )
                     },
                     "has_piano_transcription": {
                         "anyOf": (
-                            {"type": "array", "items": {"type": "string"}},
+                            {"items": {"type": "string"}, "type": "array"},
+                            {"type": "null"},
+                        )
+                    },
+                    "name": {
+                        "anyOf": (
+                            {"items": {"type": "string"}, "type": "array"},
                             {"type": "null"},
                         )
                     },
                 },
-                "additionalProperties": False,
+                "type": "object",
             },
             "fields": {
-                "type": "object",
+                "additionalProperties": False,
                 "properties": {
-                    "name": {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "properties": {
-                            "name": {"type": "string"},
-                            "label": {"type": "string"},
-                            "help_text": {"type": "string"},
-                        },
-                        "required": ["name", "label", "help_text"],
-                    },
                     "composer": {
-                        "type": "object",
                         "additionalProperties": False,
                         "properties": {
-                            "name": {"type": "string"},
-                            "label": {"type": "string"},
                             "help_text": {"type": "string"},
+                            "label": {"type": "string"},
+                            "name": {"type": "string"},
+                            "widget": {"tsType": "WidgetType"},
                         },
-                        "required": ["name", "label", "help_text"],
+                        "required": ["name", "label", "help_text", "widget"],
+                        "serializer": "field_serializer",
+                        "type": "object",
                     },
                     "has_piano_transcription": {
-                        "type": "object",
                         "additionalProperties": False,
                         "properties": {
-                            "name": {"type": "string"},
-                            "label": {"type": "string"},
                             "help_text": {"type": "string"},
+                            "label": {"type": "string"},
+                            "name": {"type": "string"},
+                            "widget": {"tsType": "WidgetType"},
                         },
-                        "required": ["name", "label", "help_text"],
+                        "required": ["name", "label", "help_text", "widget"],
+                        "serializer": "field_serializer",
+                        "type": "object",
+                    },
+                    "name": {
+                        "additionalProperties": False,
+                        "properties": {
+                            "help_text": {"type": "string"},
+                            "label": {"type": "string"},
+                            "name": {"type": "string"},
+                            "widget": {"tsType": "WidgetType"},
+                        },
+                        "required": ["name", "label", "help_text", "widget"],
+                        "serializer": "field_serializer",
+                        "type": "object",
                     },
                 },
                 "required": ["name", "composer", "has_piano_transcription"],
-                "additionalProperties": False,
+                "type": "object",
             },
-            "prefix": {"type": "string"},
             "iterator": {
-                "type": "array",
                 "items": {
                     "enum": ["name", "composer", "has_piano_transcription"],
                     "type": "string",
                 },
+                "type": "array",
             },
+            "prefix": {"type": "string"},
         },
-        "additionalProperties": False,
         "required": ["prefix", "fields", "iterator", "errors"],
+        "serializer": "form_serializer",
+        "type": "object",
     }
 
 

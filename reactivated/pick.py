@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import Any, List, Sequence, Tuple, Type
 
-from .serialization import Definitions, Thing
 from django.db import models
+
+from .serialization import Definitions, Thing
 
 FieldDescriptor = Any
 

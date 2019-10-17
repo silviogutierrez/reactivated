@@ -19,8 +19,8 @@ def template(cls: T) -> T:
     class Augmented(cls):  # type: ignore
         def get_serialized(self) -> Any:
             from .serialization import serialize, create_schema
-            generated_schema = create_schema(self.__class__, {})
-            assert False
+
+            generated_schema = create_schema(cls, {})
             return serialize(self, generated_schema)
 
             members = get_type_hints(self)

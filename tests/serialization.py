@@ -3,42 +3,8 @@ from typing import List, NamedTuple
 import pytest
 
 from reactivated import Pick
-from reactivated.serialization import Thing, create_schema, serialize
+from reactivated.serialization import create_schema, serialize
 from sample.server.apps.samples import forms, models
-
-schema = Thing(
-    schema={
-        "type": "object",
-        "properties": {
-            "bar": {
-                "type": "object",
-                "properties": {"a": {"type": "string"}, "b": {"type": "boolean"}},
-            },
-            "spam": {
-                "type": "object",
-                "properties": {
-                    "thing": {"type": "array", "items": {"type": "string"}},
-                    "again": {"type": "string"},
-                },
-            },
-            "pick": {
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string"},
-                    "operas": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {"name": {"type": "string"}},
-                        },
-                        "serializer": "queryset",
-                    },
-                },
-            },
-        },
-    },
-    definitions={},
-)
 
 
 class Spam(NamedTuple):
@@ -69,12 +35,6 @@ def test_serialization():
     )
     definitions = {}
     generated_schema = create_schema(Foo, definitions)
-
-    assert serialize(instance, schema) == {
-        "bar": {"a": "a", "b": True},
-        "spam": {"thing": ["one", "two", "three", "four"], "again": "ok"},
-        "pick": {"name": composer.name, "operas": [{"name": opera.name}]},
-    }
 
     assert serialize(instance, generated_schema) == {
         "bar": {"a": "a", "b": True},

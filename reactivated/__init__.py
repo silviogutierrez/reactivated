@@ -538,7 +538,7 @@ class FormSetType(NamedTuple):
     prefix: str
 
 
-class SSRFormRenderer:
+class SSRFormRenderer(django_forms.renderers.BaseRenderer):
     def render(
         self, template_name: str, context: Any, request: Optional[HttpRequest] = None
     ) -> str:
@@ -546,7 +546,7 @@ class SSRFormRenderer:
 
 
 def serialize_form(form: django_forms.BaseForm) -> FormType:
-    form.renderer = SSRFormRenderer()  # type: ignore
+    form.renderer = SSRFormRenderer()
     fields = {
         field.name: FieldType(
             widget=simplejson.loads(str(field))["widget"],

@@ -1,8 +1,8 @@
-from typing import Any, Mapping, NamedTuple, Sequence, Type, Union, Optional, Dict, List
+from typing import Any, Dict, List, Mapping, NamedTuple, Optional, Sequence, Type, Union
 
+import simplejson
 from django import forms as django_forms
 from django.db.models import QuerySet
-import simplejson
 
 from . import stubs
 
@@ -21,10 +21,7 @@ FormErrors = Dict[str, FormError]
 class WidgetType(NamedTuple):
     @classmethod
     def get_json_schema(Type: Type["WidgetType"], definitions: Definitions) -> "Thing":
-        return Thing(
-            schema={"tsType": str(Type.__class__)},
-            definitions=definitions,
-        )
+        return Thing(schema={"tsType": str(Type.__name__)}, definitions=definitions)
 
 
 class FieldType(NamedTuple):
@@ -114,7 +111,11 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
         subschema = create_schema(Type.__args__[1], definitions=definitions)
 
         return Thing(
-            schema={"type": "object", "additionalProperties": subschema.schema},
+            schema={
+                "type": "object",
+                "properties": {},
+                "additionalProperties": subschema.schema,
+            },
             definitions=subschema.definitions,
         )
     assert False, f"Unsupported _GenericAlias {Type}"
@@ -252,6 +253,24 @@ def object_serializer(value: object, schema: Thing) -> JSON:
         representation[field_name] = serialize(
             attribute, Thing(schema=field_schema, definitions=schema.definitions)
         )
+
+    additional_properties_schema = schema.schema["additionalProperties"]
+
+    if additional_properties_schema and isinstance(value, Mapping):
+        return {
+            **representation,
+            **{
+                field_name: serialize(
+                    field_value,
+                    Thing(
+                        schema=additional_properties_schema,
+                        definitions=schema.definitions,
+                    ),
+                )
+                for field_name, field_value in value.items()
+                if field_name not in schema.schema["properties"]
+            },
+        }
 
     return representation
 

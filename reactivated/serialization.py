@@ -63,6 +63,21 @@ class FormType(NamedTuple):
     is_read_only: bool = False
 
 
+class FormSetType(NamedTuple):
+    initial: int
+    total: int
+    max_num: int
+    min_num: int
+    can_delete: bool
+    can_order: bool
+    non_form_errors: List[str]
+
+    forms: List[FormType]
+    empty_form: FormType
+    management_form: FormType
+    prefix: str
+
+
 class Thing(NamedTuple):
     schema: Schema
     definitions: Definitions
@@ -218,6 +233,57 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
     )
 
 
+def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> Thing:
+    definition_name = f"{Type.__module__}.{Type.__qualname__}"
+
+    if definition_name in definitions:
+        return Thing(
+            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+        )
+
+    form_set_type_schema = create_schema(FormSetType, definitions)
+    form_type_schema = create_schema(Type.form, form_set_type_schema.definitions)
+
+    # We use our own management form because base_fields is set dynamically
+    # by Django in django.forms.formsets.
+    class ManagementForm(django_forms.formsets.ManagementForm):
+        base_fields: Any
+
+    ManagementForm.base_fields = ManagementForm().base_fields
+
+    management_form_schema = create_schema(ManagementForm, form_type_schema.definitions)
+
+    form_set_type_definition = form_set_type_schema.definitions[
+        f"{FormSetType.__module__}.{FormSetType.__qualname__}"
+    ]
+
+    form_type_definition = form_type_schema.definitions[
+        f"{Type.form.__module__}.{Type.form.__qualname__}"  # type: ignore
+    ]
+
+    management_form_definition = management_form_schema.definitions[
+        f"{ManagementForm.__module__}.{ManagementForm.__qualname__}"
+    ]
+
+    definitions = {
+        **definitions,
+        definition_name: {
+            **form_set_type_definition,
+            "serializer": "form_set_serializer",
+            "properties": {
+                **form_set_type_definition["properties"],
+                "empty_form": form_type_definition,
+                "forms": {"type": "array", "items": form_type_definition},
+                "management_form": management_form_definition,
+            },
+        },
+    }
+
+    return Thing(
+        schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+    )
+
+
 def create_schema(Type: Any, definitions: Definitions) -> Thing:
     if isinstance(Type, stubs._GenericAlias):
         return generic_alias_schema(Type, definitions)
@@ -237,6 +303,8 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return Thing(schema={"type": "null"}, definitions={})
     elif issubclass(Type, django_forms.BaseForm):
         return form_schema(Type, definitions)
+    elif issubclass(Type, stubs.BaseFormSet):
+        return form_set_schema(Type, definitions)
     assert False, f"Unsupported type {Type}"
 
 
@@ -322,13 +390,34 @@ def form_serializer(value: django_forms.BaseForm, schema: Thing) -> JSON:
     )
 
 
+def form_set_serializer(value: stubs.BaseFormSet, schema: Thing) -> JSON:
+    form_set = value
+    form_schema = create_schema(form_set.form, schema.definitions)
+
+    return FormSetType(
+        initial=form_set.initial_form_count(),
+        total=form_set.total_form_count(),
+        max_num=form_set.max_num,
+        min_num=form_set.min_num,
+        can_delete=form_set.can_delete,
+        can_order=form_set.can_order,
+        non_form_errors=form_set.non_form_errors(),
+        forms=[serialize(form, form_schema) for form in form_set],
+        empty_form=serialize(form_set.empty_form, form_schema),
+        management_form=serialize(form_set.management_form, form_schema),
+        prefix=form_set.prefix,
+    )
+
+
 SERIALIZERS = {
     "object": object_serializer,
     "string": lambda value, schema: str(value),
     "boolean": lambda value, schema: bool(value),
+    "number": lambda value, schema: int(value),
     "array": array_serializer,
     "queryset": queryset_serializer,
     "form_serializer": form_serializer,
+    "form_set_serializer": form_set_serializer,
 }
 
 

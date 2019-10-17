@@ -52,3 +52,18 @@ def test_form():
     form_with_errors.is_valid()
     serialized_form = serialize(form_with_errors, generated_schema)
     assert "name" in serialized_form.errors
+
+
+@pytest.mark.django_db
+def test_form_set():
+    generated_schema = create_schema(forms.OperaFormSet, {})
+    form_set = forms.OperaFormSet()
+    serialized_form_set = serialize(form_set, generated_schema)
+
+    form_set_with_errors = forms.OperaFormSet({
+        "form-TOTAL_FORMS": 20,
+        "form-INITIAL_FORMS": 0,
+    })
+    form_set_with_errors.is_valid()
+    serialized_form_set = serialize(form_set_with_errors, generated_schema)
+    assert "name" in serialized_form_set.forms[0].errors

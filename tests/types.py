@@ -162,6 +162,14 @@ def test_form():
     }
 
 
+def test_form_set():
+    schema = create_schema(forms.OperaFormSet, {})
+
+    assert schema.schema == {
+        "$ref": "#/definitions/django.forms.formsets.OperaFormFormSet"
+    }
+
+
 def test_get_field_descriptor():
     descriptor, path = get_field_descriptor(models.Opera, ["has_piano_transcription"])
     assert isinstance(descriptor, django_models.BooleanField)

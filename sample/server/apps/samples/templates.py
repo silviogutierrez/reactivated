@@ -1,7 +1,7 @@
 from typing import NamedTuple
 
-from reactivated.templates import template
 from reactivated.pick import Pick
+from reactivated.templates import template
 
 from . import forms, models
 

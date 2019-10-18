@@ -9,7 +9,7 @@ from django.apps import AppConfig
 from django.conf import settings
 
 from . import extract_views_from_urlpatterns, template_registry, type_registry
-from .serialization import Thing, create_schema
+from .serialization import create_schema
 
 logger = logging.getLogger("django.server")
 
@@ -48,8 +48,11 @@ def get_urls_schema() -> Dict[str, Any]:
 
 def get_types_schema() -> Any:
     ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore
-
-    return create_schema(ParentTuple, {}).definitions
+    parent_schema = create_schema(ParentTuple, {})
+    return {
+        "definitions": parent_schema.definitions,
+        **parent_schema.definitions["reactivated.apps.ParentTuple"],
+    }
 
 
 def get_templates() -> Dict[str, Tuple[Any]]:

@@ -24,9 +24,11 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("hello-world/", views.hello_world),
     path("sample-form/", views.sample_form),
+    path("schema/", views.schema),
     path("composers/", samples.composer_list),
     path("composers/create/", samples.create_composer),
     path("operas/create/", samples.create_opera),
     path("browser/", samples.data_browser),
     path("typed-template/", samples.typed_template),
+    path("typed-browser/", samples.typed_data_browser),
 ]

@@ -1,7 +1,10 @@
-from django.http import HttpRequest
+from django.http import HttpRequest, JsonResponse
 from django.template.response import TemplateResponse
 
 from . import forms
+import simplejson
+
+from reactivated.apps import get_schema
 
 
 def hello_world(request: HttpRequest) -> TemplateResponse:
@@ -10,4 +13,7 @@ def hello_world(request: HttpRequest) -> TemplateResponse:
 
 def sample_form(request: HttpRequest) -> TemplateResponse:
     form = forms.SampleForm()
-    return TemplateResponse(request, "sample_form.tsx", {"form": form})
+
+
+def schema(request: HttpRequest) -> TemplateResponse:
+    return JsonResponse(simplejson.loads(get_schema()))

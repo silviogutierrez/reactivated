@@ -1,6 +1,8 @@
 from typing import List, NamedTuple
+from jsonschema import validate
 
 import pytest
+import simplejson
 
 from reactivated import Pick
 from reactivated.serialization import create_schema, serialize
@@ -21,6 +23,14 @@ class Foo(NamedTuple):
     bar: Bar
     spam: Spam
     pick: Pick[models.Composer, "name", "operas.name"]
+
+
+def convert_to_json_and_validate(instance, schema):
+    converted = simplejson.loads(simplejson.dumps(instance))
+    validate(instance=converted, schema={
+        "definitions": schema.definitions,
+        **schema.schema,
+    })
 
 
 @pytest.mark.django_db
@@ -47,11 +57,13 @@ def test_form():
     generated_schema = create_schema(forms.OperaForm, {})
     form = forms.OperaForm()
     serialized_form = serialize(form, generated_schema)
+    convert_to_json_and_validate(serialized_form, generated_schema)
 
     form_with_errors = forms.OperaForm({})
     form_with_errors.is_valid()
     serialized_form = serialize(form_with_errors, generated_schema)
     assert "name" in serialized_form.errors
+    convert_to_json_and_validate(serialized_form, generated_schema)
 
 
 @pytest.mark.django_db
@@ -59,6 +71,7 @@ def test_form_set():
     generated_schema = create_schema(forms.OperaFormSet, {})
     form_set = forms.OperaFormSet()
     serialized_form_set = serialize(form_set, generated_schema)
+    convert_to_json_and_validate(serialized_form_set, generated_schema)
 
     form_set_with_errors = forms.OperaFormSet(
         {"form-TOTAL_FORMS": 20, "form-INITIAL_FORMS": 0}
@@ -66,3 +79,4 @@ def test_form_set():
     form_set_with_errors.is_valid()
     serialized_form_set = serialize(form_set_with_errors, generated_schema)
     assert "name" in serialized_form_set.forms[0].errors
+    convert_to_json_and_validate(serialized_form_set, generated_schema)

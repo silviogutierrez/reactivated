@@ -60,7 +60,6 @@ class FormType(NamedTuple):
     fields: Dict[str, FieldType]
     iterator: List[str]
     prefix: str
-    is_read_only: bool = False
 
 
 class FormSetType(NamedTuple):
@@ -112,7 +111,7 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
 
         for subtype in Type.__args__:
             subschema = create_schema(subtype, definitions=definitions)
-            subschemas = (*subschemas, subschema.schema)
+            subschemas = [*subschemas, subschema.schema]
             definitions = {**definitions, **subschema.definitions}
 
         return Thing(schema={"anyOf": subschemas}, definitions=definitions)
@@ -206,9 +205,16 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
             "type": "object",
             "properties": {
                 "errors": {
-                    "type": "object",
-                    "properties": error_properties,
-                    "additionalProperties": False,
+                    "anyOf": [
+                        {
+                            "type": "object",
+                            "properties": error_properties,
+                            "additionalProperties": False,
+                        },
+                        {
+                            "type": "null",
+                        },
+                    ],
                 },
                 "fields": {
                     "type": "object",
@@ -394,6 +400,8 @@ def form_set_serializer(value: stubs.BaseFormSet, schema: Thing) -> JSON:
     form_set = value
     form_schema = create_schema(form_set.form, schema.definitions)
 
+    empty_form=serialize(form_set.empty_form, form_schema)
+    assert False
     return FormSetType(
         initial=form_set.initial_form_count(),
         total=form_set.total_form_count(),

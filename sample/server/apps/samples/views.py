@@ -108,7 +108,6 @@ def ajax_playground(
 ) -> Union[JsonResponse, TemplateResponse, HttpResponseRedirect]:
 
     if request.is_ajax():
-        print(request.body)
-        return JsonResponse({"ok": "hello"})
+        return JsonResponse({"ok": "hello", "bar": "spamp"})
 
     return templates.AjaxPlayground().render(request)

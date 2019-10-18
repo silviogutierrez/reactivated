@@ -35,6 +35,7 @@ from .pick import BasePickHolder
 from .pick import Pick as Pick  # noqa: F401
 from .stubs import _GenericAlias
 from .templates import template as template  # noqa: F401
+from .backend import JSX as JSX  # noqa: F401
 
 default_app_config = "reactivated.apps.ReactivatedConfig"
 
@@ -166,67 +167,10 @@ class JSXResponse:
         )  # , use_decimal=False)
 
 
-def render_jsx_to_string(
-    request: HttpRequest, template_name: str, context: Any, props: Any
-) -> str:
-    payload = {"context": {**context, "template_name": template_name}, "props": props}
-    data = simplejson.dumps(payload, indent=4, default=encode_complex_types)
-    headers = {"Content-Type": "application/json"}
-
-    if "debug" in request.GET:
-        return f"<html><body><h1>Debug response</h1><pre>{escape(data)}</pre></body></html>"
-    elif "raw" in request.GET or settings.REACTIVATED_SERVER is None:
-        request._is_reactivated_response = True  # type: ignore
-        return data
-
-    return requests.post(  # type: ignore
-        f"{settings.REACTIVATED_SERVER}/__ssr/", headers=headers, data=data
-    ).json()["rendered"]
-
-
 def render_jsx(
     request: HttpRequest, template_name: str, props: Union[P, HttpResponse]
 ) -> HttpResponse:
-    if isinstance(props, HttpResponse):
-        return props
-
-    current_messages = messages.get_messages(request)
-
-    response = JSXResponse(
-        context=Context(
-            request=Request(path=request.path),
-            template_name=template_name,
-            csrf_token=get_token(request),
-            messages=[
-                Message(level=m.level, level_tag=m.level_tag, message=m.message)
-                for m in current_messages
-            ],
-        ),
-        props=props,
-    )
-
-    if "debug" in request.GET:
-        return HttpResponse(
-            "<html><body><h1>Debug response</h1><pre>"
-            + escape(response.as_json())
-            + "</pre></body></html>",
-            content_type="text/html",
-        )
-    elif "raw" in request.GET:
-        return HttpResponse(response.as_json(), content_type="application/json")
-
-    if True:
-        # process = subprocess.Popen(["./node_modules/.bin/ts-node", "./node_modules/reactivated/simple.js"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-        # out, error = process.communicate(response.as_json().encode())
-
-        out = requests.post(
-            f"{settings.REACTIVATED_SERVER}/__ssr/",
-            json=simplejson.loads(response.as_json()),
-        ).json()["rendered"]
-
-        return HttpResponse(out)
-    else:
-        return HttpResponse(response.as_json(), content_type="application/ssr+json")
+    return HttpResponse("This needs to be migrated to render_jsx_to_string()")
 
 
 @overload
@@ -597,10 +541,6 @@ def generate_settings() -> str:
         if setting_name not in ["_explicit_settings"]
     }
     return simplejson.dumps(settings_to_serialize, indent=4)
-
-
-def reactivate(request: HttpRequest, template_name: str, props: Any) -> HttpResponse:
-    return HttpResponse(render_jsx_to_string(request, template_name, props, {}))
 
 
 def describe_pattern(p):  # type: ignore

@@ -1,3 +1,5 @@
+from io import StringIO
+import simplejson
 from typing import Any, Dict, List, NamedTuple, Tuple
 
 from django.db import models as django_models
@@ -5,6 +7,7 @@ from django.db import models as django_models
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import create_schema
 from sample.server.apps.samples import forms, models
+from django.core.management import call_command
 
 
 class NamedTupleType(NamedTuple):
@@ -248,3 +251,13 @@ def test_build_nested_schema():
         ]["type"]
         == "object"
     )
+
+
+def test_generate_types_schema():
+    output = StringIO()
+
+    call_command("generate_types_schema", stdout=output)
+    schema = simplejson.loads(output.getvalue())
+    assert "types" in schema
+    assert "urls" in schema
+    assert "templates" in schema

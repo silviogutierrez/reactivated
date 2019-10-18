@@ -7,7 +7,7 @@ from django.template.backends.utils import csrf_token_lazy
 from django.utils.functional import cached_property
 from django.utils.module_loading import import_string
 
-from . import render_jsx_to_string
+from .renderer import render_jsx_to_string
 
 
 class JSX(BaseEngine):

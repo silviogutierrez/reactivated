@@ -81,28 +81,33 @@ def test_form():
         "additionalProperties": False,
         "properties": {
             "errors": {
-                "additionalProperties": False,
-                "properties": {
-                    "composer": {
-                        "anyOf": (
-                            {"items": {"type": "string"}, "type": "array"},
-                            {"type": "null"},
-                        )
+                "anyOf": [
+                    {
+                        "additionalProperties": False,
+                        "properties": {
+                            "composer": {
+                                "anyOf": [
+                                    {"items": {"type": "string"}, "type": "array"},
+                                    {"type": "null"},
+                                ]
+                            },
+                            "has_piano_transcription": {
+                                "anyOf": [
+                                    {"items": {"type": "string"}, "type": "array"},
+                                    {"type": "null"},
+                                ]
+                            },
+                            "name": {
+                                "anyOf": [
+                                    {"items": {"type": "string"}, "type": "array"},
+                                    {"type": "null"},
+                                ]
+                            },
+                        },
+                        "type": "object",
                     },
-                    "has_piano_transcription": {
-                        "anyOf": (
-                            {"items": {"type": "string"}, "type": "array"},
-                            {"type": "null"},
-                        )
-                    },
-                    "name": {
-                        "anyOf": (
-                            {"items": {"type": "string"}, "type": "array"},
-                            {"type": "null"},
-                        )
-                    },
-                },
-                "type": "object",
+                    {"type": "null"},
+                ]
             },
             "fields": {
                 "additionalProperties": False,

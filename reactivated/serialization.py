@@ -211,10 +211,8 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
                             "properties": error_properties,
                             "additionalProperties": False,
                         },
-                        {
-                            "type": "null",
-                        },
-                    ],
+                        {"type": "null"},
+                    ]
                 },
                 "fields": {
                     "type": "object",
@@ -248,7 +246,16 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
         )
 
     form_set_type_schema = create_schema(FormSetType, definitions)
-    form_type_schema = create_schema(Type.form, form_set_type_schema.definitions)
+
+    if issubclass(Type, django_forms.BaseModelFormSet):
+        pk_field_name = Type.model._meta.pk.name
+        FormSetForm = type(
+            "FormSetForm", (Type.form,), {pk_field_name: django_forms.Field()}
+        )
+    else:
+        FormSetForm = Type.form
+
+    form_type_schema = create_schema(FormSetForm, form_set_type_schema.definitions)
 
     # We use our own management form because base_fields is set dynamically
     # by Django in django.forms.formsets.
@@ -264,7 +271,7 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
     ]
 
     form_type_definition = form_type_schema.definitions[
-        f"{Type.form.__module__}.{Type.form.__qualname__}"  # type: ignore
+        f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"  # type: ignore
     ]
 
     management_form_definition = management_form_schema.definitions[
@@ -400,8 +407,6 @@ def form_set_serializer(value: stubs.BaseFormSet, schema: Thing) -> JSON:
     form_set = value
     form_schema = create_schema(form_set.form, schema.definitions)
 
-    empty_form=serialize(form_set.empty_form, form_schema)
-    assert False
     return FormSetType(
         initial=form_set.initial_form_count(),
         total=form_set.total_form_count(),

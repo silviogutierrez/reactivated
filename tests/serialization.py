@@ -1,8 +1,8 @@
 from typing import List, NamedTuple
-from jsonschema import validate
 
 import pytest
 import simplejson
+from jsonschema import validate
 
 from reactivated import Pick
 from reactivated.serialization import create_schema, serialize
@@ -27,10 +27,9 @@ class Foo(NamedTuple):
 
 def convert_to_json_and_validate(instance, schema):
     converted = simplejson.loads(simplejson.dumps(instance))
-    validate(instance=converted, schema={
-        "definitions": schema.definitions,
-        **schema.schema,
-    })
+    validate(
+        instance=converted, schema={"definitions": schema.definitions, **schema.schema}
+    )
 
 
 @pytest.mark.django_db

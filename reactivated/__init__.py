@@ -17,16 +17,12 @@ from typing import (
     overload,
 )
 
-import requests
 import simplejson
 from django import forms as django_forms
 from django.conf import settings
-from django.contrib import messages
 from django.core.exceptions import ViewDoesNotExist
 from django.db.models.query import QuerySet, ValuesIterable
 from django.http import HttpRequest, HttpResponse
-from django.middleware.csrf import get_token
-from django.template.defaultfilters import escape
 from django.urls import URLPattern, URLResolver
 from django.utils.functional import Promise
 from mypy_extensions import Arg, KwArg

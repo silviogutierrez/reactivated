@@ -9,6 +9,7 @@ PROJECT_ROOT=$(realpath "$SCRIPT_PATH/../")
 
 
 cd $PROJECT_ROOT
+autoflake  -i -r .
 isort --recursive .
 black .
 cd $PWD

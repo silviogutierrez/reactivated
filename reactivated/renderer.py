@@ -1,43 +1,21 @@
-import abc
-import datetime
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Mapping,
-    NamedTuple,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    cast,
-    overload,
-)
+from typing import Any, Callable, Dict, List, Mapping, NamedTuple, Optional, Sequence, Tuple, Type, TypeVar, Union, cast, overload
 
 import requests
 import simplejson
-from django import forms as django_forms
 from django.conf import settings
-from django.contrib import messages
-from django.core.exceptions import ViewDoesNotExist
-from django.db.models.query import QuerySet, ValuesIterable
-from django.http import HttpRequest, HttpResponse
-from django.middleware.csrf import get_token
+from django.http import HttpRequest
 from django.template.defaultfilters import escape
-from django.urls import URLPattern, URLResolver
-from django.utils.functional import Promise
-from mypy_extensions import Arg, KwArg
 
 
 def render_jsx_to_string(
     request: HttpRequest, template_name: str, context: Any, props: Any
 ) -> str:
+    from reactivated import encode_complex_types
+
     payload = {"context": {**context, "template_name": template_name}, "props": props}
     data = simplejson.dumps(payload, indent=4, default=encode_complex_types)
     headers = {"Content-Type": "application/json"}
+
 
     if "debug" in request.GET:
         return f"<html><body><h1>Debug response</h1><pre>{escape(data)}</pre></body></html>"

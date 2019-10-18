@@ -9,7 +9,7 @@ PROJECT_ROOT=$(realpath "$SCRIPT_PATH/../")
 
 
 cd $PROJECT_ROOT
-autoflake  -i -r .
+autoflake  -i -r  --remove-all-unused-imports .
 isort --recursive .
 black .
 cd $PWD

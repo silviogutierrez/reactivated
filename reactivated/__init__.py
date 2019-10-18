@@ -27,11 +27,11 @@ from django.urls import URLPattern, URLResolver
 from django.utils.functional import Promise
 from mypy_extensions import Arg, KwArg
 
+from .backend import JSX as JSX  # noqa: F401
 from .pick import BasePickHolder
 from .pick import Pick as Pick  # noqa: F401
 from .stubs import _GenericAlias
 from .templates import template as template  # noqa: F401
-from .backend import JSX as JSX  # noqa: F401
 
 default_app_config = "reactivated.apps.ReactivatedConfig"
 

@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Mapping, NamedTuple, Optional, Sequence, Tuple, Type, TypeVar, Union, cast, overload
+from typing import Any
 
 import requests
 import simplejson
@@ -15,7 +15,6 @@ def render_jsx_to_string(
     payload = {"context": {**context, "template_name": template_name}, "props": props}
     data = simplejson.dumps(payload, indent=4, default=encode_complex_types)
     headers = {"Content-Type": "application/json"}
-
 
     if "debug" in request.GET:
         return f"<html><body><h1>Debug response</h1><pre>{escape(data)}</pre></body></html>"

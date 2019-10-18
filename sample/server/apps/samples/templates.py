@@ -26,3 +26,8 @@ class DataBrowser(NamedTuple):
     composer_form: forms.ComposerForm
     opera_form_set: forms.OperaFormSet
     opera_form: forms.OperaForm
+
+
+@template
+class AjaxPlayground(NamedTuple):
+    pass

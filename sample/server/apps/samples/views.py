@@ -1,8 +1,9 @@
 from typing import Union
 
-from django.http import HttpRequest, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
+from django.views.decorators.csrf import csrf_exempt
 
 from reactivated.forms import autocomplete
 
@@ -99,3 +100,15 @@ def typed_data_browser(
         opera_form_set=forms.OperaFormSet(prefix="opera_form_set"),
         opera_form=forms.OperaForm(prefix="opera_form-0"),
     ).render(request)
+
+
+@csrf_exempt
+def ajax_playground(
+    request: HttpRequest
+) -> Union[JsonResponse, TemplateResponse, HttpResponseRedirect]:
+
+    if request.is_ajax():
+        print(request.body)
+        return JsonResponse({"ok": "hello"})
+
+    return templates.AjaxPlayground().render(request)

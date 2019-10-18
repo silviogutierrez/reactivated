@@ -56,7 +56,7 @@ ROOT_URLCONF = "server.urls"
 
 TEMPLATES = [
     {
-        "BACKEND": "reactivated.backend.JSX",
+        "BACKEND": "reactivated.JSX",
         "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {

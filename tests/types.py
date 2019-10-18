@@ -36,7 +36,7 @@ def test_named_tuple():
 
 def test_tuple():
     assert create_schema(Tuple[str, str], {}) == (
-        {"items": ({"type": "string"}, {"type": "string"}), "type": "array"},
+        {"items": [{"type": "string"}, {"type": "string"}], "type": "array"},
         {},
     )
 

@@ -1,4 +1,4 @@
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Tuple
 
 import pytest
 import simplejson
@@ -23,6 +23,8 @@ class Foo(NamedTuple):
     bar: Bar
     spam: Spam
     pick: Pick[models.Composer, "name", "operas.name"]
+    fixed_tuple_different_types: Tuple[str, int]
+    fixed_tuple_same_types: Tuple[str, str]
 
 
 def convert_to_json_and_validate(instance, schema):
@@ -41,15 +43,22 @@ def test_serialization():
         bar=Bar(a="a", b=True),
         spam=Spam(thing=["one", "two", "three", "four"], again="ok"),
         pick=composer,
+        fixed_tuple_different_types=("ok", 5),
+        fixed_tuple_same_types=("alright", "again"),
     )
     definitions = {}
     generated_schema = create_schema(Foo, definitions)
 
-    assert serialize(instance, generated_schema) == {
+    serialized = serialize(instance, generated_schema)
+    assert serialized == {
         "bar": {"a": "a", "b": True},
         "spam": {"thing": ["one", "two", "three", "four"], "again": "ok"},
         "pick": {"name": composer.name, "operas": [{"name": opera.name}]},
+        "fixed_tuple_different_types": ["ok", 5],
+        "fixed_tuple_same_types": ["alright", "again"],
     }
+
+    convert_to_json_and_validate(serialized, generated_schema)
 
 
 def test_form():

@@ -96,11 +96,11 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
                 definitions=items_schema.definitions,
             )
 
-        subschemas = ()
+        subschemas = []
 
         for subtype in Type.__args__:
             subschema = create_schema(subtype, definitions=definitions)
-            subschemas = (*subschemas, subschema.schema)
+            subschemas = [*subschemas, subschema.schema]
             definitions = {**definitions, **subschema.definitions}
 
         return Thing(
@@ -357,8 +357,17 @@ def object_serializer(value: object, schema: Thing) -> JSON:
 
 
 def array_serializer(value: Sequence[Any], schema: Thing) -> JSON:
-    # TODO: this could be the tuple type.
     item_schema = schema.schema["items"]
+
+    # For fixed tuples, though the JSON schema will actually be a list as JSON
+    # has no concept of tuples.
+    if isinstance(item_schema, list):
+        return [
+            serialize(
+                item, Thing(schema=item_schema_member, definitions=schema.definitions)
+            )
+            for item, item_schema_member in zip(value, item_schema)
+        ]
 
     return [
         serialize(item, Thing(schema=item_schema, definitions=schema.definitions))

@@ -7,11 +7,16 @@ jobs:
         runs-on: ubuntu-18.04
         steps:
             - uses: actions/checkout@v1
+            - uses: actions/setup-node@master
+              with:
+                  node-version: "8.x"
             - uses: actions/setup-python@master
               with:
                   python-version: "3.7"
-            - name: Requirements
+            - name: Python requirements
               run: pip install -r requirements.txt
+            - name: Yarn
+              run: cd packages/reactivated && yarn && cd ../../
             - name: Run tests
               run: scripts/test.sh
               env:

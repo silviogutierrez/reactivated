@@ -1,5 +1,5 @@
 Django==2.2.4
-Werkzeug==0.15.5
+Werkzeug==0.16.0
 black==19.3b0
 django-extensions==2.2.1
 django-stubs==1.1.0

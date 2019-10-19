@@ -15,7 +15,7 @@ export default class extends AjaxPlayground {
                 "Content-Type": "application/json",
                 "X-Requested-With": "XMLHttpRequest",
             },
-            body: JSON.stringify({"thing": "I am post data"})
+            body: JSON.stringify({thing: "I am post data"}),
         })
             .then(response => response.json())
             .then(({results}) => {

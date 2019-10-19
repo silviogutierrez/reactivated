@@ -5,7 +5,15 @@ import {FieldMap, FormLike} from "./Form";
 import {Field} from "./Field";
 import {Consumer} from "../context";
 
-import {Alert, Button, FormGroup, Label, Input, FormText, FormFeedback} from "reactstrap";
+import {
+    Alert,
+    Button,
+    FormGroup,
+    Label,
+    Input,
+    FormText,
+    FormFeedback,
+} from "reactstrap";
 
 type TODO = any;
 
@@ -101,15 +109,15 @@ export class SectionalForm<U extends FieldMap> extends React.Component<Props<U>>
                     )}
                 </Consumer>
 
-                {props.form.errors != null && props.form.errors.__all__ != null &&
-                <>
-                    {props.form.errors.__all__.map((error, index) =>
-                    <Alert key={index} color="danger" fade={false}>
-                        {error}
-                    </Alert>
-                    )}
-                </>
-                }
+                {props.form.errors != null && props.form.errors.__all__ != null && (
+                    <>
+                        {props.form.errors.__all__.map((error, index) => (
+                            <Alert key={index} color="danger" fade={false}>
+                                {error}
+                            </Alert>
+                        ))}
+                    </>
+                )}
 
                 {props.form.sections.map((section, index) => (
                     <fieldset key={index}>
@@ -118,7 +126,14 @@ export class SectionalForm<U extends FieldMap> extends React.Component<Props<U>>
                             props.form,
                             this.filterFields(section.fields),
                             (field, error) => (
-                            <Field key={field.widget.name} field={field} error={error || null} passed_validation={props.form!.errors != null && error == null} />
+                                <Field
+                                    key={field.widget.name}
+                                    field={field}
+                                    error={error || null}
+                                    passed_validation={
+                                        props.form!.errors != null && error == null
+                                    }
+                                />
                             ),
                         )}
                     </fieldset>

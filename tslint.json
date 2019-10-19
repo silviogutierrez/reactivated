@@ -1,6 +1,0 @@
-{
-    "extends": ["tslint:latest", "tslint-react"],
-    // "rulesDirectory": ["node_modules/vrsource-tslint-rules/rules"],
-    "rules": {
-    }
-}

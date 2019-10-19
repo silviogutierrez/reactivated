@@ -1,11 +1,11 @@
-import express, {Request, Response} from 'express';
+import express, {Request, Response} from "express";
 
-import {render, BODY_SIZE_LIMIT} from './server';
+import {render, BODY_SIZE_LIMIT} from "./server";
 
 const app = express();
-app.use(express.json({limit: BODY_SIZE_LIMIT}))
+app.use(express.json({limit: BODY_SIZE_LIMIT}));
 
-app.post('/__ssr/', (req, res) => {
+app.post("/__ssr/", (req, res) => {
     const rendered = render(Buffer.from(JSON.stringify(req.body)));
     res.json({rendered});
 });

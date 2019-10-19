@@ -12,4 +12,5 @@ cd $PROJECT_ROOT
 autoflake  -i -r  --remove-all-unused-imports .
 isort --recursive .
 black .
+packages/reactivated/node_modules/.bin/prettier --ignore-path .gitignore --check '**/*.{ts,tsx,yaml}' --write
 cd $PWD

@@ -10,7 +10,7 @@ const styles = {
     header: style({color: "blue"}),
 } as const;
 
-export default (props: DataBrowser['props']) => (
+export default (props: DataBrowser["props"]) => (
     <div className={styles.layout}>
         <h1 className={styles.header}>Composers</h1>
         <Form form={props.composer_form}>
@@ -27,4 +27,4 @@ export default (props: DataBrowser['props']) => (
             <button type="submit">Submit</button>
         </FormSet>
     </div>
-)
+);

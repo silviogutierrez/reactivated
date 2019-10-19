@@ -15,7 +15,6 @@
         "reactstrap": "^8.0.0",
         "ts-morph": "^2.3.0",
         "ts-node": "^8.3.0",
-        "tslint-config-prettier": "^1.18.0",
         "webpack": "^4.15.1"
     },
     "devDependencies": {
@@ -31,8 +30,6 @@
         "csstips": "^0.3.0",
         "react-dom": "^16.4.1",
         "react-helmet": "^5.2.0",
-        "tslint": "^5.10.0",
-        "typescript": "^3.0.1",
         "typestyle": "^2.0.1"
     },
     "main": "lib/index.js",

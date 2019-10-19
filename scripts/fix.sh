@@ -12,7 +12,7 @@ cd $PROJECT_ROOT
 autoflake  -i -r  --remove-all-unused-imports .
 isort --recursive .
 black .
-packages/reactivated/node_modules/.bin/tslint -p packages/reactivated --fix
-packages/reactivated/node_modules/.bin/prettier --ignore-path .gitignore --check '**/*.{ts,tsx,yaml,json}' --write
+node_modules/.bin/tslint -p packages/reactivated --fix
+node_modules/.bin/prettier --ignore-path .gitignore --check '**/*.{ts,tsx,yaml,json}' --write
 
 cd $PWD

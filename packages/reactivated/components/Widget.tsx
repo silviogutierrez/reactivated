@@ -196,7 +196,7 @@ export const Widget = (props: Props) => {
                     type="select"
                     readOnly={widget.attrs.disabled === true}
                     invalid={props.has_errors}
-                    valid={!!value && props.passed_validation}
+                    valid={value !== "" && value !== [] && props.passed_validation}
                     name={widget.name}
                     className={className}
                     multiple={isMultiple(widget)}
@@ -215,10 +215,10 @@ export const Widget = (props: Props) => {
                 <Input
                     readOnly={widget.attrs.disabled === true}
                     invalid={props.has_errors}
-                    valid={!!widget.value && props.passed_validation}
+                    valid={widget.value !== "" && widget.value != null && props.passed_validation}
                     type="textarea"
                     className={className}
-                    defaultValue={widget.value || ""}
+                    defaultValue={widget.value != null ? widget.value : ""}
                     id={widget.name}
                     name={widget.name}
                     rows={TEXTAREA_ROWS}
@@ -235,10 +235,10 @@ export const Widget = (props: Props) => {
                 <Input
                     readOnly={widget.attrs.disabled === true}
                     invalid={props.has_errors}
-                    valid={!!widget.value && props.passed_validation}
+                    valid={widget.value !== "" && widget.value != null && props.passed_validation}
                     type={widget.type}
                     className={className}
-                    defaultValue={widget.value || ""}
+                    defaultValue={widget.value != null ? widget.value : ""}
                     id={widget.name}
                     name={widget.name}
                 />

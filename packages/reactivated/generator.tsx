@@ -1,12 +1,12 @@
+import fs from "fs";
+import {compile} from "json-schema-to-typescript";
 import {
     Project,
+    SourceFile,
     StructureKind,
     VariableDeclarationKind,
     WriterFunctions,
-    SourceFile,
 } from "ts-morph";
-import {compile} from "json-schema-to-typescript";
-import fs from "fs";
 
 const stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
 
@@ -43,7 +43,7 @@ const withArguments = [];
 const withoutArguments = [];
 
 for (const name of Object.keys(urls)) {
-    const properties = urls[name as keyof typeof urls]["args"];
+    const properties = urls[name as keyof typeof urls].args;
     const normalizedName = name.replace(/[^\w]/g, "_");
 
     const urlInterface = interfaces.addInterface({
@@ -106,6 +106,7 @@ type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)
 
 `);
 
+// tslint:disable-next-line
 compile(types, "Types").then(ts => {
     process.stdout.write(ts);
 
@@ -124,48 +125,3 @@ type ${name}Check = Checker<Types["${propsName}"], typeof ${name}Implementation>
 
     process.stdout.write(interfaces.getText());
 });
-
-interface First {
-    name: "foo";
-    args: {
-        uuid: string;
-    };
-}
-
-interface Second {
-    name: "bar";
-    args: {
-        pk: number;
-    };
-}
-
-interface Third {
-    name: "spam";
-}
-
-interface Fourth {
-    name: "ham";
-}
-
-type WithArguments = First | Second;
-type WithoutArguments = Third | Fourth;
-type All = WithArguments | WithoutArguments;
-type UnionKeys<T> = T extends any ? keyof T : never;
-type DistributivePick<T, K extends UnionKeys<T>> = T extends any
-    ? Pick<T, Extract<keyof T, K>>
-    : never;
-
-export function reverse<T extends WithoutArguments["name"]>(name: T): void;
-export function reverse<T extends WithArguments["name"]>(
-    name: T,
-    args: Extract<WithArguments, {name: T}>["args"],
-): void;
-export function reverse<T extends All["name"]>(
-    name: T,
-    args?: Extract<WithArguments, {name: T}>["args"],
-): void {}
-
-reverse("foo", {uuid: "a"});
-reverse("bar", {pk: 1});
-reverse("spam");
-reverse("ham");

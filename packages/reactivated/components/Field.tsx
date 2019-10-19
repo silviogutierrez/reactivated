@@ -4,14 +4,14 @@ import {style} from "typestyle";
 import {
     Alert,
     Button,
-    FormGroup,
-    Label,
-    Input,
-    FormText,
     FormFeedback,
+    FormGroup,
+    FormText,
+    Input,
+    Label,
 } from "reactstrap";
 
-import {Widget, isHidden, WidgetType, getValueForSelect} from "./Widget";
+import {getValueForSelect, isHidden, Widget, WidgetType} from "./Widget";
 
 const Styles = {
     // Bootstrap hides error messages unless they are general siblings of
@@ -59,8 +59,8 @@ export const Field = (props: Props) => {
             )}
             {error != null && (
                 <FormFeedback className={Styles.feedback}>
-                    {error.map((error, index) => (
-                        <div key={index}>{error}</div>
+                    {error.map((errorMessage, index) => (
+                        <div key={index}>{errorMessage}</div>
                     ))}
                 </FormFeedback>
             )}

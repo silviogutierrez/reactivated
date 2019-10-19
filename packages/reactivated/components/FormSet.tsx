@@ -1,9 +1,9 @@
 import React from "react";
 import {Alert, FormFeedback} from "reactstrap";
-import {style, classes} from "typestyle";
+import {classes, style} from "typestyle";
 
 import {Form, FormLike, iterate, Styles} from "./Form";
-import {Widget, isHidden} from "./Widget";
+import {isHidden, Widget} from "./Widget";
 
 const styles = {
     hidden: style({display: "none"}),
@@ -81,8 +81,8 @@ export const FormSet = ({formSet, children}: Props) => (
 
                                 {error != null && (
                                     <FormFeedback className={Styles.feedback}>
-                                        {error.map((error, index) => (
-                                            <div key={index}>{error}</div>
+                                        {error.map((errorMessage, index) => (
+                                            <div key={index}>{errorMessage}</div>
                                         ))}
                                     </FormFeedback>
                                 )}

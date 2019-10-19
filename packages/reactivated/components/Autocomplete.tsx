@@ -3,14 +3,14 @@ import Context from "../context";
 
 import {classes, style} from "typestyle";
 import {
-    getValueForSelect,
-    getValue,
     Autocomplete as AutocompleteType,
+    getValue,
+    getValueForSelect,
     Props as WidgetProps,
 } from "./Widget";
 
-import {Input} from "reactstrap";
 import Downshift, {ChildrenFunction} from "downshift";
+import {Input} from "reactstrap";
 
 const Styles = {
     autocomplete: style({
@@ -113,12 +113,12 @@ export class Autocomplete extends React.Component<Props, State> {
         );
     };
 
-    handleOnInputValueChange = (value: string) => {
+    handleOnInputValueChange = async (value: string) => {
         const url = new URL(this.context.request.url);
         url.searchParams.append("autocomplete", this.props.widget.name);
         url.searchParams.append("query", value);
 
-        fetch(url.toString())
+        return fetch(url.toString())
             .then(response => response.json())
             .then(({results}) => {
                 this.setState({results});
@@ -133,7 +133,7 @@ export class Autocomplete extends React.Component<Props, State> {
             <Downshift
                 onInputValueChange={this.handleOnInputValueChange}
                 initialSelectedItem={widget.selected}
-                itemToString={item => (item && item.value != "" ? item.label : "")}
+                itemToString={item => (item && item.value !== "" ? item.label : "")}
             >
                 {({
                     getInputProps,
@@ -157,7 +157,7 @@ export class Autocomplete extends React.Component<Props, State> {
                         />
                         <Input
                             invalid={props.has_errors}
-                            valid={!!widget.value && props.passed_validation}
+                            valid={widget.value.length > 0 && props.passed_validation}
                             {...getInputProps()}
                         />
 

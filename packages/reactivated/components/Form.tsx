@@ -1,18 +1,18 @@
 import React from "react";
 
 import {style} from "typestyle";
-import {Widget, WidgetType, getValueForSelect} from "./Widget";
-import {Field} from "./Field";
 import {Consumer} from "../context";
+import {Field} from "./Field";
+import {getValueForSelect, Widget, WidgetType} from "./Widget";
 
 import {
     Alert,
     Button,
-    FormGroup,
-    Label,
-    Input,
-    FormText,
     FormFeedback,
+    FormGroup,
+    FormText,
+    Input,
+    Label,
 } from "reactstrap";
 
 type TODO = any;
@@ -67,17 +67,33 @@ export function iterate<T, U extends FieldMap>(
     form: FormLike<U>,
     callback: (field: FieldLike, error: string[] | null | undefined) => T,
 ) {
-    return form.iterator.map(field_name =>
+    return form.iterator.map(fieldName =>
         callback(
-            form.fields[field_name],
-            form.errors != null ? form.errors[field_name] : null,
+            form.fields[fieldName],
+            form.errors != null ? form.errors[fieldName] : null,
         ),
     );
 }
 
-export const Form2 = <U extends FieldMap>(props: Props<U>) => {};
-
 export class Form<U extends FieldMap> extends React.Component<Props<U>> {
+    constructor(props: Props<U>) {
+        super(props);
+        const state: any = {};
+
+        if (props.form != null) {
+            this.getFields(false, (field, error) => {
+                const widget = field.widget;
+
+                if (widget.template_name === "django/forms/widgets/select.html") {
+                    state[field.widget.name] = getValueForSelect(widget);
+                } else {
+                    state[field.widget.name] = widget.value;
+                }
+            });
+        }
+
+        this.state = state;
+    }
     getFields<T>(
         filter: boolean,
         callback: (field: FieldLike, error: string[] | null | undefined) => T,
@@ -93,31 +109,12 @@ export class Form<U extends FieldMap> extends React.Component<Props<U>> {
                 ? this.props.getFields(form, this.state)
                 : form.iterator;
 
-        return filteredIterator.map(field_name =>
+        return filteredIterator.map(fieldName =>
             callback(
-                form.fields[field_name],
-                form.errors != null ? form.errors[field_name] : null,
+                form.fields[fieldName],
+                form.errors != null ? form.errors[fieldName] : null,
             ),
         );
-    }
-
-    constructor(props: Props<U>) {
-        super(props);
-        let state: any = {};
-
-        if (props.form != null) {
-            this.getFields(false, (field, error) => {
-                const widget = field.widget;
-
-                if (widget.template_name == "django/forms/widgets/select.html") {
-                    state[field.widget.name] = getValueForSelect(widget);
-                } else {
-                    state[field.widget.name] = widget.value;
-                }
-            });
-        }
-
-        this.state = state;
     }
 
     handleOnChange = (event: React.FormEvent<HTMLFormElement>) => {
@@ -163,7 +160,7 @@ export class Form<U extends FieldMap> extends React.Component<Props<U>> {
                             <Field
                                 key={field.widget.name}
                                 field={field}
-                                error={error || null}
+                                error={error == null ? null : error}
                                 passed_validation={
                                     props.form!.errors != null && error == null
                                 }

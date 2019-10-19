@@ -8,6 +8,7 @@ if ((module as any).hot) {
     (module as any).hot.accept();
 }
 
+// tslint:disable-next-line
 const Template = require("client/templates/" + props.template_name + ".tsx").default;
 
 export const bootstrap = () => {

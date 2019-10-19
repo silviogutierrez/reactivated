@@ -2,8 +2,10 @@ import React from "react";
 
 import {classes} from "typestyle";
 
-import {Button, Form, FormGroup, Label, Input, FormText} from "reactstrap";
+import {Button, Form, FormGroup, FormText, Input, Label} from "reactstrap";
 import {Autocomplete as AutocompleteWidget} from "./Autocomplete";
+
+const TEXTAREA_ROWS = 10;
 
 interface BaseWidget {
     name: string;
@@ -93,9 +95,13 @@ type Optgroup = [
     number,
 ];
 
-type IsMultiple = {attrs: {multiple: "multiple"}};
+interface IsMultiple {
+    attrs: {multiple: "multiple"};
+}
 
-type IsSingle = {attrs: {}};
+interface IsSingle {
+    attrs: {};
+}
 
 function isMultiple<T extends IsMultiple, U extends IsSingle>(
     widget: T | U,
@@ -158,7 +164,12 @@ export const getValue = (optgroup: Optgroup) => {
 };
 
 export const getValueForSelect = (widget: Select | Autocomplete | SelectMultiple) => {
-    return isMultiple(widget) ? widget.value : widget.value[0] || "";
+    if (isMultiple(widget)) {
+        return widget.value;
+    }
+    else {
+        return widget.value == null ? "" : widget.value;
+    }
 };
 
 export const isHidden = (widget: WidgetType) =>
@@ -210,7 +221,7 @@ export const Widget = (props: Props) => {
                     defaultValue={widget.value || ""}
                     id={widget.name}
                     name={widget.name}
-                    rows={10}
+                    rows={TEXTAREA_ROWS}
                 />
             );
         case "django/forms/widgets/clearable_file_input.html":
@@ -235,10 +246,10 @@ export const Widget = (props: Props) => {
             // return <div>I am a text</div>;
         }
         default: {
-            const _exhaustiveCheck: never = widget;
+            const exhaustiveCheck: never = widget;
             throw new Error(
                 "Cannot happen, unknown widget type: \n" +
-                    JSON.stringify(widget, null, 2),
+                    JSON.stringify(widget, null, 4), // tslint:disable-line
             );
         }
     }

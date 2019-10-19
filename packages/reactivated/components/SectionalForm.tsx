@@ -1,18 +1,18 @@
 import React from "react";
 
-import {Widget, WidgetType, getValueForSelect} from "./Widget";
-import {FieldMap, FormLike} from "./Form";
-import {Field} from "./Field";
 import {Consumer} from "../context";
+import {Field} from "./Field";
+import {FieldMap, FormLike} from "./Form";
+import {getValueForSelect, Widget, WidgetType} from "./Widget";
 
 import {
     Alert,
     Button,
-    FormGroup,
-    Label,
-    Input,
-    FormText,
     FormFeedback,
+    FormGroup,
+    FormText,
+    Input,
+    Label,
 } from "reactstrap";
 
 type TODO = any;
@@ -51,10 +51,10 @@ function iterate<T, U extends FieldMap>(
     fields: Array<keyof U>,
     callback: (field: FieldLike, error: string[] | null | undefined) => T,
 ) {
-    return fields.map(field_name =>
+    return fields.map(fieldName =>
         callback(
-            form.fields[field_name],
-            form.errors != null ? form.errors[field_name] : null,
+            form.fields[fieldName],
+            form.errors != null ? form.errors[fieldName] : null,
         ),
     );
 }
@@ -62,10 +62,10 @@ function iterate<T, U extends FieldMap>(
 export class SectionalForm<U extends FieldMap> extends React.Component<Props<U>> {
     constructor(props: Props<U>) {
         super(props);
-        let state: any = {};
+        const state: any = {};
 
         iterate(props.form, props.form.iterator, field => {
-            if (field.widget.template_name == "django/forms/widgets/select.html") {
+            if (field.widget.template_name === "django/forms/widgets/select.html") {
                 state[field.widget.name] = getValueForSelect(field.widget);
             } else {
                 state[field.widget.name] = field.widget.value;
@@ -129,7 +129,7 @@ export class SectionalForm<U extends FieldMap> extends React.Component<Props<U>>
                                 <Field
                                     key={field.widget.name}
                                     field={field}
-                                    error={error || null}
+                                    error={error == null ? null : error}
                                     passed_validation={
                                         props.form!.errors != null && error == null
                                     }

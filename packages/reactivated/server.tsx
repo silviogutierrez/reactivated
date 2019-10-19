@@ -1,21 +1,21 @@
-import React from "react";
-import webpack from "webpack";
-import path from "path";
+import {resetIdCounter} from "downshift";
 import express, {Request, Response} from "express";
+import fs from "fs";
+import {compile} from "json-schema-to-typescript";
+import path from "path";
+import React from "react";
 import ReactDOMServer from "react-dom/server";
 import Helmet, {HelmetData} from "react-helmet";
 import {getStyles} from "typestyle";
-import {compile} from "json-schema-to-typescript";
-import {resetIdCounter} from "downshift";
-import fs from "fs";
+import webpack from "webpack";
 
 import moduleAlias from "module-alias";
 moduleAlias.addAlias("@client", `${process.cwd()}/client`);
 
 import httpProxy, {ServerOptions} from "http-proxy";
 
-import {Settings} from "./models";
 import {Provider} from "./context";
+import {Settings} from "./models";
 
 // TODO: WHAT DOES THIS NEED TO BE? Even 100k was super fragile and a 10 choice field broke it.
 export const BODY_SIZE_LIMIT = "100000000k";
@@ -82,13 +82,13 @@ export const render = (
 ) => {
     const {context, props} = JSON.parse(input.toString("utf8"));
 
-    const template_path = `${process.cwd()}/client/templates/${context.template_name}`;
+    const templatePath = `${process.cwd()}/client/templates/${context.template_name}`;
 
     // TODO: disable this in production.
     if (process.env.NODE_ENV !== "production") {
         // Our template names have no extension by design, for when we transpile.
-        delete require.cache[`${template_path}.tsx`];
-        delete require.cache[`${template_path}.jsx`];
+        delete require.cache[`${templatePath}.tsx`];
+        delete require.cache[`${templatePath}.jsx`];
 
         // When developing reactivated itself locally, including Widget.tsx etc.
         // TODO: has a bug with context.
@@ -99,7 +99,7 @@ export const render = (
         // }
     }
 
-    const Template = require(template_path).default;
+    const Template = require(templatePath).default;
     // See https://github.com/downshift-js/downshift#resetidcounter
     resetIdCounter();
     const rendered = ReactDOMServer.renderToString(
@@ -130,12 +130,12 @@ export default (settings: Settings) => ({
         const proxy = httpProxy.createProxyServer();
 
         proxy.on("proxyRes", (proxyRes, req, res) => {
-            let body = Buffer.from(""); //, 'utf8');
+            let body = Buffer.from(""); // , 'utf8');
 
-            proxyRes.on("data", function(data) {
+            proxyRes.on("data", (data) => {
                 body = Buffer.concat([body, data as Buffer]);
             });
-            proxyRes.on("end", function() {
+            proxyRes.on("end", () => {
                 const response = body; // .toString('utf8');
 
                 // console.log(req.headers);
@@ -153,26 +153,26 @@ export default (settings: Settings) => ({
                     res.writeHead(proxyRes.statusCode!, proxyRes.headers);
                     res.end(response);
                 } else {
-                    let body;
+                    let content;
 
                     try {
-                        body = render(response, renderPage);
+                        content = render(response, renderPage);
                     } catch (error) {
-                        body = error.stack;
+                        content = error.stack;
                     }
 
                     res.writeHead(proxyRes.statusCode!, {
                         ...proxyRes.headers,
                         "Content-Type": "text/html; charset=utf-8",
-                        "Content-Length": Buffer.byteLength(body),
+                        "Content-Length": Buffer.byteLength(content),
                     });
-                    res.end(body);
+                    res.end(content);
                 }
             });
         });
 
         const target =
-            typeof options.django == "number"
+            typeof options.django === "number"
                 ? `http://localhost:${options.django}`
                 : ({
                       socketPath: options.django,

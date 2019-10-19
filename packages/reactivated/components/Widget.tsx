@@ -1,5 +1,10 @@
 import React from 'react';
 
+import {classes} from 'typestyle';
+
+import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
+import { Autocomplete as AutocompleteWidget} from './Autocomplete';
+
 interface BaseWidget {
     name: string;
     is_hidden: boolean;
@@ -56,6 +61,24 @@ interface Textarea extends BaseWidget {
     }
 }
 
+interface DateInput extends BaseWidget {
+    template_name: 'django/forms/widgets/date.html';
+    type: 'date',
+    value: string|null;
+}
+
+interface ClearableFileInput extends BaseWidget {
+    template_name: 'django/forms/widgets/clearable_file_input.html';
+    type: 'file';
+    value: string|null;
+    checkbox_name: string;
+    checkbox_id: string;
+    is_initial: boolean;
+    input_text: string;
+    initial_text: string;
+    clear_checkbox_label: string;
+}
+
 
 type Optgroup = [
     null,
@@ -85,20 +108,31 @@ interface Select extends BaseWidget {
     optgroups: Optgroup[];
 }
 
+export interface Autocomplete extends BaseWidget {
+    value: string[];
+    template_name: 'reactivated/autocomplete';
+    selected: {
+        value: string|number;
+        label: string;
+    } | null;
+}
+
 interface SelectMultiple extends Select {
     attrs: BaseWidget['attrs'] & {
         multiple: 'multiple';
     }
 }
 
-export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|HiddenInput|Textarea|Select|SelectMultiple;
+export type WidgetType = TextInput|NumberInput|PasswordInput|EmailInput|HiddenInput|Textarea|Select|Autocomplete|SelectMultiple|DateInput|ClearableFileInput;
 
-interface Props {
+export interface Props {
     widget: WidgetType;
+    has_errors: boolean;
+    passed_validation: boolean;
     className?: string;
 }
 
-const getValue = (optgroup: Optgroup) => {
+export const getValue = (optgroup: Optgroup) => {
     const rawValue = optgroup[1][0].value;
 
     if (rawValue == null) {
@@ -113,10 +147,21 @@ const getValue = (optgroup: Optgroup) => {
     return rawValue;
 }
 
+export const getValueForSelect = (widget: Select|Autocomplete|SelectMultiple) => {
+    return isMultiple(widget) ? widget.value : (widget.value[0] || '');
+}
+
+
+export const isHidden = (widget: WidgetType) => 'type' in widget && widget.type === 'hidden';
+
+
 export const Widget = (props: Props) => {
     const {className, widget} = props;
 
     switch (widget.template_name) {
+        case "reactivated/autocomplete": {
+            return <AutocompleteWidget {...props} widget={widget} />;
+        }
         case "django/forms/widgets/select.html": {
             /*
             if (isMultiple(widget)) {
@@ -124,8 +169,13 @@ export const Widget = (props: Props) => {
             }
             */
             // return <div>I am a select single</div>;
-            const value = isMultiple(widget) ? widget.value : (widget.value[0] || '');
-            return <select
+            const value = getValueForSelect(widget);
+
+            return <Input
+                type="select"
+                readOnly={widget.attrs.disabled === true}
+                invalid={props.has_errors}
+                valid={!!value && props.passed_validation}
                 name={widget.name}
                 className={className}
                 multiple={isMultiple(widget)}
@@ -134,20 +184,35 @@ export const Widget = (props: Props) => {
                 {widget.optgroups.map((optgroup, index) =>
                 <option key={index} value={getValue(optgroup)}>{optgroup[1][0].label}</option>
                 )}
-            </select>;
+            </Input>;
         }
         case "django/forms/widgets/textarea.html":
-            return <textarea name={widget.name} className={className} defaultValue={widget.value || ""} />
+            return <Input
+                readOnly={widget.attrs.disabled === true}
+                invalid={props.has_errors}
+                valid={!!widget.value && props.passed_validation}
+                type="textarea"
+                className={className}
+                defaultValue={widget.value || ""}
+                id={widget.name}
+                name={widget.name}
+                rows={10}
+            />;
+        case "django/forms/widgets/clearable_file_input.html":
         case "django/forms/widgets/hidden.html":
         case "django/forms/widgets/number.html":
         case "django/forms/widgets/text.html":
         case "django/forms/widgets/password.html":
-        case "django/forms/widgets/email.html": {
-            return <input
+        case "django/forms/widgets/email.html":
+        case "django/forms/widgets/date.html": {
+            return <Input
                 readOnly={widget.attrs.disabled === true}
+                invalid={props.has_errors}
+                valid={!!widget.value && props.passed_validation}
                 type={widget.type}
                 className={className}
                 defaultValue={widget.value || ""}
+                id={widget.name}
                 name={widget.name}
             />;
             // return <div>I am a text</div>;

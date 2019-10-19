@@ -1,37 +1,44 @@
 {
   "name": "reactivated",
-  "version": "0.0.6",
+  "version": "0.3.0",
   "repository": "github:silviogutierrez/reactivated",
   "license": "MIT",
   "description": "",
   "dependencies": {
+    "downshift": "^3.2.10",
+    "express": "^4.16.3",
+    "http-proxy": "^1.17.0",
+    "json-schema-to-typescript": "^5.5.0",
+    "module-alias": "^2.2.1",
+    "react": "^16.4.1",
+    "reactstrap": "^8.0.0",
+    "ts-morph": "^2.3.0",
+    "ts-node": "^8.3.0",
+    "webpack": "^4.15.1"
+  },
+  "devDependencies": {
     "@types/express": "^4.16.0",
     "@types/http-proxy": "^1.16.2",
+    "@types/module-alias": "^2.0.0",
     "@types/node": "^10.5.2",
     "@types/react": "^16.4.6",
     "@types/react-dom": "^16.0.6",
     "@types/react-helmet": "^5.0.6",
+    "@types/reactstrap": "^8.0.1",
     "@types/webpack": "^4.4.5",
     "csstips": "^0.3.0",
-    "express": "^4.16.3",
-    "http-proxy": "^1.17.0",
-    "json-schema-to-typescript": "^5.5.0",
-    "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "react-helmet": "^5.2.0",
-    "typestyle": "^2.0.1",
-    "webpack": "^4.15.1"
-  },
-  "devDependencies": {
     "tslint": "^5.10.0",
-    "typescript": "^3.0.1"
+    "typescript": "^3.0.1",
+    "typestyle": "^2.0.1"
   },
   "main": "lib/index.js",
   "scripts": {
-    "build": "tsc",
-    "prepare": "npm run build",
+    "prepublishOnly": "tsc",
     "postpublish": "git clean -fd",
-    "start": "tsc -w --outDir dist/"
+    "build": "tsc --outDir dist",
+    "start": "rm -rf ../../sample/node_modules/reactivated && tsc -w --outDir ../../sample/node_modules/reactivated"
   },
   "author": ""
 }

@@ -6,12 +6,19 @@ import ReactDOMServer from 'react-dom/server';
 import Helmet, {HelmetData} from 'react-helmet';
 import {getStyles} from 'typestyle';
 import {compile} from 'json-schema-to-typescript'
+import {resetIdCounter} from 'downshift';
 import fs from 'fs';
+
+import moduleAlias from 'module-alias';
+moduleAlias.addAlias('@client', `${process.cwd()}/client`)
 
 import httpProxy, {ServerOptions} from 'http-proxy';
 
 import {Settings} from './models';
 import {Provider} from './context';
+
+// TODO: WHAT DOES THIS NEED TO BE? Even 100k was super fragile and a 10 choice field broke it.
+export const BODY_SIZE_LIMIT = '100000000k'
 
 const app = express();
 
@@ -44,6 +51,45 @@ const PATHS = [
     '/',
     '/form/',
 ]
+
+const defaultRenderPage = bindRenderPage({DEBUG: true, DEBUG_PORT: 200, MEDIA_URL: '/media/', STATIC_URL: '/static/'});
+
+export const render = (input: Buffer, renderPage: typeof defaultRenderPage = defaultRenderPage) => {
+    const {context, props} = JSON.parse(input.toString('utf8'));
+
+    const template_path = `${process.cwd()}/client/templates/${context.template_name}`;
+
+    // TODO: disable this in production.
+    if (process.env.NODE_ENV !== 'production') {
+        // Our template names have no extension by design, for when we transpile.
+        delete require.cache[`${template_path}.tsx`];
+        delete require.cache[`${template_path}.jsx`];
+
+        // When developing reactivated itself locally, including Widget.tsx etc.
+        // TODO: has a bug with context.
+        // for (const cacheKey of Object.keys(require.cache)) {
+        //     if (cacheKey.includes('reactivated/dist')) {
+        //         delete require.cache[cacheKey];
+        //     }
+        // }
+    }
+
+    const Template = require(template_path).default;
+    // See https://github.com/downshift-js/downshift#resetidcounter
+    resetIdCounter();
+    const rendered = ReactDOMServer.renderToString(<Provider value={context}><Template {...props} /></Provider>);
+    const helmet = Helmet.renderStatic();
+    const css = getStyles();
+
+    return renderPage({
+        html: rendered,
+        helmet,
+        css,
+        props,
+        context,
+    });
+}
+
 
 interface ListenOptions {
     node: number|string;
@@ -80,26 +126,7 @@ export default (settings: Settings) => ({
                     let body;
 
                     try {
-                        const {context, props} = JSON.parse(response.toString('utf8'));
-                        const template_path = `${process.cwd()}/client/templates/${context.template_name}.tsx`;
-
-                        // TODO: disable this in production.
-                        if (process.env.NODE_ENV !== 'production') {
-                            delete require.cache[template_path];
-                        }
-
-                        const Template = require(template_path).default;
-                        const rendered = ReactDOMServer.renderToString(<Provider value={context}><Template {...props} /></Provider>);
-                        const helmet = Helmet.renderStatic();
-                        const css = getStyles();
-
-                        body = renderPage({
-                            html: rendered,
-                            helmet,
-                            css,
-                            props,
-                            context,
-                        });
+                        body = render(response, renderPage);
                     }
                     catch (error) {
                         body = error.stack;

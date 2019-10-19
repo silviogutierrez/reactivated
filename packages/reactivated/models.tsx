@@ -7,6 +7,6 @@ export interface Settings {
 
 export interface Message {
   level: number;
-  level_tag: string;
+  level_tag: 'info'|'success'|'error'|'warning'|'debug';
   message: string;
 }

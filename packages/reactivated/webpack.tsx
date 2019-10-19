@@ -1,7 +1,10 @@
-import webpack from 'webpack';
-import path from 'path';
+import webpack from "webpack";
+import path from "path";
 
-import {Settings} from './models';
+import express, {Application} from "express";
+
+import {Settings} from "./models";
+import {render, BODY_SIZE_LIMIT} from "./server";
 
 export const createConfig = (settings: Settings) => {
     const DJANGO_DEBUG_PORT = settings.DEBUG_PORT;
@@ -9,25 +12,26 @@ export const createConfig = (settings: Settings) => {
     const WEBPACK_DEBUG_PORT = DJANGO_DEBUG_PORT + 200;
 
     return {
-        mode: 'development',
-        entry: './client/app.tsx',
+        mode: "development",
+        entry: "./client/index.tsx",
         module: {
             rules: [
                 {
                     test: /\.tsx?$/,
-                    loader: 'awesome-typescript-loader'
-                }
-            ]
+                    loader: "awesome-typescript-loader",
+                },
+            ],
         },
         resolve: {
-            modules: [
-                path.resolve('./'), 'node_modules',
-            ],
-            extensions: [ '.tsx', '.ts', '.js' ],
+            alias: {
+                "@client": path.resolve(process.cwd(), "client/"),
+            },
+            modules: [path.resolve("./"), "node_modules"],
+            extensions: [".tsx", ".ts", ".js"],
             symlinks: false,
         },
         output: {
-            filename: 'bundle.js',
+            filename: "bundle.js",
             publicPath: `${settings.MEDIA_URL}dist/`,
         },
         serve: {
@@ -43,13 +47,34 @@ export const createConfig = (settings: Settings) => {
             progress: true,
             port: WEBPACK_DEBUG_PORT,
             proxy: {
-                '**': {
-                    target: `http://localhost:${NODE_DEBUG_PORT}`,
+                "**": {
+                    target: `http://localhost:${DJANGO_DEBUG_PORT}`,
                 },
             },
+            before: (app: Application) => {
+                // Try accessing request.body in a Django view that was proxied
+                // by webpack with application/json headers and JSON content.
+                // Django will process it, but webpack will not accept back
+                // Django's response. Not quite sure why.
+                //
+                // See https://github.com/chimurai/http-proxy-middleware/issues/40
+                // for a possibly related issue.
+                //
+                // Fix: bind body parsing *only* to the /__ssr/ route when using
+                // webpack.
+                //
+                // In renderer.tsx, we do bind globally.
+                app.use("/__ssr/", express.json({limit: BODY_SIZE_LIMIT}));
+                app.post("/__ssr/", (req, res) => {
+                    const rendered = render(Buffer.from(JSON.stringify(req.body)));
+                    res.json({rendered});
+                });
+            },
         },
-        plugins: [
-            new webpack.HotModuleReplacementPlugin(),
-        ],
-    }
+        // Docs say to put this in.
+        // But others say to leave it out. Currently, HMR only works if left out.
+        // plugins: [
+        //     new webpack.HotModuleReplacementPlugin(),
+        // ],
+    };
 };

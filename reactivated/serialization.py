@@ -432,6 +432,7 @@ def form_set_serializer(value: stubs.BaseFormSet, schema: Thing) -> JSON:
 
 
 SERIALIZERS = {
+    "any": lambda value, schema: value,
     "object": object_serializer,
     "string": lambda value, schema: str(value),
     "boolean": lambda value, schema: bool(value),
@@ -460,7 +461,8 @@ def serialize(value: Any, schema: Thing) -> JSON:
             )
 
     serializer = SERIALIZERS.get(
-        dereferenced_schema.get("serializer", dereferenced_schema["type"]), None
+        dereferenced_schema.get("serializer", dereferenced_schema.get("type", "any")),
+        None,
     )
     assert serializer is not None
 

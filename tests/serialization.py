@@ -1,4 +1,4 @@
-from typing import List, NamedTuple, Tuple
+from typing import Any, List, NamedTuple, Tuple
 
 import pytest
 import simplejson
@@ -25,6 +25,7 @@ class Foo(NamedTuple):
     pick: Pick[models.Composer, "name", "operas.name"]
     fixed_tuple_different_types: Tuple[str, int]
     fixed_tuple_same_types: Tuple[str, str]
+    complex_type_we_do_not_type: Any
 
 
 def convert_to_json_and_validate(instance, schema):
@@ -45,6 +46,10 @@ def test_serialization():
         pick=composer,
         fixed_tuple_different_types=("ok", 5),
         fixed_tuple_same_types=("alright", "again"),
+        complex_type_we_do_not_type={
+            "I am": "very complex",
+            "because": {"I am": "nested", "ok?": []},
+        },
     )
     definitions = {}
     generated_schema = create_schema(Foo, definitions)
@@ -56,6 +61,10 @@ def test_serialization():
         "pick": {"name": composer.name, "operas": [{"name": opera.name}]},
         "fixed_tuple_different_types": ["ok", 5],
         "fixed_tuple_same_types": ["alright", "again"],
+        "complex_type_we_do_not_type": {
+            "I am": "very complex",
+            "because": {"I am": "nested", "ok?": []},
+        },
     }
 
     convert_to_json_and_validate(serialized, generated_schema)

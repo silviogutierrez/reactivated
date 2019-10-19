@@ -132,7 +132,7 @@ export default (settings: Settings) => ({
         proxy.on("proxyRes", (proxyRes, req, res) => {
             let body = Buffer.from(""); // , 'utf8');
 
-            proxyRes.on("data", (data) => {
+            proxyRes.on("data", data => {
                 body = Buffer.concat([body, data as Buffer]);
             });
             proxyRes.on("end", () => {

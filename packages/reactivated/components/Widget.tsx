@@ -166,8 +166,7 @@ export const getValue = (optgroup: Optgroup) => {
 export const getValueForSelect = (widget: Select | Autocomplete | SelectMultiple) => {
     if (isMultiple(widget)) {
         return widget.value;
-    }
-    else {
+    } else {
         return widget.value == null ? "" : widget.value;
     }
 };
@@ -215,7 +214,11 @@ export const Widget = (props: Props) => {
                 <Input
                     readOnly={widget.attrs.disabled === true}
                     invalid={props.has_errors}
-                    valid={widget.value !== "" && widget.value != null && props.passed_validation}
+                    valid={
+                        widget.value !== "" &&
+                        widget.value != null &&
+                        props.passed_validation
+                    }
                     type="textarea"
                     className={className}
                     defaultValue={widget.value != null ? widget.value : ""}
@@ -235,7 +238,11 @@ export const Widget = (props: Props) => {
                 <Input
                     readOnly={widget.attrs.disabled === true}
                     invalid={props.has_errors}
-                    valid={widget.value !== "" && widget.value != null && props.passed_validation}
+                    valid={
+                        widget.value !== "" &&
+                        widget.value != null &&
+                        props.passed_validation
+                    }
                     type={widget.type}
                     className={className}
                     defaultValue={widget.value != null ? widget.value : ""}

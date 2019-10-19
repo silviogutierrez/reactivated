@@ -1,8 +1,6 @@
 {
     "compilerOptions": {
-        "types": [
-            "node"
-        ],
+        "types": ["node"],
         "strict": true,
         "sourceMap": true,
         "module": "commonjs",

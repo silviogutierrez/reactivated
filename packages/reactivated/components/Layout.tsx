@@ -17,12 +17,22 @@ const WIDTH = 100;
 
 export const Layout = (props: Props) => (
     <div className={style(csstips.fillParent, csstips.vertical)}>
-        <div className={style(csstips.content, csstips.height(HEIGHT), bg("lightskyblue"))}>
+        <div
+            className={style(
+                csstips.content,
+                csstips.height(HEIGHT),
+                bg("lightskyblue"),
+            )}
+        >
             Header
         </div>
         <div className={style(csstips.flex, csstips.horizontal)}>
             <div
-                className={style(csstips.content, csstips.width(WIDTH), bg("lightpink"))}
+                className={style(
+                    csstips.content,
+                    csstips.width(WIDTH),
+                    bg("lightpink"),
+                )}
             >
                 Sidebar
             </div>
@@ -30,12 +40,22 @@ export const Layout = (props: Props) => (
                 {props.children}
             </div>
             <div
-                className={style(csstips.content, csstips.width(WIDTH), bg("limegreen"))}
+                className={style(
+                    csstips.content,
+                    csstips.width(WIDTH),
+                    bg("limegreen"),
+                )}
             >
                 Sidebar
             </div>
         </div>
-        <div className={style(csstips.content, csstips.height(HEIGHT), bg("lightskyblue"))}>
+        <div
+            className={style(
+                csstips.content,
+                csstips.height(HEIGHT),
+                bg("lightskyblue"),
+            )}
+        >
             Footer
         </div>
     </div>

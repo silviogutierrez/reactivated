@@ -1,0 +1,25 @@
+{
+    "defaultSeverity": "error",
+    "extends": ["tslint:recommended", "tslint-config-prettier"],
+    "jsRules": {},
+    "rules": {
+        // General overrides of tslint core:recommended
+        "interface-name": [true, "never-prefix"],
+        "max-classes-per-file": [true, 2],
+
+        // No fixer, so we turn it off.
+        "object-literal-sort-keys": false,
+
+        // Not turned on by default
+        "no-magic-numbers": true,
+        "member-access": [true, "no-public"],
+        "strict-boolean-expressions": [true, "ignore-rhs"],
+        "no-unused-expression": true,
+        "no-floating-promises": true,
+        "no-for-in-array": true,
+        "await-promise": true,
+        "promise-function-async": true,
+        "no-unnecessary-type-assertion": true
+    },
+    "rulesDirectory": []
+}

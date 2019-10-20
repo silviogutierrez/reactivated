@@ -4,6 +4,7 @@ import {
     Project,
     SourceFile,
     StructureKind,
+    SyntaxKind,
     VariableDeclarationKind,
     WriterFunctions,
 } from "ts-morph";
@@ -25,6 +26,7 @@ const urls = {
 };
 */
 const interfaces = project.createSourceFile("");
+
 interfaces.addVariableStatement({
     declarationKind: VariableDeclarationKind.Const,
     declarations: [
@@ -108,6 +110,7 @@ type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)
 
 // tslint:disable-next-line
 compile(types, "Types").then(ts => {
+    process.stdout.write("/* tslint:disable */\n");
     process.stdout.write(ts);
 
     for (const name of Object.keys(templates)) {
@@ -122,6 +125,5 @@ type ${name}Check = Checker<Types["${propsName}"], typeof ${name}Implementation>
 
         `);
     }
-
     process.stdout.write(interfaces.getText());
 });

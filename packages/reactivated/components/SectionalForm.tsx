@@ -131,7 +131,7 @@ export class SectionalForm<U extends FieldMap> extends React.Component<Props<U>>
                                     field={field}
                                     error={error == null ? null : error}
                                     passed_validation={
-                                        props.form!.errors != null && error == null
+                                        props.form.errors != null && error == null
                                     }
                                 />
                             ),

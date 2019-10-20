@@ -16,7 +16,10 @@ jobs:
             - name: Python requirements
               run: pip install -r requirements.txt
             - name: Yarn
-              run: cd packages/reactivated && yarn && cd ../../
+              run: |
+                  yarn
+                  yarn --cwd packages/reactivated
+                  yarn --cwd sample
             - name: Run tests
               run: scripts/test.sh
               env:

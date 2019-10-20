@@ -1,15 +1,16 @@
-import webpack from "webpack";
 import path from "path";
+import webpack from "webpack";
 
 import express, {Application} from "express";
 
 import {Settings} from "./models";
-import {render, BODY_SIZE_LIMIT} from "./server";
+import {BODY_SIZE_LIMIT, render} from "./server";
+
+const WEBPACK_PORT_PADDING = 200;
 
 export const createConfig = (settings: Settings) => {
     const DJANGO_DEBUG_PORT = settings.DEBUG_PORT;
-    const NODE_DEBUG_PORT = DJANGO_DEBUG_PORT + 100;
-    const WEBPACK_DEBUG_PORT = DJANGO_DEBUG_PORT + 200;
+    const WEBPACK_DEBUG_PORT = DJANGO_DEBUG_PORT + WEBPACK_PORT_PADDING;
 
     return {
         mode: "development",

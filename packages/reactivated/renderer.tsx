@@ -1,11 +1,11 @@
-import express, {Request, Response} from 'express';
+import express, {Request, Response} from "express";
 
-import {render, BODY_SIZE_LIMIT} from './server';
+import {BODY_SIZE_LIMIT, render} from "./server";
 
 const app = express();
-app.use(express.json({limit: BODY_SIZE_LIMIT}))
+app.use(express.json({limit: BODY_SIZE_LIMIT}));
 
-app.post('/__ssr/', (req, res) => {
+app.post("/__ssr/", (req, res) => {
     const rendered = render(Buffer.from(JSON.stringify(req.body)));
     res.json({rendered});
 });
@@ -13,5 +13,6 @@ app.post('/__ssr/', (req, res) => {
 const PORT = 1987;
 
 app.listen(PORT, () => {
+    // tslint:disable-next-line
     console.log(`Listening on ${PORT}`);
 });

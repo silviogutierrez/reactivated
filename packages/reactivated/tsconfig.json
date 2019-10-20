@@ -1,8 +1,6 @@
 {
     "compilerOptions": {
-        "types": [
-            "node"
-        ],
+        "types": ["node"],
         "strict": true,
         "sourceMap": true,
         "module": "commonjs",
@@ -16,5 +14,6 @@
         "outDir": "./",
         "declaration": true
     },
+    "include": ["./**/*"],
     "exclude": ["node_modules", "dist/"]
 }

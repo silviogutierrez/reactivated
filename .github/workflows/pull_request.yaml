@@ -2,17 +2,25 @@ name: Continuous Integration
 on: pull_request
 
 jobs:
-  tests:
-    name: Tests
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@master 
-        with:
-            python-version: '3.7'
-      - name: Requirements
-        run: pip install -r requirements.txt
-      - name: Run tests
-        run: scripts/test.sh
-        env:
-            PYTHONPATH: ./sample
+    tests:
+        name: Tests
+        runs-on: ubuntu-18.04
+        steps:
+            - uses: actions/checkout@v1
+            - uses: actions/setup-node@master
+              with:
+                  node-version: "8.x"
+            - uses: actions/setup-python@master
+              with:
+                  python-version: "3.7"
+            - name: Python requirements
+              run: pip install -r requirements.txt
+            - name: Yarn
+              run: |
+                  yarn
+                  yarn --cwd packages/reactivated
+                  yarn --cwd sample
+            - name: Run tests
+              run: scripts/test.sh
+              env:
+                  PYTHONPATH: ./sample

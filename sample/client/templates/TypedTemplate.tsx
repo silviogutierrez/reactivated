@@ -15,14 +15,18 @@ export default class extends TypedTemplate {
     render() {
         const props = this.props;
 
-        return <div className={styles.layout}>
-            <h1>{props.opera.name} by {props.composer.name}</h1>
-            <h2>Countries {props.composer.name} libed in:</h2>
-            <ul>
-               {props.composer.countries.map(country =>
-               <li key={country.id}>{country.name}</li>
-               )}
-            </ul>
-        </div>
+        return (
+            <div className={styles.layout}>
+                <h1>
+                    {props.opera.name} by {props.composer.name}
+                </h1>
+                <h2>Countries {props.composer.name} libed in:</h2>
+                <ul>
+                    {props.composer.countries.map(country => (
+                        <li key={country.id}>{country.name}</li>
+                    ))}
+                </ul>
+            </div>
+        );
     }
 }

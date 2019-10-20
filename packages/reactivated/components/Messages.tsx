@@ -15,11 +15,15 @@ export const Messages = (props: {}) => (
     <Consumer>
         {context => (
             <>
-                {context.messages.map((message, index) =>
-                    <Alert key={index} color={MESSAGE_LEVEL_CLASSES[message.level_tag]} fade={false}>
+                {context.messages.map((message, index) => (
+                    <Alert
+                        key={index}
+                        color={MESSAGE_LEVEL_CLASSES[message.level_tag]}
+                        fade={false}
+                    >
                         {message.message}
                     </Alert>
-                )}
+                ))}
             </>
         )}
     </Consumer>

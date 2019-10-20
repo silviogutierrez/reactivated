@@ -21,4 +21,4 @@ hydrate(
         <Template {...props} />
     </Provider>,
     document.getElementById("root"),
-)
+);

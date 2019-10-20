@@ -16,4 +16,4 @@ export default (props: any) => (
             <button type="submit">Submit</button>
         </Form>
     </div>
-)
+);

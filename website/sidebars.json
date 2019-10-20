@@ -1,6 +1,6 @@
 {
-  "docs": {
-    "Getting Started": ["installation"],
-    "Design": ["typing"]
-  }
+    "docs": {
+        "Getting Started": ["installation"],
+        "Design": ["typing"]
+    }
 }

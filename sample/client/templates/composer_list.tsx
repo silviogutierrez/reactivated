@@ -13,9 +13,9 @@ export default (props: any) => (
     <div className={styles.layout}>
         <h1 className={styles.header}>Composers</h1>
         <ul>
-        {props.composers.map((composer: any) =>
-            <li key={composer.pk}>{composer.name}</li>
-        )}
+            {props.composers.map((composer: any) => (
+                <li key={composer.pk}>{composer.name}</li>
+            ))}
         </ul>
     </div>
-)
+);

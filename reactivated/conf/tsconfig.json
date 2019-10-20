@@ -1,8 +1,6 @@
 {
     "compilerOptions": {
-        "types": [
-            "node"
-        ],
+        "types": ["node"],
         "strict": true,
         "sourceMap": true,
         "module": "commonjs",
@@ -14,7 +12,5 @@
         "esModuleInterop": true,
         "lib": ["dom", "es6"]
     },
-    "files": [
-        "client/app.tsx"
-    ]
+    "files": ["client/app.tsx"]
 }

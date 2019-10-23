@@ -16,7 +16,7 @@ logger = logging.getLogger("django.server")
 
 def get_urls_schema() -> Dict[str, Any]:
     urlconf = importlib.import_module(settings.ROOT_URLCONF)
-    urlpatterns = urlconf.urlpatterns  # type: ignore
+    urlpatterns = urlconf.urlpatterns  # type: ignore[attr-defined]
 
     from django.urls import converters
     from django.urls.resolvers import RoutePattern
@@ -29,7 +29,7 @@ def get_urls_schema() -> Dict[str, Any]:
         converters.PathConverter: "string",
     }
 
-    urls = extract_views_from_urlpatterns(urlpatterns)  # type: ignore
+    urls = extract_views_from_urlpatterns(urlpatterns)  # type: ignore[no-untyped-call]
     reverse = {}
 
     for _, regex, name, pattern in urls:
@@ -47,7 +47,7 @@ def get_urls_schema() -> Dict[str, Any]:
 
 
 def get_types_schema() -> Any:
-    ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore
+    ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore[misc]
     parent_schema = create_schema(ParentTuple, {})
     return {
         "definitions": parent_schema.definitions,

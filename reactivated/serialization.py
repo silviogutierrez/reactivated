@@ -187,14 +187,14 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
     ]
 
     error_definition = create_schema(
-        FormError, definitions  # type: ignore
+        FormError, definitions  # type: ignore[misc]
     ).schema
 
     required = []
     properties = {}
     error_properties = {}
 
-    for field_name, SubType in Type.base_fields.items():  # type: ignore
+    for field_name, SubType in Type.base_fields.items():  # type: ignore[attr-defined]
         required.append(field_name)
         properties[field_name] = field_type_definition
         error_properties[field_name] = error_definition
@@ -271,7 +271,7 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
     ]
 
     form_type_definition = form_type_schema.definitions[
-        f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"  # type: ignore
+        f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"  # type: ignore[attr-defined]
     ]
 
     management_form_definition = management_form_schema.definitions[
@@ -303,7 +303,7 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     elif Type == Any:
         return Thing(schema={}, definitions=definitions)
     elif callable(getattr(Type, "get_json_schema", None)):
-        return Type.get_json_schema(definitions)  # type: ignore
+        return Type.get_json_schema(definitions)  # type: ignore[no-any-return]
     elif issubclass(Type, tuple) and callable(getattr(Type, "_asdict", None)):
         return named_tuple_schema(Type, definitions)
     elif issubclass(Type, bool):

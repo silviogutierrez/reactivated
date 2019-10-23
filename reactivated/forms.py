@@ -55,7 +55,9 @@ def get_form_from_form_set_or_form(
 
 def autocomplete(view_func: T) -> T:
     def wrapped_view(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        response: HttpResponse = view_func(request, *args, **kwargs)  # type: ignore
+        response: HttpResponse = view_func(  # type: ignore[operator]
+            request, *args, **kwargs
+        )
         autocomplete = request.GET.get("autocomplete", None)
         query = request.GET.get("query", "")
 

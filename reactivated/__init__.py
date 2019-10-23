@@ -147,22 +147,6 @@ def encode_complex_types(obj: Any) -> _SingleSerializable:
     raise TypeError("Type %s not serializable" % type(obj))
 
 
-class JSXResponse:
-    def __init__(self, *, context: Context, props: P) -> None:
-
-        self.data = {
-            "context": context._asdict(),
-            "props": props
-            if isinstance(props, dict)
-            else props._asdict(),  # type: ignore
-        }
-
-    def as_json(self) -> Any:
-        return simplejson.dumps(
-            self.data, indent=4, default=encode_complex_types
-        )  # , use_decimal=False)
-
-
 def render_jsx(
     request: HttpRequest, template_name: str, props: Union[P, HttpResponse]
 ) -> HttpResponse:
@@ -198,7 +182,7 @@ def ssr(
         [View[K, P]], Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse]
     ],
 ]:
-    type_registry[props.__name__] = props  # type: ignore
+    type_registry[props.__name__] = props  # type: ignore[assignment]
 
     def no_args_wrap_with_jsx(
         original: NoArgsView[P]
@@ -344,7 +328,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
         field_schema = create_schema(FieldType, definitions)
 
         # We manually build errors using type augmentation.
-        error_schema = create_schema(FormError, definitions)  # type: ignore
+        error_schema = create_schema(FormError, definitions)  # type: ignore[misc]
 
         for field_name, SubType in Type.base_fields.items():
             required.append(field_name)
@@ -539,11 +523,11 @@ def generate_settings() -> str:
     return simplejson.dumps(settings_to_serialize, indent=4)
 
 
-def describe_pattern(p):  # type: ignore
+def describe_pattern(p):  # type: ignore[no-untyped-def]
     return str(p.pattern)
 
 
-def extract_views_from_urlpatterns(  # type: ignore
+def extract_views_from_urlpatterns(  # type: ignore[no-untyped-def]
     urlpatterns, base="", namespace=None
 ):
     """
@@ -563,7 +547,7 @@ def extract_views_from_urlpatterns(  # type: ignore
                     name = "{0}:{1}".format(namespace, p.name)
                 else:
                     name = p.name
-                pattern = describe_pattern(p)  # type: ignore
+                pattern = describe_pattern(p)  # type: ignore[no-untyped-call]
                 views.append((p.callback, base + pattern, name, p.pattern))
             except ViewDoesNotExist:
                 continue
@@ -576,9 +560,9 @@ def extract_views_from_urlpatterns(  # type: ignore
                 _namespace = "{0}:{1}".format(namespace, p.namespace)
             else:
                 _namespace = p.namespace or namespace
-            pattern = describe_pattern(p)  # type: ignore
+            pattern = describe_pattern(p)  # type: ignore[no-untyped-call]
             views.extend(
-                extract_views_from_urlpatterns(  # type: ignore
+                extract_views_from_urlpatterns(  # type: ignore[no-untyped-call]
                     patterns, base + pattern, namespace=_namespace
                 )
             )

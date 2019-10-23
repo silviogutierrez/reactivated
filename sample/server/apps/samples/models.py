@@ -2,8 +2,12 @@ from typing import cast
 
 from django.db import models
 
-models.QuerySet.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ignore
-models.Manager.__class_getitem__ = classmethod(lambda cls, key: cls)  # type: ignore
+models.QuerySet.__class_getitem__ = classmethod(  # type: ignore[assignment]
+    lambda cls, key: cls
+)
+models.Manager.__class_getitem__ = classmethod(  # type: ignore[assignment]
+    lambda cls, key: cls
+)
 
 
 class Continent(models.Model):
@@ -35,7 +39,7 @@ class ComposerQuerySet(models.QuerySet["Composer"]):
 
 class Composer(models.Model):
     name = models.CharField(max_length=100)
-    objects: ComposerQuerySet = cast(  # type: ignore
+    objects: ComposerQuerySet = cast(  # type: ignore[assignment]
         ComposerQuerySet, ComposerQuerySet.as_manager()
     )
 

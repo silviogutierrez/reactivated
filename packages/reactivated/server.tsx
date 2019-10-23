@@ -90,6 +90,21 @@ export const render = (
         delete require.cache[`${templatePath}.tsx`];
         delete require.cache[`${templatePath}.jsx`];
 
+        // When a template includes other components, like Layout, we also want
+        // to clear that cache. Right now, I'm not sure what actually needs to
+        // be cleared. Layout.tsx is not in the cache. Maybe it's cached by
+        // way of another module.
+        //
+        // So we clear *everything* except typestyle and helmet because those
+        // are stateful and we need them for the initial page.
+        //
+        // Possible better fix: https://stackoverflow.com/a/14801711
+        for (const cacheKey of Object.keys(require.cache)) {
+            if (!cacheKey.includes("typestyle") && !cacheKey.includes("helmet")) {
+                delete require.cache[cacheKey];
+            }
+        }
+
         // When developing reactivated itself locally, including Widget.tsx etc.
         // TODO: has a bug with context.
         // for (const cacheKey of Object.keys(require.cache)) {

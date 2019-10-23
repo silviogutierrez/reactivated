@@ -90,6 +90,21 @@ export const render = (
         delete require.cache[`${templatePath}.tsx`];
         delete require.cache[`${templatePath}.jsx`];
 
+        // When a template includes other components, like Layout, we also want
+        // to clear that cache. We use the @client convention to include these,
+        // though it's not enforced. It's our best bet though.
+        //
+        // This can be improved a lot.
+        for (const cacheKey of Object.keys(require.cache)) {
+            if (!cacheKey.includes("typestyle") && !cacheKey.includes("helmet")) {
+                delete require.cache[cacheKey];
+            }
+            // if (cacheKey.includes('@client')) {
+            //    console.log(`Deleting ${cacheKey}`);
+            //    delete require.cache[cacheKey];
+            // }
+        }
+
         // When developing reactivated itself locally, including Widget.tsx etc.
         // TODO: has a bug with context.
         // for (const cacheKey of Object.keys(require.cache)) {

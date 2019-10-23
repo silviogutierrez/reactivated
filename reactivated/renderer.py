@@ -19,9 +19,9 @@ def render_jsx_to_string(
     if "debug" in request.GET:
         return f"<html><body><h1>Debug response</h1><pre>{escape(data)}</pre></body></html>"
     elif "raw" in request.GET or settings.REACTIVATED_SERVER is None:
-        request._is_reactivated_response = True  # type: ignore
+        request._is_reactivated_response = True  # type: ignore[attr-defined]
         return data
 
-    return requests.post(  # type: ignore
+    return requests.post(  # type: ignore[no-any-return]
         f"{settings.REACTIVATED_SERVER}/__ssr/", headers=headers, data=data
     ).json()["rendered"]

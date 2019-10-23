@@ -12,11 +12,13 @@ T = TypeVar("T", bound=NamedTuple)
 def template(cls: T) -> T:
     from . import type_registry, template_registry
 
-    type_name = f"{cls.__name__}Props"  # type: ignore
-    type_registry[type_name] = cls  # type: ignore
-    template_registry[cls.__name__] = type_name  # type: ignore
+    type_name = f"{cls.__name__}Props"  # type: ignore[attr-defined]
+    type_registry[type_name] = cls  # type: ignore[assignment]
+    template_registry[
+        cls.__name__  # type: ignore[attr-defined]
+    ] = type_name  # type: ignore[assignment]
 
-    class Augmented(cls):  # type: ignore
+    class Augmented(cls):  # type: ignore[misc, valid-type]
         def get_serialized(self) -> Any:
             from .serialization import serialize, create_schema
 
@@ -55,5 +57,5 @@ def template(cls: T) -> T:
                 request, f"{self.__class__.__name__}.tsx", serialized
             )
 
-    Augmented.__name__ = cls.__name__  # type: ignore
-    return Augmented  # type: ignore
+    Augmented.__name__ = cls.__name__  # type: ignore[attr-defined]
+    return Augmented  # type: ignore[return-value]

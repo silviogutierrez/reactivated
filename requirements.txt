@@ -4,6 +4,10 @@ black==19.3b0
 autoflake==1.3.1
 django-extensions==2.2.1
 django-stubs==1.2.0
+
+# We need this PR merged: https://github.com/PyCQA/pyflakes/pull/455
+# So we can ignore specific errors.
+https://github.com/PyCQA/pyflakes/archive/ffe938667e03b02ab8c1dfad98d30998e7d712ec.zip
 flake8==3.7.8
 isort==4.3.21
 jsonschema==3.1.1

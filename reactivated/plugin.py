@@ -56,7 +56,9 @@ def analyze_modelformset_factory(ctx: DynamicClassDefContext) -> None:
     )
     assert form_set_class is not None
 
-    form_set_class_instance = Instance(form_set_class.node, [])  # type: ignore
+    form_set_class_instance = Instance(
+        form_set_class.node, []  # type: ignore[arg-type]
+    )
 
     cls_bases: List[Instance] = [form_set_class_instance]
     class_def = ClassDef(ctx.name, Block([]))
@@ -77,7 +79,9 @@ def analyze_modelformset_factory(ctx: DynamicClassDefContext) -> None:
 
 
 def analyze_pick(ctx: AnalyzeTypeContext) -> Type:
-    return ctx.api.visit_unbound_type(ctx.type.args[0])  # type: ignore
+    return ctx.api.visit_unbound_type(  # type: ignore[no-any-return, attr-defined]
+        ctx.type.args[0]
+    )
 
 
 def analyze_template(ctx: ClassDefContext) -> None:
@@ -96,8 +100,13 @@ def analyze_template(ctx: ClassDefContext) -> None:
         return
 
     request_arg = Argument(
-        variable=Var("request", Instance(http_request.node, [])),  # type: ignore
-        type_annotation=Instance(http_request.node, []),  # type: ignore
+        variable=Var(
+            "request",
+            Instance(http_request.node, []),  # type: ignore[union-attr, arg-type]
+        ),
+        type_annotation=Instance(
+            http_request.node, []  # type: ignore[union-attr, arg-type]
+        ),
         initializer=None,
         kind=ARG_POS,
     )
@@ -106,7 +115,9 @@ def analyze_template(ctx: ClassDefContext) -> None:
         ctx,
         "render",
         args=[request_arg],
-        return_type=Instance(template_response.node, []),  # type: ignore
+        return_type=Instance(
+            template_response.node, []  # type: ignore[union-attr, arg-type]
+        ),
     )
 
 

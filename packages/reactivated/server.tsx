@@ -95,12 +95,16 @@ export const render = (
         // be cleared. Layout.tsx is not in the cache. Maybe it's cached by
         // way of another module.
         //
-        // So we clear *everything* except typestyle and helmet because those
+        // So we clear *everything* except context, typestyle and helmet because those
         // are stateful and we need them for the initial page.
         //
         // Possible better fix: https://stackoverflow.com/a/14801711
         for (const cacheKey of Object.keys(require.cache)) {
-            if (!cacheKey.includes("typestyle") && !cacheKey.includes("helmet")) {
+            if (
+                !cacheKey.includes("reactivated/context") &&
+                !cacheKey.includes("typestyle") &&
+                !cacheKey.includes("helmet")
+            ) {
                 delete require.cache[cacheKey];
             }
         }

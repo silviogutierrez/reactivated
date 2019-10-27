@@ -111,3 +111,11 @@ def ajax_playground(
         return JsonResponse({"ok": "hello", "bar": "spamp"})
 
     return templates.AjaxPlayground().render(request)
+
+
+def form_playground(
+    request: HttpRequest
+) -> Union[JsonResponse, TemplateResponse, HttpResponseRedirect]:
+    form = forms.PlaygroundForm(request.POST or None)
+
+    return templates.FormPlayground(form=form).render(request)

@@ -30,3 +30,8 @@ class DataBrowser(NamedTuple):
 @template
 class AjaxPlayground(NamedTuple):
     pass
+
+
+@template
+class FormPlayground(NamedTuple):
+    form: forms.PlaygroundForm

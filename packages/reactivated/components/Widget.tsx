@@ -167,7 +167,7 @@ export const getValueForSelect = (widget: Select | Autocomplete | SelectMultiple
     if (isMultiple(widget)) {
         return widget.value;
     } else {
-        return widget.value == null ? "" : widget.value;
+        return widget.value == null ? "" : widget.value[0];
     }
 };
 

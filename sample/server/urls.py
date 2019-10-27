@@ -32,4 +32,5 @@ urlpatterns = [
     path("typed-template/", samples.typed_template),
     path("typed-browser/", samples.typed_data_browser),
     path("ajax-playground/", samples.ajax_playground),
+    path("form-playground/", samples.form_playground),
 ]

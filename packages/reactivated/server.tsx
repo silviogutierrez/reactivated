@@ -38,9 +38,13 @@ export const bindRenderPage = (settings: Settings) => ({
 <!DOCTYPE html>
 <html>
     <head ${helmet.htmlAttributes.toString()}>
-        ${helmet.title.toString()}
-        ${helmet.meta.toString()}
+        ${helmet.base.toString()}
         ${helmet.link.toString()}
+        ${helmet.meta.toString()}
+        ${helmet.noscript.toString()}
+        ${helmet.script.toString()}
+        ${helmet.style.toString()}
+        ${helmet.title.toString()}
         <style id="styles-target">
             ${css}
         </style>

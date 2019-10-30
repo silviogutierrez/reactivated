@@ -86,7 +86,9 @@ def typed_template(
     assert opera is not None
     assert composer is not None
 
-    return templates.TypedTemplate(opera=opera, composer=composer).render(request)
+    return templates.TypedTemplate(
+        opera=opera, composer=composer, all_operas=list(models.Opera.objects.all())
+    ).render(request)
 
 
 @autocomplete

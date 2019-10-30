@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 
 import requests
 import simplejson
@@ -7,10 +7,26 @@ from django.http import HttpRequest
 from django.template.defaultfilters import escape
 
 
+def get_accept_list(request: HttpRequest) -> List[str]:
+    """
+    Given the incoming request, return a tokenized list of media
+    type strings.
+
+    From https://github.com/encode/django-rest-framework/blob/master/rest_framework/negotiation.py
+    """
+    header = request.META.get("HTTP_ACCEPT", "*/*")
+    return [token.strip() for token in header.split(",")]
+
+
 def render_jsx_to_string(
     request: HttpRequest, template_name: str, context: Any, props: Any
 ) -> str:
     from reactivated import encode_complex_types
+
+    accepts = get_accept_list(request)
+    respond_with_json = any(
+        ["application/json" in content_type for content_type in accepts]
+    )
 
     payload = {"context": {**context, "template_name": template_name}, "props": props}
     data = simplejson.dumps(payload, indent=4, default=encode_complex_types)
@@ -18,7 +34,9 @@ def render_jsx_to_string(
 
     if "debug" in request.GET:
         return f"<html><body><h1>Debug response</h1><pre>{escape(data)}</pre></body></html>"
-    elif "raw" in request.GET or settings.REACTIVATED_SERVER is None:
+    elif (
+        respond_with_json or "raw" in request.GET or settings.REACTIVATED_SERVER is None
+    ):
         request._is_reactivated_response = True  # type: ignore[attr-defined]
         return data
 

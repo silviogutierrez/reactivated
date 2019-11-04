@@ -23,6 +23,7 @@ class Foo(NamedTuple):
     bar: Bar
     spam: Spam
     pick: Pick[models.Composer, "name", "operas.name"]
+    pick_many: List[Pick[models.Composer, "name", "operas.name"]]
     fixed_tuple_different_types: Tuple[str, int]
     fixed_tuple_same_types: Tuple[str, str]
     complex_type_we_do_not_type: Any
@@ -44,6 +45,7 @@ def test_serialization():
         bar=Bar(a="a", b=True),
         spam=Spam(thing=["one", "two", "three", "four"], again="ok"),
         pick=composer,
+        pick_many=list(models.Composer.objects.all()),
         fixed_tuple_different_types=("ok", 5),
         fixed_tuple_same_types=("alright", "again"),
         complex_type_we_do_not_type={
@@ -59,6 +61,7 @@ def test_serialization():
         "bar": {"a": "a", "b": True},
         "spam": {"thing": ["one", "two", "three", "four"], "again": "ok"},
         "pick": {"name": composer.name, "operas": [{"name": opera.name}]},
+        "pick_many": [{"name": "Wagner", "operas": [{"name": "Götterdämmerung"}]}],
         "fixed_tuple_different_types": ["ok", 5],
         "fixed_tuple_same_types": ["alright", "again"],
         "complex_type_we_do_not_type": {

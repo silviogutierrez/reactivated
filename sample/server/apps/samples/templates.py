@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import List, NamedTuple
 
 from reactivated import Pick, template
 
@@ -17,6 +17,7 @@ class TypedTemplate(NamedTuple):
         "countries.continent.hemisphere",
         "countries.continent.countries.name",
     ]
+    all_operas: List[Pick[models.Opera, "name"]]
 
 
 @template

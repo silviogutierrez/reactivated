@@ -34,7 +34,9 @@
     },
     "main": "lib/index.js",
     "scripts": {
-        "prepublishOnly": "tsc && find . \\( -name '*.ts' -o -name '*.tsx' \\)  -not -path './node_modules/*' -exec rm {} \\;",
+        // "prepublishOnly": "tsc && find . \\( -name '*.ts' -o -name '*.tsx' \\)  -not -path './node_modules/*' -exec rm {} \\;",
+        // See .npmignore for how we prevent .ts and .tsx files from being uploaded. Above is another way.
+        "prepublishOnly": "tsc",
         "postpublish": "git clean -fd",
         "build": "tsc --outDir dist",
         "start": "rm -rf ../../sample/node_modules/reactivated && tsc -w --outDir ../../sample/node_modules/reactivated"

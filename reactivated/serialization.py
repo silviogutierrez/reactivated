@@ -13,7 +13,7 @@ Definitions = Mapping[str, Schema]
 JSON = Any
 
 
-FormError = Optional[List[str]]
+FormError = List[str]
 
 FormErrors = Dict[str, FormError]
 

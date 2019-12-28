@@ -34,7 +34,7 @@
     },
     "main": "lib/index.js",
     "scripts": {
-        "prepublishOnly": "tsc",
+        "prepublishOnly": "tsc && find . -name '*.tsx' -exec rm {} \\l",
         "postpublish": "git clean -fd",
         "build": "tsc --outDir dist",
         "start": "rm -rf ../../sample/node_modules/reactivated && tsc -w --outDir ../../sample/node_modules/reactivated"

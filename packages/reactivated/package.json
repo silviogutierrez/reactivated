@@ -34,8 +34,8 @@
     },
     "main": "lib/index.js",
     "scripts": {
-        // "prepublishOnly": "tsc && find . \\( -name '*.ts' -o -name '*.tsx' \\)  -not -path './node_modules/*' -exec rm {} \\;",
-        // See .npmignore for how we prevent .ts and .tsx files from being uploaded. Above is another way.
+        "@ comment": "tsc && find . \\( -name '*.ts' -o -name '*.tsx' \\)  -not -path './node_modules/*' -exec rm {} \\;",
+        "@ comment": "See .npmignore for how we prevent .ts and .tsx files from being uploaded. Above is another way.",
         "prepublishOnly": "tsc",
         "postpublish": "git clean -fd",
         "build": "tsc --outDir dist",

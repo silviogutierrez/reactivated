@@ -85,28 +85,37 @@ class ReactivatedConfig(AppConfig):
             os.environ["DJANGO_SEVER_STARTING"] = "true"
             return
 
-        logger.info("Generating interfaces and client side code")
+        generate_schema()
 
-        #: Note that we don't pass the file object to stdout, because otherwise
-        # webpack gets confused with the half-written file when we make updates.
-        # Maybe there's a way to force it to be a single atomic write? I tried
-        # open('w+b', buffering=0) but no luck.
-        process = subprocess.Popen(
-            ["node", "./node_modules/reactivated/generator.js"],
-            stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-        )
-        schema = get_schema().encode()
-        out, error = process.communicate(schema)
 
-        if os.path.exists("client/generated.tsx"):
-            with open("client/generated.tsx", "r+b") as existing:
-                already_generated = existing.read()
+def generate_schema():
+    """
+    For development usage only, this requires Node and Python installed
 
-                if already_generated == out:
-                    logger.info("Skipping generation as nothing has changed")
-                    return
+    You can use this function for your E2E test prep.
+    """
+    logger.info("Generating interfaces and client side code")
 
-        with open("client/generated.tsx", "w+b") as output:
-            output.write(out)
-            logger.info("Finished generating.")
+    #: Note that we don't pass the file object to stdout, because otherwise
+    # webpack gets confused with the half-written file when we make updates.
+    # Maybe there's a way to force it to be a single atomic write? I tried
+    # open('w+b', buffering=0) but no luck.
+    process = subprocess.Popen(
+        ["node", "./node_modules/reactivated/generator.js"],
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+    )
+    schema = get_schema().encode()
+    out, error = process.communicate(schema)
+
+    if os.path.exists("client/generated.tsx"):
+        with open("client/generated.tsx", "r+b") as existing:
+            already_generated = existing.read()
+
+            if already_generated == out:
+                logger.info("Skipping generation as nothing has changed")
+                return
+
+    with open("client/generated.tsx", "w+b") as output:
+        output.write(out)
+        logger.info("Finished generating.")

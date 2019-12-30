@@ -1,6 +1,8 @@
+import simplejson
+
 from typing import Any, NamedTuple, TypeVar, Union, get_type_hints
 
-from django.http import HttpRequest
+from django.http import HttpRequest, JsonResponse
 from django.template.response import TemplateResponse
 
 from .pick import BasePickHolder
@@ -54,8 +56,12 @@ def template(cls: T) -> T:
             serialized = self.get_serialized()
 
             return TemplateResponse(
-                request, f"{self.__class__.__name__}.tsx", serialized
+                request, f"{self.__class__.__name__}.tsx", serialized,
             )
+
+        def as_json(self, request: HttpRequest) -> JsonResponse:
+            return JsonResponse(self.get_serialized())
+
 
     Augmented.__name__ = cls.__name__  # type: ignore[attr-defined]
     return Augmented  # type: ignore[return-value]

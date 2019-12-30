@@ -99,7 +99,13 @@ class ReactivatedConfig(AppConfig):
         schema = get_schema().encode()
         out, error = process.communicate(schema)
 
+        with open("client/generated.tsx", "r+b") as existing:
+            already_generated = existing.read()
+
+            if already_generated == out:
+                logger.info("Skipping generation as nothing has changed")
+                return
+
         with open("client/generated.tsx", "w+b") as output:
             output.write(out)
-
-        logger.info("Finished generating.")
+            logger.info("Finished generating.")

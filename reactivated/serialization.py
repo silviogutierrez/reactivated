@@ -13,7 +13,7 @@ Definitions = Mapping[str, Schema]
 JSON = Any
 
 
-FormError = Optional[List[str]]
+FormError = List[str]
 
 FormErrors = Dict[str, FormError]
 
@@ -186,9 +186,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         f"{FieldType.__module__}.{FieldType.__qualname__}"
     ]
 
-    error_definition = create_schema(
-        FormError, definitions  # type: ignore[misc]
-    ).schema
+    error_definition = create_schema(FormError, definitions).schema
 
     required = []
     properties = {}

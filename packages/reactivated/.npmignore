@@ -1,1 +1,4 @@
 dist
+*.ts
+*.tsx
+!*.d.ts

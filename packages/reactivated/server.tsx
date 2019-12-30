@@ -60,9 +60,6 @@ export const bindRenderPage = (settings: Settings) => ({
                 "\\u003c",
             )}
         </script>
-        <link rel="shortcut icon" href="${
-            settings.STATIC_URL
-        }css/images/favicon.ico" type="image/x-icon" />
     </head>
     <body ${helmet.bodyAttributes.toString()}>
         <div id="root">${html}</div>
@@ -107,7 +104,12 @@ export const render = (
             if (
                 !cacheKey.includes("reactivated/context") &&
                 !cacheKey.includes("typestyle") &&
-                !cacheKey.includes("helmet")
+                !cacheKey.includes("helmet") &&
+                // If we delete React from the cache, this creates two duplicate
+                // instances of React and we get server side rendering issues
+                // when using hooks.
+                // https://reactjs.org/warnings/invalid-hook-call-warning.html
+                !cacheKey.includes("react")
             ) {
                 delete require.cache[cacheKey];
             }

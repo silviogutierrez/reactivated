@@ -88,24 +88,12 @@ def test_form():
                     {
                         "additionalProperties": False,
                         "properties": {
-                            "composer": {
-                                "anyOf": [
-                                    {"items": {"type": "string"}, "type": "array"},
-                                    {"type": "null"},
-                                ]
-                            },
+                            "composer": {"items": {"type": "string"}, "type": "array"},
                             "has_piano_transcription": {
-                                "anyOf": [
-                                    {"items": {"type": "string"}, "type": "array"},
-                                    {"type": "null"},
-                                ]
+                                "items": {"type": "string"},
+                                "type": "array",
                             },
-                            "name": {
-                                "anyOf": [
-                                    {"items": {"type": "string"}, "type": "array"},
-                                    {"type": "null"},
-                                ]
-                            },
+                            "name": {"items": {"type": "string"}, "type": "array"},
                         },
                         "type": "object",
                     },

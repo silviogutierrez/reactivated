@@ -186,9 +186,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         f"{FieldType.__module__}.{FieldType.__qualname__}"
     ]
 
-    error_definition = create_schema(
-        FormError, definitions
-    ).schema
+    error_definition = create_schema(FormError, definitions).schema
 
     required = []
     properties = {}

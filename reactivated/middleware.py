@@ -11,6 +11,6 @@ class ReactivatedMiddleware:
         response = self.get_response(request)
 
         if getattr(request, "_is_reactivated_response", False) is True:
-            response["content-type"] = "application/ssr+json"
+            response["content-type"] = "application/json"
 
         return response

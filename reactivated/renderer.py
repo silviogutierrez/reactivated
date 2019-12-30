@@ -24,7 +24,7 @@ def render_jsx_to_string(
     from reactivated import encode_complex_types
 
     accepts = get_accept_list(request)
-    respond_with_json = request.GET.get('format', None) == 'json' or any(
+    respond_with_json = request.GET.get("format", None) == "json" or any(
         ["application/json" in content_type for content_type in accepts]
     )
 

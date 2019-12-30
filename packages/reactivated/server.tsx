@@ -105,6 +105,10 @@ export const render = (
                 !cacheKey.includes("reactivated/context") &&
                 !cacheKey.includes("typestyle") &&
                 !cacheKey.includes("helmet") &&
+                // If we delete React from the cache, this creates two duplicate
+                // instances of React and we get server side rendering issues
+                // when using hooks.
+                // https://reactjs.org/warnings/invalid-hook-call-warning.html
                 !cacheKey.includes("react")
             ) {
                 delete require.cache[cacheKey];

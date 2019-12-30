@@ -187,7 +187,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
     ]
 
     error_definition = create_schema(
-        FormError, definitions  # type: ignore[misc]
+        FormError, definitions
     ).schema
 
     required = []

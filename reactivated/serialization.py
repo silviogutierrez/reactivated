@@ -1,8 +1,10 @@
-from typing import Any, Dict, List, Mapping, NamedTuple, Optional, Sequence, Type, Union
+from typing import Any, Dict, List, Mapping, NamedTuple, Optional, Sequence, Type, Union, Callable
 
 import simplejson
 from django import forms as django_forms
 from django.db.models import QuerySet
+from django.conf import settings
+from django.utils.module_loading import import_string
 
 from . import stubs
 
@@ -316,6 +318,16 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return form_schema(Type, definitions)
     elif issubclass(Type, stubs.BaseFormSet):
         return form_set_schema(Type, definitions)
+
+    additional_schema_module: Optional[str] = getattr(settings, "REACTIVATED_SERIALIZATION", None)
+
+    if additional_schema_module is not None:
+        additional_schema: Callable[[Any, Definitions], Optional[Thing]] = import_string(additional_schema_module)
+        schema = additional_schema(Type, definitions)
+
+        if schema is not None:
+            return schema
+
     assert False, f"Unsupported type {Type}"
 
 

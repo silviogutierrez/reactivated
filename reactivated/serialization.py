@@ -6,6 +6,16 @@ from django.db.models import QuerySet
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
+try:
+    from typing import Protocol
+except ImportError:
+    from typing_extensions import Protocol
+
 from . import stubs
 
 Schema = Mapping[Any, Any]
@@ -18,6 +28,11 @@ JSON = Any
 FormError = List[str]
 
 FormErrors = Dict[str, FormError]
+
+
+class Thing(NamedTuple):
+    schema: Schema
+    definitions: Definitions
 
 
 class WidgetType(NamedTuple):
@@ -63,6 +78,34 @@ class FormType(NamedTuple):
     iterator: List[str]
     prefix: str
 
+    @classmethod
+    def get_serialized_value(Type: Type["FormType"], value: django_forms.BaseForm, schema: Thing) -> JSON:
+        from . import SSRFormRenderer
+
+        form = value
+
+        form.renderer = SSRFormRenderer()
+        fields = {
+            field.name: FieldType(
+                widget=simplejson.loads(str(field))["widget"],
+                name=field.name,
+                label=str(
+                    field.label
+                ),  # This can be a lazy proxy, so we must call str on it.
+                help_text=str(
+                    field.help_text
+                ),  # This can be a lazy proxy, so we must call str on it.
+            )
+            for field in form
+        }
+
+        return FormType(
+            errors=form.errors or None,
+            fields=fields,
+            iterator=list(fields.keys()),
+            prefix=form.prefix or "",
+        )
+
 
 class FormSetType(NamedTuple):
     initial: int
@@ -78,10 +121,28 @@ class FormSetType(NamedTuple):
     management_form: FormType
     prefix: str
 
+    @classmethod
+    def get_serialized_value(Type: Type["FormSetType"], value: stubs.BaseFormSet, schema: Thing) -> JSON:
+        form_set = value
+        form_schema = create_schema(form_set.form, schema.definitions)
 
-class Thing(NamedTuple):
-    schema: Schema
-    definitions: Definitions
+        return FormSetType(
+            initial=form_set.initial_form_count(),
+            total=form_set.total_form_count(),
+            max_num=form_set.max_num,
+            min_num=form_set.min_num,
+            can_delete=form_set.can_delete,
+            can_order=form_set.can_order,
+            non_form_errors=form_set.non_form_errors(),
+            forms=[serialize(form, form_schema) for form in form_set],
+            empty_form=serialize(form_set.empty_form, form_schema),
+            management_form=serialize(form_set.management_form, form_schema),
+            prefix=form_set.prefix,
+        )
+
+
+class Serializer(Protocol):
+    def __call__(self, val: Any, schema: Thing) -> JSON: ...
 
 
 def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) -> Thing:
@@ -134,6 +195,18 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
             },
             definitions=subschema.definitions,
         )
+    elif Type.__origin__ == Literal:
+        # TODO: is a multi-Literal really this simple? Only if it's the same type.
+        # Mixed types would have to be a Union of enums.
+
+        return Thing(
+            schema={
+                "type": "string",
+                "enum": Type.__args__,
+            },
+            definitions=definitions,
+        )
+
     assert False, f"Unsupported _GenericAlias {Type}"
 
 
@@ -161,6 +234,7 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
         definitions={
             **definitions,
             definition_name: {
+                "serializer": definition_name if callable(getattr(Type, "get_serialized_value", None)) else None,
                 "type": "object",
                 "additionalProperties": False,
                 "properties": properties,
@@ -226,7 +300,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
                     "items": {"enum": required, "type": "string"},
                 },
             },
-            "serializer": "form_serializer",
+            "serializer": "reactivated.serialization.FormType",
             "additionalProperties": False,
             "required": ["prefix", "fields", "iterator", "errors"],
         },
@@ -282,7 +356,7 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
         **definitions,
         definition_name: {
             **form_set_type_definition,
-            "serializer": "form_set_serializer",
+            "serializer": "reactivated.serialization.FormSetType",
             "properties": {
                 **form_set_type_definition["properties"],
                 "empty_form": form_type_definition,
@@ -394,53 +468,6 @@ def queryset_serializer(value: "QuerySet[Any]", schema: Thing) -> JSON:
     ]
 
 
-def form_serializer(value: django_forms.BaseForm, schema: Thing) -> JSON:
-    from . import SSRFormRenderer
-
-    form = value
-
-    form.renderer = SSRFormRenderer()
-    fields = {
-        field.name: FieldType(
-            widget=simplejson.loads(str(field))["widget"],
-            name=field.name,
-            label=str(
-                field.label
-            ),  # This can be a lazy proxy, so we must call str on it.
-            help_text=str(
-                field.help_text
-            ),  # This can be a lazy proxy, so we must call str on it.
-        )
-        for field in form
-    }
-
-    return FormType(
-        errors=form.errors or None,
-        fields=fields,
-        iterator=list(fields.keys()),
-        prefix=form.prefix or "",
-    )
-
-
-def form_set_serializer(value: stubs.BaseFormSet, schema: Thing) -> JSON:
-    form_set = value
-    form_schema = create_schema(form_set.form, schema.definitions)
-
-    return FormSetType(
-        initial=form_set.initial_form_count(),
-        total=form_set.total_form_count(),
-        max_num=form_set.max_num,
-        min_num=form_set.min_num,
-        can_delete=form_set.can_delete,
-        can_order=form_set.can_order,
-        non_form_errors=form_set.non_form_errors(),
-        forms=[serialize(form, form_schema) for form in form_set],
-        empty_form=serialize(form_set.empty_form, form_schema),
-        management_form=serialize(form_set.management_form, form_schema),
-        prefix=form_set.prefix,
-    )
-
-
 SERIALIZERS = {
     "any": lambda value, schema: value,
     "object": object_serializer,
@@ -449,8 +476,6 @@ SERIALIZERS = {
     "number": lambda value, schema: int(value),
     "array": array_serializer,
     "queryset": queryset_serializer,
-    "form_serializer": form_serializer,
-    "form_set_serializer": form_set_serializer,
 }
 
 
@@ -470,11 +495,14 @@ def serialize(value: Any, schema: Thing) -> JSON:
                 value, Thing(schema=any_of_schema, definitions=schema.definitions)
             )
 
-    serializer = SERIALIZERS.get(
-        dereferenced_schema.get("serializer", dereferenced_schema.get("type", "any")),
-        None,
-    )
-    assert serializer is not None
+    serializer_path = dereferenced_schema.get("serializer", None)
+
+    if serializer_path is not None:
+        serializer: Serializer = import_string(serializer_path).get_serialized_value
+    else:
+        # TODO: this falls back to "any" but that feels too loose.
+        # Should this be an option?
+        serializer = SERIALIZERS[dereferenced_schema.get("type", "any")]
 
     return serializer(
         value, Thing(schema=dereferenced_schema, definitions=schema.definitions)

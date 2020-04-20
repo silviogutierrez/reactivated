@@ -40,6 +40,7 @@ interfaces.addVariableStatement({
 const urlMap = interfaces.addInterface({
     name: "URLMap",
 });
+urlMap.setIsExported(true);
 
 const withArguments = [];
 const withoutArguments = [];
@@ -104,7 +105,8 @@ interfaces.addStatements(`
 import React from "react"
 import {WidgetType} from "reactivated/components/Widget";
 
-type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
+// Note: this needs strict function types to behave correctly with excess properties etc.
+export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
 
 `);
 
@@ -116,11 +118,9 @@ compile(types, "Types").then(ts => {
     for (const name of Object.keys(templates)) {
         const propsName = templates[name];
         interfaces.addStatements(`
-export class ${name} extends React.Component<Types["${propsName}"], {}> {
-}
 
 import ${name}Implementation from "@client/templates/${name}"
-type ${name}Check = Checker<Types["${propsName}"], typeof ${name}Implementation>;
+export type ${name}Check = Checker<Types["${propsName}"], typeof ${name}Implementation>;
 
 
         `);

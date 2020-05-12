@@ -34,10 +34,10 @@ class JSX(BaseEngine):
         """
 
     def get_template(self, template_name):
-        conversion = self.template_adapters.get(template_name)
+        adapter = self.template_adapters.get(template_name)
 
-        if conversion is not None:
-            return ConversionTemplate(conversion, self)
+        if adapter is not None:
+            return AdapterTemplate(adapter, self)
 
         """ Get rid of this?
         if template_name.endswith(".html"):

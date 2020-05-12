@@ -1,31 +1,23 @@
 from typing import (
     Any,
+    Callable,
     Dict,
     List,
+    Literal,
     Mapping,
     NamedTuple,
     Optional,
+    Protocol,
     Sequence,
     Type,
     Union,
-    Callable,
 )
 
 import simplejson
 from django import forms as django_forms
-from django.db.models import QuerySet
 from django.conf import settings
+from django.db.models import QuerySet
 from django.utils.module_loading import import_string
-
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
-
-try:
-    from typing import Protocol
-except ImportError:
-    from typing_extensions import Protocol
 
 from . import stubs
 
@@ -159,7 +151,7 @@ class FormSetType(NamedTuple):
 class QuerySetType:
     @classmethod
     def get_serialized_value(
-        Type: Type["QuerySet[Any]"], value: stubs.BaseFormSet, schema: Thing
+        Type: Type["QuerySetType"], value: "QuerySet[Any]", schema: Thing
     ) -> JSON:
         return [
             serialize(
@@ -171,7 +163,7 @@ class QuerySetType:
 
 
 class Serializer(Protocol):
-    def __call__(self, val: Any, schema: Thing) -> JSON:
+    def __call__(self, value: Any, schema: Thing) -> JSON:
         ...
 
 
@@ -491,7 +483,7 @@ def array_serializer(value: Sequence[Any], schema: Thing) -> JSON:
     ]
 
 
-SERIALIZERS = {
+SERIALIZERS: Dict[str, Serializer] = {
     "any": lambda value, schema: value,
     "object": object_serializer,
     "string": lambda value, schema: str(value),

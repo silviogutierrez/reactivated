@@ -1,16 +1,14 @@
 from io import StringIO
-from typing import Any, Dict, List, NamedTuple, Tuple
+from typing import Any, Dict, List, Literal, NamedTuple, Tuple
 
+import pytest
 import simplejson
 from django.core.management import call_command
 from django.db import models as django_models
 
-from reactivated.stubs import Literal
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import create_schema
 from sample.server.apps.samples import forms, models
-
-import pytest
 
 
 class NamedTupleType(NamedTuple):

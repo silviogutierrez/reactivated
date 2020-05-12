@@ -28,14 +28,3 @@ if TYPE_CHECKING:
 else:
     from typing import _GenericAlias  # noqa: F401
     from django.forms.formsets import BaseFormSet  # noqa: F401
-
-
-try:
-    from typing import Literal as Literal
-except ImportError:
-    from typing_extensions import Literal as Literal
-
-try:
-    from typing import Protocol as Protocol
-except ImportError:
-    from typing_extensions import Protocol as Protocol

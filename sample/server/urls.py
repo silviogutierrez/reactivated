@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+
 from reactivated.views import schema
 from sample.server.apps.samples import views as samples
 

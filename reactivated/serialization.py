@@ -141,6 +141,18 @@ class FormSetType(NamedTuple):
         )
 
 
+class QuerySetType:
+    @classmethod
+    def get_serialized_value(Type: Type["QuerySet[Any]"], value: stubs.BaseFormSet, schema: Thing) -> JSON:
+        return [
+            serialize(
+                item, Thing(schema=schema.schema["items"], definitions=schema.definitions)
+            )
+            for item in value.all()
+        ]
+
+
+
 class Serializer(Protocol):
     def __call__(self, val: Any, schema: Thing) -> JSON: ...
 
@@ -459,15 +471,6 @@ def array_serializer(value: Sequence[Any], schema: Thing) -> JSON:
     ]
 
 
-def queryset_serializer(value: "QuerySet[Any]", schema: Thing) -> JSON:
-    return [
-        serialize(
-            item, Thing(schema=schema.schema["items"], definitions=schema.definitions)
-        )
-        for item in value.all()
-    ]
-
-
 SERIALIZERS = {
     "any": lambda value, schema: value,
     "object": object_serializer,
@@ -475,7 +478,6 @@ SERIALIZERS = {
     "boolean": lambda value, schema: bool(value),
     "number": lambda value, schema: int(value),
     "array": array_serializer,
-    "queryset": queryset_serializer,
 }
 
 

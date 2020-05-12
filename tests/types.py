@@ -5,9 +5,12 @@ import simplejson
 from django.core.management import call_command
 from django.db import models as django_models
 
+from reactivated.stubs import Literal
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import create_schema
 from sample.server.apps.samples import forms, models
+
+import pytest
 
 
 class NamedTupleType(NamedTuple):
@@ -28,9 +31,17 @@ def test_named_tuple():
                     "third": {"type": "number"},
                 },
                 "required": ["first", "second", "third"],
+                "serializer": None,
                 "type": "object",
             }
         },
+    )
+
+
+def test_literal():
+    assert create_schema(Literal['hello'], {}) == (
+        {'type': 'string', 'enum': ('hello',)},
+        {},
     )
 
 
@@ -153,7 +164,7 @@ def test_form():
             "prefix": {"type": "string"},
         },
         "required": ["prefix", "fields", "iterator", "errors"],
-        "serializer": "form_serializer",
+        "serializer": "reactivated.serialization.FormType",
         "type": "object",
     }
 
@@ -164,6 +175,30 @@ def test_form_set():
     assert schema.schema == {
         "$ref": "#/definitions/django.forms.formsets.OperaFormFormSet"
     }
+
+
+class CustomField:
+    pass
+
+
+def custom_schema(Type, definitions):
+    if issubclass(Type, CustomField):
+        return create_schema(str, definitions)
+
+    return None
+
+
+def test_custom_schema(settings):
+    with pytest.raises(AssertionError) as e:
+        create_schema(CustomField, {})
+        assert "Unsupported" in str(e.value)
+
+    settings.REACTIVATED_SERIALIZATION = "tests.types.custom_schema"
+
+    create_schema(CustomField, {}) == (
+        {"type": "string"},
+        {},
+    )
 
 
 def test_get_field_descriptor():
@@ -249,3 +284,4 @@ def test_generate_types_schema():
     assert "types" in schema
     assert "urls" in schema
     assert "templates" in schema
+

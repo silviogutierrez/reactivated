@@ -61,7 +61,10 @@ class JSX(BaseEngine):
     def template_adapters(self):
         adapters = {}
 
-        [adapters.update(import_string(path)) for path in getattr(settings, "REACTIVATED_ADAPTERS", [])]
+        [
+            adapters.update(import_string(path))
+            for path in getattr(settings, "REACTIVATED_ADAPTERS", [])
+        ]
 
         return adapters
 
@@ -93,7 +96,6 @@ class Template:
         assert (
             False
         ), "At this time, only templates with the request object can be rendered with reactivated"
-
 
 
 class AdapterTemplate(Template):

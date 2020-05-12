@@ -39,8 +39,8 @@ def test_named_tuple():
 
 
 def test_literal():
-    assert create_schema(Literal['hello'], {}) == (
-        {'type': 'string', 'enum': ('hello',)},
+    assert create_schema(Literal["hello"], {}) == (
+        {"type": "string", "enum": ("hello",)},
         {},
     )
 
@@ -195,10 +195,7 @@ def test_custom_schema(settings):
 
     settings.REACTIVATED_SERIALIZATION = "tests.types.custom_schema"
 
-    create_schema(CustomField, {}) == (
-        {"type": "string"},
-        {},
-    )
+    create_schema(CustomField, {}) == ({"type": "string"}, {})
 
 
 def test_get_field_descriptor():
@@ -284,4 +281,3 @@ def test_generate_types_schema():
     assert "types" in schema
     assert "urls" in schema
     assert "templates" in schema
-

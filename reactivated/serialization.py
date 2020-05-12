@@ -1,4 +1,15 @@
-from typing import Any, Dict, List, Mapping, NamedTuple, Optional, Sequence, Type, Union, Callable
+from typing import (
+    Any,
+    Dict,
+    List,
+    Mapping,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Type,
+    Union,
+    Callable,
+)
 
 import simplejson
 from django import forms as django_forms
@@ -79,7 +90,9 @@ class FormType(NamedTuple):
     prefix: str
 
     @classmethod
-    def get_serialized_value(Type: Type["FormType"], value: django_forms.BaseForm, schema: Thing) -> JSON:
+    def get_serialized_value(
+        Type: Type["FormType"], value: django_forms.BaseForm, schema: Thing
+    ) -> JSON:
         from . import SSRFormRenderer
 
         form = value
@@ -122,7 +135,9 @@ class FormSetType(NamedTuple):
     prefix: str
 
     @classmethod
-    def get_serialized_value(Type: Type["FormSetType"], value: stubs.BaseFormSet, schema: Thing) -> JSON:
+    def get_serialized_value(
+        Type: Type["FormSetType"], value: stubs.BaseFormSet, schema: Thing
+    ) -> JSON:
         form_set = value
         form_schema = create_schema(form_set.form, schema.definitions)
 
@@ -143,18 +158,21 @@ class FormSetType(NamedTuple):
 
 class QuerySetType:
     @classmethod
-    def get_serialized_value(Type: Type["QuerySet[Any]"], value: stubs.BaseFormSet, schema: Thing) -> JSON:
+    def get_serialized_value(
+        Type: Type["QuerySet[Any]"], value: stubs.BaseFormSet, schema: Thing
+    ) -> JSON:
         return [
             serialize(
-                item, Thing(schema=schema.schema["items"], definitions=schema.definitions)
+                item,
+                Thing(schema=schema.schema["items"], definitions=schema.definitions),
             )
             for item in value.all()
         ]
 
 
-
 class Serializer(Protocol):
-    def __call__(self, val: Any, schema: Thing) -> JSON: ...
+    def __call__(self, val: Any, schema: Thing) -> JSON:
+        ...
 
 
 def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) -> Thing:
@@ -212,11 +230,7 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
         # Mixed types would have to be a Union of enums.
 
         return Thing(
-            schema={
-                "type": "string",
-                "enum": Type.__args__,
-            },
-            definitions=definitions,
+            schema={"type": "string", "enum": Type.__args__}, definitions=definitions
         )
 
     assert False, f"Unsupported _GenericAlias {Type}"
@@ -246,7 +260,9 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
         definitions={
             **definitions,
             definition_name: {
-                "serializer": definition_name if callable(getattr(Type, "get_serialized_value", None)) else None,
+                "serializer": definition_name
+                if callable(getattr(Type, "get_serialized_value", None))
+                else None,
                 "type": "object",
                 "additionalProperties": False,
                 "properties": properties,
@@ -405,10 +421,14 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     elif issubclass(Type, stubs.BaseFormSet):
         return form_set_schema(Type, definitions)
 
-    additional_schema_module: Optional[str] = getattr(settings, "REACTIVATED_SERIALIZATION", None)
+    additional_schema_module: Optional[str] = getattr(
+        settings, "REACTIVATED_SERIALIZATION", None
+    )
 
     if additional_schema_module is not None:
-        additional_schema: Callable[[Any, Definitions], Optional[Thing]] = import_string(additional_schema_module)
+        additional_schema: Callable[
+            [Any, Definitions], Optional[Thing]
+        ] = import_string(additional_schema_module)
         schema = additional_schema(Type, definitions)
 
         if schema is not None:

@@ -13,14 +13,11 @@ def schema(request: HttpRequest, query: Optional[str] = None) -> JsonResponse:
 
     if query:
         try:
-            _schema = get_attribute(_schema, query.split('/'))
+            _schema = get_attribute(_schema, query.split("/"))
         except KeyError:
             _schema = {"error": "Invalid query"}
 
     return JsonResponse(_schema)
 
 
-schema_views = [
-    path("schema/", schema),
-    path("schema/<path:query>/", schema),
-]
+schema_views = [path("schema/", schema), path("schema/<path:query>/", schema)]

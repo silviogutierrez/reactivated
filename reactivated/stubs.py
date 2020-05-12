@@ -39,4 +39,3 @@ try:
     from typing import Protocol as Protocol
 except ImportError:
     from typing_extensions import Protocol as Protocol
-

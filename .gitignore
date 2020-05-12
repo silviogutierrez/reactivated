@@ -2,6 +2,7 @@
 *.sqlite3
 .coverage
 .DS_Store
+.venv
 node_modules
 .mypy_cache
 client/exports.tsx

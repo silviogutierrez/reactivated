@@ -44,7 +44,6 @@ def get_field_descriptor(
             models.ManyToOneRel,
             models.ManyToManyField,
             models.ManyToOneRel,
-
             # TODO: Maybe RelatedField replaces all of the above?
             models.fields.related.RelatedField,
         ),
@@ -55,9 +54,10 @@ def get_field_descriptor(
 
         # TODO: Maybe RelatedField replaces all of the above?
         # Consolidate around many_* properties
-        is_multiple = isinstance(
-            field_descriptor, (models.ManyToManyField, models.ManyToOneRel)
-        ) or field_descriptor.many_to_many is True
+        is_multiple = (
+            isinstance(field_descriptor, (models.ManyToManyField, models.ManyToOneRel))
+            or field_descriptor.many_to_many is True
+        )
 
         return nested_descriptor, ((field_name, is_multiple), *nested_field_names)
 
@@ -112,16 +112,6 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
                 schema["required"].append(item)
             schema = schema["properties"][item]
     return schema
-
-
-MAPPING = {
-    models.CharField: "string",
-    models.BooleanField: "boolean",
-    models.ForeignKey: "string",
-    models.AutoField: "string",
-    models.DateField: "string",
-    models.DateTimeField: "string",
-}
 
 
 class BasePickHolder:

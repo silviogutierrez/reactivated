@@ -189,12 +189,16 @@ def field_descriptor_schema(
     mapping = {
         models.CharField: "string",
         models.BooleanField: "boolean",
+        models.TextField: "string",
         models.ForeignKey: "number",
-        models.AutoField: "string",
+        models.AutoField: "number",
         models.DateField: "string",
         models.DateTimeField: "string",
     }
     json_schema_type = mapping.get(Type.__class__)
+    assert (
+        json_schema_type is not None
+    ), "Unsupported model field type. This should probably silently return None and allow a custom handler to support the field."
 
     return Thing(schema={"type": json_schema_type}, definitions=definitions)
 

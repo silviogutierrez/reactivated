@@ -1,13 +1,14 @@
 from io import StringIO
-from typing import Any, Dict, List, Literal, NamedTuple, Tuple
+from typing import Any, Dict, List, Literal, NamedTuple, Tuple, Union
 
 import pytest
 import simplejson
+from django.core.exceptions import FieldDoesNotExist
 from django.core.management import call_command
 from django.db import models as django_models
 
 from reactivated.pick import build_nested_schema, get_field_descriptor
-from reactivated.serialization import create_schema
+from reactivated.serialization import ComputedField, create_schema
 from sample.server.apps.samples import forms, models
 
 
@@ -224,6 +225,20 @@ def test_get_field_descriptor():
     descriptor, path = get_field_descriptor(models.Composer, ["countries"])
     assert isinstance(descriptor, django_models.ManyToManyField)
     assert path == ()
+
+    descriptor, path = get_field_descriptor(models.Opera, ["has_piano_transcription"])
+    assert isinstance(descriptor, django_models.BooleanField)
+    assert path == ()
+
+    with pytest.raises(FieldDoesNotExist):
+        get_field_descriptor(models.Opera, ["does_not_exist"])
+
+    descriptor, path = get_field_descriptor(
+        models.Opera, ["get_birthplace_of_composer"]
+    )
+    assert isinstance(descriptor, ComputedField)
+    assert descriptor.name == "get_birthplace_of_composer"
+    assert descriptor.annotation == Union[str, None]
 
 
 def test_build_nested_schema():

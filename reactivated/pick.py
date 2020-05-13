@@ -1,12 +1,17 @@
 from __future__ import annotations
 
-from typing import Any, List, Sequence, Tuple, Type
+from typing import Any, List, Sequence, Tuple, Type, get_type_hints
 
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
-from .serialization import Definitions, Thing
-
-FieldDescriptor = Any
+from .serialization import (
+    ComputedField,
+    Definitions,
+    FieldDescriptor,
+    Thing,
+    create_schema,
+)
 
 FieldSegment = Tuple[str, bool]
 
@@ -15,10 +20,19 @@ JSONSchema = Any
 
 def get_field_descriptor(
     model_class: Type[models.Model], field_chain: List[str]
-) -> Tuple[models.Field[Any, Any], Sequence[FieldSegment]]:
+) -> Tuple[FieldDescriptor, Sequence[FieldSegment]]:
     field_name, *remaining = field_chain
 
-    field_descriptor = model_class._meta.get_field(field_name)
+    try:
+        field_descriptor = model_class._meta.get_field(field_name)
+    except FieldDoesNotExist as e:
+        possible_method = getattr(model_class, field_name, None)
+
+        if possible_method is not None:
+            annotations = get_type_hints(possible_method)
+            return ComputedField(name=field_name, annotation=annotations["return"]), ()
+
+        raise e
 
     if len(remaining) == 0:
         return field_descriptor, ()
@@ -99,6 +113,8 @@ MAPPING = {
     models.BooleanField: "boolean",
     models.ForeignKey: "string",
     models.AutoField: "string",
+    models.DateField: "string",
+    models.DateTimeField: "string",
 }
 
 
@@ -119,16 +135,12 @@ class BasePickHolder:
             field_descriptor, path = get_field_descriptor(
                 cls.model_class, field_name.split(".")
             )
-            json_schema_type = MAPPING.get(field_descriptor.__class__)
             reference = build_nested_schema(schema, path)
 
-            if json_schema_type:
-                reference["properties"][field_descriptor.name] = {
-                    "type": json_schema_type
-                }
-            else:
-                reference["properties"][field_descriptor.name] = {}
-            reference["required"].append(field_descriptor.name)
+            field_schema = create_schema(field_descriptor, definitions)
+            definitions = {**definitions, **field_schema.definitions}
+
+            reference["properties"][field_descriptor.name] = field_schema.schema
 
         return Thing(schema=schema, definitions=definitions)
 

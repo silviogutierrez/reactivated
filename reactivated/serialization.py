@@ -16,7 +16,7 @@ from typing import (
 import simplejson
 from django import forms as django_forms
 from django.conf import settings
-from django.db.models import QuerySet
+from django.db import models
 from django.utils.module_loading import import_string
 
 from . import stubs
@@ -31,6 +31,22 @@ JSON = Any
 FormError = List[str]
 
 FormErrors = Dict[str, FormError]
+
+
+class ComputedField(NamedTuple):
+    name: str
+    annotation: Any
+
+    def get_json_schema(self, definitions: Definitions) -> "Thing":
+        annotation_schema = create_schema(self.annotation, definitions=definitions)
+
+        return Thing(
+            schema={**annotation_schema.schema, "callable": True},
+            definitions=annotation_schema.definitions,
+        )
+
+
+FieldDescriptor = Union["models.Field[Any, Any]", ComputedField]
 
 
 class Thing(NamedTuple):
@@ -151,7 +167,7 @@ class FormSetType(NamedTuple):
 class QuerySetType:
     @classmethod
     def get_serialized_value(
-        Type: Type["QuerySetType"], value: "QuerySet[Any]", schema: Thing
+        Type: Type["QuerySetType"], value: "models.QuerySet[Any]", schema: Thing
     ) -> JSON:
         return [
             serialize(
@@ -165,6 +181,22 @@ class QuerySetType:
 class Serializer(Protocol):
     def __call__(self, value: Any, schema: Thing) -> JSON:
         ...
+
+
+def field_descriptor_schema(
+    Type: "models.Field[Any, Any]", definitions: Definitions
+) -> Thing:
+    mapping = {
+        models.CharField: "string",
+        models.BooleanField: "boolean",
+        models.ForeignKey: "string",
+        models.AutoField: "string",
+        models.DateField: "string",
+        models.DateTimeField: "string",
+    }
+    json_schema_type = mapping.get(Type.__class__)
+
+    return Thing(schema={"type": json_schema_type}, definitions=definitions)
 
 
 def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) -> Thing:
@@ -394,6 +426,8 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
 def create_schema(Type: Any, definitions: Definitions) -> Thing:
     if isinstance(Type, stubs._GenericAlias):
         return generic_alias_schema(Type, definitions)
+    elif isinstance(Type, models.Field):
+        return field_descriptor_schema(Type, definitions)
     elif Type == Any:
         return Thing(schema={}, definitions=definitions)
     elif callable(getattr(Type, "get_json_schema", None)):
@@ -503,6 +537,9 @@ def serialize(value: Any, schema: Thing) -> JSON:
         else schema.schema
     )
 
+    if dereferenced_schema.get("callable", False):
+        value = value()
+
     if "anyOf" in dereferenced_schema:
         for any_of_schema in dereferenced_schema["anyOf"]:
             return serialize(
@@ -521,3 +558,28 @@ def serialize(value: Any, schema: Thing) -> JSON:
     return serializer(
         value, Thing(schema=dereferenced_schema, definitions=schema.definitions)
     )
+
+
+class ProtocolTest(Protocol):
+    def __call__(self, value: int) -> str:
+        ...
+
+
+def foo(thing: ProtocolTest) -> None:
+    pass
+
+
+foo(lambda x: "working")
+
+
+def bar(value: int) -> str:
+    return "abc"
+
+
+class MyClass:
+    def get_absolute_url(self, value: int) -> str:
+        return "a"
+
+
+foo(bar)
+foo(MyClass().get_absolute_url)

@@ -24,6 +24,7 @@ class Foo(NamedTuple):
     spam: Spam
     pick: Pick[models.Composer, "name", "operas.name"]
     pick_many: List[Pick[models.Composer, "name", "operas.name"]]
+    pick_method: Pick[models.Opera, "name", "get_birthplace_of_composer"]
     fixed_tuple_different_types: Tuple[str, int]
     fixed_tuple_same_types: Tuple[str, str]
     complex_type_we_do_not_type: Any
@@ -38,7 +39,16 @@ def convert_to_json_and_validate(instance, schema):
 
 @pytest.mark.django_db
 def test_serialization():
+    continent = models.Continent.objects.create(name="Europe")
+    birth_country = models.Country.objects.create(name="Germany", continent=continent)
+    other = models.Country.objects.create(name="Switzerland", continent=continent)
+
     composer = models.Composer.objects.create(name="Wagner")
+    models.ComposerCountry.objects.create(
+        composer=composer, country=birth_country, was_born=True
+    )
+    models.ComposerCountry.objects.create(composer=composer, country=other)
+
     opera = models.Opera.objects.create(name="Götterdämmerung", composer=composer)
 
     instance = Foo(
@@ -46,6 +56,7 @@ def test_serialization():
         spam=Spam(thing=["one", "two", "three", "four"], again="ok"),
         pick=composer,
         pick_many=list(models.Composer.objects.all()),
+        pick_method=opera,
         fixed_tuple_different_types=("ok", 5),
         fixed_tuple_same_types=("alright", "again"),
         complex_type_we_do_not_type={
@@ -57,11 +68,16 @@ def test_serialization():
     generated_schema = create_schema(Foo, definitions)
 
     serialized = serialize(instance, generated_schema)
+
     assert serialized == {
         "bar": {"a": "a", "b": True},
         "spam": {"thing": ["one", "two", "three", "four"], "again": "ok"},
         "pick": {"name": composer.name, "operas": [{"name": opera.name}]},
         "pick_many": [{"name": "Wagner", "operas": [{"name": "Götterdämmerung"}]}],
+        "pick_method": {
+            "name": "Götterdämmerung",
+            "get_birthplace_of_composer": "Germany",
+        },
         "fixed_tuple_different_types": ["ok", 5],
         "fixed_tuple_same_types": ["alright", "again"],
         "complex_type_we_do_not_type": {

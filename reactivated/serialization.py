@@ -189,7 +189,7 @@ def field_descriptor_schema(
     mapping = {
         models.CharField: "string",
         models.BooleanField: "boolean",
-        models.ForeignKey: "string",
+        models.ForeignKey: "number",
         models.AutoField: "string",
         models.DateField: "string",
         models.DateTimeField: "string",
@@ -558,28 +558,3 @@ def serialize(value: Any, schema: Thing) -> JSON:
     return serializer(
         value, Thing(schema=dereferenced_schema, definitions=schema.definitions)
     )
-
-
-class ProtocolTest(Protocol):
-    def __call__(self, value: int) -> str:
-        ...
-
-
-def foo(thing: ProtocolTest) -> None:
-    pass
-
-
-foo(lambda x: "working")
-
-
-def bar(value: int) -> str:
-    return "abc"
-
-
-class MyClass:
-    def get_absolute_url(self, value: int) -> str:
-        return "a"
-
-
-foo(bar)
-foo(MyClass().get_absolute_url)

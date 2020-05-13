@@ -44,18 +44,24 @@ def get_field_descriptor(
             models.ManyToOneRel,
             models.ManyToManyField,
             models.ManyToOneRel,
+
+            # TODO: Maybe RelatedField replaces all of the above?
+            models.fields.related.RelatedField,
         ),
     ):
         nested_descriptor, nested_field_names = get_field_descriptor(
             field_descriptor.related_model, remaining
         )
 
+        # TODO: Maybe RelatedField replaces all of the above?
+        # Consolidate around many_* properties
         is_multiple = isinstance(
             field_descriptor, (models.ManyToManyField, models.ManyToOneRel)
-        )
+        ) or field_descriptor.many_to_many is True
+
         return nested_descriptor, ((field_name, is_multiple), *nested_field_names)
 
-    assert False
+    assert False, "Unknown descriptor"
 
 
 def serialize(instance: models.Model, schema: JSONSchema) -> Any:
@@ -141,6 +147,7 @@ class BasePickHolder:
             definitions = {**definitions, **field_schema.definitions}
 
             reference["properties"][field_descriptor.name] = field_schema.schema
+            reference["required"].append(field_descriptor.name)
 
         return Thing(schema=schema, definitions=definitions)
 

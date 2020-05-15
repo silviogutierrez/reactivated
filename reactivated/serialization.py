@@ -1,3 +1,4 @@
+import datetime
 from typing import (
     Any,
     Callable,
@@ -58,6 +59,26 @@ class WidgetType(NamedTuple):
     @classmethod
     def get_json_schema(Type: Type["WidgetType"], definitions: Definitions) -> "Thing":
         return Thing(schema={"tsType": str(Type.__name__)}, definitions=definitions)
+
+
+class ForeignKeyType:
+    @classmethod
+    def get_serialized_value(
+        Type: Type["ForeignKeyType"], value: models.Model, schema: Thing
+    ) -> JSON:
+        return value.pk
+
+    @classmethod
+    def get_json_schema(
+        Type: Type["ForeignKeyType"], definitions: Definitions
+    ) -> "Thing":
+        return Thing(
+            schema={
+                "type": "number",
+                "serializer": "reactivated.serialization.ForeignKeyType",
+            },
+            definitions=definitions,
+        )
 
 
 class FieldType(NamedTuple):
@@ -187,20 +208,20 @@ def field_descriptor_schema(
     Type: "models.Field[Any, Any]", definitions: Definitions
 ) -> Thing:
     mapping = {
-        models.CharField: "string",
-        models.BooleanField: "boolean",
-        models.TextField: "string",
-        models.ForeignKey: "number",
-        models.AutoField: "number",
-        models.DateField: "string",
-        models.DateTimeField: "string",
+        models.CharField: str,
+        models.BooleanField: bool,
+        models.TextField: str,
+        models.ForeignKey: ForeignKeyType,
+        models.AutoField: int,
+        models.DateField: datetime.date,
+        models.DateTimeField: datetime.datetime,
     }
-    json_schema_type = mapping.get(Type.__class__)
+    mapped_type = mapping.get(Type.__class__)
     assert (
-        json_schema_type is not None
+        mapped_type is not None
     ), "Unsupported model field type. This should probably silently return None and allow a custom handler to support the field."
 
-    return Thing(schema={"type": json_schema_type}, definitions=definitions)
+    return create_schema(mapped_type, definitions)
 
 
 def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) -> Thing:
@@ -438,6 +459,10 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return Type.get_json_schema(definitions)  # type: ignore[no-any-return]
     elif issubclass(Type, tuple) and callable(getattr(Type, "_asdict", None)):
         return named_tuple_schema(Type, definitions)
+    elif issubclass(Type, datetime.datetime):
+        return Thing(schema={"type": "string"}, definitions={})
+    elif issubclass(Type, datetime.date):
+        return Thing(schema={"type": "string"}, definitions={})
     elif issubclass(Type, bool):
         return Thing(schema={"type": "boolean"}, definitions={})
     elif issubclass(Type, int):

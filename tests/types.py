@@ -1,12 +1,14 @@
 from io import StringIO
-from typing import Any, Dict, List, NamedTuple, Tuple
+from typing import Any, Dict, List, Literal, NamedTuple, Tuple, Union
 
+import pytest
 import simplejson
+from django.core.exceptions import FieldDoesNotExist
 from django.core.management import call_command
 from django.db import models as django_models
 
 from reactivated.pick import build_nested_schema, get_field_descriptor
-from reactivated.serialization import create_schema
+from reactivated.serialization import ComputedField, create_schema
 from sample.server.apps.samples import forms, models
 
 
@@ -28,9 +30,17 @@ def test_named_tuple():
                     "third": {"type": "number"},
                 },
                 "required": ["first", "second", "third"],
+                "serializer": None,
                 "type": "object",
             }
         },
+    )
+
+
+def test_literal():
+    assert create_schema(Literal["hello"], {}) == (
+        {"type": "string", "enum": ("hello",)},
+        {},
     )
 
 
@@ -153,7 +163,7 @@ def test_form():
             "prefix": {"type": "string"},
         },
         "required": ["prefix", "fields", "iterator", "errors"],
-        "serializer": "form_serializer",
+        "serializer": "reactivated.serialization.FormType",
         "type": "object",
     }
 
@@ -164,6 +174,27 @@ def test_form_set():
     assert schema.schema == {
         "$ref": "#/definitions/django.forms.formsets.OperaFormFormSet"
     }
+
+
+class CustomField:
+    pass
+
+
+def custom_schema(Type, definitions):
+    if issubclass(Type, CustomField):
+        return create_schema(str, definitions)
+
+    return None
+
+
+def test_custom_schema(settings):
+    with pytest.raises(AssertionError) as e:
+        create_schema(CustomField, {})
+        assert "Unsupported" in str(e.value)
+
+    settings.REACTIVATED_SERIALIZATION = "tests.types.custom_schema"
+
+    create_schema(CustomField, {}) == ({"type": "string"}, {})
 
 
 def test_get_field_descriptor():
@@ -194,6 +225,20 @@ def test_get_field_descriptor():
     descriptor, path = get_field_descriptor(models.Composer, ["countries"])
     assert isinstance(descriptor, django_models.ManyToManyField)
     assert path == ()
+
+    descriptor, path = get_field_descriptor(models.Opera, ["has_piano_transcription"])
+    assert isinstance(descriptor, django_models.BooleanField)
+    assert path == ()
+
+    with pytest.raises(FieldDoesNotExist):
+        get_field_descriptor(models.Opera, ["does_not_exist"])
+
+    descriptor, path = get_field_descriptor(
+        models.Opera, ["get_birthplace_of_composer"]
+    )
+    assert isinstance(descriptor, ComputedField)
+    assert descriptor.name == "get_birthplace_of_composer"
+    assert descriptor.annotation == Union[str, None]
 
 
 def test_build_nested_schema():

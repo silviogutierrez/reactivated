@@ -12,7 +12,7 @@ jobs:
                   node-version: "8.x"
             - uses: actions/setup-python@master
               with:
-                  python-version: "3.7"
+                  python-version: "3.8"
             - name: Python requirements
               run: pip install -r requirements.txt
             - name: Yarn

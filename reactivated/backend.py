@@ -34,6 +34,12 @@ class JSX(BaseEngine):
         """
 
     def get_template(self, template_name):
+        adapter = self.template_adapters.get(template_name)
+
+        if adapter is not None:
+            return AdapterTemplate(adapter, self)
+
+        """ Get rid of this?
         if template_name.endswith(".html"):
             jsx_template_name = template_name.replace(".html", ".tsx")
 
@@ -41,6 +47,7 @@ class JSX(BaseEngine):
                 os.path.join(settings.BASE_DIR, "client/templates", jsx_template_name)
             ):
                 return Template(jsx_template_name, self)
+        """
 
         if template_name.endswith(".tsx") or template_name.endswith(".jsx"):
             if os.path.isfile(
@@ -51,6 +58,17 @@ class JSX(BaseEngine):
         raise TemplateDoesNotExist([], backend=self)
 
     @cached_property
+    def template_adapters(self):
+        adapters = {}
+
+        [
+            adapters.update(import_string(path))
+            for path in getattr(settings, "REACTIVATED_ADAPTERS", [])
+        ]
+
+        return adapters
+
+    @cached_property
     def template_context_processors(self):
         return [import_string(path) for path in self.context_processors]
 
@@ -59,25 +77,6 @@ class Template:
     def __init__(self, jsx_template_name, backend):
         self.jsx_template_name = jsx_template_name
         self.backend = backend
-
-    def get_props(self, context=None, request=None):
-        if self.jsx_template_name == "registration/login.tsx":
-            return {"form": context["form"]}
-        elif self.jsx_template_name == "404.tsx":
-            return {"request_path": context["request_path"]}
-        elif self.jsx_template_name == "flatpages/default.tsx":
-            flatpage = context["flatpage"]
-            import markdown
-
-            return {
-                "flatpage": {
-                    "title": flatpage.title,
-                    "url": flatpage.url,
-                    "content": markdown.markdown(flatpage.content),
-                }
-            }
-        else:
-            return context
 
     def render(self, context=None, request=None):
         template_name = self.jsx_template_name.replace(".tsx", "").replace(".jsx", "")
@@ -97,3 +96,14 @@ class Template:
         assert (
             False
         ), "At this time, only templates with the request object can be rendered with reactivated"
+
+
+class AdapterTemplate(Template):
+    def __init__(self, adapter, backend):
+        self.adapter = adapter
+        super().__init__(f"{self.adapter.__name__}.tsx", backend)
+
+    def render(self, context=None, request=None):
+        to_be_serialized = self.adapter(**context)
+        jsx_context = to_be_serialized.get_serialized()
+        return super().render(context=jsx_context, request=request)

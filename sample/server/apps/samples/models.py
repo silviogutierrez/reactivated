@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Optional, cast
 
 from django.db import models
 
@@ -71,3 +71,13 @@ class Opera(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}: {self.composer.name}"
+
+    def get_birthplace_of_composer(self) -> Optional[str]:
+        country = self.composer.countries.filter(
+            composer_countries__was_born=True
+        ).first()
+
+        if country is not None:
+            return country.name
+
+        return None

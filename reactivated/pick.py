@@ -1,12 +1,17 @@
 from __future__ import annotations
 
-from typing import Any, List, Sequence, Tuple, Type
+from typing import Any, List, Sequence, Tuple, Type, get_type_hints
 
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
-from .serialization import Definitions, Thing
-
-FieldDescriptor = Any
+from .serialization import (
+    ComputedField,
+    Definitions,
+    FieldDescriptor,
+    Thing,
+    create_schema,
+)
 
 FieldSegment = Tuple[str, bool]
 
@@ -15,10 +20,19 @@ JSONSchema = Any
 
 def get_field_descriptor(
     model_class: Type[models.Model], field_chain: List[str]
-) -> Tuple[models.Field[Any, Any], Sequence[FieldSegment]]:
+) -> Tuple[FieldDescriptor, Sequence[FieldSegment]]:
     field_name, *remaining = field_chain
 
-    field_descriptor = model_class._meta.get_field(field_name)
+    try:
+        field_descriptor = model_class._meta.get_field(field_name)
+    except FieldDoesNotExist as e:
+        possible_method = getattr(model_class, field_name, None)
+
+        if possible_method is not None:
+            annotations = get_type_hints(possible_method)
+            return ComputedField(name=field_name, annotation=annotations["return"]), ()
+
+        raise e
 
     if len(remaining) == 0:
         return field_descriptor, ()
@@ -30,18 +44,24 @@ def get_field_descriptor(
             models.ManyToOneRel,
             models.ManyToManyField,
             models.ManyToOneRel,
+            # TODO: Maybe RelatedField replaces all of the above?
+            models.fields.related.RelatedField,
         ),
     ):
         nested_descriptor, nested_field_names = get_field_descriptor(
             field_descriptor.related_model, remaining
         )
 
-        is_multiple = isinstance(
-            field_descriptor, (models.ManyToManyField, models.ManyToOneRel)
+        # TODO: Maybe RelatedField replaces all of the above?
+        # Consolidate around many_* properties
+        is_multiple = (
+            isinstance(field_descriptor, (models.ManyToManyField, models.ManyToOneRel))
+            or field_descriptor.many_to_many is True
         )
+
         return nested_descriptor, ((field_name, is_multiple), *nested_field_names)
 
-    assert False
+    assert False, "Unknown descriptor"
 
 
 def serialize(instance: models.Model, schema: JSONSchema) -> Any:
@@ -71,7 +91,7 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
             if existing_subschema is None:
                 schema["properties"][item] = {
                     "type": "array",
-                    "serializer": "queryset",
+                    "serializer": "reactivated.serialization.QuerySetType",
                     "items": {
                         "type": "object",
                         "additionalProperties": False,
@@ -94,14 +114,6 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
     return schema
 
 
-MAPPING = {
-    models.CharField: "string",
-    models.BooleanField: "boolean",
-    models.ForeignKey: "string",
-    models.AutoField: "string",
-}
-
-
 class BasePickHolder:
     model_class: Type[models.Model]
     fields: List[str] = []
@@ -119,15 +131,12 @@ class BasePickHolder:
             field_descriptor, path = get_field_descriptor(
                 cls.model_class, field_name.split(".")
             )
-            json_schema_type = MAPPING.get(field_descriptor.__class__)
             reference = build_nested_schema(schema, path)
 
-            if json_schema_type:
-                reference["properties"][field_descriptor.name] = {
-                    "type": json_schema_type
-                }
-            else:
-                reference["properties"][field_descriptor.name] = {}
+            field_schema = create_schema(field_descriptor, definitions)
+            definitions = {**definitions, **field_schema.definitions}
+
+            reference["properties"][field_descriptor.name] = field_schema.schema
             reference["required"].append(field_descriptor.name)
 
         return Thing(schema=schema, definitions=definitions)

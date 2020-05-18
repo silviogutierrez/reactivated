@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from reactivated.views import schema
 from sample.server.apps.samples import views as samples
 
 from . import views
@@ -24,7 +25,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("hello-world/", views.hello_world),
     path("sample-form/", views.sample_form),
-    path("schema/", views.schema),
+    path("schema/", schema),
     path("composers/", samples.composer_list),
     path("composers/create/", samples.create_composer),
     path("operas/create/", samples.create_opera),

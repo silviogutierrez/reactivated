@@ -89,7 +89,6 @@ class ReactivatedConfig(AppConfig):
 
 
 def generate_schema() -> None:
-    # return
     """
     For development usage only, this requires Node and Python installed
 

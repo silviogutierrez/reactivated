@@ -215,11 +215,12 @@ def field_descriptor_schema(
         models.AutoField: int,
         models.DateField: datetime.date,
         models.DateTimeField: datetime.datetime,
+        models.EmailField: str,
     }
     mapped_type = mapping.get(Type.__class__)
     assert (
         mapped_type is not None
-    ), "Unsupported model field type. This should probably silently return None and allow a custom handler to support the field."
+    ), f"Unsupported model field type {Type.__class__}. This should probably silently return None and allow a custom handler to support the field."
 
     return create_schema(mapped_type, definitions)
 

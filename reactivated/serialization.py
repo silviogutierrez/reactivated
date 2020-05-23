@@ -216,6 +216,7 @@ def field_descriptor_schema(
         models.DateField: datetime.date,
         models.DateTimeField: datetime.datetime,
         models.EmailField: str,
+        models.UUIDField: str,
     }
     mapped_type = mapping.get(Type.__class__)
     assert (

@@ -113,6 +113,7 @@ class FieldType(NamedTuple):
 
 
 class FormType(NamedTuple):
+    name: str
     errors: Optional[FormErrors]
     fields: Dict[str, FieldType]
     iterator: List[str]
@@ -142,6 +143,7 @@ class FormType(NamedTuple):
         }
 
         return FormType(
+            name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",
             errors=form.errors or None,
             fields=fields,
             iterator=list(fields.keys()),
@@ -357,6 +359,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         definition_name: {
             "type": "object",
             "properties": {
+                "name": {"type": "string", "enum": (definition_name,)},
                 "errors": {
                     "anyOf": [
                         {
@@ -381,7 +384,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
             },
             "serializer": "reactivated.serialization.FormType",
             "additionalProperties": False,
-            "required": ["prefix", "fields", "iterator", "errors"],
+            "required": ["name", "prefix", "fields", "iterator", "errors"],
         },
     }
 

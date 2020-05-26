@@ -63,7 +63,6 @@ export const bindRenderPage = (settings: Settings) => ({
     </head>
     <body ${helmet.bodyAttributes.toString()}>
         <div id="root">${html}</div>
-        <script src="${settings.MEDIA_URL}dist/bundle.js"></script>
     </body>
 </html>
 `;

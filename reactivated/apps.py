@@ -98,6 +98,7 @@ def generate_schema() -> None:
     schema = get_schema().encode()
 
     import hashlib
+
     digest = hashlib.sha1(schema).hexdigest().encode()
 
     if os.path.exists("client/generated.tsx"):

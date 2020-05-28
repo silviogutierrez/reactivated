@@ -93,6 +93,10 @@ def test_form():
     assert schema.definitions["sample.server.apps.samples.forms.OperaForm"] == {
         "additionalProperties": False,
         "properties": {
+            "name": {
+                "enum": ["sample.server.apps.samples.forms.OperaForm",],
+                "type": "string",
+            },
             "errors": {
                 "anyOf": [
                     {
@@ -162,7 +166,7 @@ def test_form():
             },
             "prefix": {"type": "string"},
         },
-        "required": ["prefix", "fields", "iterator", "errors"],
+        "required": ["name", "prefix", "fields", "iterator", "errors"],
         "serializer": "reactivated.serialization.FormType",
         "type": "object",
     }

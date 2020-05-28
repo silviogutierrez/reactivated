@@ -94,7 +94,7 @@ def test_form():
         "additionalProperties": False,
         "properties": {
             "name": {
-                "enum": ["sample.server.apps.samples.forms.OperaForm",],
+                "enum": ["sample.server.apps.samples.forms.OperaForm"],
                 "type": "string",
             },
             "errors": {

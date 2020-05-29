@@ -130,6 +130,16 @@ interface SelectMultiple extends Select {
     };
 }
 
+interface SelectDateWidget extends BaseWidget {
+    value: {
+        year: string | null;
+        month: string | null;
+        day: string | null;
+    };
+    subwidgets: [Select, Select, Select];
+    template_name: "django/forms/widgets/select_date.html";
+}
+
 export type WidgetType =
     | TextInput
     | NumberInput
@@ -141,6 +151,7 @@ export type WidgetType =
     | Autocomplete
     | SelectMultiple
     | DateInput
+    | SelectDateWidget
     | ClearableFileInput;
 
 export interface Props {
@@ -226,6 +237,10 @@ export const Widget = (props: Props) => {
                     name={widget.name}
                     rows={TEXTAREA_ROWS}
                 />
+            );
+        case "django/forms/widgets/select_date.html":
+            throw new Error(
+                "SelectDate has no default JSX implementation. Write your own",
             );
         case "django/forms/widgets/clearable_file_input.html":
         case "django/forms/widgets/hidden.html":

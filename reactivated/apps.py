@@ -95,6 +95,19 @@ def generate_schema() -> None:
     You can use this function for your E2E test prep.
     """
     logger.info("Generating interfaces and client side code")
+    schema = get_schema().encode()
+
+    import hashlib
+
+    digest = hashlib.sha1(schema).hexdigest().encode()
+
+    if os.path.exists("client/generated.tsx"):
+        with open("client/generated.tsx", "r+b") as existing:
+            already_generated = existing.read()
+
+            if digest in already_generated:
+                logger.info("Skipping generation as nothing has changed")
+                return
 
     #: Note that we don't pass the file object to stdout, because otherwise
     # webpack gets confused with the half-written file when we make updates.
@@ -105,17 +118,9 @@ def generate_schema() -> None:
         stdout=subprocess.PIPE,
         stdin=subprocess.PIPE,
     )
-    schema = get_schema().encode()
     out, error = process.communicate(schema)
 
-    if os.path.exists("client/generated.tsx"):
-        with open("client/generated.tsx", "r+b") as existing:
-            already_generated = existing.read()
-
-            if already_generated == out:
-                logger.info("Skipping generation as nothing has changed")
-                return
-
     with open("client/generated.tsx", "w+b") as output:
+        output.write(b"// Digest: %s\n" % digest)
         output.write(out)
         logger.info("Finished generating.")

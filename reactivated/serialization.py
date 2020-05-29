@@ -113,6 +113,7 @@ class FieldType(NamedTuple):
 
 
 class FormType(NamedTuple):
+    name: str
     errors: Optional[FormErrors]
     fields: Dict[str, FieldType]
     iterator: List[str]
@@ -142,6 +143,7 @@ class FormType(NamedTuple):
         }
 
         return FormType(
+            name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",
             errors=form.errors or None,
             fields=fields,
             iterator=list(fields.keys()),
@@ -215,11 +217,13 @@ def field_descriptor_schema(
         models.AutoField: int,
         models.DateField: datetime.date,
         models.DateTimeField: datetime.datetime,
+        models.EmailField: str,
+        models.UUIDField: str,
     }
     mapped_type = mapping.get(Type.__class__)
     assert (
         mapped_type is not None
-    ), "Unsupported model field type. This should probably silently return None and allow a custom handler to support the field."
+    ), f"Unsupported model field type {Type.__class__}. This should probably silently return None and allow a custom handler to support the field."
 
     return create_schema(mapped_type, definitions)
 
@@ -355,6 +359,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         definition_name: {
             "type": "object",
             "properties": {
+                "name": {"type": "string", "enum": [definition_name]},
                 "errors": {
                     "anyOf": [
                         {
@@ -379,7 +384,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
             },
             "serializer": "reactivated.serialization.FormType",
             "additionalProperties": False,
-            "required": ["prefix", "fields", "iterator", "errors"],
+            "required": ["name", "prefix", "fields", "iterator", "errors"],
         },
     }
 
@@ -398,11 +403,18 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
 
     form_set_type_schema = create_schema(FormSetType, definitions)
 
+    # This is gross. But Django model formsets have a special form that injects
+    # the primary key after the fact, so it cannot be picked up by looping over fields
+    # so we create a new form that has the primary key field at "compile" time.
+    # Because we inject form names into our forms at runtime, we set the __module__
+    # and __qualname__ so that the form name is still the original form's name.
     if issubclass(Type, django_forms.BaseModelFormSet):
         pk_field_name = Type.model._meta.pk.name
         FormSetForm = type(
             "FormSetForm", (Type.form,), {pk_field_name: django_forms.Field()}
         )
+        FormSetForm.__module__ = Type.form.__module__
+        FormSetForm.__qualname__ = Type.form.__qualname__
     else:
         FormSetForm = Type.form
 
@@ -410,10 +422,14 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
 
     # We use our own management form because base_fields is set dynamically
     # by Django in django.forms.formsets.
+    # Because we inject form names into our forms at runtime, we set the __module__
+    # and __qualname__ so that the form name is still the original form's name.
     class ManagementForm(django_forms.formsets.ManagementForm):
         base_fields: Any
 
     ManagementForm.base_fields = ManagementForm().base_fields
+    ManagementForm.__module__ = django_forms.formsets.ManagementForm.__module__
+    ManagementForm.__qualname__ = django_forms.formsets.ManagementForm.__qualname__
 
     management_form_schema = create_schema(ManagementForm, form_type_schema.definitions)
 

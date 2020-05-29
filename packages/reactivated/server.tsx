@@ -6,7 +6,7 @@ import path from "path";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import Helmet, {HelmetData} from "react-helmet";
-import {getStyles} from "typestyle";
+import {createTypeStyle, getStyles} from "typestyle";
 import webpack from "webpack";
 
 import moduleAlias from "module-alias";
@@ -26,29 +26,22 @@ export const bindRenderPage = (settings: Settings) => ({
     html,
     helmet,
     css,
+    pageCSS,
     context,
     props,
 }: {
     html: string;
     helmet: HelmetData;
     css: string;
+    pageCSS: string;
     context: any;
     props: any;
 }) => `
 <!DOCTYPE html>
 <html>
     <head ${helmet.htmlAttributes.toString()}>
-        ${helmet.base.toString()}
-        ${helmet.link.toString()}
-        ${helmet.meta.toString()}
-        ${helmet.noscript.toString()}
-        ${helmet.script.toString()}
-        ${helmet.style.toString()}
-        ${helmet.title.toString()}
-        <style id="styles-target">
-            ${css}
-        </style>
         <script>
+            // These go first because scripts below need them.
             // WARNING: See the following for security issues around embedding JSON in HTML:
             // http://redux.js.org/recipes/ServerRendering.html#security-considerations
             window.__PRELOADED_PROPS__ = ${JSON.stringify(props).replace(
@@ -60,10 +53,23 @@ export const bindRenderPage = (settings: Settings) => ({
                 "\\u003c",
             )}
         </script>
+
+        ${helmet.base.toString()}
+        ${helmet.link.toString()}
+        ${helmet.meta.toString()}
+        ${helmet.noscript.toString()}
+        ${helmet.script.toString()}
+        ${helmet.style.toString()}
+        ${helmet.title.toString()}
+        <style id="styles-target">
+            ${css}
+        </style>
+        <style id="page-styles-target">
+            ${pageCSS}
+        </style>
     </head>
     <body ${helmet.bodyAttributes.toString()}>
         <div id="root">${html}</div>
-        <script src="${settings.MEDIA_URL}dist/bundle.js"></script>
     </body>
 </html>
 `;
@@ -123,22 +129,24 @@ export const render = (
         //     }
         // }
     }
-
+    const typestyle = createTypeStyle();
     const Template = require(templatePath).default;
     // See https://github.com/downshift-js/downshift#resetidcounter
     resetIdCounter();
     const rendered = ReactDOMServer.renderToString(
-        <Provider value={context}>
+        <Provider value={{...context, typestyle}}>
             <Template {...props} />
         </Provider>,
     );
     const helmet = Helmet.renderStatic();
     const css = getStyles();
+    const pageCSS = typestyle.getStyles();
 
     return renderPage({
         html: rendered,
         helmet,
         css,
+        pageCSS,
         props,
         context,
     });

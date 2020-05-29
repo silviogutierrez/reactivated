@@ -1,6 +1,6 @@
 {
     "name": "reactivated",
-    "version": "0.6.0",
+    "version": "0.7.0-alpha1",
     "repository": "github:silviogutierrez/reactivated",
     "license": "MIT",
     "description": "",
@@ -34,8 +34,8 @@
     },
     "main": "lib/index.js",
     "scripts": {
-        "@ comment": "tsc && find . \\( -name '*.ts' -o -name '*.tsx' \\)  -not -path './node_modules/*' -exec rm {} \\;",
-        "@ comment": "See .npmignore for how we prevent .ts and .tsx files from being uploaded. Above is another way.",
+        "@ comment 1": "tsc && find . \\( -name '*.ts' -o -name '*.tsx' \\)  -not -path './node_modules/*' -exec rm {} \\;",
+        "@ comment 2": "See .npmignore for how we prevent .ts and .tsx files from being uploaded. Above is another way.",
         "prepublishOnly": "tsc",
         "postpublish": "git clean -fd",
         "build": "tsc --outDir dist",

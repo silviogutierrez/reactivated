@@ -185,7 +185,7 @@ def ssr(
     type_registry[props.__name__] = props  # type: ignore[assignment]
 
     def no_args_wrap_with_jsx(
-        original: NoArgsView[P]
+        original: NoArgsView[P],
     ) -> Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse]:
         def wrapper(request: HttpRequest, **kwargs: Any) -> HttpResponse:
             props = original(request)
@@ -495,7 +495,7 @@ def serialize_form(form: django_forms.BaseForm) -> FormType:
 
 
 def serialize_form_set(
-    typed_form_set: django_forms.formsets.BaseFormSet
+    typed_form_set: django_forms.formsets.BaseFormSet,
 ) -> FormSetType:
     form_set = cast(Any, typed_form_set)
 

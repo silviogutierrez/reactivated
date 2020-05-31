@@ -11,7 +11,7 @@ from . import forms, models, templates
 
 
 def create_composer(
-    request: HttpRequest
+    request: HttpRequest,
 ) -> Union[TemplateResponse, HttpResponseRedirect]:
     if request.method == "POST":
         form = forms.ComposerForm(request.POST)
@@ -77,7 +77,7 @@ def data_browser(request: HttpRequest) -> Union[TemplateResponse, HttpResponseRe
 
 @autocomplete
 def typed_template(
-    request: HttpRequest
+    request: HttpRequest,
 ) -> Union[TemplateResponse, HttpResponseRedirect]:
 
     opera = models.Opera.objects.first()
@@ -93,7 +93,7 @@ def typed_template(
 
 @autocomplete
 def typed_data_browser(
-    request: HttpRequest
+    request: HttpRequest,
 ) -> Union[TemplateResponse, HttpResponseRedirect]:
 
     return templates.DataBrowser(
@@ -106,7 +106,7 @@ def typed_data_browser(
 
 @csrf_exempt
 def ajax_playground(
-    request: HttpRequest
+    request: HttpRequest,
 ) -> Union[JsonResponse, TemplateResponse, HttpResponseRedirect]:
 
     if request.is_ajax():
@@ -116,7 +116,7 @@ def ajax_playground(
 
 
 def form_playground(
-    request: HttpRequest
+    request: HttpRequest,
 ) -> Union[JsonResponse, TemplateResponse, HttpResponseRedirect]:
     form = forms.PlaygroundForm(request.POST or None)
 

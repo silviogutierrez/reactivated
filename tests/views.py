@@ -10,7 +10,7 @@ from server.apps.samples import forms  # type: ignore
 
 @autocomplete
 def autocomplete_view(
-    request: HttpRequest
+    request: HttpRequest,
 ) -> Union[TemplateResponse, HttpResponseRedirect]:
     form = forms.OperaForm()
     if request.method == "POST":

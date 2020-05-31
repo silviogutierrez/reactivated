@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Sequence, Tuple, Type, get_type_hints
+from typing import Any, List, Literal, Sequence, Tuple, Type, get_type_hints
 
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
@@ -158,8 +158,18 @@ class Pick:
     def __class_getitem__(cls: Any, item: Any) -> Any:
         meta_model, *meta_fields = item
 
+        flattened_fields: List[str] = []
+
+        for field_or_literal in meta_fields:
+            if isinstance(field_or_literal, str):
+                flattened_fields.append(field_or_literal)
+            elif field_or_literal.__origin__ == Literal:
+                flattened_fields.extend(field_or_literal.__args__)
+            else:
+                assert False, f"Unsupported pick property {field_or_literal}"
+
         class PickHolder(BasePickHolder):
             model_class = meta_model
-            fields = meta_fields
+            fields = flattened_fields
 
         return PickHolder

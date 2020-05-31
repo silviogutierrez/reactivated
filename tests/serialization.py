@@ -25,6 +25,7 @@ class Foo(NamedTuple):
     pick: Pick[models.Composer, "name", "operas.name"]
     pick_many: List[Pick[models.Composer, "name", "operas.name"]]
     pick_method: Pick[models.Opera, "name", "get_birthplace_of_composer"]
+    pick_property: Pick[models.Composer, "did_live_in_more_than_one_country"]
     fixed_tuple_different_types: Tuple[str, int]
     fixed_tuple_same_types: Tuple[str, str]
     complex_type_we_do_not_type: Any
@@ -57,6 +58,7 @@ def test_serialization():
         pick=composer,
         pick_many=list(models.Composer.objects.all()),
         pick_method=opera,
+        pick_property=composer,
         fixed_tuple_different_types=("ok", 5),
         fixed_tuple_same_types=("alright", "again"),
         complex_type_we_do_not_type={
@@ -78,6 +80,7 @@ def test_serialization():
             "name": "Götterdämmerung",
             "get_birthplace_of_composer": "Germany",
         },
+        "pick_property": {"did_live_in_more_than_one_country": True},
         "fixed_tuple_different_types": ["ok", 5],
         "fixed_tuple_same_types": ["alright", "again"],
         "complex_type_we_do_not_type": {

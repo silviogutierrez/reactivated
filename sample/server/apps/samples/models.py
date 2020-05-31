@@ -47,6 +47,10 @@ class Composer(models.Model):
         Country, through=ComposerCountry, related_name="composers"
     )
 
+    @property
+    def did_live_in_more_than_one_country(self) -> bool:
+        return self.countries.count() > 1
+
     def __str__(self) -> str:
         return self.name
 

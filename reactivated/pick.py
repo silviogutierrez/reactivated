@@ -26,11 +26,23 @@ def get_field_descriptor(
     try:
         field_descriptor = model_class._meta.get_field(field_name)
     except FieldDoesNotExist as e:
-        possible_method = getattr(model_class, field_name, None)
+        possible_method_or_property = getattr(model_class, field_name, None)
 
-        if possible_method is not None:
+        if possible_method_or_property is not None:
+            possible_method, is_callable = (
+                (possible_method_or_property.fget, False)
+                if isinstance(possible_method_or_property, property)
+                else (possible_method_or_property, True)
+            )
             annotations = get_type_hints(possible_method)
-            return ComputedField(name=field_name, annotation=annotations["return"]), ()
+            return (
+                ComputedField(
+                    name=field_name,
+                    annotation=annotations["return"],
+                    is_callable=is_callable,
+                ),
+                (),
+            )
 
         raise e
 

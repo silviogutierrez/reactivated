@@ -37,12 +37,13 @@ FormErrors = Dict[str, FormError]
 class ComputedField(NamedTuple):
     name: str
     annotation: Any
+    is_callable: bool
 
     def get_json_schema(self, definitions: Definitions) -> "Thing":
         annotation_schema = create_schema(self.annotation, definitions=definitions)
 
         return Thing(
-            schema={**annotation_schema.schema, "callable": True},
+            schema={**annotation_schema.schema, "callable": self.is_callable},
             definitions=annotation_schema.definitions,
         )
 

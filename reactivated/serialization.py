@@ -3,6 +3,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    ForwardRef,
     List,
     Literal,
     Mapping,
@@ -12,6 +13,7 @@ from typing import (
     Sequence,
     Type,
     Union,
+    get_type_hints,
 )
 
 import simplejson
@@ -305,7 +307,7 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
     properties = {}
     definitions = {**definitions}
 
-    for field_name, Subtype in Type.__annotations__.items():
+    for field_name, Subtype in get_type_hints(Type).items():
         field_schema = create_schema(Subtype, definitions)
         definitions = {**definitions, **field_schema.definitions}
 
@@ -471,6 +473,8 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
 def create_schema(Type: Any, definitions: Definitions) -> Thing:
     if isinstance(Type, stubs._GenericAlias):
         return generic_alias_schema(Type, definitions)
+    # elif isinstance(Type, ForwardRef):
+    #    return generic_alias_schema(Type, definitions)
     elif isinstance(Type, models.Field):
         return field_descriptor_schema(Type, definitions)
     elif Type == Any:
@@ -478,6 +482,8 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     elif callable(getattr(Type, "get_json_schema", None)):
         return Type.get_json_schema(definitions)  # type: ignore[no-any-return]
     elif issubclass(Type, tuple) and callable(getattr(Type, "_asdict", None)):
+        return named_tuple_schema(Type, definitions)
+    elif type(Type) == stubs._TypedDictMeta:
         return named_tuple_schema(Type, definitions)
     elif issubclass(Type, datetime.datetime):
         return Thing(schema={"type": "string"}, definitions={})

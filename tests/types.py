@@ -1,5 +1,5 @@
 from io import StringIO
-from typing import Any, Dict, List, Literal, NamedTuple, Tuple, Union
+from typing import Any, Dict, List, Literal, NamedTuple, Tuple, TypedDict, Union
 
 import pytest
 import simplejson
@@ -13,6 +13,12 @@ from sample.server.apps.samples import forms, models
 
 
 class NamedTupleType(NamedTuple):
+    first: str
+    second: bool
+    third: int
+
+
+class TypedDictType(TypedDict):
     first: str
     second: bool
     third: int
@@ -41,6 +47,25 @@ def test_literal():
     assert create_schema(Literal["hello"], {}) == (
         {"type": "string", "enum": ("hello",)},
         {},
+    )
+
+
+def test_typed_dict():
+    assert create_schema(TypedDictType, {}) == (
+        {"$ref": "#/definitions/tests.types.TypedDictType"},
+        {
+            "tests.types.TypedDictType": {
+                "additionalProperties": False,
+                "properties": {
+                    "first": {"type": "string"},
+                    "second": {"type": "boolean"},
+                    "third": {"type": "number"},
+                },
+                "required": ["first", "second", "third"],
+                "serializer": None,
+                "type": "object",
+            }
+        },
     )
 
 

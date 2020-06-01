@@ -24,7 +24,10 @@ if TYPE_CHECKING:
         __origin__: Union[type, Any]
         __args__: List[Any]
 
+    class _TypedDictMeta:
+        pass
+
 
 else:
-    from typing import _GenericAlias  # noqa: F401
+    from typing import _GenericAlias, _TypedDictMeta  # noqa: F401
     from django.forms.formsets import BaseFormSet  # noqa: F401

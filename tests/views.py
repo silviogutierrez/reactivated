@@ -1,6 +1,6 @@
 from typing import Union
 
-from django.http import HttpRequest, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponsePermanentRedirect, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
@@ -11,7 +11,7 @@ from server.apps.samples import forms  # type: ignore
 @autocomplete
 def autocomplete_view(
     request: HttpRequest,
-) -> Union[TemplateResponse, HttpResponseRedirect]:
+) -> Union[TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
     form = forms.OperaForm()
     if request.method == "POST":
         return redirect("/")

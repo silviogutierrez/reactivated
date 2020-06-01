@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, ClassVar, List, Union, Type
+from typing import TYPE_CHECKING, Any, ClassVar, List, Type, Union
 
 if TYPE_CHECKING:
     from django import forms as django_forms

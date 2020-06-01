@@ -1,6 +1,11 @@
 from typing import Union
 
-from django.http import HttpRequest, HttpResponseRedirect, JsonResponse
+from django.http import (
+    HttpRequest,
+    HttpResponsePermanentRedirect,
+    HttpResponseRedirect,
+    JsonResponse,
+)
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -12,7 +17,7 @@ from . import forms, models, templates
 
 def create_composer(
     request: HttpRequest,
-) -> Union[TemplateResponse, HttpResponseRedirect]:
+) -> Union[TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
     if request.method == "POST":
         form = forms.ComposerForm(request.POST)
 
@@ -34,7 +39,9 @@ def composer_list(request: HttpRequest) -> TemplateResponse:
 
 
 @autocomplete
-def create_opera(request: HttpRequest) -> Union[TemplateResponse, HttpResponseRedirect]:
+def create_opera(
+    request: HttpRequest,
+) -> Union[TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
     if request.method == "POST":
         form = forms.OperaForm(request.POST)
 
@@ -48,7 +55,9 @@ def create_opera(request: HttpRequest) -> Union[TemplateResponse, HttpResponseRe
 
 
 @autocomplete
-def data_browser(request: HttpRequest) -> Union[TemplateResponse, HttpResponseRedirect]:
+def data_browser(
+    request: HttpRequest,
+) -> Union[TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
     if request.method == "POST":
         form = forms.OperaForm(request.POST)
 
@@ -78,7 +87,7 @@ def data_browser(request: HttpRequest) -> Union[TemplateResponse, HttpResponseRe
 @autocomplete
 def typed_template(
     request: HttpRequest,
-) -> Union[TemplateResponse, HttpResponseRedirect]:
+) -> Union[TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
 
     opera = models.Opera.objects.first()
     composer = models.Composer.objects.first()
@@ -94,7 +103,7 @@ def typed_template(
 @autocomplete
 def typed_data_browser(
     request: HttpRequest,
-) -> Union[TemplateResponse, HttpResponseRedirect]:
+) -> Union[TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
 
     return templates.DataBrowser(
         composer_form_set=forms.ComposerFormSet(prefix="composer_form_set"),
@@ -107,7 +116,9 @@ def typed_data_browser(
 @csrf_exempt
 def ajax_playground(
     request: HttpRequest,
-) -> Union[JsonResponse, TemplateResponse, HttpResponseRedirect]:
+) -> Union[
+    JsonResponse, TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
+]:
 
     if request.is_ajax():
         return JsonResponse({"ok": "hello", "bar": "spamp"})
@@ -117,7 +128,9 @@ def ajax_playground(
 
 def form_playground(
     request: HttpRequest,
-) -> Union[JsonResponse, TemplateResponse, HttpResponseRedirect]:
+) -> Union[
+    JsonResponse, TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
+]:
     form = forms.PlaygroundForm(request.POST or None)
 
     return templates.FormPlayground(form=form).render(request)

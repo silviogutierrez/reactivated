@@ -220,8 +220,11 @@ def field_descriptor_schema(
         models.DateTimeField: datetime.datetime,
         models.EmailField: str,
         models.UUIDField: str,
+        models.IntegerField: int,
+        models.DecimalField: str,
     }
-    mapped_type = mapping.get(Type.__class__)
+    # TODO: REMOVE ME OR FIGURE ME OUT. WHY NOT DEFAULT TO STR?
+    mapped_type = mapping.get(Type.__class__, str)
     assert (
         mapped_type is not None
     ), f"Unsupported model field type {Type.__class__}. This should probably silently return None and allow a custom handler to support the field."

@@ -19,6 +19,9 @@ class Bar(NamedTuple):
     b: bool
 
 
+Opera = Pick[models.Opera, "name"]
+
+
 class Foo(NamedTuple):
     bar: Bar
     spam: Spam
@@ -27,6 +30,7 @@ class Foo(NamedTuple):
     pick_method: Pick[models.Opera, "name", "get_birthplace_of_composer"]
     pick_property: Pick[models.Composer, "did_live_in_more_than_one_country"]
     pick_literal: Pick[models.Composer, Literal["name", "operas.name"]]
+    pick_nested: Pick[models.Composer, "name", Pick["operas", Opera]]
     fixed_tuple_different_types: Tuple[str, int]
     fixed_tuple_same_types: Tuple[str, str]
     complex_type_we_do_not_type: Any
@@ -61,6 +65,7 @@ def test_serialization():
         pick_method=opera,
         pick_property=composer,
         pick_literal=composer,
+        pick_nested=composer,
         fixed_tuple_different_types=("ok", 5),
         fixed_tuple_same_types=("alright", "again"),
         complex_type_we_do_not_type={
@@ -84,6 +89,7 @@ def test_serialization():
         },
         "pick_property": {"did_live_in_more_than_one_country": True,},
         "pick_literal": {"name": composer.name, "operas": [{"name": opera.name}]},
+        "pick_nested": {"name": composer.name, "operas": [{"name": opera.name}]},
         "fixed_tuple_different_types": ["ok", 5],
         "fixed_tuple_same_types": ["alright", "again"],
         "complex_type_we_do_not_type": {

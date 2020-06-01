@@ -158,11 +158,23 @@ class Pick:
     def __class_getitem__(cls: Any, item: Any) -> Any:
         meta_model, *meta_fields = item
 
+        if isinstance(meta_model, str):
+            nested_fields = []
+
+            for nested_field in meta_fields[0].fields:
+                nested_fields.append(f"{meta_model}.{nested_field}")
+            return nested_fields
+
         flattened_fields: List[str] = []
 
         for field_or_literal in meta_fields:
             if isinstance(field_or_literal, str):
                 flattened_fields.append(field_or_literal)
+            elif isinstance(field_or_literal, list):
+                flattened_fields.extend(field_or_literal)
+            # elif isinstance(field_or_literal, type) and issubclass(field_or_literal, BasePickHolder):
+            # for nested_field in field_or_literal.fields:
+            #        flattened_fields.append(f"{meta_model}.{nested_field}")
             elif field_or_literal.__origin__ == Literal:
                 flattened_fields.extend(field_or_literal.__args__)
             else:

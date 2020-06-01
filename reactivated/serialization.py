@@ -3,7 +3,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    ForwardRef,
     List,
     Literal,
     Mapping,
@@ -473,8 +472,6 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
 def create_schema(Type: Any, definitions: Definitions) -> Thing:
     if isinstance(Type, stubs._GenericAlias):
         return generic_alias_schema(Type, definitions)
-    # elif isinstance(Type, ForwardRef):
-    #    return generic_alias_schema(Type, definitions)
     elif isinstance(Type, models.Field):
         return field_descriptor_schema(Type, definitions)
     elif Type == Any:

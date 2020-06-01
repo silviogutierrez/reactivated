@@ -135,7 +135,7 @@ def encode_complex_types(obj: Any) -> _SingleSerializable:
         return {"path": obj.path, "url": obj.build_absolute_uri()}
 
     if isinstance(obj, QuerySet):
-        if obj._iterable_class is ValuesIterable:
+        if obj._iterable_class is ValuesIterable:  # type: ignore[attr-defined]
             return list(obj)
         raise TypeError(
             "Type %s not serializable. Only when you call values() does it become serializable."

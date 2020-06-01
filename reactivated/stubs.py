@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING, Any, ClassVar, List, Union
+from typing import TYPE_CHECKING, Any, ClassVar, List, Union, Type
 
 if TYPE_CHECKING:
     from django import forms as django_forms
 
     class BaseFormSet(django_forms.formsets.BaseFormSet):
-        form: ClassVar[django_forms.BaseForm]
+        form: ClassVar[Type[django_forms.BaseForm]]
 
         def total_form_count(self) -> int:
             ...

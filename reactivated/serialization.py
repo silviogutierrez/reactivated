@@ -443,7 +443,7 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
     ]
 
     form_type_definition = form_type_schema.definitions[
-        f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"  # type: ignore[attr-defined]
+        f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"
     ]
 
     management_form_definition = management_form_schema.definitions[

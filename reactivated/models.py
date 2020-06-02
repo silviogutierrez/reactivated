@@ -12,13 +12,18 @@ class ComputedRelation(Generic[T, S]):
         *,
         label: Optional[str] = None,
         fget: Callable[[T], "models.QuerySet[S]"],
-        model: Type[S],
+        model: Union[Callable[[], Type[S]], Type[S]],
     ) -> None:
         self.name = fget.__name__
-        self.related_model = model
+
+        self._model = model  # model if isinstance(model, type) else model()
         self.fget: Callable[[T], "models.QuerySet[S]"] = fget
         self.many_to_many = True
         self.label = label
+
+    @property
+    def related_model(self) -> Type[S]:
+        return self._model if isinstance(self._model, type) else self._model()
 
     @overload
     def __get__(self, instance: None, own: Type[T]) -> "ComputedRelation[T, S]":
@@ -38,7 +43,9 @@ class ComputedRelation(Generic[T, S]):
 
 
 def computed_relation(
-    *, label: Optional[str] = None, model: Type[S],
+    *,
+    label: Optional[str] = None,
+    model: Union[Callable[[], Type[S]], Type[S]],
 ) -> Callable[[Callable[[T], "models.QuerySet[S]"]], ComputedRelation[T, S]]:
     def inner(fget: Callable[[T], "models.QuerySet[S]"]) -> ComputedRelation[T, S]:
         return ComputedRelation(fget=fget, label=label, model=model)

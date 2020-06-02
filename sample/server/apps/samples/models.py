@@ -39,6 +39,28 @@ class ComposerQuerySet(models.QuerySet["Composer"]):
         return self.filter(name__icontains=query)
 
 
+class Composer(models.Model):
+    name = models.CharField(max_length=100)
+    objects: ComposerQuerySet = cast(  # type: ignore[assignment]
+        ComposerQuerySet, ComposerQuerySet.as_manager()
+    )
+
+    countries = models.ManyToManyField(
+        Country, through=ComposerCountry, related_name="composers"
+    )
+
+    @computed_relation(model=lambda: Opera)
+    def operas_with_piano_transcriptions(self) -> "models.QuerySet[Opera]":
+        return self.operas.all()
+
+    @property
+    def did_live_in_more_than_one_country(self) -> bool:
+        return self.countries.count() > 1
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class OperaManager(models.Manager["Opera"]):
     pass
 
@@ -71,25 +93,3 @@ class Opera(models.Model):
             return country.name
 
         return None
-
-
-class Composer(models.Model):
-    name = models.CharField(max_length=100)
-    objects: ComposerQuerySet = cast(  # type: ignore[assignment]
-        ComposerQuerySet, ComposerQuerySet.as_manager()
-    )
-
-    countries = models.ManyToManyField(
-        Country, through=ComposerCountry, related_name="composers"
-    )
-
-    @computed_relation(model=Opera)
-    def operas_with_piano_transcriptions(self) -> "models.QuerySet[Opera]":
-        return self.operas.all()
-
-    @property
-    def did_live_in_more_than_one_country(self) -> bool:
-        return self.countries.count() > 1
-
-    def __str__(self) -> str:
-        return self.name

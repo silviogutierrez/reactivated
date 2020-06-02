@@ -5,7 +5,6 @@ from typing import Any, List, Literal, Sequence, Tuple, Type, get_type_hints
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
-
 from .models import ComputedRelation
 from .serialization import (
     ComputedField,
@@ -60,9 +59,7 @@ def get_field_descriptor(
             models.ManyToOneRel,
             models.ManyToManyField,
             models.ManyToOneRel,
-
             ComputedRelation,
-
             # TODO: Maybe RelatedField replaces all of the above?
             models.fields.related.RelatedField,
         ),

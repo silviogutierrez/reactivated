@@ -93,7 +93,9 @@ def test_serialization():
         },
         "pick_property": {"did_live_in_more_than_one_country": True,},
         "pick_literal": {"name": composer.name, "operas": [{"name": opera.name}]},
-        "pick_computed_queryset": {'operas_with_piano_transcriptions': [{'name': 'Götterdämmerung'}]},
+        "pick_computed_queryset": {
+            "operas_with_piano_transcriptions": [{"name": "Götterdämmerung"}]
+        },
         "pick_nested": {"name": composer.name, "operas": [{"name": opera.name}]},
         "fixed_tuple_different_types": ["ok", 5],
         "fixed_tuple_same_types": ["alright", "again"],

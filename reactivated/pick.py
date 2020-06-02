@@ -5,6 +5,8 @@ from typing import Any, List, Literal, Sequence, Tuple, Type, get_type_hints
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
+
+from .models import ComputedRelation
 from .serialization import (
     ComputedField,
     Definitions,
@@ -24,27 +26,29 @@ def get_field_descriptor(
     field_name, *remaining = field_chain
 
     try:
-        field_descriptor = model_class._meta.get_field(field_name)
+        field_descriptor: FieldDescriptor = model_class._meta.get_field(field_name)
     except FieldDoesNotExist as e:
         possible_method_or_property = getattr(model_class, field_name, None)
 
-        if possible_method_or_property is not None:
+        if isinstance(possible_method_or_property, ComputedRelation):
+            field_descriptor = possible_method_or_property
+        elif possible_method_or_property is not None:
+            # TODO: stronger checks here. This could just be a random method with
+            # more than the `self` argument. Which would fail at runtime.
             possible_method, is_callable = (
                 (possible_method_or_property.fget, False)
                 if isinstance(possible_method_or_property, property)
                 else (possible_method_or_property, True)
             )
             annotations = get_type_hints(possible_method)
-            return (
-                ComputedField(
-                    name=field_name,
-                    annotation=annotations["return"],
-                    is_callable=is_callable,
-                ),
-                (),
-            )
 
-        raise e
+            field_descriptor = ComputedField(
+                name=field_name,
+                annotation=annotations["return"],
+                is_callable=is_callable,
+            )
+        else:
+            raise e
 
     if len(remaining) == 0:
         return field_descriptor, ()
@@ -56,6 +60,9 @@ def get_field_descriptor(
             models.ManyToOneRel,
             models.ManyToManyField,
             models.ManyToOneRel,
+
+            ComputedRelation,
+
             # TODO: Maybe RelatedField replaces all of the above?
             models.fields.related.RelatedField,
         ),

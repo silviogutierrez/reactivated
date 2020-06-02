@@ -28,6 +28,7 @@ from django.utils.functional import Promise
 from mypy_extensions import Arg, KwArg
 
 from .backend import JSX as JSX  # noqa: F401
+from .models import computed_relation as computed_relation  # noqa: F401
 from .pick import BasePickHolder
 from .pick import Pick as Pick  # noqa: F401
 from .stubs import _GenericAlias

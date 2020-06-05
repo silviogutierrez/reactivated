@@ -53,8 +53,14 @@ class Composer(models.Model):
     def operas_with_piano_transcriptions(self) -> "models.QuerySet[Opera]":
         return self.operas.all()
 
+    @computed_relation(model=lambda: Opera)
+    def main_opera(self) -> Optional["Opera"]:
+        return self.operas.all().first()
+
     @property
     def did_live_in_more_than_one_country(self) -> bool:
+        reveal_type(self.operas_with_piano_transcriptions)
+        reveal_type(self.main_opera)
         return self.countries.count() > 1
 
     def __str__(self) -> str:

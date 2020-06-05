@@ -51,7 +51,7 @@ class ComputedField(NamedTuple):
 
 
 FieldDescriptor = Union[
-    "models.Field[Any, Any]", ComputedField, ComputedRelation[Any, Any]
+    "models.Field[Any, Any]", ComputedField, ComputedRelation[Any, Any, Any]
 ]
 
 

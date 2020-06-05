@@ -4,20 +4,21 @@ from django.db import models
 
 T = TypeVar("T")
 S = TypeVar("S", bound=models.Model)
+Z = TypeVar("Z", bound=Union["models.QuerySet[Any]", models.Model, None])
 
 
-class ComputedRelation(Generic[T, S]):
+class ComputedRelation(Generic[T, S, Z]):
     def __init__(
         self,
         *,
         label: Optional[str] = None,
-        fget: Callable[[T], "models.QuerySet[S]"],
+        fget: Callable[[T], Z],
         model: Union[Callable[[], Type[S]], Type[S]],
     ) -> None:
         self.name = fget.__name__
 
         self._model = model  # model if isinstance(model, type) else model()
-        self.fget: Callable[[T], "models.QuerySet[S]"] = fget
+        self.fget: Callable[[T], Z] = fget
         self.many_to_many = True
         self.label = label
 
@@ -26,16 +27,16 @@ class ComputedRelation(Generic[T, S]):
         return self._model if isinstance(self._model, type) else self._model()
 
     @overload
-    def __get__(self, instance: None, own: Type[T]) -> "ComputedRelation[T, S]":
+    def __get__(self, instance: None, own: Type[T]) -> "ComputedRelation[T, S, Z]":
         pass
 
     @overload
-    def __get__(self, instance: T, own: Type[T]) -> "models.QuerySet[S]":
+    def __get__(self, instance: T, own: Type[T]) -> Z:
         pass
 
     def __get__(
         self, instance: Union[T, None], own: Type[T],
-    ) -> Union["ComputedRelation[T, S]", "models.QuerySet[S]"]:
+    ) -> Union["ComputedRelation[T, S, Z]", Z]:
         if instance is None:
             return self
 
@@ -43,11 +44,9 @@ class ComputedRelation(Generic[T, S]):
 
 
 def computed_relation(
-    *,
-    label: Optional[str] = None,
-    model: Union[Callable[[], Type[S]], Type[S]],
-) -> Callable[[Callable[[T], "models.QuerySet[S]"]], ComputedRelation[T, S]]:
-    def inner(fget: Callable[[T], "models.QuerySet[S]"]) -> ComputedRelation[T, S]:
+    *, label: Optional[str] = None, model: Union[Callable[[], Type[S]], Type[S]],
+) -> Callable[[Callable[[T], Z]], ComputedRelation[T, S, Z]]:
+    def inner(fget: Callable[[T], Z]) -> ComputedRelation[T, S, Z]:
         return ComputedRelation(fget=fget, label=label, model=model)
 
     return inner

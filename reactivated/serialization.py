@@ -132,6 +132,7 @@ class FormType(NamedTuple):
 
         form = value
 
+        previous_renderer = form.renderer
         form.renderer = SSRFormRenderer()
         fields = {
             field.name: FieldType(
@@ -146,6 +147,7 @@ class FormType(NamedTuple):
             )
             for field in form
         }
+        form.renderer = previous_renderer
 
         return FormType(
             name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",

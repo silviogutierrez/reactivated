@@ -32,6 +32,7 @@ from .models import computed_relation as computed_relation  # noqa: F401
 from .pick import BasePickHolder
 from .pick import Pick as Pick  # noqa: F401
 from .stubs import _GenericAlias
+from .templates import interface as interface  # noqa: F401
 from .templates import template as template  # noqa: F401
 
 default_app_config = "reactivated.apps.ReactivatedConfig"

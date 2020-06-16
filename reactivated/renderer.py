@@ -18,15 +18,20 @@ def get_accept_list(request: HttpRequest) -> List[str]:
     return [token.strip() for token in header.split(",")]
 
 
+def should_respond_with_json(request: HttpRequest) -> bool:
+    accepts = get_accept_list(request)
+
+    return request.GET.get("format", None) == "json" or any(
+        ["application/json" in content_type for content_type in accepts]
+    )
+
+
 def render_jsx_to_string(
     request: HttpRequest, template_name: str, context: Any, props: Any
 ) -> str:
     from reactivated import encode_complex_types
 
-    accepts = get_accept_list(request)
-    respond_with_json = request.GET.get("format", None) == "json" or any(
-        ["application/json" in content_type for content_type in accepts]
-    )
+    respond_with_json = should_respond_with_json(request)
 
     payload = {"context": {**context, "template_name": template_name}, "props": props}
     data = simplejson.dumps(payload, indent=4, default=encode_complex_types)

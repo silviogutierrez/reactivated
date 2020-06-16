@@ -59,8 +59,6 @@ class Composer(models.Model):
 
     @property
     def did_live_in_more_than_one_country(self) -> bool:
-        reveal_type(self.operas_with_piano_transcriptions)
-        reveal_type(self.main_opera)
         return self.countries.count() > 1
 
     def __str__(self) -> str:

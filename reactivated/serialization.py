@@ -90,6 +90,7 @@ class FieldType(NamedTuple):
     name: str
     label: str
     help_text: str
+    type: str
     widget: WidgetType
 
     @classmethod
@@ -137,6 +138,7 @@ class FormType(NamedTuple):
         fields = {
             field.name: FieldType(
                 widget=simplejson.loads(str(field))["widget"],
+                type=field.field.widget.template_name,  # type: ignore[attr-defined]
                 name=field.name,
                 label=str(
                     field.label
@@ -361,7 +363,13 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
 
     for field_name, SubType in Type.base_fields.items():  # type: ignore[attr-defined]
         required.append(field_name)
-        properties[field_name] = field_type_definition
+        properties[field_name] = {
+            **field_type_definition,
+            "properties": {
+                **field_type_definition["properties"],
+                "type": {"type": "string", "enum": [SubType.widget.template_name],},
+            },
+        }
         error_properties[field_name] = error_definition
 
     definitions = {
@@ -421,7 +429,9 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
     if issubclass(Type, django_forms.BaseModelFormSet):
         pk_field_name = Type.model._meta.pk.name
         FormSetForm = type(
-            "FormSetForm", (Type.form,), {pk_field_name: django_forms.Field()}
+            "FormSetForm",
+            (Type.form,),
+            {pk_field_name: django_forms.Field(widget=django_forms.HiddenInput)},
         )
         FormSetForm.__module__ = Type.form.__module__
         FormSetForm.__qualname__ = Type.form.__qualname__

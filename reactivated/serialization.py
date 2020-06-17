@@ -505,6 +505,8 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return Thing(schema={"type": "boolean"}, definitions={})
     elif issubclass(Type, int):
         return Thing(schema={"type": "number"}, definitions={})
+    elif issubclass(Type, float):
+        return Thing(schema={"type": "number"}, definitions={})
     elif issubclass(Type, str):
         return Thing(schema={"type": "string"}, definitions={})
     elif Type is type(None):  # noqa: E721
@@ -589,7 +591,7 @@ SERIALIZERS: Dict[str, Serializer] = {
     "object": object_serializer,
     "string": lambda value, schema: str(value),
     "boolean": lambda value, schema: bool(value),
-    "number": lambda value, schema: int(value),
+    "number": lambda value, schema: float(value),
     "array": array_serializer,
     "null": lambda value, schema: None,
 }

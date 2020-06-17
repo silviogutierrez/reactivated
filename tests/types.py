@@ -108,6 +108,14 @@ def test_none():
     assert create_schema(type(None), {}) == ({"type": "null"}, {})
 
 
+def test_float():
+    assert create_schema(float, {}) == ({"type": "number"}, {})
+
+
+def test_int():
+    assert create_schema(int, {}) == ({"type": "number"}, {})
+
+
 def test_form():
     schema = create_schema(forms.OperaForm, {})
 

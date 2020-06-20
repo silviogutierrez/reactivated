@@ -237,7 +237,9 @@ def field_descriptor_schema(
         mapped_type is not None
     ), f"Unsupported model field type {Type.__class__}. This should probably silently return None and allow a custom handler to support the field."
 
-    FieldSchemaWithPossibleNull = Union[mapped_type, None] if Type.null is True else mapped_type
+    FieldSchemaWithPossibleNull = (
+        Union[mapped_type, None] if Type.null is True else mapped_type
+    )
 
     return create_schema(FieldSchemaWithPossibleNull, definitions)
 

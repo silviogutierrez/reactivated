@@ -50,6 +50,7 @@ export interface FieldMap {
 }
 
 export interface FormLike<T extends FieldMap> {
+    name: string;
     fields: T;
     errors: {[P in keyof T]?: string[]} | null;
     iterator: Array<keyof T>;

@@ -1,4 +1,5 @@
 from typing import Callable, Generic, Optional, Type, TypeVar, Union, overload
+from typing import Any  # noqa
 
 from django.db import models
 

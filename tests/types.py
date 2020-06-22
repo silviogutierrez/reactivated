@@ -1,5 +1,5 @@
 from io import StringIO
-from typing import Any, Dict, List, Literal, NamedTuple, Tuple, Union
+from typing import Any, Dict, List, Literal, NamedTuple, Tuple, TypedDict, Union
 
 import pytest
 import simplejson
@@ -13,6 +13,12 @@ from sample.server.apps.samples import forms, models
 
 
 class NamedTupleType(NamedTuple):
+    first: str
+    second: bool
+    third: int
+
+
+class TypedDictType(TypedDict):
     first: str
     second: bool
     third: int
@@ -41,6 +47,25 @@ def test_literal():
     assert create_schema(Literal["hello"], {}) == (
         {"type": "string", "enum": ("hello",)},
         {},
+    )
+
+
+def test_typed_dict():
+    assert create_schema(TypedDictType, {}) == (
+        {"$ref": "#/definitions/tests.types.TypedDictType"},
+        {
+            "tests.types.TypedDictType": {
+                "additionalProperties": False,
+                "properties": {
+                    "first": {"type": "string"},
+                    "second": {"type": "boolean"},
+                    "third": {"type": "number"},
+                },
+                "required": ["first", "second", "third"],
+                "serializer": None,
+                "type": "object",
+            }
+        },
     )
 
 
@@ -83,6 +108,14 @@ def test_none():
     assert create_schema(type(None), {}) == ({"type": "null"}, {})
 
 
+def test_float():
+    assert create_schema(float, {}) == ({"type": "number"}, {})
+
+
+def test_int():
+    assert create_schema(int, {}) == ({"type": "number"}, {})
+
+
 def test_form():
     schema = create_schema(forms.OperaForm, {})
 
@@ -123,9 +156,13 @@ def test_form():
                             "help_text": {"type": "string"},
                             "label": {"type": "string"},
                             "name": {"type": "string"},
+                            "type": {
+                                "type": "string",
+                                "enum": ["reactivated/autocomplete"],
+                            },
                             "widget": {"tsType": "WidgetType"},
                         },
-                        "required": ["name", "label", "help_text", "widget"],
+                        "required": ["name", "label", "help_text", "type", "widget"],
                         "serializer": "field_serializer",
                         "type": "object",
                     },
@@ -135,9 +172,13 @@ def test_form():
                             "help_text": {"type": "string"},
                             "label": {"type": "string"},
                             "name": {"type": "string"},
+                            "type": {
+                                "type": "string",
+                                "enum": ["django/forms/widgets/checkbox.html"],
+                            },
                             "widget": {"tsType": "WidgetType"},
                         },
-                        "required": ["name", "label", "help_text", "widget"],
+                        "required": ["name", "label", "help_text", "type", "widget"],
                         "serializer": "field_serializer",
                         "type": "object",
                     },
@@ -147,9 +188,13 @@ def test_form():
                             "help_text": {"type": "string"},
                             "label": {"type": "string"},
                             "name": {"type": "string"},
+                            "type": {
+                                "type": "string",
+                                "enum": ["django/forms/widgets/text.html"],
+                            },
                             "widget": {"tsType": "WidgetType"},
                         },
-                        "required": ["name", "label", "help_text", "widget"],
+                        "required": ["name", "label", "help_text", "type", "widget"],
                         "serializer": "field_serializer",
                         "type": "object",
                     },

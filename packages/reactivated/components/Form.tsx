@@ -28,6 +28,7 @@ export const Styles = {
 
 interface FieldLike {
     widget: WidgetType;
+    type: WidgetType["template_name"];
     label: string;
     help_text: string;
 }
@@ -49,6 +50,7 @@ export interface FieldMap {
 }
 
 export interface FormLike<T extends FieldMap> {
+    name: string;
     fields: T;
     errors: {[P in keyof T]?: string[]} | null;
     iterator: Array<keyof T>;

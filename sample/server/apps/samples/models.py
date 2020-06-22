@@ -2,6 +2,8 @@ from typing import Optional, cast
 
 from django.db import models
 
+from reactivated import computed_relation
+
 models.QuerySet.__class_getitem__ = classmethod(  # type: ignore[assignment]
     lambda cls, key: cls
 )
@@ -47,6 +49,18 @@ class Composer(models.Model):
         Country, through=ComposerCountry, related_name="composers"
     )
 
+    @computed_relation(model=lambda: Opera)
+    def operas_with_piano_transcriptions(self) -> "models.QuerySet[Opera]":
+        return self.operas.all()
+
+    @computed_relation(model=lambda: Opera)
+    def main_opera(self) -> Optional["Opera"]:
+        return self.operas.all().first()
+
+    @property
+    def did_live_in_more_than_one_country(self) -> bool:
+        return self.countries.count() > 1
+
     def __str__(self) -> str:
         return self.name
 
@@ -63,11 +77,13 @@ class OperaQuerySet(models.QuerySet["Opera"]):
 class Opera(models.Model):
     name = models.CharField(max_length=100)
     composer = models.ForeignKey(
-        Composer, on_delete=models.CASCADE, related_name="operas"
+        "Composer", on_delete=models.CASCADE, related_name="operas"
     )
     has_piano_transcription = models.BooleanField(default=False)
 
-    # objects = cast(OperaManager, OperaManager.from_queryset(OperaQuerySet)())
+    objects = cast(OperaManager, OperaManager.from_queryset(OperaQuerySet)())
+
+    # objects: DayQuerySet = cast(DayQuerySet, DayQuerySet.as_manager())  # type: ignore[assignment]
 
     def __str__(self) -> str:
         return f"{self.name}: {self.composer.name}"

@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING, Any, ClassVar, List, Union
+from typing import TYPE_CHECKING, Any, ClassVar, List, Type, Union
 
 if TYPE_CHECKING:
     from django import forms as django_forms
 
     class BaseFormSet(django_forms.formsets.BaseFormSet):
-        form: ClassVar[django_forms.BaseForm]
+        form: ClassVar[Type[django_forms.BaseForm]]
 
         def total_form_count(self) -> int:
             ...
@@ -24,7 +24,10 @@ if TYPE_CHECKING:
         __origin__: Union[type, Any]
         __args__: List[Any]
 
+    class _TypedDictMeta:
+        pass
+
 
 else:
-    from typing import _GenericAlias  # noqa: F401
+    from typing import _GenericAlias, _TypedDictMeta  # noqa: F401
     from django.forms.formsets import BaseFormSet  # noqa: F401

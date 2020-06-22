@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, List, Sequence, Tuple, Type, get_type_hints
+from typing import Any, List, Literal, Sequence, Tuple, Type, get_type_hints
 
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
+from .models import ComputedRelation
 from .serialization import (
     ComputedField,
     Definitions,
@@ -24,15 +25,29 @@ def get_field_descriptor(
     field_name, *remaining = field_chain
 
     try:
-        field_descriptor = model_class._meta.get_field(field_name)
+        field_descriptor: FieldDescriptor = model_class._meta.get_field(field_name)
     except FieldDoesNotExist as e:
-        possible_method = getattr(model_class, field_name, None)
+        possible_method_or_property = getattr(model_class, field_name, None)
 
-        if possible_method is not None:
+        if isinstance(possible_method_or_property, ComputedRelation):
+            field_descriptor = possible_method_or_property
+        elif possible_method_or_property is not None:
+            # TODO: stronger checks here. This could just be a random method with
+            # more than the `self` argument. Which would fail at runtime.
+            possible_method, is_callable = (
+                (possible_method_or_property.fget, False)
+                if isinstance(possible_method_or_property, property)
+                else (possible_method_or_property, True)
+            )
             annotations = get_type_hints(possible_method)
-            return ComputedField(name=field_name, annotation=annotations["return"]), ()
 
-        raise e
+            field_descriptor = ComputedField(
+                name=field_name,
+                annotation=annotations["return"],
+                is_callable=is_callable,
+            )
+        else:
+            raise e
 
     if len(remaining) == 0:
         return field_descriptor, ()
@@ -44,6 +59,7 @@ def get_field_descriptor(
             models.ManyToOneRel,
             models.ManyToManyField,
             models.ManyToOneRel,
+            ComputedRelation,
             # TODO: Maybe RelatedField replaces all of the above?
             models.fields.related.RelatedField,
         ),
@@ -146,8 +162,27 @@ class Pick:
     def __class_getitem__(cls: Any, item: Any) -> Any:
         meta_model, *meta_fields = item
 
+        if isinstance(meta_model, str):
+            nested_fields = []
+
+            for nested_field in meta_fields[0].fields:
+                nested_fields.append(f"{meta_model}.{nested_field}")
+            return nested_fields
+
+        flattened_fields: List[str] = []
+
+        for field_or_literal in meta_fields:
+            if isinstance(field_or_literal, str):
+                flattened_fields.append(field_or_literal)
+            elif isinstance(field_or_literal, list):
+                flattened_fields.extend(field_or_literal)
+            elif field_or_literal.__origin__ == Literal:
+                flattened_fields.extend(field_or_literal.__args__)
+            else:
+                assert False, f"Unsupported pick property {field_or_literal}"
+
         class PickHolder(BasePickHolder):
             model_class = meta_model
-            fields = meta_fields
+            fields = flattened_fields
 
         return PickHolder

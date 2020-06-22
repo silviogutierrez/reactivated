@@ -39,7 +39,10 @@ class ReactivatedPlugin(Plugin):
     def get_class_decorator_hook(
         self, fullname: str
     ) -> Optional[Callable[[ClassDefContext], None]]:
-        if fullname == "reactivated.templates.template":
+        if fullname in [
+            "reactivated.templates.template",
+            "reactivated.templates.interface",
+        ]:
             return analyze_template
 
         return None

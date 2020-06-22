@@ -1,0 +1,8 @@
+<form method="POST" target="">
+    {% csrf_token %}
+    <button type="submit">Submit</button>
+    {% for name, form in forms.items %}
+    {{ form }}
+    {% endfor %}
+    <pre>{{ serialized }}</pre>
+</form>

@@ -28,9 +28,11 @@ from django.utils.functional import Promise
 from mypy_extensions import Arg, KwArg
 
 from .backend import JSX as JSX  # noqa: F401
+from .models import computed_relation as computed_relation  # noqa: F401
 from .pick import BasePickHolder
 from .pick import Pick as Pick  # noqa: F401
 from .stubs import _GenericAlias
+from .templates import interface as interface  # noqa: F401
 from .templates import template as template  # noqa: F401
 
 default_app_config = "reactivated.apps.ReactivatedConfig"
@@ -135,7 +137,7 @@ def encode_complex_types(obj: Any) -> _SingleSerializable:
         return {"path": obj.path, "url": obj.build_absolute_uri()}
 
     if isinstance(obj, QuerySet):
-        if obj._iterable_class is ValuesIterable:
+        if obj._iterable_class is ValuesIterable:  # type: ignore[attr-defined]
             return list(obj)
         raise TypeError(
             "Type %s not serializable. Only when you call values() does it become serializable."
@@ -185,7 +187,7 @@ def ssr(
     type_registry[props.__name__] = props  # type: ignore[assignment]
 
     def no_args_wrap_with_jsx(
-        original: NoArgsView[P]
+        original: NoArgsView[P],
     ) -> Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse]:
         def wrapper(request: HttpRequest, **kwargs: Any) -> HttpResponse:
             props = original(request)
@@ -495,7 +497,7 @@ def serialize_form(form: django_forms.BaseForm) -> FormType:
 
 
 def serialize_form_set(
-    typed_form_set: django_forms.formsets.BaseFormSet
+    typed_form_set: django_forms.formsets.BaseFormSet,
 ) -> FormSetType:
     form_set = cast(Any, typed_form_set)
 

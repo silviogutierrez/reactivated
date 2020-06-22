@@ -12,6 +12,7 @@ from typing import (
     Sequence,
     Type,
     Union,
+    get_type_hints,
 )
 
 import simplejson
@@ -21,6 +22,7 @@ from django.db import models
 from django.utils.module_loading import import_string
 
 from . import stubs
+from .models import ComputedRelation
 
 Schema = Mapping[Any, Any]
 
@@ -37,17 +39,20 @@ FormErrors = Dict[str, FormError]
 class ComputedField(NamedTuple):
     name: str
     annotation: Any
+    is_callable: bool
 
     def get_json_schema(self, definitions: Definitions) -> "Thing":
         annotation_schema = create_schema(self.annotation, definitions=definitions)
 
         return Thing(
-            schema={**annotation_schema.schema, "callable": True},
+            schema={**annotation_schema.schema, "callable": self.is_callable},
             definitions=annotation_schema.definitions,
         )
 
 
-FieldDescriptor = Union["models.Field[Any, Any]", ComputedField]
+FieldDescriptor = Union[
+    "models.Field[Any, Any]", ComputedField, ComputedRelation[Any, Any, Any]
+]
 
 
 class Thing(NamedTuple):
@@ -85,6 +90,7 @@ class FieldType(NamedTuple):
     name: str
     label: str
     help_text: str
+    type: str
     widget: WidgetType
 
     @classmethod
@@ -127,10 +133,12 @@ class FormType(NamedTuple):
 
         form = value
 
+        previous_renderer = form.renderer
         form.renderer = SSRFormRenderer()
         fields = {
             field.name: FieldType(
                 widget=simplejson.loads(str(field))["widget"],
+                type=field.field.widget.template_name,  # type: ignore[attr-defined]
                 name=field.name,
                 label=str(
                     field.label
@@ -141,6 +149,7 @@ class FormType(NamedTuple):
             )
             for field in form
         }
+        form.renderer = previous_renderer
 
         return FormType(
             name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",
@@ -219,13 +228,30 @@ def field_descriptor_schema(
         models.DateTimeField: datetime.datetime,
         models.EmailField: str,
         models.UUIDField: str,
+        models.IntegerField: int,
+        models.DecimalField: str,
     }
+
+    try:
+        from django_extensions.db import fields as django_extension_fields  # type: ignore[import]
+
+        mapping = {
+            **mapping,
+            django_extension_fields.ShortUUIDField: str,
+        }
+    except ImportError:
+        pass
+
     mapped_type = mapping.get(Type.__class__)
     assert (
         mapped_type is not None
     ), f"Unsupported model field type {Type.__class__}. This should probably silently return None and allow a custom handler to support the field."
 
-    return create_schema(mapped_type, definitions)
+    FieldSchemaWithPossibleNull = (
+        Union[mapped_type, None] if Type.null is True else mapped_type
+    )
+
+    return create_schema(FieldSchemaWithPossibleNull, definitions)
 
 
 def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) -> Thing:
@@ -301,7 +327,7 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
     properties = {}
     definitions = {**definitions}
 
-    for field_name, Subtype in Type.__annotations__.items():
+    for field_name, Subtype in get_type_hints(Type).items():
         field_schema = create_schema(Subtype, definitions)
         definitions = {**definitions, **field_schema.definitions}
 
@@ -351,7 +377,13 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
 
     for field_name, SubType in Type.base_fields.items():  # type: ignore[attr-defined]
         required.append(field_name)
-        properties[field_name] = field_type_definition
+        properties[field_name] = {
+            **field_type_definition,
+            "properties": {
+                **field_type_definition["properties"],
+                "type": {"type": "string", "enum": [SubType.widget.template_name],},
+            },
+        }
         error_properties[field_name] = error_definition
 
     definitions = {
@@ -411,7 +443,9 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
     if issubclass(Type, django_forms.BaseModelFormSet):
         pk_field_name = Type.model._meta.pk.name
         FormSetForm = type(
-            "FormSetForm", (Type.form,), {pk_field_name: django_forms.Field()}
+            "FormSetForm",
+            (Type.form,),
+            {pk_field_name: django_forms.Field(widget=django_forms.HiddenInput)},
         )
         FormSetForm.__module__ = Type.form.__module__
         FormSetForm.__qualname__ = Type.form.__qualname__
@@ -438,7 +472,7 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
     ]
 
     form_type_definition = form_type_schema.definitions[
-        f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"  # type: ignore[attr-defined]
+        f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"
     ]
 
     management_form_definition = management_form_schema.definitions[
@@ -475,6 +509,8 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return Type.get_json_schema(definitions)  # type: ignore[no-any-return]
     elif issubclass(Type, tuple) and callable(getattr(Type, "_asdict", None)):
         return named_tuple_schema(Type, definitions)
+    elif type(Type) == stubs._TypedDictMeta:
+        return named_tuple_schema(Type, definitions)
     elif issubclass(Type, datetime.datetime):
         return Thing(schema={"type": "string"}, definitions={})
     elif issubclass(Type, datetime.date):
@@ -482,6 +518,8 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     elif issubclass(Type, bool):
         return Thing(schema={"type": "boolean"}, definitions={})
     elif issubclass(Type, int):
+        return Thing(schema={"type": "number"}, definitions={})
+    elif issubclass(Type, float):
         return Thing(schema={"type": "number"}, definitions={})
     elif issubclass(Type, str):
         return Thing(schema={"type": "string"}, definitions={})
@@ -567,7 +605,7 @@ SERIALIZERS: Dict[str, Serializer] = {
     "object": object_serializer,
     "string": lambda value, schema: str(value),
     "boolean": lambda value, schema: bool(value),
-    "number": lambda value, schema: int(value),
+    "number": lambda value, schema: float(value),
     "array": array_serializer,
     "null": lambda value, schema: None,
 }

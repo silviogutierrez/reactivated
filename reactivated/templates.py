@@ -1,5 +1,6 @@
 from typing import Any, NamedTuple, TypeVar
 
+from django import forms
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 
@@ -59,10 +60,17 @@ def interface(cls: T) -> T:
             if should_respond_with_json(request):
                 return HttpResponse(serialized, content_type="application/json")
 
+            context = self._asdict()
+            context_forms = {
+                name: possible_form
+                for name, possible_form in context.items()
+                if isinstance(possible_form, forms.BaseForm)
+            }
+
             return TemplateResponse(
                 request,
                 "reactivated/interface.html",
-                {**self._asdict(), "serialized": serialized},
+                {**self._asdict(), "forms": context_forms, "serialized": serialized},
             )
 
         def as_json(self, request: HttpRequest) -> JsonResponse:

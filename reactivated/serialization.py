@@ -231,8 +231,18 @@ def field_descriptor_schema(
         models.IntegerField: int,
         models.DecimalField: str,
     }
-    # TODO: REMOVE ME OR FIGURE ME OUT. WHY NOT DEFAULT TO STR?
-    mapped_type = mapping.get(Type.__class__, str)
+
+    try:
+        from django_extensions.db import fields as django_extension_fields  # type: ignore[import]
+
+        mapping = {
+            **mapping,
+            django_extension_fields.ShortUUIDField: str,
+        }
+    except ImportError:
+        pass
+
+    mapped_type = mapping.get(Type.__class__)
     assert (
         mapped_type is not None
     ), f"Unsupported model field type {Type.__class__}. This should probably silently return None and allow a custom handler to support the field."

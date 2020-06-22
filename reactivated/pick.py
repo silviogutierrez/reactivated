@@ -176,9 +176,6 @@ class Pick:
                 flattened_fields.append(field_or_literal)
             elif isinstance(field_or_literal, list):
                 flattened_fields.extend(field_or_literal)
-            # elif isinstance(field_or_literal, type) and issubclass(field_or_literal, BasePickHolder):
-            # for nested_field in field_or_literal.fields:
-            #        flattened_fields.append(f"{meta_model}.{nested_field}")
             elif field_or_literal.__origin__ == Literal:
                 flattened_fields.extend(field_or_literal.__args__)
             else:

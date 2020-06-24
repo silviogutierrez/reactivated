@@ -64,7 +64,7 @@ def interface(cls: T) -> T:
             context_forms = {
                 name: possible_form
                 for name, possible_form in context.items()
-                if isinstance(possible_form, forms.BaseForm)
+                if isinstance(possible_form, (forms.BaseForm, forms.BaseFormSet))
             }
 
             return TemplateResponse(

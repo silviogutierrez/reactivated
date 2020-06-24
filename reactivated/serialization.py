@@ -229,6 +229,7 @@ def field_descriptor_schema(
         models.EmailField: str,
         models.UUIDField: str,
         models.IntegerField: int,
+        models.PositiveIntegerField: int,
         models.DecimalField: str,
     }
 

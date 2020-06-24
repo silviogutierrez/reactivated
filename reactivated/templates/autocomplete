@@ -1,1 +1,0 @@
-{% extends 'django/forms/widgets/text.html' %}

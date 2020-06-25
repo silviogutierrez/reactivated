@@ -4,5 +4,17 @@
     {% for name, form in forms.items %}
     {{ form.as_p }}
     {% endfor %}
+
+    {% for name, form_set in form_sets.items %}
+    <h2>{{ name }}</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
+        {{ form_set.management_form }}
+        {% for form in form_set %}
+        <div>
+        {{ form.as_p }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
     <pre>{{ serialized }}</pre>
 </form>

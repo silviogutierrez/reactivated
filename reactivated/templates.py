@@ -64,13 +64,23 @@ def interface(cls: T) -> T:
             context_forms = {
                 name: possible_form
                 for name, possible_form in context.items()
-                if isinstance(possible_form, (forms.BaseForm, forms.BaseFormSet))
+                if isinstance(possible_form, forms.BaseForm)
+            }
+            context_form_sets = {
+                name: possible_form_set
+                for name, possible_form_set in context.items()
+                if isinstance(possible_form_set, forms.BaseFormSet)
             }
 
             return TemplateResponse(
                 request,
                 "reactivated/interface.html",
-                {**self._asdict(), "forms": context_forms, "serialized": serialized},
+                {
+                    **self._asdict(),
+                    "forms": context_forms,
+                    "form_sets": context_form_sets,
+                    "serialized": serialized,
+                },
             )
 
         def as_json(self, request: HttpRequest) -> JsonResponse:

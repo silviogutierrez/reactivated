@@ -1,6 +1,11 @@
 <form method="POST" target="">
     {% csrf_token %}
     <button type="submit">Submit</button>
+
+    {% for name, action in actions.items %}
+    <button type="submit" name="action" value="{{ action.name }}">{{ action.name }}</button>
+    {% endfor %}
+
     {% for name, form in forms.items %}
     {{ form.as_p }}
     {% endfor %}

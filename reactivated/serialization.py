@@ -153,7 +153,7 @@ class FormType(NamedTuple):
 
         errors = (
             {
-                f"{form.prefix}-{field_name}": error
+                (f"{form.prefix}-{field_name}" if form.prefix else field_name): error
                 for field_name, error in form.errors.items()
             }
             if form.errors is not None

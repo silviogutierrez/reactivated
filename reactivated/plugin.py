@@ -55,7 +55,7 @@ class ReactivatedPlugin(Plugin):
 
 def analyze_modelformset_factory(ctx: DynamicClassDefContext) -> None:
     form_set_class = ctx.api.lookup_fully_qualified_or_none(
-        "django.forms.models.BaseModelFormSet"
+        "reactivated.stubs.BaseModelFormSet"
     )
     assert form_set_class is not None
 

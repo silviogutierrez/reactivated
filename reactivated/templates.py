@@ -1,4 +1,4 @@
-from typing import Any, NamedTuple, TypeVar, Type
+from typing import Any, NamedTuple, Type, TypeVar
 
 from django import forms
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -14,9 +14,7 @@ def template(cls: Type[T]) -> Type[T]:
 
     type_name = f"{cls.__name__}Props"
     type_registry[type_name] = cls  # type: ignore[assignment]
-    template_registry[
-        cls.__name__
-    ] = type_name  # type: ignore[assignment]
+    template_registry[cls.__name__] = type_name  # type: ignore[assignment]
 
     class Augmented(cls):  # type: ignore[misc, valid-type]
         def get_serialized(self) -> Any:

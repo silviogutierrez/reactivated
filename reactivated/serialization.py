@@ -151,9 +151,18 @@ class FormType(NamedTuple):
         }
         form.renderer = previous_renderer
 
+        errors = (
+            {
+                f"{form.prefix}-{field_name}": error
+                for field_name, error in form.errors.items()
+            }
+            if form.errors is not None
+            else None
+        )
+
         return FormType(
             name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",
-            errors=form.errors or None,
+            errors=errors,
             fields=fields,
             iterator=list(fields.keys()),
             prefix=form.prefix or "",

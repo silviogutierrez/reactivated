@@ -13,6 +13,7 @@ interface BaseWidget {
     required: boolean;
     attrs: {
         id: string;
+        placeholder?: string;
         disabled?: boolean;
         required?: boolean;
     };

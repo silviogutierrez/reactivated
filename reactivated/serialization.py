@@ -88,7 +88,7 @@ class FieldType(NamedTuple):
     # TODO: way to mark this as a custom property we define. This is just so it is
     # marked as required.
     #
-    # The actual widget name in in by form_schema, which is kind of odd.
+    # The actual widget name is done by `form_schema`, which is kind of odd.
     # We need a better way to make a custom schema that is self contained.
     widget: str
 

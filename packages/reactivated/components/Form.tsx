@@ -27,6 +27,7 @@ export const Styles = {
 } as const;
 
 interface FieldLike {
+    name: string;
     widget: WidgetType;
     label: string;
     help_text: string;

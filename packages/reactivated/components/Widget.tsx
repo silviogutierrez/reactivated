@@ -24,7 +24,7 @@ export interface TextInput extends BaseWidget {
     template_name: "django/forms/widgets/text.html";
     value: string | null;
     attrs: BaseWidget["attrs"] & {
-        maxlength?: number;
+        maxlength?: string;
     };
 }
 

@@ -15,7 +15,6 @@ from typing import (
     get_type_hints,
 )
 
-import simplejson
 from django import forms as django_forms
 from django.conf import settings
 from django.db import models
@@ -90,7 +89,7 @@ class FieldType(NamedTuple):
     #
     # The actual widget name is done by `form_schema`, which is kind of odd.
     # We need a better way to make a custom schema that is self contained.
-    widget: str
+    widget: Any
 
     @classmethod
     def get_json_schema(Type: Type["FieldType"], definitions: Definitions) -> "Thing":
@@ -128,15 +127,17 @@ class FormType(NamedTuple):
     def get_serialized_value(
         Type: Type["FormType"], value: django_forms.BaseForm, schema: Thing
     ) -> JSON:
-        from . import SSRFormRenderer
-
         form = value
 
-        previous_renderer = form.renderer
-        form.renderer = SSRFormRenderer()
+        def extract_widget_context(field):
+            field.field.widget._render = (
+                lambda template_name, context, renderer: context
+            )
+            return field.as_widget()["widget"]
+
         fields = {
             field.name: FieldType(
-                widget=simplejson.loads(str(field))["widget"],
+                widget=extract_widget_context(field),
                 name=field.name,
                 label=str(
                     field.label
@@ -147,7 +148,6 @@ class FormType(NamedTuple):
             )
             for field in form
         }
-        form.renderer = previous_renderer
 
         return FormType(
             name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",

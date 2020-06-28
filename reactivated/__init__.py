@@ -115,10 +115,6 @@ def encode_complex_types(obj: Any) -> _SingleSerializable:
     """
     if isinstance(obj, (datetime.datetime, datetime.date)):
         return obj.isoformat()
-    elif isinstance(obj, django_forms.BaseForm):
-        return serialize_form(obj)
-    elif isinstance(obj, django_forms.formsets.BaseFormSet):
-        return serialize_form_set(obj)
 
     # Handle lazy strings for Django. This is the parent class.
     if isinstance(obj, Promise):
@@ -463,58 +459,6 @@ class FormSetType(NamedTuple):
     empty_form: FormType
     management_form: FormType
     prefix: str
-
-
-class SSRFormRenderer(django_forms.renderers.BaseRenderer):
-    def render(
-        self, template_name: str, context: Any, request: Optional[HttpRequest] = None
-    ) -> str:
-        return simplejson.dumps(context, default=encode_complex_types)
-
-
-def serialize_form(form: django_forms.BaseForm) -> FormType:
-    form.renderer = SSRFormRenderer()
-    fields = {
-        field.name: FieldType(
-            widget=simplejson.loads(str(field))["widget"],
-            name=field.name,
-            label=str(
-                field.label
-            ),  # This can be a lazy proxy, so we must call str on it.
-            help_text=str(
-                field.help_text
-            ),  # This can be a lazy proxy, so we must call str on it.
-        )
-        for field in form
-    }
-
-    return FormType(
-        errors=form.errors or None,
-        fields=fields,
-        iterator=list(fields.keys()),
-        is_read_only=getattr(form, "is_read_only", False),
-        prefix=form.prefix or "",
-    )
-
-
-def serialize_form_set(
-    typed_form_set: django_forms.formsets.BaseFormSet,
-) -> FormSetType:
-    form_set = cast(Any, typed_form_set)
-
-    return FormSetType(
-        initial=form_set.initial_form_count(),
-        total=form_set.total_form_count(),
-        max_num=form_set.max_num,
-        min_num=form_set.min_num,
-        can_delete=form_set.can_delete,
-        can_order=form_set.can_order,
-        non_form_errors=form_set.non_form_errors(),
-        forms=[serialize_form(form) for form in form_set],
-        empty_form=serialize_form(form_set.empty_form),
-        management_form=serialize_form(form_set.management_form),
-        prefix=form_set.prefix,
-    )
 
 
 def generate_settings() -> str:

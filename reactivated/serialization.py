@@ -60,12 +60,6 @@ class Thing(NamedTuple):
     definitions: Definitions
 
 
-class WidgetType(NamedTuple):
-    @classmethod
-    def get_json_schema(Type: Type["WidgetType"], definitions: Definitions) -> "Thing":
-        return Thing(schema={"tsType": str(Type.__name__)}, definitions=definitions)
-
-
 class ForeignKeyType:
     @classmethod
     def get_serialized_value(
@@ -90,8 +84,13 @@ class FieldType(NamedTuple):
     name: str
     label: str
     help_text: str
-    type: str
-    widget: WidgetType
+
+    # TODO: way to mark this as a custom property we define. This is just so it is
+    # marked as required.
+    #
+    # The actual widget name in in by form_schema, which is kind of odd.
+    # We need a better way to make a custom schema that is self contained.
+    widget: str
 
     @classmethod
     def get_json_schema(Type: Type["FieldType"], definitions: Definitions) -> "Thing":
@@ -138,7 +137,6 @@ class FormType(NamedTuple):
         fields = {
             field.name: FieldType(
                 widget=simplejson.loads(str(field))["widget"],
-                type=field.field.widget.template_name,  # type: ignore[attr-defined]
                 name=field.name,
                 label=str(
                     field.label
@@ -387,11 +385,21 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
 
     for field_name, SubType in Type.base_fields.items():  # type: ignore[attr-defined]
         required.append(field_name)
+
+        SourceWidget = SubType.widget.__class__
+
+        if SourceWidget.__module__ != "django.forms.widgets":
+            SourceWidget = SubType.widget.__class__.__bases__[0]
+
+        assert (
+            SourceWidget.__module__ == "django.forms.widgets"
+        ), f"Only core widgets and depth-1 inheritance widgets are currently supported. Check {SubType.widget.__class__}"
+
         properties[field_name] = {
             **field_type_definition,
             "properties": {
                 **field_type_definition["properties"],
-                "type": {"type": "string", "enum": [SubType.widget.template_name],},
+                "widget": {"tsType": f"widgets.{SourceWidget.__name__}"},
             },
         }
         error_properties[field_name] = error_definition

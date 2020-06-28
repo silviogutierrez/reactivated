@@ -103,7 +103,7 @@ export function reverse<T extends All['name']>(name: T, args?: Extract<WithArgum
 
 interfaces.addStatements(`
 import React from "react"
-import {WidgetType} from "reactivated/components/Widget";
+import * as widgets from "reactivated/components/Widget";
 
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};

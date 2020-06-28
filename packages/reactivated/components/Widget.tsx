@@ -19,7 +19,7 @@ interface BaseWidget {
     };
 }
 
-interface TextInput extends BaseWidget {
+export interface TextInput extends BaseWidget {
     type: "text";
     template_name: "django/forms/widgets/text.html";
     value: string | null;
@@ -28,7 +28,7 @@ interface TextInput extends BaseWidget {
     };
 }
 
-interface NumberInput extends BaseWidget {
+export interface NumberInput extends BaseWidget {
     type: "number";
     template_name: "django/forms/widgets/number.html";
     value: string | null;
@@ -37,25 +37,25 @@ interface NumberInput extends BaseWidget {
     };
 }
 
-interface PasswordInput extends BaseWidget {
+export interface PasswordInput extends BaseWidget {
     type: "password";
     template_name: "django/forms/widgets/password.html";
     value: string | null;
 }
 
-interface EmailInput extends BaseWidget {
+export interface EmailInput extends BaseWidget {
     type: "email";
     template_name: "django/forms/widgets/email.html";
     value: string | null;
 }
 
-interface HiddenInput extends BaseWidget {
+export interface HiddenInput extends BaseWidget {
     type: "hidden";
     template_name: "django/forms/widgets/hidden.html";
     value: string | null;
 }
 
-interface Textarea extends BaseWidget {
+export interface Textarea extends BaseWidget {
     template_name: "django/forms/widgets/textarea.html";
     value: string | null;
     attrs: BaseWidget["attrs"] & {
@@ -64,13 +64,13 @@ interface Textarea extends BaseWidget {
     };
 }
 
-interface DateInput extends BaseWidget {
+export interface DateInput extends BaseWidget {
     template_name: "django/forms/widgets/date.html";
     type: "date";
     value: string | null;
 }
 
-interface ClearableFileInput extends BaseWidget {
+export interface ClearableFileInput extends BaseWidget {
     template_name: "django/forms/widgets/clearable_file_input.html";
     type: "file";
     value: string | null;
@@ -110,7 +110,7 @@ function isMultiple<T extends IsMultiple, U extends IsSingle>(
     return "multiple" in widget.attrs;
 }
 
-interface Select extends BaseWidget {
+export interface Select extends BaseWidget {
     value: string[];
     template_name: "django/forms/widgets/select.html";
     optgroups: Optgroup[];
@@ -125,13 +125,13 @@ export interface Autocomplete extends BaseWidget {
     } | null;
 }
 
-interface SelectMultiple extends Select {
+export interface SelectMultiple extends Select {
     attrs: BaseWidget["attrs"] & {
         multiple: "multiple";
     };
 }
 
-interface SelectDateWidget extends BaseWidget {
+export interface SelectDateWidget extends BaseWidget {
     value: {
         year: string | null;
         month: string | null;

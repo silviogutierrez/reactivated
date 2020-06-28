@@ -6,7 +6,6 @@ import simplejson
 from django.core.exceptions import FieldDoesNotExist
 from django.core.management import call_command
 from django.db import models as django_models
-
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import ComputedField, create_schema
 from sample.server.apps.samples import forms, models
@@ -156,13 +155,9 @@ def test_form():
                             "help_text": {"type": "string"},
                             "label": {"type": "string"},
                             "name": {"type": "string"},
-                            "type": {
-                                "type": "string",
-                                "enum": ["reactivated/autocomplete"],
-                            },
-                            "widget": {"tsType": "WidgetType"},
+                            "widget": {"tsType": "widgets.Select"},
                         },
-                        "required": ["name", "label", "help_text", "type", "widget"],
+                        "required": ["name", "label", "help_text", "widget"],
                         "serializer": "field_serializer",
                         "type": "object",
                     },
@@ -172,13 +167,9 @@ def test_form():
                             "help_text": {"type": "string"},
                             "label": {"type": "string"},
                             "name": {"type": "string"},
-                            "type": {
-                                "type": "string",
-                                "enum": ["django/forms/widgets/checkbox.html"],
-                            },
-                            "widget": {"tsType": "WidgetType"},
+                            "widget": {"tsType": "widgets.CheckboxInput"},
                         },
-                        "required": ["name", "label", "help_text", "type", "widget"],
+                        "required": ["name", "label", "help_text", "widget"],
                         "serializer": "field_serializer",
                         "type": "object",
                     },
@@ -188,13 +179,9 @@ def test_form():
                             "help_text": {"type": "string"},
                             "label": {"type": "string"},
                             "name": {"type": "string"},
-                            "type": {
-                                "type": "string",
-                                "enum": ["django/forms/widgets/text.html"],
-                            },
-                            "widget": {"tsType": "WidgetType"},
+                            "widget": {"tsType": "widgets.TextInput"},
                         },
-                        "required": ["name", "label", "help_text", "type", "widget"],
+                        "required": ["name", "label", "help_text", "widget"],
                         "serializer": "field_serializer",
                         "type": "object",
                     },

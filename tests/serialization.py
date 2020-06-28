@@ -2,11 +2,11 @@ from typing import Any, List, Literal, NamedTuple, Tuple
 
 import pytest
 import simplejson
+from jsonschema import validate
+
 from reactivated import Pick
 from reactivated.serialization import create_schema, serialize
 from sample.server.apps.samples import forms, models
-
-from jsonschema import validate
 
 
 class Spam(NamedTuple):

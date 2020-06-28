@@ -6,6 +6,7 @@ import simplejson
 from django.core.exceptions import FieldDoesNotExist
 from django.core.management import call_command
 from django.db import models as django_models
+
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import ComputedField, create_schema
 from sample.server.apps.samples import forms, models

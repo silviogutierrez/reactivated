@@ -116,6 +116,21 @@ class FieldType(NamedTuple):
         )
 
 
+def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
+    """
+    Previously we used a custom FormRenderer but there is *no way* to avoid
+    the built in render method from piping this into `mark_safe`.
+
+    So we monkeypatch the widget's internal renderer to return JSON directly
+    without being wrapped by `mark_safe`.
+    """
+    field.field.widget._render = (  # type: ignore[attr-defined]
+        lambda template_name, context, renderer: context
+    )
+    context = field.as_widget()["widget"]  # type: ignore[index]
+    return context  # type: ignore[return-value]
+
+
 class FormType(NamedTuple):
     name: str
     errors: Optional[FormErrors]
@@ -128,12 +143,6 @@ class FormType(NamedTuple):
         Type: Type["FormType"], value: django_forms.BaseForm, schema: Thing
     ) -> JSON:
         form = value
-
-        def extract_widget_context(field):
-            field.field.widget._render = (
-                lambda template_name, context, renderer: context
-            )
-            return field.as_widget()["widget"]
 
         fields = {
             field.name: FieldType(

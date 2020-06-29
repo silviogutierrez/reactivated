@@ -1,4 +1,4 @@
-from typing import Any, NamedTuple, TypeVar
+from typing import Any, NamedTuple, Type, TypeVar
 
 from django import forms
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -9,14 +9,12 @@ from .renderer import should_respond_with_json
 T = TypeVar("T", bound=NamedTuple)
 
 
-def template(cls: T) -> T:
+def template(cls: Type[T]) -> Type[T]:
     from . import type_registry, template_registry
 
-    type_name = f"{cls.__name__}Props"  # type: ignore[attr-defined]
+    type_name = f"{cls.__name__}Props"
     type_registry[type_name] = cls  # type: ignore[assignment]
-    template_registry[
-        cls.__name__  # type: ignore[attr-defined]
-    ] = type_name  # type: ignore[assignment]
+    template_registry[cls.__name__] = type_name  # type: ignore[assignment]
 
     class Augmented(cls):  # type: ignore[misc, valid-type]
         def get_serialized(self) -> Any:
@@ -35,8 +33,12 @@ def template(cls: T) -> T:
         def as_json(self, request: HttpRequest) -> JsonResponse:
             return JsonResponse(self.get_serialized())
 
-    Augmented.__name__ = cls.__name__  # type: ignore[attr-defined]
-    return Augmented  # type: ignore[return-value]
+    Augmented.__name__ = cls.__name__
+    return Augmented
+
+
+class Action(NamedTuple):
+    name: str
 
 
 def interface(cls: T) -> T:
@@ -66,11 +68,27 @@ def interface(cls: T) -> T:
                 for name, possible_form in context.items()
                 if isinstance(possible_form, forms.BaseForm)
             }
+            context_form_sets = {
+                name: possible_form_set
+                for name, possible_form_set in context.items()
+                if isinstance(possible_form_set, forms.BaseFormSet)
+            }
+            context_actions = {
+                name: possible_action
+                for name, possible_action in context.items()
+                if isinstance(possible_action, Action)
+            }
 
             return TemplateResponse(
                 request,
                 "reactivated/interface.html",
-                {**self._asdict(), "forms": context_forms, "serialized": serialized},
+                {
+                    **self._asdict(),
+                    "forms": context_forms,
+                    "form_sets": context_form_sets,
+                    "actions": context_actions,
+                    "serialized": serialized,
+                },
             )
 
         def as_json(self, request: HttpRequest) -> JsonResponse:

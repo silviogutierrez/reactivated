@@ -1,10 +1,13 @@
-from typing import TYPE_CHECKING, Any, ClassVar, List, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, List, Mapping, Type, Union
 
 if TYPE_CHECKING:
     from django import forms as django_forms
 
+    class BaseForm(django_forms.BaseForm):
+        base_fields: ClassVar[Mapping[str, django_forms.fields.Field]]
+
     class BaseFormSet(django_forms.formsets.BaseFormSet):
-        form: ClassVar[Type[django_forms.BaseForm]]
+        form: ClassVar[Type[BaseForm]]
 
         def total_form_count(self) -> int:
             ...
@@ -15,10 +18,16 @@ if TYPE_CHECKING:
         def non_form_errors(self) -> Any:
             ...
 
+        def is_valid(self) -> bool:
+            pass
+
         can_order: bool
         can_delete: bool
         max_num: int
         min_num: int
+
+    class BaseModelFormSet(BaseFormSet, django_forms.models.BaseModelFormSet):
+        pass
 
     class _GenericAlias:
         __origin__: Union[type, Any]

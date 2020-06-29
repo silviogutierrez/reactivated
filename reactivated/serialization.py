@@ -15,7 +15,6 @@ from typing import (
     get_type_hints,
 )
 
-import simplejson
 from django import forms as django_forms
 from django.conf import settings
 from django.db import models
@@ -60,12 +59,6 @@ class Thing(NamedTuple):
     definitions: Definitions
 
 
-class WidgetType(NamedTuple):
-    @classmethod
-    def get_json_schema(Type: Type["WidgetType"], definitions: Definitions) -> "Thing":
-        return Thing(schema={"tsType": str(Type.__name__)}, definitions=definitions)
-
-
 class ForeignKeyType:
     @classmethod
     def get_serialized_value(
@@ -90,8 +83,13 @@ class FieldType(NamedTuple):
     name: str
     label: str
     help_text: str
-    type: str
-    widget: WidgetType
+
+    # TODO: way to mark this as a custom property we define. This is just so it is
+    # marked as required.
+    #
+    # The actual widget name is done by `form_schema`, which is kind of odd.
+    # We need a better way to make a custom schema that is self contained.
+    widget: Any
 
     @classmethod
     def get_json_schema(Type: Type["FieldType"], definitions: Definitions) -> "Thing":
@@ -118,6 +116,21 @@ class FieldType(NamedTuple):
         )
 
 
+def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
+    """
+    Previously we used a custom FormRenderer but there is *no way* to avoid
+    the built in render method from piping this into `mark_safe`.
+
+    So we monkeypatch the widget's internal renderer to return JSON directly
+    without being wrapped by `mark_safe`.
+    """
+    field.field.widget._render = (  # type: ignore[attr-defined]
+        lambda template_name, context, renderer: context
+    )
+    context = field.as_widget()["widget"]  # type: ignore[index]
+    return context  # type: ignore[return-value]
+
+
 class FormType(NamedTuple):
     name: str
     errors: Optional[FormErrors]
@@ -129,16 +142,11 @@ class FormType(NamedTuple):
     def get_serialized_value(
         Type: Type["FormType"], value: django_forms.BaseForm, schema: Thing
     ) -> JSON:
-        from . import SSRFormRenderer
-
         form = value
 
-        previous_renderer = form.renderer
-        form.renderer = SSRFormRenderer()
         fields = {
             field.name: FieldType(
-                widget=simplejson.loads(str(field))["widget"],
-                type=field.field.widget.template_name,  # type: ignore[attr-defined]
+                widget=extract_widget_context(field),
                 name=field.name,
                 label=str(
                     field.label
@@ -149,7 +157,6 @@ class FormType(NamedTuple):
             )
             for field in form
         }
-        form.renderer = previous_renderer
 
         return FormType(
             name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",
@@ -229,6 +236,7 @@ def field_descriptor_schema(
         models.EmailField: str,
         models.UUIDField: str,
         models.IntegerField: int,
+        models.PositiveIntegerField: int,
         models.DecimalField: str,
     }
 
@@ -377,11 +385,21 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
 
     for field_name, SubType in Type.base_fields.items():  # type: ignore[attr-defined]
         required.append(field_name)
+
+        SourceWidget = SubType.widget.__class__
+
+        if SourceWidget.__module__ != "django.forms.widgets":
+            SourceWidget = SubType.widget.__class__.__bases__[0]
+
+        assert (
+            SourceWidget.__module__ == "django.forms.widgets"
+        ), f"Only core widgets and depth-1 inheritance widgets are currently supported. Check {SubType.widget.__class__}"
+
         properties[field_name] = {
             **field_type_definition,
             "properties": {
                 **field_type_definition["properties"],
-                "type": {"type": "string", "enum": [SubType.widget.template_name],},
+                "widget": {"tsType": f"widgets.{SourceWidget.__name__}"},
             },
         }
         error_properties[field_name] = error_definition

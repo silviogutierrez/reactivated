@@ -70,10 +70,13 @@ def get_field_descriptor(
 
         # TODO: Maybe RelatedField replaces all of the above?
         # Consolidate around many_* properties
+        # OneToOneRel is a subclass of ManyToOneRel so we need to short circuit.
         is_multiple = (
-            isinstance(field_descriptor, (models.ManyToManyField, models.ManyToOneRel))
-            or field_descriptor.many_to_many is True
-        )
+            not isinstance(field_descriptor, models.OneToOneRel)
+            and isinstance(
+                field_descriptor, (models.ManyToManyField, models.ManyToOneRel)
+            )
+        ) or field_descriptor.many_to_many is True
 
         return nested_descriptor, ((field_name, is_multiple), *nested_field_names)
 

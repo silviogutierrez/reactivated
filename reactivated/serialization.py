@@ -350,7 +350,7 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
 
         if isinstance(possible_method_or_property, property):
             annotations = get_type_hints(possible_method_or_property.fget)
-            field_schema = create_schema(annotations['return'], definitions)
+            field_schema = create_schema(annotations["return"], definitions)
             definitions = {**definitions, **field_schema.definitions}
             required.append(field_name)
             properties[field_name] = field_schema.schema

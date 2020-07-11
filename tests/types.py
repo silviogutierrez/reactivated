@@ -17,6 +17,10 @@ class NamedTupleType(NamedTuple):
     second: bool
     third: int
 
+    @property
+    def fourth_as_property(self) -> int:
+        return 5
+
 
 class TypedDictType(TypedDict):
     first: str
@@ -34,8 +38,9 @@ def test_named_tuple():
                     "first": {"type": "string"},
                     "second": {"type": "boolean"},
                     "third": {"type": "number"},
+                    "fourth_as_property": {"type": "number"},
                 },
-                "required": ["first", "second", "third"],
+                "required": ["first", "second", "third", "fourth_as_property"],
                 "serializer": None,
                 "type": "object",
             }

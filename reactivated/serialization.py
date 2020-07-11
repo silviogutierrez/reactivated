@@ -342,6 +342,19 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
         required.append(field_name)
         properties[field_name] = field_schema.schema
 
+    for field_name in dir(Type):
+        if field_name in properties:
+            continue
+
+        possible_method_or_property = getattr(Type, field_name)
+
+        if isinstance(possible_method_or_property, property):
+            annotations = get_type_hints(possible_method_or_property.fget)
+            field_schema = create_schema(annotations['return'], definitions)
+            definitions = {**definitions, **field_schema.definitions}
+            required.append(field_name)
+            properties[field_name] = field_schema.schema
+
     return Thing(
         schema={"$ref": f"#/definitions/{definition_name}"},
         definitions={

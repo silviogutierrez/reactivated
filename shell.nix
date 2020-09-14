@@ -23,6 +23,9 @@ mkShell {
     shellcheck
     shfmt
     nixfmt
+
+    # Purely for formatting right now.
+    terraform
   ];
   src = ./scripts/helpers.sh;
   shellHook = ''

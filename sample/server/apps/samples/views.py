@@ -106,10 +106,14 @@ def typed_data_browser(
 ) -> Union[TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
 
     return templates.DataBrowser(
-        composer_form_set=forms.ComposerFormSet(prefix="composer_form_set"),
-        composer_form=forms.ComposerForm(prefix="composer_form"),
-        opera_form_set=forms.OperaFormSet(prefix="opera_form_set"),
-        opera_form=forms.OperaForm(prefix="opera_form-0"),
+        composer_form_set=forms.ComposerFormSet(
+            request.POST or None, prefix="composer_form_set"
+        ),
+        composer_form=forms.ComposerForm(request.POST or None, prefix="composer_form"),
+        opera_form_set=forms.OperaFormSet(
+            request.POST or None, prefix="opera_form_set"
+        ),
+        opera_form=forms.OperaForm(request.POST or None, prefix="opera_form-0"),
     ).render(request)
 
 

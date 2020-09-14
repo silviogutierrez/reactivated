@@ -4,9 +4,9 @@ import {style} from "typestyle";
 import {Form, FormSet} from "reactivated";
 
 import {Layout} from "@client/components/Layout";
-import {FormPlayground} from "@client/generated";
+import {Types} from "@client/generated";
 
-export default class extends FormPlayground {
+export default class extends React.Component<Types["FormPlaygroundProps"], {}> {
     render() {
         return (
             <Layout>

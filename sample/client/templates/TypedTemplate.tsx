@@ -4,7 +4,7 @@ import {style} from "typestyle";
 import {Form, FormSet} from "reactivated";
 
 import {Layout} from "@client/components/Layout";
-import {TypedTemplate} from "@client/generated";
+import {Types} from "@client/generated";
 
 const styles = {
     layout: style({maxWidth: 600, margin: "0 auto"}),
@@ -12,7 +12,7 @@ const styles = {
     header: style({color: "blue"}),
 } as const;
 
-export default class extends TypedTemplate {
+export default class extends React.Component<Types["TypedTemplateProps"], {}> {
     render() {
         const props = this.props;
 

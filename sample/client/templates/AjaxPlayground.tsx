@@ -2,9 +2,9 @@ import React from "react";
 import Context from "reactivated/context";
 import {style} from "typestyle";
 
-import {AjaxPlayground} from "@client/generated";
+import {Types} from "@client/generated";
 
-export default class extends AjaxPlayground {
+export default class extends React.Component<Types["AjaxPlaygroundProps"], {}> {
     static contextType = Context;
 
     handleOnClick = async (event: React.FormEvent<HTMLButtonElement>) => {

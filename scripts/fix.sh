@@ -35,7 +35,6 @@ fi
 
 CHANGED_PY_FILES=$(echo "$CHANGED_FILES" | grep -e '.pyi\?$' || true)
 CHANGED_PRETTIER_FILES=$(echo "$CHANGED_FILES" | grep -e '.tsx\?$\|.yaml$\|.json$' || true)
-CHANGED_TSLINT_FILES=$(echo "$CHANGED_FILES" | grep -e '.tsx\?$' || true)
 CHANGED_SH_FILES=$(echo "$CHANGED_FILES" | grep -e '.sh$' || true)
 CHANGED_NIX_FILES=$(echo "$CHANGED_FILES" | grep -e '.nix$' || true)
 CHANGED_TF_FILES=$(echo "$CHANGED_FILES" | grep -e '.tf$\|.tfvars$' || true)
@@ -45,7 +44,6 @@ echo -e "[Prettier]:\n$CHANGED_PRETTIER_FILES\n"
 echo -e "[Shell]:\n$CHANGED_SH_FILES\n"
 echo -e "[Nix]:\n${CHANGED_NIX_FILES}\n"
 echo -e "[Terraform]:\n${CHANGED_TF_FILES}\n"
-echo -e "[TSLint]:\n${CHANGED_TSLINT_FILES}\n"
 
 cd "$PROJECT_ROOT"
 
@@ -84,12 +82,7 @@ fi
 
 if [[ -n "${CHANGED_TF_FILES// /}" ]]; then
     # shellcheck disable=SC2086
-    terraform fmt $CHANGED_TF_FILES
-fi
-
-if [[ -n "${CHANGED_TSLINT_FILES// /}" ]]; then
-    # shellcheck disable=SC2086
-    node_modules/.bin/tslint -p . --fix $CHANGED_TSLINT_FILES
+    terraform fmt -recursive $PROJECT_ROOT
 fi
 
 cd "$PWD"

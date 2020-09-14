@@ -1,0 +1,80 @@
+name: Continuous Integration
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+        branches:
+            - master
+
+jobs:
+    infrastructure_tests:
+        name: Infrastructure tests
+        runs-on: ubuntu-18.04
+        steps:
+            - uses: actions/checkout@v1
+            - uses: cachix/install-nix-action@v10
+            - name: Nix requirements
+              run: nix-shell
+            - name: Run tests
+              run: nix-shell --command "scripts/test.sh --infrastructure"
+    server_tests:
+        name: Sever tests
+        runs-on: ubuntu-18.04
+        steps:
+            - uses: actions/checkout@v1
+            - uses: actions/setup-node@master
+              with:
+                  node-version: "13.x"
+            - uses: actions/setup-python@master
+              with:
+                  python-version: "3.8"
+            - name: Python requirements
+              run: pip install -r requirements.txt
+            - name: Yarn
+              run: |
+                  yarn
+                  yarn --cwd packages/reactivated
+                  yarn --cwd sample
+            - name: Run tests
+              run: scripts/test.sh --server
+    client_tests:
+        name: Client tests
+        runs-on: ubuntu-18.04
+        steps:
+            - uses: actions/checkout@v1
+            - uses: actions/setup-node@master
+              with:
+                  node-version: "13.x"
+            - uses: actions/setup-python@master
+              with:
+                  python-version: "3.8"
+            - name: Python requirements
+              run: pip install -r requirements.txt
+            - name: Yarn
+              run: |
+                  yarn
+                  yarn --cwd packages/reactivated
+                  yarn --cwd sample
+            - name: Run tests
+              run: scripts/test.sh --client
+    e2e_tests:
+        name: End-to-end tests
+        runs-on: ubuntu-18.04
+        steps:
+            - uses: actions/checkout@v1
+            - uses: actions/setup-node@master
+              with:
+                  node-version: "13.x"
+            - uses: actions/setup-python@master
+              with:
+                  python-version: "3.8"
+            - name: Python requirements
+              run: pip install -r requirements.txt
+            - name: Yarn
+              run: |
+                  yarn
+                  yarn --cwd packages/reactivated
+                  yarn --cwd sample
+            - name: Run tests
+              run: scripts/test.sh --e2e

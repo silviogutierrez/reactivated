@@ -5,7 +5,7 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
 from reactivated.forms import autocomplete
-from server.apps.samples import forms  # type: ignore
+from sample.server.apps.samples import forms
 
 
 @autocomplete

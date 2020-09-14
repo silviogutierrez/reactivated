@@ -328,9 +328,11 @@ def test_build_nested_schema():
     )
 
 
-def test_generate_types_schema():
+def test_generate_types_schema(settings):
+    # This technically loads the full sample site, which expects to be run
+    # from the sample subdirectory.
+    settings.ROOT_URLCONF = "sample.server.urls"
     output = StringIO()
-
     call_command("generate_types_schema", stdout=output)
     schema = simplejson.loads(output.getvalue())
     assert "types" in schema

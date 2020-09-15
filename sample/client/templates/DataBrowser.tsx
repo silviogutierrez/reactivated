@@ -3,7 +3,7 @@ import {style} from "typestyle";
 
 import {Types} from "@client/generated";
 import {Form, FormSet} from "reactivated";
-import {ManagementForm} from "reactivated/forms";
+import {Fields, ManagementForm} from "reactivated/forms";
 
 const styles = {
     layout: style({maxWidth: 600, margin: "0 auto"}),
@@ -14,6 +14,9 @@ const styles = {
 export default (props: Types["DataBrowserProps"]) => (
     <div className={styles.layout}>
         <h1 className={styles.header}>Composers</h1>
+        <form>
+            <Fields form={props.composer_form} fields={['name']} />
+        </form>
         <Form form={props.composer_form}>
             <button type="submit">Submit</button>
         </Form>

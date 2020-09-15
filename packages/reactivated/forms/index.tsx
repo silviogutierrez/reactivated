@@ -31,14 +31,17 @@ interface BaseFieldsProps<U extends FieldMap> {
     form: FormLike<U>;
 }
 
-interface IncludeFieldsProps<U extends FieldMap> extends BaseFieldsProps<U> {}
+interface IncludeFieldsProps<U extends FieldMap> extends BaseFieldsProps<U> {
+    fields?: Array<keyof U>;
+    exclude?: never;
+}
 
-interface ExcludeFieldProps<U extends FieldMap> extends BaseFieldsProps<U> {}
+interface ExcludeFieldProps<U extends FieldMap> extends BaseFieldsProps<U> {
+    fields?: never;
+    exclude: Array<keyof U>;
+}
 
-type FieldsProps<U extends FieldMap> =
-    | BaseFieldsProps<U>
-    | IncludeFieldsProps<U>
-    | ExcludeFieldProps<U>;
+type FieldsProps<U extends FieldMap> = IncludeFieldsProps<U> | ExcludeFieldProps<U>;
 
 export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
     return <div>Ok</div>;

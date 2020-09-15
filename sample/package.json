@@ -26,6 +26,6 @@
         "webpack-dev-server": "^3.7.1"
     },
     "scripts": {
-        "start": "webpack-dev-server"
+        "start": "TS_NODE_TRANSPILE_ONLY=true webpack-dev-server"
     }
 }

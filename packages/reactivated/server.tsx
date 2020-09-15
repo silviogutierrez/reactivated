@@ -115,7 +115,9 @@ export const render = (
                 // instances of React and we get server side rendering issues
                 // when using hooks.
                 // https://reactjs.org/warnings/invalid-hook-call-warning.html
-                !cacheKey.includes("react")
+                //
+                // Note the trailing slash so to avoid matching reactivated.
+                !cacheKey.includes("react/")
             ) {
                 delete require.cache[cacheKey];
             }

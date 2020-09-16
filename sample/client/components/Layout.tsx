@@ -1,8 +1,8 @@
 import React from "react";
 import Helmet from "react-helmet";
 
-import {style} from "typestyle";
 import Context from "reactivated/context";
+import {style} from "typestyle";
 
 interface Props {
     title: string;

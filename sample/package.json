@@ -11,6 +11,7 @@
         "downshift": "^3.2.10",
         "json-schema-to-typescript": "^5.5.0",
         "module-alias": "^2.2.1",
+        "prettier": "^2.1.2",
         "react": "^16.8.6",
         "react-dom": "^16.8.6",
         "react-helmet": "^5.2.1",

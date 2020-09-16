@@ -83,7 +83,7 @@ export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
                             field={field}
                             error={error ?? null}
                             passed_validation={
-                                props.form!.errors != null && error == null
+                                props.form.errors != null && error == null
                             }
                         />
                     );

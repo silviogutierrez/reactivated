@@ -1,10 +1,11 @@
-from typing import Any, NamedTuple, Type, TypeVar
+from typing import Any, Dict, NamedTuple, Optional, Type, TypeVar
 
 from django import forms
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 
 from .renderer import should_respond_with_json
+from .serialization import JSON, create_schema, serialize
 
 T = TypeVar("T", bound=NamedTuple)
 
@@ -16,7 +17,15 @@ def template(cls: Type[T]) -> Type[T]:
     type_registry[type_name] = cls  # type: ignore[assignment]
     template_registry[cls.__name__] = type_name  # type: ignore[assignment]
 
+    class LazySerializationResponse(TemplateResponse):
+        def resolve_context(self, context: Optional[Dict[str, Any]]) -> JSON:
+            generated_schema = create_schema(cls, {})
+            return serialize(context, generated_schema)
+
     class Augmented(cls):  # type: ignore[misc, valid-type]
+        def items(self) -> Any:
+            return self._asdict().items()
+
         def get_serialized(self) -> Any:
             from .serialization import serialize, create_schema
 
@@ -24,14 +33,10 @@ def template(cls: Type[T]) -> Type[T]:
             return serialize(self, generated_schema)
 
         def render(self, request: HttpRequest) -> TemplateResponse:
-            serialized = self.get_serialized()
-
-            return TemplateResponse(
-                request, f"{self.__class__.__name__}.tsx", serialized
+            response = LazySerializationResponse(  # type
+                request, f"{self.__class__.__name__}.tsx", self,
             )
-
-        def as_json(self, request: HttpRequest) -> JsonResponse:
-            return JsonResponse(self.get_serialized())
+            return response
 
     Augmented.__name__ = cls.__name__
     return Augmented

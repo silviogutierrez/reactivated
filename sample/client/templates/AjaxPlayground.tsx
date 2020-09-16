@@ -1,6 +1,5 @@
 import React from "react";
 import Context from "reactivated/context";
-import {style} from "typestyle";
 
 import {Types} from "@client/generated";
 
@@ -17,7 +16,7 @@ export default class extends React.Component<Types["AjaxPlaygroundProps"], {}> {
             },
             body: JSON.stringify({thing: "I am post data"}),
         })
-            .then(response => response.json())
+            .then((response) => response.json())
             .then(({results}) => {
                 // tslint:disable-next-line
                 console.log(results);
@@ -31,7 +30,7 @@ export default class extends React.Component<Types["AjaxPlaygroundProps"], {}> {
             headers: {
                 Accept: "application/json, application/xhtml+xml",
             },
-        }).then(async response => {
+        }).then(async (response) => {
             const parsed = await response.json();
             // tslint:disable-next-line
             console.log(response, parsed);

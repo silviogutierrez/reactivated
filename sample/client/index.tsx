@@ -1,5 +1,5 @@
 import React from "react";
-import {hydrate, render} from "react-dom";
+import {hydrate} from "react-dom";
 import {setStylesTarget} from "typestyle";
 
 import {Provider} from "reactivated/context";

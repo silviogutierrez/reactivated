@@ -108,7 +108,7 @@ export function iterate<T, U extends FieldMap>(
     form: FormLike<U>,
     callback: (field: FieldLike, error: string[] | null | undefined) => T,
 ) {
-    return form.iterator.map(fieldName =>
+    return form.iterator.map((fieldName) =>
         callback(
             form.fields[fieldName],
             form.errors != null ? form.errors[fieldName] : null,
@@ -150,7 +150,7 @@ export class Form<U extends FieldMap> extends React.Component<Props<U>> {
                 ? this.props.getFields(form, this.state)
                 : form.iterator;
 
-        return filteredIterator.map(fieldName =>
+        return filteredIterator.map((fieldName) =>
             callback(
                 form.fields[fieldName],
                 form.errors != null ? form.errors[fieldName] : null,
@@ -177,7 +177,7 @@ export class Form<U extends FieldMap> extends React.Component<Props<U>> {
                 encType="multipart/form-data"
             >
                 <Consumer>
-                    {context => (
+                    {(context) => (
                         <input
                             type="hidden"
                             name="csrfmiddlewaretoken"

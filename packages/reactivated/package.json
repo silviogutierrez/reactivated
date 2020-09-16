@@ -13,8 +13,8 @@
         "prettier": "^1.18.2",
         "react": "^16.4.1",
         "reactstrap": "^8.0.0",
-        "ts-morph": "^2.3.0",
-        "ts-node": "^8.3.0",
+        "ts-morph": "^8.1.0",
+        "ts-node": "^9.0.0",
         "webpack": "^4.15.1"
     },
     "devDependencies": {

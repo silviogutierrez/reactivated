@@ -1,9 +1,10 @@
 import React from "react";
 import {style} from "typestyle";
 
+import {Layout} from "@client/components/Layout";
 import {Types} from "@client/generated";
 import {Form, FormSet} from "reactivated";
-import {Fields, ManagementForm} from "reactivated/forms";
+import {Fields} from "reactivated/forms";
 
 const styles = {
     layout: style({maxWidth: 600, margin: "0 auto"}),
@@ -12,10 +13,10 @@ const styles = {
 } as const;
 
 export default (props: Types["DataBrowserProps"]) => (
-    <div className={styles.layout}>
+    <Layout title="Data browser">
         <h1 className={styles.header}>Composers</h1>
         <form>
-            <Fields form={props.composer_form} fields={['name']} />
+            <Fields form={props.composer_form} fields={["name"]} />
         </form>
         <Form form={props.composer_form}>
             <button type="submit">Submit</button>
@@ -30,5 +31,5 @@ export default (props: Types["DataBrowserProps"]) => (
         <FormSet formSet={props.opera_form_set}>
             <button type="submit">Submit</button>
         </FormSet>
-    </div>
+    </Layout>
 );

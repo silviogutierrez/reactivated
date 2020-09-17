@@ -3,7 +3,14 @@ import {style} from "typestyle";
 
 import {Layout} from "@client/components/Layout";
 import {Types} from "@client/generated";
-import {Field, Fields, FormSetLike, ManagementForm} from "reactivated/forms";
+import {
+    CSRFToken,
+    Field,
+    FieldMap,
+    Fields,
+    FormSetLike,
+    ManagementForm,
+} from "reactivated/forms";
 
 const styles = {
     layout: style({maxWidth: 600, margin: "0 auto"}),
@@ -11,7 +18,7 @@ const styles = {
     header: style({color: "blue"}),
 } as const;
 
-const FormSet = ({formSet}: {formSet: FormSetLike<any>}) => (
+const FormSet = ({formSet}: {formSet: FormSetLike<FieldMap>}) => (
     <>
         <ManagementForm formSet={formSet} />
         <table>
@@ -47,7 +54,8 @@ const FormSet = ({formSet}: {formSet: FormSetLike<any>}) => (
 
 export default (props: Types["DataBrowserProps"]) => (
     <Layout title="Data browser">
-        <form>
+        <form method="POST">
+            <CSRFToken />
             <h1 className={styles.header}>Composers</h1>
             <Fields form={props.composer_form}>
                 {({field, error}) => (

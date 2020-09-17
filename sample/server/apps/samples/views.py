@@ -105,7 +105,7 @@ def typed_data_browser(
     request: HttpRequest,
 ) -> Union[TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
 
-    return templates.DataBrowser(
+    browser = templates.DataBrowser(
         composer_form_set=forms.ComposerFormSet(
             request.POST or None, prefix="composer_form_set"
         ),
@@ -113,8 +113,47 @@ def typed_data_browser(
         opera_form_set=forms.OperaFormSet(
             request.POST or None, prefix="opera_form_set"
         ),
-        opera_form=forms.OperaForm(request.POST or None, prefix="opera_form-0"),
-    ).render(request)
+        opera_form=forms.OperaForm(request.POST or None, prefix="opera_form"),
+    )
+
+    from django.forms import BaseForm, BaseFormSet
+
+    validated = []
+
+    for form_or_form_set in browser:
+        # This is hacky, but essentially, it says: if a form was not touched, treat it as valid if it's bound.
+        # If it's touched and bound, then validate it as normal
+        # If it's unbound to begin with, then it's not valid.
+        # We then modify .is_bound to fool Django into not producing .errors
+        # for our form when serialiazing, even though it's bound (but "valid" due to being untouched)
+        if isinstance(form_or_form_set, BaseForm):
+            validated.append(
+                form_or_form_set.is_bound
+                and (
+                    form_or_form_set.has_changed() is False
+                    or form_or_form_set.is_valid()
+                )
+            )
+            form_or_form_set.is_bound = form_or_form_set.has_changed()
+        elif isinstance(form_or_form_set, BaseFormSet):
+            validated.append(form_or_form_set.is_valid())  # type: ignore[no-untyped-call]
+
+    if all(validated):
+        # Because of the above hack, we still need to test the form was valid.
+        # A better design would be to have a dict of all the forms, and the
+        # invalid ones are just missing entirely.
+        if browser.composer_form.is_valid():
+            browser.composer_form.save()
+
+        if browser.opera_form.is_valid():
+            browser.opera_form.save()
+
+        browser.composer_form_set.save()
+        browser.opera_form_set.save()
+
+        return redirect(request.path)
+
+    return browser.render(request)
 
 
 @csrf_exempt

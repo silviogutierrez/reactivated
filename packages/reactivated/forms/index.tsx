@@ -1,6 +1,6 @@
 import React from "react";
 
-export {FormLike, FormSetLike, ManagementForm} from "../components/Form";
+export {FormLike, FormSetLike, FieldMap, ManagementForm} from "../components/Form";
 export {Field} from "../components/Field";
 
 import {Field} from "../components/Field";

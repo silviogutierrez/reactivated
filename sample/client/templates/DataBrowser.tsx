@@ -3,13 +3,47 @@ import {style} from "typestyle";
 
 import {Layout} from "@client/components/Layout";
 import {Types} from "@client/generated";
-import {Field, Fields, ManagementForm} from "reactivated/forms";
+import {Field, Fields, FormSetLike, ManagementForm} from "reactivated/forms";
 
 const styles = {
     layout: style({maxWidth: 600, margin: "0 auto"}),
 
     header: style({color: "blue"}),
 } as const;
+
+const FormSet = ({formSet}: {formSet: FormSetLike<any>}) => (
+    <>
+        <ManagementForm formSet={formSet} />
+        <table>
+            <thead>
+                <tr>
+                    <Fields form={formSet.empty_form}>
+                        {({field}) => <th key={field.widget.name}>{field.label}</th>}
+                    </Fields>
+                </tr>
+            </thead>
+            <tbody>
+                {formSet.forms.map((form) => (
+                    <tr key={form.prefix}>
+                        <Fields form={form}>
+                            {({field, error}) => (
+                                <td>
+                                    <Field
+                                        field={field}
+                                        error={error}
+                                        passed_validation={
+                                            form.errors != null && error == null
+                                        }
+                                    />
+                                </td>
+                            )}
+                        </Fields>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </>
+);
 
 export default (props: Types["DataBrowserProps"]) => (
     <Layout title="Data browser">
@@ -58,22 +92,7 @@ export default (props: Types["DataBrowserProps"]) => (
                 )}
             </Fields>
             <ManagementForm formSet={props.opera_form_set} />
-            {props.opera_form_set.forms.map((formSetForm) => (
-                <div key={formSetForm.prefix}>
-                    <h2>{formSetForm.prefix}</h2>
-                    <Fields form={formSetForm}>
-                        {({field, error}) => (
-                            <Field
-                                field={field}
-                                error={error}
-                                passed_validation={
-                                    formSetForm.errors != null && error == null
-                                }
-                            />
-                        )}
-                    </Fields>
-                </div>
-            ))}
+            <FormSet formSet={props.opera_form_set} />
             <button type="submit">Submit</button>
         </form>
     </Layout>

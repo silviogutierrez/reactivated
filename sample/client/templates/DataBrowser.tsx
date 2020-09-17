@@ -37,6 +37,7 @@ const FormSet = ({formSet}: {formSet: FormSetLike<FieldMap>}) => (
                                 <td>
                                     <Field
                                         field={field}
+                                        label={false}
                                         error={error}
                                         passed_validation={
                                             form.errors != null && error == null
@@ -57,22 +58,11 @@ export default (props: Types["DataBrowserProps"]) => (
         <form method="POST">
             <CSRFToken />
             <h1 className={styles.header}>Composers</h1>
-            <Fields form={props.composer_form}>
-                {({field, error}) => (
-                    <Field
-                        field={field}
-                        error={error}
-                        passed_validation={
-                            props.composer_form.errors != null && error == null
-                        }
-                    />
-                )}
-            </Fields>
             <ManagementForm formSet={props.composer_form_set} />
 
             {props.composer_form_set.forms.map((formSetForm) => (
                 <div key={formSetForm.prefix}>
-                    <h2>{formSetForm.prefix}</h2>
+                    <h3>Composer: {formSetForm.fields.name.widget.value}</h3>
                     <Fields form={formSetForm}>
                         {({field, error}) => (
                             <Field
@@ -86,8 +76,23 @@ export default (props: Types["DataBrowserProps"]) => (
                     </Fields>
                 </div>
             ))}
+            <h3>Add new</h3>
+            <Fields form={props.composer_form}>
+                {({field, error}) => (
+                    <Field
+                        field={field}
+                        error={error}
+                        passed_validation={
+                            props.composer_form.errors != null && error == null
+                        }
+                    />
+                )}
+            </Fields>
 
             <h1 className={styles.header}>Operas</h1>
+            <ManagementForm formSet={props.opera_form_set} />
+            <FormSet formSet={props.opera_form_set} />
+            <h3>Add opera</h3>
             <Fields form={props.opera_form}>
                 {({field, error}) => (
                     <Field
@@ -99,8 +104,6 @@ export default (props: Types["DataBrowserProps"]) => (
                     />
                 )}
             </Fields>
-            <ManagementForm formSet={props.opera_form_set} />
-            <FormSet formSet={props.opera_form_set} />
             <button type="submit">Submit</button>
         </form>
     </Layout>

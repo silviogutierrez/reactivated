@@ -27,6 +27,7 @@ const Styles = {
         padding: 0,
         backgroundColor: "white",
         border: "1px solid #CCC",
+        zIndex: 10,
     }),
 
     empty: style({

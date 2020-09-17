@@ -2,6 +2,7 @@ import React from "react";
 import Context from "reactivated/context";
 
 import {Types} from "@client/generated";
+import {Layout} from "@client/components/Layout";
 
 export default class extends React.Component<Types["AjaxPlaygroundProps"], {}> {
     static contextType = Context;
@@ -39,10 +40,10 @@ export default class extends React.Component<Types["AjaxPlaygroundProps"], {}> {
 
     render() {
         return (
-            <div>
+            <Layout title="AJAX Playground">
                 <button onClick={this.handleOnClick}>Click me</button>
                 <button onClick={this.handleGiveMeBackJSON}>Give me back JSON</button>
-            </div>
+            </Layout>
         );
     }
 }

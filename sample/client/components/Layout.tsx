@@ -28,7 +28,7 @@ export const Layout = (props: Props) => {
 
                 <script defer src="/media/dist/bundle.js" />
             </Helmet>
-            <div className={styles.layout}>{props.children}</div>;
+            <div className={styles.layout}>{props.children}</div>
         </>
     );
 };

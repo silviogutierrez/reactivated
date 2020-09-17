@@ -1,6 +1,7 @@
 import React from "react";
 
 export {FormLike, FormSetLike, ManagementForm} from "../components/Form";
+export {Field} from "../components/Field";
 
 import {Field} from "../components/Field";
 import {FieldMap, FormLike} from "../components/Form";
@@ -31,6 +32,7 @@ interface BaseFieldsProps<U extends FieldMap> {
         nextValues: FormValues<U>,
     ) => FormValues<U>;
     form: FormLike<U>;
+    children: (props: {error: string[] | null; field: U[keyof U]}) => React.ReactNode;
 }
 
 interface IncludeFieldsProps<U extends FieldMap> extends BaseFieldsProps<U> {
@@ -75,10 +77,17 @@ export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
                 .map(([fieldName, field]) => {
                     const {widget} = field;
                     const error =
-                        props.form.errors != null ? props.form.errors[fieldName] : null;
+                        props.form.errors != null
+                            ? props.form.errors[fieldName] ?? null
+                            : null;
 
                     return (
-                        <Field
+                        <React.Fragment key={fieldName.toString()}>
+                            {props.children({field, error})}
+                        </React.Fragment>
+                    );
+                    /*
+                        <children
                             key={field.widget.name}
                             field={field}
                             error={error ?? null}
@@ -87,6 +96,7 @@ export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
                             }
                         />
                     );
+                    */
                 })}
         </>
     );

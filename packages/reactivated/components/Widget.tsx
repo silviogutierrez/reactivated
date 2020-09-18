@@ -37,6 +37,15 @@ export interface NumberInput extends BaseWidget {
     };
 }
 
+export interface CheckboxInput extends BaseWidget {
+    type: "number";
+    template_name: "django/forms/widgets/checkbox.html";
+    value: string | null;
+    attrs: BaseWidget["attrs"] & {
+        checked?: true;
+    };
+}
+
 export interface PasswordInput extends BaseWidget {
     type: "password";
     template_name: "django/forms/widgets/password.html";
@@ -144,6 +153,7 @@ export interface SelectDateWidget extends BaseWidget {
 export type WidgetType =
     | TextInput
     | NumberInput
+    | CheckboxInput
     | PasswordInput
     | EmailInput
     | HiddenInput
@@ -237,6 +247,23 @@ export const Widget = (props: Props) => {
                     id={widget.name}
                     name={widget.name}
                     rows={TEXTAREA_ROWS}
+                />
+            );
+        case "django/forms/widgets/checkbox.html":
+            return (
+                <Input
+                    readOnly={widget.attrs.disabled === true}
+                    invalid={props.has_errors}
+                    valid={
+                        widget.value !== "" &&
+                        widget.value != null &&
+                        props.passed_validation
+                    }
+                    type="checkbox"
+                    className={className}
+                    defaultChecked={widget.attrs.checked === true}
+                    id={widget.name}
+                    name={widget.name}
                 />
             );
         case "django/forms/widgets/select_date.html":

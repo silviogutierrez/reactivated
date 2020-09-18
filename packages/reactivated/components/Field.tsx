@@ -30,6 +30,7 @@ interface FieldType {
 
 interface Props {
     field: FieldType;
+    label?: false;
     error: string[] | null;
     passed_validation: boolean;
 }
@@ -48,7 +49,9 @@ export const Field = (props: Props) => {
     }
     return (
         <FormGroup>
-            <Label for={field.widget.name}>{field.label}</Label>
+            {props.label !== false && (
+                <Label for={field.widget.name}>{field.label}</Label>
+            )}
             <Widget
                 widget={field.widget}
                 has_errors={error != null}

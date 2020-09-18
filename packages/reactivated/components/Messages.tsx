@@ -13,7 +13,7 @@ const MESSAGE_LEVEL_CLASSES = {
 
 export const Messages = (props: {}) => (
     <Consumer>
-        {context => (
+        {(context) => (
             <>
                 {context.messages.map((message, index) => (
                     <Alert

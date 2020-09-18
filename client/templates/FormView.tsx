@@ -19,7 +19,7 @@ interface Props extends FormViewProps {
 export default (props: Props) => (
     <Layout>
         <ul>
-            {props.widget_list.map(widget => (
+            {props.widget_list.map((widget) => (
                 <li key={widget.name}>{widget.name}</li>
             ))}
         </ul>

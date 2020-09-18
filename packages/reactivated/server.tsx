@@ -115,7 +115,9 @@ export const render = (
                 // instances of React and we get server side rendering issues
                 // when using hooks.
                 // https://reactjs.org/warnings/invalid-hook-call-warning.html
-                !cacheKey.includes("react")
+                //
+                // Note the trailing slash so to avoid matching reactivated.
+                !cacheKey.includes("react/")
             ) {
                 delete require.cache[cacheKey];
             }
@@ -165,7 +167,7 @@ export default (settings: Settings) => ({
         proxy.on("proxyRes", (proxyRes, req, res) => {
             let body = Buffer.from(""); // , 'utf8');
 
-            proxyRes.on("data", data => {
+            proxyRes.on("data", (data) => {
                 body = Buffer.concat([body, data as Buffer]);
             });
             proxyRes.on("end", () => {

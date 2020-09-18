@@ -6,7 +6,7 @@ import {
     StructureKind,
     SyntaxKind,
     VariableDeclarationKind,
-    WriterFunctions,
+    WriterFunction,
 } from "ts-morph";
 
 const stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
@@ -111,7 +111,7 @@ export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentCl
 `);
 
 // tslint:disable-next-line
-compile(types, "Types").then(ts => {
+compile(types, "Types").then((ts) => {
     process.stdout.write("/* tslint:disable */\n");
     process.stdout.write(ts);
 

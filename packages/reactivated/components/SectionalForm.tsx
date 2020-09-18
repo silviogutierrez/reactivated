@@ -51,7 +51,7 @@ function iterate<T, U extends FieldMap>(
     fields: Array<keyof U>,
     callback: (field: FieldLike, error: string[] | null | undefined) => T,
 ) {
-    return fields.map(fieldName =>
+    return fields.map((fieldName) =>
         callback(
             form.fields[fieldName],
             form.errors != null ? form.errors[fieldName] : null,
@@ -64,7 +64,7 @@ export class SectionalForm<U extends FieldMap> extends React.Component<Props<U>>
         super(props);
         const state: any = {};
 
-        iterate(props.form, props.form.iterator, field => {
+        iterate(props.form, props.form.iterator, (field) => {
             if (field.widget.template_name === "django/forms/widgets/select.html") {
                 state[field.widget.name] = getValueForSelect(field.widget);
             } else {
@@ -100,7 +100,7 @@ export class SectionalForm<U extends FieldMap> extends React.Component<Props<U>>
                 encType="multipart/form-data"
             >
                 <Consumer>
-                    {context => (
+                    {(context) => (
                         <input
                             type="hidden"
                             name="csrfmiddlewaretoken"

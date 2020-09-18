@@ -51,7 +51,7 @@ export const FormSet = ({formSet, children}: Props) => (
         <table>
             <thead>
                 <tr>
-                    {iterate(formSet.empty_form, field => (
+                    {iterate(formSet.empty_form, (field) => (
                         <th
                             key={field.widget.name}
                             className={classes(isHidden(field.widget) && styles.hidden)}
@@ -62,7 +62,7 @@ export const FormSet = ({formSet, children}: Props) => (
                 </tr>
             </thead>
             <tbody>
-                {formSet.forms.map(form => (
+                {formSet.forms.map((form) => (
                     <tr key={form.prefix}>
                         {iterate(form, (field, error) => (
                             <td

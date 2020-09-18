@@ -23,6 +23,9 @@ class Country(models.Model):
         Continent, on_delete=models.CASCADE, related_name="countries"
     )
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class ComposerCountry(models.Model):
     country = models.ForeignKey(

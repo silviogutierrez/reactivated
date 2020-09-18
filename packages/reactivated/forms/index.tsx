@@ -86,17 +86,6 @@ export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
                             {props.children({field, error})}
                         </React.Fragment>
                     );
-                    /*
-                        <children
-                            key={field.widget.name}
-                            field={field}
-                            error={error ?? null}
-                            passed_validation={
-                                props.form.errors != null && error == null
-                            }
-                        />
-                    );
-                    */
                 })}
         </>
     );

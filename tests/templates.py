@@ -1,12 +1,13 @@
 from typing import Dict, NamedTuple, Optional
 
 from reactivated import Pick, template
-from sample.server.apps.samples import models
+from sample.server.apps.samples import models, forms
 
 
 def test_serialization():
     @template
     class Test(NamedTuple):
+        one: forms.OperaForm
         first: str
         second: bool
 

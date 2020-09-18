@@ -4,11 +4,13 @@ from typing import TypeVar
 
 from mypy.mro import MroError, calculate_mro
 from mypy.nodes import (
+    AssignmentStmt,
     ARG_POS,
     GDEF,
     Argument,
     Block,
     ClassDef,
+    Context,
     SymbolTable,
     SymbolTableNode,
     TypeInfo,
@@ -22,6 +24,7 @@ from mypy.plugin import (
 )
 from mypy.plugins.common import add_method
 from mypy.types import Instance, Type
+from mypy_django_plugin.lib import helpers
 
 T = TypeVar("T")
 CB = Optional[Callable[[T], None]]
@@ -120,6 +123,47 @@ def analyze_template(ctx: ClassDefContext) -> None:
         args=[request_arg],
         return_type=Instance(
             template_response.node, []  # type: ignore[union-attr, arg-type]
+        ),
+    )
+
+    api = ctx.api
+    model_classdef = ctx.cls
+    current_module = api.modules[model_classdef.info.module_name]
+    name = "Foo"
+
+    named_tuple = ctx.api.lookup_fully_qualified_or_none("typing.NamedTuple")
+
+    bases = [Instance(named_tuple.node, [])]
+
+    for possible_form in ctx.cls.defs.body:
+        if not isinstance(possible_form, AssignmentStmt):
+            continue
+
+        if possible_form.type.type.has_base("django.forms.forms.BaseForm"):
+            pass
+        elif possible_form.type.type.has_base("django.forms.formsets.BaseFormSet"):
+            pass
+        else:
+            context = Context(line=possible_form.line, column=possible_form.column)
+
+            ctx.api.fail(
+                "Only Form and FormSet types are supported", context,
+            )
+
+    # breakpoint()
+    new_class_info = helpers.add_new_class_for_module(
+        current_module,
+        name=name,
+        bases=bases,
+        fields={"composer_form": Instance(template_response.node, [])},
+    )
+
+    add_method(
+        ctx,
+        "is_valid",
+        args=[],
+        return_type=Instance(
+            new_class_info, []  # type: ignore[union-attr, arg-type]
         ),
     )
 

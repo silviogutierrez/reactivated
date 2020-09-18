@@ -138,6 +138,10 @@ def typed_data_browser(
         elif isinstance(form_or_form_set, BaseFormSet):
             validated.append(form_or_form_set.is_valid())  # type: ignore[no-untyped-call]
 
+    foo = browser.is_valid()
+    reveal_type(foo.composer_form)
+    foo.composer_form2
+
     if all(validated):
         # Because of the above hack, we still need to test the form was valid.
         # A better design would be to have a dict of all the forms, and the

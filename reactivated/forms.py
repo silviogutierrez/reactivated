@@ -76,11 +76,12 @@ def autocomplete(view_func: T) -> T:
             )
             and isinstance(form.fields[descriptor.field_name].widget, Autocomplete)
         ):
+            autocomplete_field = form.fields[descriptor.field_name]
+            to_field_name = autocomplete_field.to_field_name or "pk"
+
             results = [
-                {"value": result.pk, "label": str(result)}
-                for result in form.fields[descriptor.field_name].queryset.autocomplete(
-                    query
-                )[:50]
+                {"value": getattr(result, to_field_name), "label": str(result)}
+                for result in autocomplete_field.queryset.autocomplete(query)[:50]
             ]
 
             return JsonResponse({"results": results})

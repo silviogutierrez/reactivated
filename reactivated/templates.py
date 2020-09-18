@@ -18,12 +18,26 @@ def template(cls: Type[T]) -> Type[T]:
     template_registry[cls.__name__] = type_name  # type: ignore[assignment]
 
     class LazySerializationResponse(TemplateResponse):
+        """
+        This lazy serialization doesn't actually convert our context to JSON
+        until the very last minute, using resolve_context.
+
+        That allows things like our autocomplete decorator and other functions
+        that peek into the context to behave as normal. They'll be handed
+        regular Python objects.
+        """
+
         def resolve_context(self, context: Optional[Dict[str, Any]]) -> JSON:
             generated_schema = create_schema(cls, {})
             return serialize(context, generated_schema)
 
     class Augmented(cls):  # type: ignore[misc, valid-type]
         def items(self) -> Any:
+            """
+            Duck-typing for context, so you can loop over a template.
+
+            See autocomplete.
+            """
             return self._asdict().items()
 
         def get_serialized(self) -> Any:

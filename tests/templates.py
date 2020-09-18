@@ -10,7 +10,10 @@ def test_serialization():
         first: str
         second: bool
 
-    assert Test(first="thing", second=True).render(None).context_data == {
+    context = Test(first="thing", second=True)
+    response = context.render(None)
+    assert response.context_data == context
+    assert response.resolve_context(response.context_data) == {
         "first": "thing",
         "second": True,
     }
@@ -23,7 +26,10 @@ def test_union_with_pick():
     class Test(NamedTuple):
         union: Optional[Pick[models.Continent, "name"]]
 
-    assert Test(union=instance).render(None).context_data == {
+    context = Test(union=instance)
+    response = context.render(None)
+    assert response.context_data == context
+    assert response.resolve_context(response.context_data) == {
         "union": {"name": "Atlantis"}
     }
 
@@ -33,6 +39,9 @@ def test_non_class_based_members():
     class NonClass(NamedTuple):
         non_class_member: Dict[str, str]
 
-    assert NonClass(non_class_member={"a": "b"}).render(None).context_data == {
+    context = NonClass(non_class_member={"a": "b"})
+    response = context.render(None)
+    assert response.context_data == context
+    assert response.resolve_context(response.context_data) == {
         "non_class_member": {"a": "b"}
     }

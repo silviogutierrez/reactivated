@@ -27,6 +27,7 @@ const Styles = {
         padding: 0,
         backgroundColor: "white",
         border: "1px solid #CCC",
+        zIndex: 10,
     }),
 
     empty: style({
@@ -119,7 +120,7 @@ export class Autocomplete extends React.Component<Props, State> {
         url.searchParams.append("query", value);
 
         return fetch(url.toString())
-            .then(response => response.json())
+            .then((response) => response.json())
             .then(({results}) => {
                 this.setState({results});
             });
@@ -133,7 +134,7 @@ export class Autocomplete extends React.Component<Props, State> {
             <Downshift
                 onInputValueChange={this.handleOnInputValueChange}
                 initialSelectedItem={widget.selected}
-                itemToString={item => (item && item.value !== "" ? item.label : "")}
+                itemToString={(item) => (item && item.value !== "" ? item.label : "")}
             >
                 {({
                     getInputProps,

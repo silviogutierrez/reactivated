@@ -1,3 +1,4 @@
+// Note: changing the file requires restarting the development server
 import React from "react";
 import {createTypeStyle, TypeStyle} from "typestyle";
 

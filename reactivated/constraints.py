@@ -23,17 +23,16 @@ class EnumConstraint(models.constraints.BaseConstraint):
             """,
             table=Table(model._meta.db_table, schema_editor.quote_name),
             field_name=schema_editor.quote_name(self.field_name),
+            enum_type=schema_editor.quote_name(self.name),
             columns=", ".join([f"'{column}'" for column in columns]),
-            enum_type=schema_editor.quote_name(f"{self.field_name}_enum"),
         )
 
     def remove_sql(self, model, schema_editor):
         return Statement(
             "ALTER TABLE %(table)s ALTER COLUMN %(field_name)s TYPE varchar(63); DROP TYPE %(enum_type)s;",
             table=Table(model._meta.db_table, schema_editor.quote_name),
-            name=schema_editor.quote_name(self.name),
-            enum_type=schema_editor.quote_name(f"{self.field_name}_enum"),
             field_name=schema_editor.quote_name(self.field_name),
+            enum_type=schema_editor.quote_name(self.name),
         )
 
     def __repr__(self):

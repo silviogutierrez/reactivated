@@ -24,6 +24,11 @@ class EnumField(models.CharField):
         if "constraints" not in cls._meta.original_attrs:
             cls._meta.original_attrs["constraints"] = []
 
+        # Note that we cannot use the constraint name interpolation syntax
+        # because it's too late at this point. It's the metaclass that actually
+        # interpolates the values.
+        #
+        # Fortunately, we can create a name dynamically.
         cls._meta.constraints.append(
-            EnumConstraint(members=self.enum._member_names_, field_name=name, name=f"%(app_label)s_%(class)s_{name}_enum")
+            EnumConstraint(members=self.enum._member_names_, field_name=name, name=f"{cls._meta.db_table}_{name}_enum")
         )

@@ -1,10 +1,10 @@
 import enum
-
+import os
 from typing import Optional, cast
 
 from django.db import models
 
-from reactivated import computed_relation, fields
+from reactivated import computed_relation
 from reactivated.fields import EnumField
 
 models.QuerySet.__class_getitem__ = classmethod(  # type: ignore[assignment]
@@ -25,6 +25,26 @@ class Continent(models.Model):
     # hemisphere2 = EnumField(enum=Hemisphere, default=Hemisphere.SOUTHERN)
     # hemisphere3 = EnumField(enum=Hemisphere, default=Hemisphere.SOUTHERN)
     # hemisphere4 = EnumField(enum=Hemisphere, default=Hemisphere.SOUTHERN)
+
+
+if os.environ.get("STAGE") == "four":
+    class Thing(enum.Enum):
+        ONE = "One"
+        TWO = "Two"
+        THREE = "Three"
+else:
+    class Thing(enum.Enum):
+        ONE = "One"
+        TWO = "Two"
+
+
+if os.environ.get("STAGE") in ["two", "three", "four"] and os.environ.get("STAGE") != "five":
+
+    class Two(models.Model):
+        hemisphere = EnumField(enum=Thing, default=Thing.ONE)
+
+        if os.environ.get("STAGE") == "three":
+            hemisphere2 = EnumField(enum=Thing, default=Thing.ONE)
 
 
 class Country(models.Model):

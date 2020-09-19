@@ -10,6 +10,7 @@ from typing import (
     Optional,
     Protocol,
     Sequence,
+    Tuple,
     Type,
     Union,
     get_type_hints,
@@ -79,6 +80,32 @@ class ForeignKeyType:
         )
 
 
+class OptgroupMember(NamedTuple):
+    name: str
+    value: Union[str, int, bool, None]
+    label: str
+    selected: bool
+
+
+Optgroup = Tuple[None, Tuple[OptgroupMember], int]
+
+"""
+type Optgroup = [
+    null,
+    [
+        {
+            name: string;
+            // value: string|number|boolean|null;
+            value: string | number | boolean | null;
+            label: string;
+            selected: boolean;
+        },
+    ],
+    number,
+];
+"""
+
+
 class FieldType(NamedTuple):
     name: str
     label: str
@@ -127,8 +154,21 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     field.field.widget._render = (  # type: ignore[attr-defined]
         lambda template_name, context, renderer: context
     )
-    context = field.as_widget()["widget"]  # type: ignore[index]
-    return context  # type: ignore[return-value]
+    context: Any = field.as_widget()["widget"]  # type: ignore[index]
+    optgroups = context.get("optgroups", None)
+
+    # This is our first foray into properly serializing widgets using the
+    # serialization framework.
+    #
+    # Eventually all widgets can be serialized this way and the frontend widget
+    # types can disappear and be generated from the code here.
+    if optgroups is not None:
+        optgroup_schema = create_schema(Optgroup, {})  # type: ignore[misc]
+        context["optgroups"] = [
+            serialize(optgroup, optgroup_schema) for optgroup in optgroups
+        ]
+
+    return context  # type: ignore[no-any-return]
 
 
 class FormType(NamedTuple):

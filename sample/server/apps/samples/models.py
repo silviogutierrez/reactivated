@@ -22,6 +22,11 @@ class Continent(models.Model):
 
     name = models.CharField(max_length=100)
     hemisphere = EnumField(enum=Hemisphere, default=Hemisphere.SOUTHERN)
+
+    def foo(self) -> None:
+        reveal_type(EnumField)
+        reveal_type(self.hemisphere)
+        pass
     # hemisphere2 = EnumField(enum=Hemisphere, default=Hemisphere.SOUTHERN)
     # hemisphere3 = EnumField(enum=Hemisphere, default=Hemisphere.SOUTHERN)
     # hemisphere4 = EnumField(enum=Hemisphere, default=Hemisphere.SOUTHERN)

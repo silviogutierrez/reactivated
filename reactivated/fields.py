@@ -1,10 +1,9 @@
-# type: ignore
-from django.db import models
-from typing import Iterable, Tuple, Type
-
 from enum import Enum
+from typing import Iterable, Tuple, Type, TypeVar, Any
 
-from .constraints import EnumConstraint
+from django.db import models
+
+from .constraints import EnumConstraint  # type: ignore[attr-defined]
 
 
 def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[str, str]]:
@@ -12,20 +11,46 @@ def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[str, str]]:
         yield (member.name, member.value)
 
 
-class EnumField(models.CharField):
-    def __init__(self, *, enum: Type[Enum], default):
+"""
+if TYPE_CHECKING:
+    from django.db.models.fields import _ST, _GT, Field
+
+    Base =  Field
+else:
+    _ST = None
+    _GT = None
+
+    class Base(models.CharField):
+        @classmethod
+        def __class_getitem__(cls, key):
+            return cls
+"""
+
+
+TEnum = TypeVar("TEnum", bound=Enum)
+_ST = TypeVar("_ST", bound=Enum)
+_GT = TypeVar("_GT", bound=Enum)
+
+
+models.CharField.__class_getitem__ = classmethod(  # type: ignore[attr-defined]
+    lambda cls, key: cls
+)
+
+
+class EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
+    def __init__(self, *, enum: Type[_GT], default: _GT):
         self.enum = enum
         choices = convert_enum_to_choices(enum)
         super().__init__(default=default.name, max_length=63, choices=choices)
 
-    def deconstruct(self):
+    def deconstruct(self) -> Any:
         name, path, args, kwargs = super().deconstruct()
         kwargs["enum"] = self.enum
-        del kwargs['max_length']
-        del kwargs['choices']
+        del kwargs["max_length"]
+        del kwargs["choices"]
         return name, path, args, kwargs
 
-    def contribute_to_class(self, cls, name, **kwargs):
+    def contribute_to_class(self, cls, name, **kwargs):  # type: ignore[no-untyped-def]
         """
         We don't store the enum in the constraint. Instead, we store the fields
         so the autodetection for changed enums works automatically.
@@ -40,14 +65,37 @@ class EnumField(models.CharField):
         #
         # Fortunately, we can create a name dynamically.
         cls._meta.constraints.append(
-            EnumConstraint(members=self.enum._member_names_, field_name=name, name=f"{cls._meta.db_table}_{name}_enum")
+            EnumConstraint(
+                members=self.enum._member_names_,
+                field_name=name,
+                name=f"{cls._meta.db_table}_{name}_enum",
+            )
         )
 
-        class RemoteField:
-            model = cls
+    """
+    def from_db_value(
+        self, value: Optional[str], expression: Any, connection: Any
+    ) -> Optional[GT]:
+        return self.convert_value_to_enum(value)
 
-        class FakeString(str):
-            pass
+    def to_python(self, value: Union[GT, str, None]) -> Optional[GT]:
+        if isinstance(value, self.enum):
+            return value
+        assert isinstance(value, str) or value is None
+        return self.convert_value_to_enum(value)
+    """
 
-        # cls._meta.model_name = FakeString(cls._meta.model_name)
-        # self.remote_field = RemoteField()
+
+"""
+if TYPE_CHECKING:
+    Wrapper = EnumField
+
+    def make_enum_field(enum: Type[TEnum], default: TEnum) -> Wrapper[TEnum, TEnum]:
+        return cast(
+            Wrapper[TEnum, TEnum],
+            Wrapper(
+                enum=enum, default=default,
+            ),
+        )
+    EnumField = make_enum_field  # type: ignore[assignment]
+"""

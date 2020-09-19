@@ -46,6 +46,9 @@ if os.environ.get("STAGE") in ["two", "three", "four"] and os.environ.get("STAGE
         if os.environ.get("STAGE") == "three":
             hemisphere2 = EnumField(enum=Thing, default=Thing.ONE)
 
+        class Meta:
+            indexes = [models.Index(fields=["hemisphere"], name="index_test")]
+
 
 class Country(models.Model):
     name = models.CharField(max_length=100)
@@ -130,3 +133,4 @@ class Opera(models.Model):
             return country.name
 
         return None
+

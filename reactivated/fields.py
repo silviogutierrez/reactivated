@@ -4,6 +4,7 @@ from django.db import models
 from .constraints import EnumConstraint
 
 
+
 class EnumField(models.CharField):
     def __init__(self, *, enum, default):
         self.enum = enum
@@ -32,3 +33,12 @@ class EnumField(models.CharField):
         cls._meta.constraints.append(
             EnumConstraint(members=self.enum._member_names_, field_name=name, name=f"{cls._meta.db_table}_{name}_enum")
         )
+
+        class RemoteField:
+            model = cls
+
+        class FakeString(str):
+            pass
+
+        # cls._meta.model_name = FakeString(cls._meta.model_name)
+        # self.remote_field = RemoteField()

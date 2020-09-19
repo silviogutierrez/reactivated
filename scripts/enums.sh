@@ -43,3 +43,4 @@ python manage.py makemigrations
 python manage.py migrate
 
 psql reactivated -c "\dt"
+psql reactivated -c "\dT"

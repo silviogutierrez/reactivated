@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Iterable, Tuple, Type, TypeVar, Any
+from typing import Iterable, Tuple, Type, TypeVar, Any, cast
 
 from django.db import models
 
@@ -37,11 +37,11 @@ models.CharField.__class_getitem__ = classmethod(  # type: ignore[attr-defined]
 )
 
 
-class EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
+class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     def __init__(self, *, enum: Type[_GT], default: _GT):
         self.enum = enum
         choices = convert_enum_to_choices(enum)
-        super().__init__(default=default.name, max_length=63, choices=choices)
+        super().__init__(default=default, max_length=63, choices=choices)
 
     def deconstruct(self) -> Any:
         name, path, args, kwargs = super().deconstruct()
@@ -99,3 +99,11 @@ if TYPE_CHECKING:
         )
     EnumField = make_enum_field  # type: ignore[assignment]
 """
+
+def EnumField(enum: Type[TEnum], default=TEnum) -> _EnumField[TEnum, TEnum]:
+    return cast(
+        _EnumField[TEnum, TEnum],
+        _EnumField(
+            enum=enum, default=default,
+        ),
+    )

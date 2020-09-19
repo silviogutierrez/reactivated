@@ -128,6 +128,7 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
         lambda template_name, context, renderer: context
     )
     context = field.as_widget()["widget"]  # type: ignore[index]
+    breakpoint()
     return context  # type: ignore[return-value]
 
 

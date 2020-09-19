@@ -111,10 +111,16 @@ class OperaQuerySet(models.QuerySet["Opera"]):
 
 
 class Opera(models.Model):
+    class Style(enum.Enum):
+        VERISMO = "Verismo"
+        BUFFA = "Opera Buffa"
+        GRAND = "Grand Opera"
+
     name = models.CharField(max_length=100)
     composer = models.ForeignKey(
         "Composer", on_delete=models.CASCADE, related_name="operas"
     )
+    style = EnumField(enum=Style, default=Style.GRAND)
     has_piano_transcription = models.BooleanField(default=False)
 
     objects = cast(OperaManager, OperaManager.from_queryset(OperaQuerySet)())

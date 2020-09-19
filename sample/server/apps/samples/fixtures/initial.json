@@ -4,7 +4,7 @@
         "pk": 1,
         "fields": {
             "name": "Europe",
-            "hemisphere": "Northern"
+            "hemisphere": "NORTHERN"
         }
     },
     {

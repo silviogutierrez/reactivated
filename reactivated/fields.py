@@ -1,19 +1,28 @@
 # type: ignore
 from django.db import models
+from typing import Iterable, Tuple, Type
+
+from enum import Enum
 
 from .constraints import EnumConstraint
 
 
+def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[str, str]]:
+    for member in enum:
+        yield (member.name, member.value)
+
 
 class EnumField(models.CharField):
-    def __init__(self, *, enum, default):
+    def __init__(self, *, enum: Type[Enum], default):
         self.enum = enum
-        super().__init__(default=default, max_length=63)
+        choices = convert_enum_to_choices(enum)
+        super().__init__(default=default.name, max_length=63, choices=choices)
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
         kwargs["enum"] = self.enum
         del kwargs['max_length']
+        del kwargs['choices']
         return name, path, args, kwargs
 
     def contribute_to_class(self, cls, name, **kwargs):

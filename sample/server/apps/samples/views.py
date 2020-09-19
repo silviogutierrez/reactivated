@@ -134,7 +134,7 @@ def typed_data_browser(
                     or form_or_form_set.is_valid()
                 )
             )
-            form_or_form_set.is_bound = form_or_form_set.has_changed()
+            form_or_form_set.is_bound = form_or_form_set.is_bound and form_or_form_set.has_changed()
         elif isinstance(form_or_form_set, BaseFormSet):
             validated.append(form_or_form_set.is_valid())  # type: ignore[no-untyped-call]
 

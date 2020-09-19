@@ -82,14 +82,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "server.wsgi.application"
 
+DEBUG_PORT = int(os.environ.get("DEBUG_PORT", 8000))
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": "reactivated",
+        # Already set by the environment.
+        # "PORT": os.environ.get("PGPORT"),
     }
 }
 
@@ -125,9 +128,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = "/static/"
-
-
-DEBUG_PORT = int(os.environ.get("DEBUG_PORT", 8000))
 
 RUNSERVERPLUS_SERVER_ADDRESS_PORT = f"0.0.0.0:{DEBUG_PORT}"
 

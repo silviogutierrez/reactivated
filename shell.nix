@@ -24,6 +24,11 @@ mkShell {
     shfmt
     nixfmt
 
+    postgresql
+
+    # For psycopg2 to build
+    openssl
+
     # Purely for formatting right now.
     terraform
   ];

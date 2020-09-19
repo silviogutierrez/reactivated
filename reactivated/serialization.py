@@ -20,7 +20,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
 
-from . import stubs
+from . import stubs, fields
 from .models import ComputedRelation
 
 Schema = Mapping[Any, Any]
@@ -238,6 +238,7 @@ def field_descriptor_schema(
         models.IntegerField: int,
         models.PositiveIntegerField: int,
         models.DecimalField: str,
+        fields.EnumField: str,
     }
 
     try:

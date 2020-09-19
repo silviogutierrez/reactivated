@@ -58,6 +58,7 @@ function setup_environment() {
         DEBUG_PORT=$((2000 + RANDOM % 65000))
         echo "$PROJECT_NAME $DEBUG_PORT" >>$PORTS_FILE
     fi
+    export PGPORT=$((DEBUG_PORT + 1))
 
     if [ ! -d "$VIRTUAL_ENV" ]; then
         virtualenv "$VIRTUAL_ENV"

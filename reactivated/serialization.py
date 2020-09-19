@@ -155,7 +155,7 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
         lambda template_name, context, renderer: context
     )
     context: Any = field.as_widget()["widget"]  # type: ignore[index]
-    optgroups = context.get('optgroups', None)
+    optgroups = context.get("optgroups", None)
 
     # This is our first foray into properly serializing widgets using the
     # serialization framework.
@@ -164,7 +164,9 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     # types can disappear and be generated from the code here.
     if optgroups is not None:
         optgroup_schema = create_schema(Optgroup, {})  # type: ignore[misc]
-        context['optgroups'] = [serialize(optgroup, optgroup_schema) for optgroup in optgroups]
+        context["optgroups"] = [
+            serialize(optgroup, optgroup_schema) for optgroup in optgroups
+        ]
 
     return context  # type: ignore[no-any-return]
 

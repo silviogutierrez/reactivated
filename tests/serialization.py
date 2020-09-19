@@ -2,6 +2,7 @@ from typing import Any, List, Literal, NamedTuple, Tuple
 
 import pytest
 import simplejson
+from django.forms.models import ModelChoiceIteratorValue
 from jsonschema import validate
 
 from reactivated import Pick
@@ -119,6 +120,31 @@ def test_form():
     serialized_form = serialize(form_with_errors, generated_schema)
     assert "name" in serialized_form.errors
     convert_to_json_and_validate(serialized_form, generated_schema)
+
+
+@pytest.mark.django_db
+def test_form_with_model_choice_iterator_value():
+    models.Country.objects.create(
+        name="USA",
+        continent=models.Continent.objects.create(
+            name="America", hemisphere="Northern"
+        ),
+    )
+    iterator = (
+        forms.ComposerForm()
+        .fields["countries"]
+        .widget.optgroups("countries", "")[0][1][0]["value"]
+    )
+
+    assert isinstance(iterator, ModelChoiceIteratorValue)
+
+    generated_schema = create_schema(forms.ComposerForm, {})
+    form = forms.ComposerForm()
+    serialized_form = serialize(form, generated_schema)
+    convert_to_json_and_validate(serialized_form, generated_schema)
+    serialized_form.fields["countries"].widget["optgroups"][0][1][0][
+        "value"
+    ] == iterator.value
 
 
 @pytest.mark.django_db

@@ -25,6 +25,24 @@
         }
     },
     {
+        "model": "samples.composercountry",
+        "pk": 2,
+        "fields": {
+            "country": 1,
+            "composer": 2,
+            "was_born": false
+        }
+    },
+    {
+        "model": "samples.composercountry",
+        "pk": 3,
+        "fields": {
+            "country": 1,
+            "composer": 3,
+            "was_born": false
+        }
+    },
+    {
         "model": "samples.composer",
         "pk": 1,
         "fields": {
@@ -42,7 +60,7 @@
         "model": "samples.composer",
         "pk": 3,
         "fields": {
-            "name": "Fr\u00e9d\u00e9ric Chopin"
+            "name": "Frédéric Chopin"
         }
     },
     {
@@ -51,6 +69,7 @@
         "fields": {
             "name": "Das Rheingold",
             "composer": 1,
+            "style": "GRAND",
             "has_piano_transcription": false
         }
     },
@@ -60,6 +79,7 @@
         "fields": {
             "name": "Das Rheingold",
             "composer": 1,
+            "style": "BUFFA",
             "has_piano_transcription": false
         }
     },
@@ -67,8 +87,9 @@
         "model": "samples.opera",
         "pk": 3,
         "fields": {
-            "name": "Die Walk\u00fcre",
+            "name": "Die Walküre",
             "composer": 1,
+            "style": "GRAND",
             "has_piano_transcription": false
         }
     },
@@ -78,6 +99,7 @@
         "fields": {
             "name": "Siegfried",
             "composer": 1,
+            "style": "GRAND",
             "has_piano_transcription": false
         }
     },
@@ -85,8 +107,9 @@
         "model": "samples.opera",
         "pk": 5,
         "fields": {
-            "name": "G\u00f6tterd\u00e4mmerung",
+            "name": "Götterdämmerung",
             "composer": 1,
+            "style": "GRAND",
             "has_piano_transcription": false
         }
     }

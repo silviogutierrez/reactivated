@@ -1,12 +1,12 @@
 import enum
-import pytest
 
+import pytest
 from django import forms
-from django.core.exceptions import ValidationError
 from django.apps.registry import Apps
+from django.core.exceptions import ValidationError
 from django.db.models import Model
 
-from reactivated import fields, constraints
+from reactivated import constraints, fields
 from sample.server.apps.samples import models
 
 
@@ -46,17 +46,17 @@ def test_parse_enum():
 
 
 def test_auto_contraint(settings):
-    settings.INSTALLED_APPS = ['tests.fields']
+    settings.INSTALLED_APPS = ["tests.fields"]
     test_apps = Apps(settings.INSTALLED_APPS)
 
     class TestModel(Model):
-        enum_field = fields.EnumField(enum=EnumTest, default=EnumTest.FIRST)
+        enum_field = fields.EnumField(enum=EnumTest)
 
         class Meta:
             apps = test_apps
 
     constraint = TestModel._meta.constraints[0]
     assert isinstance(constraint, constraints.EnumConstraint)
-    assert constraint.members == ['FIRST', 'SECOND']
+    assert constraint.members == ["FIRST", "SECOND"]
     assert constraint.field_name == "enum_field"
     assert constraint.name == "fields_testmodel_enum_field_enum"

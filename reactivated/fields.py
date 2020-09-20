@@ -59,7 +59,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         self,
         *,
         enum: Type[_GT],
-        default: Optional[_GT],
+        default: Optional[_GT] = None,
         null: bool = False,
         verbose_name: Optional[Union[str, bytes]] = None,
         unique: bool = False,
@@ -157,7 +157,7 @@ if TYPE_CHECKING:
     @overload
     def EnumField(  # type: ignore[misc]
         enum: Type[TEnum],
-        default: TEnum,
+        default: Optional[TEnum],
         null: Literal[False] = False,
         verbose_name: Optional[Union[str, bytes]] = None,
         unique: bool = False,
@@ -175,7 +175,7 @@ if TYPE_CHECKING:
     @overload
     def EnumField(
         enum: Type[TEnum],
-        default: TEnum,
+        default: Optional[TEnum],
         null: Literal[True] = True,
         verbose_name: Optional[Union[str, bytes]] = None,
         unique: bool = False,
@@ -192,7 +192,7 @@ if TYPE_CHECKING:
 
     def EnumField(
         enum: Type[TEnum],
-        default: TEnum,
+        default: Optional[TEnum],
         null: Literal[True, False] = False,
         verbose_name: Optional[Union[str, bytes]] = None,
         unique: bool = False,

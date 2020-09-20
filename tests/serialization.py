@@ -127,7 +127,7 @@ def test_form_with_model_choice_iterator_value():
     models.Country.objects.create(
         name="USA",
         continent=models.Continent.objects.create(
-            name="America", hemisphere="Northern"
+            name="America", hemisphere="NORTHERN"
         ),
     )
     iterator = (

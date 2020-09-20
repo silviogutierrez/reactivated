@@ -279,7 +279,6 @@ def field_descriptor_schema(
         models.PositiveIntegerField: int,
         models.DecimalField: str,
         fields.EnumField: str,
-        fields._EnumField: str,
     }
 
     try:

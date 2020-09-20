@@ -21,7 +21,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
 
-from . import stubs, fields
+from . import fields, stubs
 from .models import ComputedRelation
 
 Schema = Mapping[Any, Any]

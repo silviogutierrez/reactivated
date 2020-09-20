@@ -1,9 +1,9 @@
-from django.db import models
-from django.db.models.base import Model
-from django.db.backends.ddl_references import Statement, Table
-from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+from typing import Any, List, Optional, Type
 
-from typing import Optional, Type, List, Any
+from django.db import models
+from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+from django.db.backends.ddl_references import Statement, Table
+from django.db.models.base import Model
 
 
 class EnumConstraint(models.constraints.BaseConstraint):
@@ -13,7 +13,9 @@ class EnumConstraint(models.constraints.BaseConstraint):
         super().__init__(name)
 
     def constraint_sql(
-        self, model: Optional[Type[Model]], schema_editor: Optional[BaseDatabaseSchemaEditor]
+        self,
+        model: Optional[Type[Model]],
+        schema_editor: Optional[BaseDatabaseSchemaEditor],
     ) -> str:
         return ""
 

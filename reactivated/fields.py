@@ -48,7 +48,7 @@ def parse_enum(enum: Type[_GT], value: Optional[str]) -> Optional[_GT]:
         return None
 
     for member in enum:
-        if value == str(member):
+        if str(member) in [value, f"{enum.__name__}.{value}"]:
             return member
 
     raise ValidationError(f"Invalid input for {enum}")
@@ -65,7 +65,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         unique: bool = False,
         blank: bool = False,
         db_index: bool = False,
-        editable: bool = False,
+        editable: bool = True,
         help_text: str = "",
         db_column: Optional[str] = None,
         db_tablespace: Optional[str] = None,
@@ -163,7 +163,7 @@ if TYPE_CHECKING:
         unique: bool = False,
         blank: bool = False,
         db_index: bool = False,
-        editable: bool = False,
+        editable: bool = True,
         help_text: str = "",
         db_column: Optional[str] = None,
         db_tablespace: Optional[str] = None,
@@ -181,7 +181,7 @@ if TYPE_CHECKING:
         unique: bool = False,
         blank: bool = False,
         db_index: bool = False,
-        editable: bool = False,
+        editable: bool = True,
         help_text: str = "",
         db_column: Optional[str] = None,
         db_tablespace: Optional[str] = None,
@@ -198,7 +198,7 @@ if TYPE_CHECKING:
         unique: bool = False,
         blank: bool = False,
         db_index: bool = False,
-        editable: bool = False,
+        editable: bool = True,
         help_text: str = "",
         db_column: Optional[str] = None,
         db_tablespace: Optional[str] = None,

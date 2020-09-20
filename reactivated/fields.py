@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Iterable, Tuple, Type, TypeVar, Any, cast
+from typing import Iterable, Tuple, Type, TypeVar, Any, TYPE_CHECKING
 
 from django.db import models
 
@@ -9,22 +9,6 @@ from .constraints import EnumConstraint  # type: ignore[attr-defined]
 def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[str, str]]:
     for member in enum:
         yield (member.name, member.value)
-
-
-"""
-if TYPE_CHECKING:
-    from django.db.models.fields import _ST, _GT, Field
-
-    Base =  Field
-else:
-    _ST = None
-    _GT = None
-
-    class Base(models.CharField):
-        @classmethod
-        def __class_getitem__(cls, key):
-            return cls
-"""
 
 
 TEnum = TypeVar("TEnum", bound=Enum)
@@ -100,10 +84,9 @@ if TYPE_CHECKING:
     EnumField = make_enum_field  # type: ignore[assignment]
 """
 
-def EnumField(enum: Type[TEnum], default=TEnum) -> _EnumField[TEnum, TEnum]:
-    return cast(
-        _EnumField[TEnum, TEnum],
-        _EnumField(
-            enum=enum, default=default,
-        ),
-    )
+if TYPE_CHECKING:
+    def EnumField(enum: Type[TEnum], default: TEnum) -> _EnumField[TEnum, TEnum]:
+        return _EnumField[TEnum, TEnum](enum=enum, default=default)
+else:
+    class EnumField(_EnumField):
+        pass

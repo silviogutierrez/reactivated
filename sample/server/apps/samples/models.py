@@ -1,6 +1,6 @@
 import enum
 import os
-from typing import Optional, cast
+from typing import Optional, cast, TYPE_CHECKING
 
 from django.db import models
 
@@ -31,6 +31,19 @@ class Continent(models.Model):
     # hemisphere3 = EnumField(enum=Hemisphere, default=Hemisphere.SOUTHERN)
     # hemisphere4 = EnumField(enum=Hemisphere, default=Hemisphere.SOUTHERN)
 
+if TYPE_CHECKING:
+    class TypeTest(models.Model):
+        class Hemisphere(enum.Enum):
+            value: str
+            SOUTHERN = "Southern"
+            NORTHERN = "Northern"
+            EASTERN = True
+
+        hemisphere = EnumField(enum=Hemisphere, default=Hemisphere.SOUTHERN)
+
+        def do_something(self) -> None:
+            reveal_type(EnumField)
+            reveal_type(self.hemisphere.value)
 
 if os.environ.get("STAGE") == "four":
     class Thing(enum.Enum):

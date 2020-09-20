@@ -1,19 +1,26 @@
-# type: ignore
 from django.db import models
+from django.db.models.base import Model
 from django.db.backends.ddl_references import Statement, Table
+from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+
+from typing import Optional, Type, List, Any
 
 
 class EnumConstraint(models.constraints.BaseConstraint):
-    def __init__(self, *, members, name, field_name):
+    def __init__(self, *, members: List[str], name: str, field_name: str) -> None:
         self.members = members
         self.field_name = field_name
         super().__init__(name)
 
-    def constraint_sql(self, model, schema_editor):
+    def constraint_sql(
+        self, model: Optional[Type[Model]], schema_editor: Optional[BaseDatabaseSchemaEditor]
+    ) -> str:
         return ""
 
-    def create_sql(self, model, schema_editor):
+    def create_sql(self, model: Optional[Type[Model]], schema_editor: Optional[BaseDatabaseSchemaEditor]) -> Statement:  # type: ignore[override]
         columns = self.members
+        assert model is not None
+        assert schema_editor is not None
 
         return Statement(
             """
@@ -27,7 +34,10 @@ class EnumConstraint(models.constraints.BaseConstraint):
             columns=", ".join([f"'{column}'" for column in columns]),
         )
 
-    def remove_sql(self, model, schema_editor):
+    def remove_sql(self, model: Optional[Type[Model]], schema_editor: Optional[BaseDatabaseSchemaEditor]) -> Statement:  # type: ignore[override]
+        assert model is not None
+        assert schema_editor is not None
+
         return Statement(
             "ALTER TABLE %(table)s ALTER COLUMN %(field_name)s TYPE varchar(63); DROP TYPE %(enum_type)s;",
             table=Table(model._meta.db_table, schema_editor.quote_name),
@@ -35,21 +45,21 @@ class EnumConstraint(models.constraints.BaseConstraint):
             enum_type=schema_editor.quote_name(self.name),
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<%s: members='%r' name=%r>" % (
             self.__class__.__name__,
             self.members,
             self.name,
         )
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return (
             isinstance(other, EnumConstraint)
             and self.name == other.name
             and self.members == other.members
         )
 
-    def deconstruct(self):
+    def deconstruct(self) -> Any:
         path, args, kwargs = super().deconstruct()
         kwargs["members"] = self.members
         kwargs["field_name"] = self.field_name

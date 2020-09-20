@@ -1,9 +1,10 @@
 from enum import Enum
-from typing import Iterable, Tuple, Type, TypeVar, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple, Type, TypeVar
 
+from django.core.exceptions import ValidationError
 from django.db import models
 
-from .constraints import EnumConstraint  # type: ignore[attr-defined]
+from .constraints import EnumConstraint
 
 
 def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[str, str]]:
@@ -19,6 +20,17 @@ _GT = TypeVar("_GT", bound=Enum)
 models.CharField.__class_getitem__ = classmethod(  # type: ignore[attr-defined]
     lambda cls, key: cls
 )
+
+
+def parse_enum(enum: Type[_GT], value: Optional[str]) -> Optional[_GT]:
+    if value is None:
+        return None
+
+    for member in enum:
+        if value == member.name:
+            return member
+
+    raise ValidationError(f"Invalid input for {enum}")
 
 
 class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
@@ -50,7 +62,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         # Fortunately, we can create a name dynamically.
         cls._meta.constraints.append(
             EnumConstraint(
-                members=self.enum._member_names_,
+                members=self.enum._member_names_,  # type: ignore[arg-type]
                 field_name=name,
                 name=f"{cls._meta.db_table}_{name}_enum",
             )
@@ -85,8 +97,12 @@ if TYPE_CHECKING:
 """
 
 if TYPE_CHECKING:
+
     def EnumField(enum: Type[TEnum], default: TEnum) -> _EnumField[TEnum, TEnum]:
         return _EnumField[TEnum, TEnum](enum=enum, default=default)
+
+
 else:
+
     class EnumField(_EnumField):
         pass

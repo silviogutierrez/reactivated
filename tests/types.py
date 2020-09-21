@@ -49,15 +49,20 @@ def test_named_tuple():
     )
 
 
-class EnumTest(enum.Enum):
+class EnumType(enum.Enum):
     ONE = "One"
     TWO = "Two"
 
 
 def test_enum():
-    assert create_schema(EnumTest, {}) == (
-        {"type": "string", "enum": ("ONE", "TWO")},
-        {},
+    assert create_schema(EnumType, {}) == (
+        {"$ref": "#/definitions/tests.types.EnumType"},
+        {
+            "tests.types.EnumType": {
+                "type": "string",
+                "enum": ("EnumType.ONE", "EnumType.TWO"),
+            }
+        },
     )
 
 
@@ -211,7 +216,9 @@ def test_form():
                             "help_text": {"type": "string"},
                             "label": {"type": "string"},
                             "name": {"type": "string"},
-                            "widget": {"tsType": "widgets.Select"},
+                            "widget": {
+                                "tsType": 'widgets.Select<Types["globals"]["SampleServerAppsSamplesModelsOperaStyle"]>'
+                            },
                         },
                         "required": ["name", "label", "help_text", "widget"],
                         "serializer": "field_serializer",

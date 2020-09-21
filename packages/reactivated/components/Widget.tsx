@@ -119,8 +119,8 @@ function isMultiple<T extends IsMultiple, U extends IsSingle>(
     return "multiple" in widget.attrs;
 }
 
-export interface Select extends BaseWidget {
-    value: string[];
+export interface Select<T extends string = string> extends BaseWidget {
+    value: T[];
     template_name: "django/forms/widgets/select.html";
     optgroups: Optgroup[];
 }
@@ -134,7 +134,7 @@ export interface Autocomplete extends BaseWidget {
     } | null;
 }
 
-export interface SelectMultiple extends Select {
+export interface SelectMultiple<T extends string = string> extends Select<T> {
     attrs: BaseWidget["attrs"] & {
         multiple: "multiple";
     };

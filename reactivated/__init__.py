@@ -39,6 +39,7 @@ from .templates import template as template  # noqa: F401
 default_app_config = "reactivated.apps.ReactivatedConfig"
 
 type_registry: Dict[str, Tuple[Any]] = {}
+global_types: Dict[str, Tuple[Any]] = {}
 template_registry: Dict[str, Tuple[Any]] = {}
 
 

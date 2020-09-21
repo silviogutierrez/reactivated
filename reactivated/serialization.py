@@ -366,9 +366,17 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
 
 
 def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
+    definition_name = f"{Type.__module__}.{Type.__qualname__}"
+
     return Thing(
-        schema={"type": "string", "enum": tuple(Type._member_names_)},
-        definitions=definitions,
+        schema={"$ref": f"#/definitions/{definition_name}"},
+        definitions={
+            **definitions,
+            definition_name: {
+                "type": "string",
+                "enum": tuple(str(member) for member in Type),
+            },
+        },
     )
 
 
@@ -457,11 +465,32 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
             SourceWidget.__module__ == "django.forms.widgets"
         ), f"Only core widgets and depth-1 inheritance widgets are currently supported. Check {SubType.widget.__class__}"
 
+        ts_type = f"widgets.{SourceWidget.__name__}"
+
+        if isinstance(SubType, django_forms.TypedChoiceField) and (
+            choices := SubType.choices
+        ):
+            choice = choices[0][0]
+
+            choice_schema, definitions = create_schema(type(choice), definitions)
+
+            if (ref := choice_schema.get("$ref", None)) :
+                generic_name = "".join(
+                    part.capitalize()
+                    for part in ref.replace("#/definitions/", "").split(".")
+                )
+
+                from . import global_types
+
+                global_types[generic_name] = choice_schema
+
+                ts_type = f'widgets.{SourceWidget.__name__}<Types["globals"]["{generic_name}"]>'
+
         properties[field_name] = {
             **field_type_definition,
             "properties": {
                 **field_type_definition["properties"],
-                "widget": {"tsType": f"widgets.{SourceWidget.__name__}"},
+                "widget": {"tsType": ts_type},
             },
         }
         error_properties[field_name] = error_definition

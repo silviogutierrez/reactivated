@@ -212,3 +212,31 @@ else:
 
     class EnumField(_EnumField):
         pass
+
+    try:
+        # DRF cannot serialize enums. So we do it by monkey patching. In the
+        # future this may be a setting.
+
+        # Any field with choices gets coerced by DRF to a ChoiceField,
+        # regardless of its base type. So we have a special choice field to
+        # look out for that.  Separately: read only fields, such as those set
+        # to editable=False, will need to be mapped as well.
+        from rest_framework import serializers
+
+        class EnumChoiceField(serializers.ChoiceField):
+            def to_representation(self, obj):
+                if isinstance(obj, Enum):
+                    return str(obj)
+                return super().to_representation(obj)
+
+        class ReadOnlyEnumField(serializers.CharField):
+            def to_representation(self, obj):
+                return str(obj)
+
+        serializers.ModelSerializer.serializer_choice_field = EnumChoiceField
+        serializers.ModelSerializer.serializer_field_mapping[
+            EnumField
+        ] = ReadOnlyEnumField
+
+    except ImportError:
+        pass

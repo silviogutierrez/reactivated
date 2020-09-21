@@ -52,7 +52,7 @@ def get_urls_schema() -> Dict[str, Any]:
 
 
 def get_types_schema() -> Any:
-    type_registry["globals"] = Any
+    type_registry["globals"] = Any  # type: ignore[assignment]
     ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore[misc]
     parent_schema = create_schema(ParentTuple, {})
 

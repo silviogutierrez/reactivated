@@ -60,7 +60,7 @@ def test_enum():
         {
             "tests.types.EnumType": {
                 "type": "string",
-                "enum": ("EnumType.ONE", "EnumType.TWO"),
+                "enum": ["EnumType.ONE", "EnumType.TWO"],
             }
         },
     )

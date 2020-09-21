@@ -374,7 +374,7 @@ def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
             **definitions,
             definition_name: {
                 "type": "string",
-                "enum": tuple(str(member) for member in Type),
+                "enum": list(str(member) for member in Type),
             },
         },
     )
@@ -468,7 +468,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         ts_type = f"widgets.{SourceWidget.__name__}"
 
         if isinstance(SubType, django_forms.TypedChoiceField) and (
-            choices := SubType.choices
+            choices := list(SubType.choices)
         ):
             choice = choices[0][0]
 
@@ -482,7 +482,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
 
                 from . import global_types
 
-                global_types[generic_name] = choice_schema
+                global_types[generic_name] = choice_schema  # type: ignore[assignment]
 
                 ts_type = f'widgets.{SourceWidget.__name__}<Types["globals"]["{generic_name}"]>'
 

@@ -34,7 +34,7 @@ else
 fi
 
 CHANGED_PY_FILES=$(echo "$CHANGED_FILES" | grep -e '.pyi\?$' || true)
-CHANGED_PRETTIER_FILES=$(echo "$CHANGED_FILES" | grep -e '.tsx\?$\|.yaml$\|.json$' || true)
+CHANGED_PRETTIER_FILES=$(echo "$CHANGED_FILES" | grep -e '.tsx\?$\|.ya\?ml$\|.json$' || true)
 CHANGED_SH_FILES=$(echo "$CHANGED_FILES" | grep -e '.sh$' || true)
 CHANGED_NIX_FILES=$(echo "$CHANGED_FILES" | grep -e '.nix$' || true)
 CHANGED_TF_FILES=$(echo "$CHANGED_FILES" | grep -e '.tf$\|.tfvars$' || true)

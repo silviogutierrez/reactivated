@@ -59,6 +59,7 @@ function setup_environment() {
         echo "$PROJECT_NAME $DEBUG_PORT" >>$PORTS_FILE
     fi
     export PGPORT=$((DEBUG_PORT + 1))
+    export DATABASE_NAME="$PROJECT_NAME"
 
     if [ ! -d "$VIRTUAL_ENV" ]; then
         virtualenv "$VIRTUAL_ENV"

@@ -90,7 +90,10 @@ DEBUG_PORT = int(os.environ.get("DEBUG_PORT", 8000))
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "reactivated",
+        "NAME": os.environ["DATABASE_NAME"],
+        "USER": os.environ.get("DATABASE_USER", None),
+        "PASSWORD": os.environ.get("DATABASE_PASSWORD", None),
+        "HOST": os.environ.get("DATABASE_HOST", None),
         # Already set by the environment.
         # "PORT": os.environ.get("PGPORT"),
     }

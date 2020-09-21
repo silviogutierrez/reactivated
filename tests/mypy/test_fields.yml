@@ -13,6 +13,8 @@
       class MyModel(models.Model):
           enum_field = EnumField(enum=MyEnum, default=MyEnum.FIRST)
           null_enum_field = EnumField(enum=MyEnum, null=True, default=None)
+          without_default = EnumField(enum=MyEnum)
+          without_default_and_null = EnumField(enum=MyEnum, null=True)
       instance = MyModel()
 
       reveal_type(instance.enum_field)  # N: Revealed type is 'main.MyEnum*'

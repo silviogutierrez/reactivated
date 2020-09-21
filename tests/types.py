@@ -1,3 +1,4 @@
+import enum
 from io import StringIO
 from typing import Any, Dict, List, Literal, NamedTuple, Tuple, TypedDict, Union
 
@@ -45,6 +46,18 @@ def test_named_tuple():
                 "type": "object",
             }
         },
+    )
+
+
+class EnumTest(enum.Enum):
+    ONE = "One"
+    TWO = "Two"
+
+
+def test_enum():
+    assert create_schema(EnumTest, {}) == (
+        {"type": "string", "enum": ("ONE", "TWO")},
+        {},
     )
 
 

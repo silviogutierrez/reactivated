@@ -157,7 +157,7 @@ if TYPE_CHECKING:
     @overload
     def EnumField(  # type: ignore[misc]
         enum: Type[TEnum],
-        default: Optional[TEnum],
+        default: Optional[TEnum] = None,
         null: Literal[False] = False,
         verbose_name: Optional[Union[str, bytes]] = None,
         unique: bool = False,
@@ -175,7 +175,7 @@ if TYPE_CHECKING:
     @overload
     def EnumField(
         enum: Type[TEnum],
-        default: Optional[TEnum],
+        default: Optional[TEnum] = None,
         null: Literal[True] = True,
         verbose_name: Optional[Union[str, bytes]] = None,
         unique: bool = False,
@@ -192,7 +192,7 @@ if TYPE_CHECKING:
 
     def EnumField(
         enum: Type[TEnum],
-        default: Optional[TEnum],
+        default: Optional[TEnum] = None,
         null: Literal[True, False] = False,
         verbose_name: Optional[Union[str, bytes]] = None,
         unique: bool = False,

@@ -1,4 +1,5 @@
 import datetime
+import enum
 from typing import (
     Any,
     Callable,
@@ -364,6 +365,13 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
     assert False, f"Unsupported _GenericAlias {Type}"
 
 
+def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
+    return Thing(
+        schema={"type": "string", "enum": tuple(Type._member_names_)},
+        definitions=definitions,
+    )
+
+
 def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
     definition_name = f"{Type.__module__}.{Type.__qualname__}"
 
@@ -601,6 +609,8 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return form_schema(Type, definitions)
     elif issubclass(Type, stubs.BaseFormSet):
         return form_set_schema(Type, definitions)
+    elif issubclass(Type, enum.Enum):
+        return enum_schema(Type, definitions)
 
     additional_schema_module: Optional[str] = getattr(
         settings, "REACTIVATED_SERIALIZATION", None

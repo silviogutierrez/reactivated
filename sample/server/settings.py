@@ -94,6 +94,7 @@ DATABASES = {
         "USER": os.environ.get("DATABASE_USER", None),
         "PASSWORD": os.environ.get("DATABASE_PASSWORD", None),
         "HOST": os.environ.get("DATABASE_HOST", None),
+        "DATABASE_PORT": os.environ.get("DATABASE_PORT", None),
         # Already set by the environment.
         # "PORT": os.environ.get("PGPORT"),
     }

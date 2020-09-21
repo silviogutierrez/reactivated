@@ -53,6 +53,7 @@ jobs:
                   DATABASE_USER: postgres
                   DATABASE_PASSWORD: postgres
                   DATABASE_HOST: localhost
+                  DATABASE_NAME: reactivated
                   DATABASE_PORT: ${{ job.services.postgres.ports[5432] }}
     client_tests:
         name: Client tests

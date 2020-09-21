@@ -3,6 +3,7 @@ from typing import Any
 
 
 def pytest_configure(config: Any) -> None:
+    # See: https://github.com/typeddjango/pytest-mypy-plugins/issues/34
     site_packages = site.getsitepackages()[0]
     for file_name, line_numbers in FILES:
         file_path = f"{site_packages}/{file_name}.pyi"

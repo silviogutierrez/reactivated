@@ -42,18 +42,18 @@ jobs:
                   python-version: "3.8"
             - name: Python requirements
               run: pip install -r requirements.txt
-              # - name: Yarn
-              #   run: |
-              #       yarn
-              #       yarn --cwd packages/reactivated
-              #       yarn --cwd sample
+            - name: Yarn
+              run: |
+                  yarn
+                  yarn --cwd packages/reactivated
+                  yarn --cwd sample
             - name: Run tests
               run: scripts/test.sh --server
               env:
                   DATABASE_USER: postgres
                   DATABASE_PASSWORD: postgres
-                  DATABASE_HOST: localhost
                   DATABASE_NAME: postgres
+                  DATABASE_HOST: localhost
                   DATABASE_PORT: ${{ job.services.postgres.ports[5432] }}
     client_tests:
         name: Client tests

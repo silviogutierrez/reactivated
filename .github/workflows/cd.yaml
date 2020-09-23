@@ -9,7 +9,7 @@ jobs:
         runs-on: ubuntu-18.04
         steps:
             - uses: actions/checkout@v1
-            - uses: actions/setup-node@master
+            - uses: actions/setup-node@v1
               with:
                   node-version: "13.x"
             - name: Yarn

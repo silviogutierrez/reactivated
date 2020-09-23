@@ -1,5 +1,8 @@
 name: Continuous Deployment
 on:
+    push:
+        branches:
+            - master
     pull_request:
         branches:
             - master
@@ -8,7 +11,7 @@ jobs:
     snapshot:
         name: Publish snapshot
         runs-on: ubuntu-18.04
-        if: contains(github.event.pull_request.labels.*.name, 'snapshot')
+        if: github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "snapshot")
         steps:
             - uses: actions/checkout@v1
             - uses: actions/setup-node@v1

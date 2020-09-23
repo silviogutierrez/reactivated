@@ -374,7 +374,7 @@ def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
             **definitions,
             definition_name: {
                 "type": "string",
-                "enum": list(str(member) for member in Type),
+                "enum": list(member.name for member in Type),
             },
         },
     )
@@ -470,7 +470,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         if isinstance(SubType, django_forms.TypedChoiceField) and (
             choices := list(SubType.choices)
         ):
-            choice = choices[0][0]
+            choice = SubType.coerce(choices[0][0])
 
             choice_schema, definitions = create_schema(type(choice), definitions)
 

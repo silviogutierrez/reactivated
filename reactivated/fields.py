@@ -2,6 +2,7 @@ from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Any,
+    Generic,
     Iterable,
     Literal,
     Optional,
@@ -16,6 +17,7 @@ from django.core.exceptions import ValidationError
 from django.db import DatabaseError, models
 
 from .constraints import EnumConstraint
+from .forms import EnumChoiceField
 
 if TYPE_CHECKING:
     from django.db.models.fields import _ValidatorCallable, _ErrorMessagesToOverride
@@ -28,14 +30,29 @@ else:
         pass
 
 
-def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[Enum, str]]:
-    for member in enum:
-        yield (member, member.value)
-
-
 TEnum = TypeVar("TEnum", bound=Enum)
 _ST = TypeVar("_ST", bound=Enum)
 _GT = TypeVar("_GT", bound=Enum)
+
+
+class EnumChoice(Generic[_GT]):
+    def __init__(self, choice: _GT) -> None:
+        self.choice = choice
+
+    def __str__(self) -> str:
+        return self.choice.name
+
+    def __eq__(self, other: Union[_GT, Any, str]) -> bool:
+        if isinstance(other, str):
+            return str(self.choice) == other
+        elif isinstance(other, Enum):
+            return self.choice == other
+        return False
+
+
+def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[EnumChoice[Enum], str]]:
+    for member in enum:
+        yield (EnumChoice(member), member.value)
 
 
 models.CharField.__class_getitem__ = classmethod(  # type: ignore[attr-defined]
@@ -48,7 +65,7 @@ def parse_enum(enum: Type[_GT], value: Optional[str]) -> Optional[_GT]:
         return None
 
     for member in enum:
-        if str(member) in [value, f"{enum.__name__}.{value}"]:
+        if member.name == value:
             return member
 
     raise ValidationError(f"Invalid input for {enum}")
@@ -133,8 +150,10 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     ) -> Optional[_GT]:
         return parse_enum(self.enum, value)
 
-    def to_python(self, value: Union[_GT, str, None]) -> Optional[_GT]:
-        if isinstance(value, self.enum):
+    def to_python(self, value: Union[_GT, EnumChoice[_GT], str, None]) -> Optional[_GT]:
+        if isinstance(value, EnumChoice):
+            return value.choice
+        elif isinstance(value, self.enum):
             return value
         # Narrow the type
         assert isinstance(value, str) or value is None
@@ -150,6 +169,11 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     def value_to_string(self, obj: Any) -> Optional[str]:
         value = self.value_from_object(obj)
         return self.get_prep_value(value)
+
+    def formfield(self, **kwargs: Any) -> Any:
+        defaults = {**kwargs, "choices_form_class": EnumChoiceField}
+        # defaults.update({'choices': EnumChoiceIterator(self.enum)})
+        return super().formfield(**defaults)
 
 
 if TYPE_CHECKING:
@@ -223,20 +247,20 @@ else:
         # to editable=False, will need to be mapped as well.
         from rest_framework import serializers
 
-        class EnumChoiceField(serializers.ChoiceField):
+        class DRFEnumChoiceField(serializers.ChoiceField):
             def to_representation(self, obj):
                 if isinstance(obj, Enum):
                     return str(obj)
                 return super().to_representation(obj)
 
-        class ReadOnlyEnumField(serializers.CharField):
+        class DRFReadOnlyEnumField(serializers.CharField):
             def to_representation(self, obj):
                 return str(obj)
 
-        serializers.ModelSerializer.serializer_choice_field = EnumChoiceField
+        serializers.ModelSerializer.serializer_choice_field = DRFEnumChoiceField
         serializers.ModelSerializer.serializer_field_mapping[
             EnumField
-        ] = ReadOnlyEnumField
+        ] = DRFReadOnlyEnumField
 
     except ImportError:
         pass

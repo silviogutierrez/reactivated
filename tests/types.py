@@ -57,12 +57,7 @@ class EnumType(enum.Enum):
 def test_enum():
     assert create_schema(EnumType, {}) == (
         {"$ref": "#/definitions/tests.types.EnumType"},
-        {
-            "tests.types.EnumType": {
-                "type": "string",
-                "enum": ["EnumType.ONE", "EnumType.TWO"],
-            }
-        },
+        {"tests.types.EnumType": {"type": "string", "enum": ["ONE", "TWO"],}},
     )
 
 

@@ -21,7 +21,7 @@ def test_enum_form():
             fields = ["hemisphere"]
             model = models.Continent
 
-    form = EnumForm({"hemisphere": "Hemisphere.NORTHERN"})
+    form = EnumForm({"hemisphere": "NORTHERN"})
 
     assert form.is_valid()
 
@@ -30,16 +30,20 @@ def test_enum_form():
 
 
 def test_convert_enum_to_choices():
-    assert list(fields.convert_enum_to_choices(EnumTest)) == [
-        (EnumTest.FIRST, "First"),
-        (EnumTest.SECOND, "Second"),
-    ]
+    (first_choice, first_label), (second_choice, second_label) = list(
+        fields.convert_enum_to_choices(EnumTest)
+    )
+    assert str(first_choice) == "FIRST"
+    assert first_choice.choice == EnumTest.FIRST
+    assert str(first_label) == "First"
+    assert str(second_choice) == "SECOND"
+    assert str(second_label) == "Second"
+    assert second_choice.choice == EnumTest.SECOND
 
 
 def test_parse_enum():
     assert fields.parse_enum(EnumTest, None) is None
     assert fields.parse_enum(EnumTest, "SECOND") is EnumTest.SECOND
-    assert fields.parse_enum(EnumTest, "EnumTest.SECOND") is EnumTest.SECOND
 
     with pytest.raises(ValidationError, match=f"Invalid .* {EnumTest}"):
         fields.parse_enum(EnumTest, "FAKE")

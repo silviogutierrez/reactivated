@@ -23,38 +23,6 @@ class Continent(models.Model):
     hemisphere = EnumField(enum=Hemisphere, default=Hemisphere.SOUTHERN)
 
 
-"""
-if os.environ.get("STAGE") == "four":
-
-    class Thing(enum.Enum):
-        ONE = "One"
-        TWO = "Two"
-        THREE = "Three"
-
-
-else:
-
-    class Thing(enum.Enum):
-        ONE = "One"
-        TWO = "Two"
-
-
-if (
-    os.environ.get("STAGE") in ["two", "three", "four"]
-    and os.environ.get("STAGE") != "five"
-):
-
-    class Two(models.Model):
-        hemisphere = EnumField(enum=Thing, default=Thing.ONE)
-
-        if os.environ.get("STAGE") == "three":
-            hemisphere2 = EnumField(enum=Thing, default=Thing.ONE)
-
-        class Meta:
-            indexes = [models.Index(fields=["hemisphere"], name="index_test")]
-"""
-
-
 class Country(models.Model):
     name = models.CharField(max_length=100)
     continent = models.ForeignKey(
@@ -129,8 +97,6 @@ class Opera(models.Model):
     has_piano_transcription = models.BooleanField(default=False)
 
     objects = cast(OperaManager, OperaManager.from_queryset(OperaQuerySet)())
-
-    # objects: DayQuerySet = cast(DayQuerySet, DayQuerySet.as_manager())  # type: ignore[assignment]
 
     def __str__(self) -> str:
         return f"{self.name}: {self.composer.name}"

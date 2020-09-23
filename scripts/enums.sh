@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Useful for manually testing migrations related to enum fields.
+
 set -e
 
 DATABASE_NAME="reactivated"
@@ -44,3 +46,35 @@ python manage.py migrate
 
 psql reactivated -c "\dt"
 psql reactivated -c "\dT"
+
+# """
+# if os.environ.get("STAGE") == "four":
+#
+#     class Thing(enum.Enum):
+#         ONE = "One"
+#         TWO = "Two"
+#         THREE = "Three"
+#
+#
+# else:
+#
+#     class Thing(enum.Enum):
+#         ONE = "One"
+#         TWO = "Two"
+#
+#
+# if (
+#     os.environ.get("STAGE") in ["two", "three", "four"]
+#     and os.environ.get("STAGE") != "five"
+# ):
+#
+#     class Two(models.Model):
+#         hemisphere = EnumField(enum=Thing, default=Thing.ONE)
+#
+#         if os.environ.get("STAGE") == "three":
+#             hemisphere2 = EnumField(enum=Thing, default=Thing.ONE)
+#
+#         class Meta:
+#             indexes = [models.Index(fields=["hemisphere"], name="index_test")]
+# """
+#

@@ -20,9 +20,9 @@ echo "Snapshot version: $SNAPSHOT_VERSION"
 
 cd packages/reactivated/
 yarn version --no-git-tag-version --new-version "${CURRENT_VERSION}a${GITHUB_RUN_NUMBER}"
-# yarn publish
+yarn publish --tag cd
 echo "Published version $SNAPSHOT_VERSION to NPM"
 cd -
 
-# scripts/build-python.sh
-# echo  "Published version $SNAPSHOT_VERSION to PyPI"
+scripts/build-python.sh
+echo  "Published version $SNAPSHOT_VERSION to PyPI"

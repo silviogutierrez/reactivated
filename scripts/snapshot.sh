@@ -20,7 +20,7 @@ echo "Snapshot version: $SNAPSHOT_VERSION"
 
 cd packages/reactivated/
 yarn version --no-git-tag-version --new-version "${CURRENT_VERSION}a${GITHUB_RUN_NUMBER}"
-yarn publish --non-interactive
+npm publish --access public
 echo "Published version $SNAPSHOT_VERSION to NPM"
 cd -
 

@@ -11,7 +11,7 @@ jobs:
     snapshot:
         name: Publish snapshot
         runs-on: ubuntu-18.04
-        if: github.event_name != "push"
+        if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'snapshot')
         steps:
             - uses: actions/checkout@v1
             - uses: actions/setup-node@v1

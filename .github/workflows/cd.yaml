@@ -3,6 +3,7 @@ on:
     pull_request:
         branches:
             - master
+jobs:
     snapshot:
         name: Publish snapshot
         runs-on: ubuntu-18.04

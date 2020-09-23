@@ -1,0 +1,35 @@
+name: Continuous Deployment
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+        branches:
+            - master
+        types: [labeled, opened, synchronize, reopened]
+jobs:
+    snapshot:
+        name: Publish snapshot
+        runs-on: ubuntu-18.04
+        if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'snapshot')
+        steps:
+            - uses: actions/checkout@v1
+            - uses: actions/setup-node@v1
+              with:
+                  node-version: "13.x"
+                  registry-url: "https://registry.npmjs.org"
+            - uses: actions/setup-python@master
+              with:
+                  python-version: "3.8"
+            - name: Python requirements
+              run: pip install -r requirements.txt
+            - name: Yarn
+              run: |
+                  yarn
+                  yarn --cwd packages/reactivated
+            - name: Publish
+              run: scripts/snapshot.sh
+              env:
+                  TWINE_USERNAME: __token__
+                  TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

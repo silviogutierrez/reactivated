@@ -21,8 +21,11 @@ jobs:
               run: |
                   yarn
                   yarn --cwd packages/reactivated
-            - name: Publisj
-              run: scripts/snapshot.sh
+                  yarn --cwd packages/reactivated
+            - name: Publish
+              run: |
+                  yarn config set npmAuthToken "$NODE_AUTH_TOKEN"
+                  scripts/snapshot.sh
               env:
                   TWINE_USERNAME: __token__
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}

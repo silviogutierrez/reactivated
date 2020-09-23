@@ -13,11 +13,17 @@ jobs:
               with:
                   node-version: "13.x"
                   registry-url: 'https://registry.npmjs.org'
+            - uses: actions/setup-python@master
+              with:
+                  python-version: "3.8"
+            - name: Python requirements
+              run: pip install -r requirements.txt
             - name: Yarn
               run: |
                   yarn
+                  yarn --cwd packages/reactivated
             - name: Publish
-              run: yarn publish
+              run: cd packages/reactivated && yarn publish
               env:
                   TWINE_USERNAME: __token__
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}

@@ -3,7 +3,7 @@ on:
     pull_request:
         branches:
             - master
-        types: [ labeled, opened, synchronize, reopened ]
+        types: [labeled, opened, synchronize, reopened]
 jobs:
     snapshot:
         name: Publish snapshot

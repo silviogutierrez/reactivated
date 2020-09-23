@@ -10,6 +10,7 @@ in with pkgs;
 mkShell {
   buildInputs = [
     gitAndTools.gh
+    jq
 
     python38
     python38Packages.virtualenv

@@ -1,3 +1,5 @@
+export TWINE_USERNAME=__token__
+export TWINE_PASSWORD="pypi-AgEIcHlwaS5vcmcCJDNhMzhlNzNiLTU4MzMtNDExZS04MTE3LWFkYTliNTg1ZTA2ZgACPHsicGVybWlzc2lvbnMiOiB7InByb2plY3RzIjogWyJyZWFjdGl2YXRlZCJdfSwgInZlcnNpb24iOiAxfQAABiBDMPLeLYIbv-pJ5UzYUwHmRmfn0my66xq7Br5iaxyW3w"
 python3 setup.py sdist bdist_wheel
 twine upload dist/*
 rm -rf dist

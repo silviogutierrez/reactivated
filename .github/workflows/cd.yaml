@@ -22,7 +22,9 @@ jobs:
                   yarn
                   yarn --cwd packages/reactivated
             - name: Publish
-              run: scripts/snapshot.sh
+              run: |
+                  cat ~/.npmrc
+                  cat ~/.yarnrc
               env:
                   TWINE_USERNAME: __token__
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}

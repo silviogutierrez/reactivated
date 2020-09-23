@@ -14,7 +14,7 @@ jobs:
                   node-version: "13.x"
             - name: Publish
               run: |
-                  export
+                  echo "My node auth token is $NODE_AUTH_TOKEN"
               env:
                   TWINE_USERNAME: __token__
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}

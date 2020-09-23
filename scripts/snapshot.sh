@@ -24,5 +24,6 @@ yarn publish --tag cd
 echo "Published version $SNAPSHOT_VERSION to NPM"
 cd -
 
-scripts/build-python.sh
-echo  "Published version $SNAPSHOT_VERSION to PyPI"
+python setup.py sdist bdist_wheel
+twine upload dist/*
+echo "Published version $SNAPSHOT_VERSION to PyPI"

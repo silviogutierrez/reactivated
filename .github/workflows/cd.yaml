@@ -12,7 +12,6 @@ jobs:
             - uses: actions/setup-node@master
               with:
                   node-version: "13.x"
-                  registry-url: 'https://registry.npmjs.org'
             - uses: actions/setup-python@master
               with:
                   python-version: "3.8"
@@ -23,10 +22,8 @@ jobs:
                   yarn
                   yarn --cwd packages/reactivated
             - name: Publish
-              run: |
-                  cat ~/.npmrc
-                  cat ~/.yarnrc
+              run: scripts/snapshot.sh
               env:
                   TWINE_USERNAME: __token__
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-                  NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

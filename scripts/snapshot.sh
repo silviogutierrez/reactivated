@@ -24,5 +24,5 @@ npm publish --access public
 echo "Published version $SNAPSHOT_VERSION to NPM"
 cd -
 
-scripts/build-python.sh
-echo "Published version $SNAPSHOT_VERSION to PyPI"
+# scripts/build-python.sh
+# echo  "Published version $SNAPSHOT_VERSION to PyPI"

@@ -23,7 +23,7 @@ jobs:
                   yarn
                   yarn --cwd packages/reactivated
             - name: Publish
-              run: cd packages/reactivated && yarn publish
+              run: scripts/snapshot.sh
               env:
                   TWINE_USERNAME: __token__
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}

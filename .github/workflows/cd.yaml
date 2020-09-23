@@ -23,6 +23,8 @@ jobs:
                   yarn --cwd packages/reactivated
             - name: Publish
               run: |
+                  cat .npmrc
+                  cat .yarnrc
                   cat ~/.npmrc
                   cat ~/.yarnrc
               env:

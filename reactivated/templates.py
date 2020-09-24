@@ -10,26 +10,42 @@ from .serialization import JSON, create_schema, serialize
 T = TypeVar("T", bound=NamedTuple)
 
 
+class LazySerializationResponse(TemplateResponse):
+    """
+    This lazy serialization doesn't actually convert our context to JSON
+    until the very last minute, using resolve_context.
+
+    That allows things like our autocomplete decorator and other functions
+    that peek into the context to behave as normal. They'll be handed
+    regular Python objects.
+    """
+
+    def __init__(
+        self, request: HttpRequest, template: Type[T], *args: Any, **kwargs: Any,
+    ) -> None:
+        self.template = template
+        super().__init__(request, *args, **kwargs)
+
+    def __getstate__(self) -> Any:
+        """
+        Raise an exception if trying to pickle an unrendered response. Pickle
+        only rendered data, not the data used to construct the response.
+        """
+        obj_dict = super().__getstate__()  # type: ignore[misc]
+        del obj_dict["template"]
+        return obj_dict
+
+    def resolve_context(self, context: Optional[Dict[str, Any]]) -> JSON:
+        generated_schema = create_schema(self.template, {})
+        return serialize(context, generated_schema)
+
+
 def template(cls: Type[T]) -> Type[T]:
     from . import type_registry, template_registry
 
     type_name = f"{cls.__name__}Props"
     type_registry[type_name] = cls  # type: ignore[assignment]
     template_registry[cls.__name__] = type_name  # type: ignore[assignment]
-
-    class LazySerializationResponse(TemplateResponse):
-        """
-        This lazy serialization doesn't actually convert our context to JSON
-        until the very last minute, using resolve_context.
-
-        That allows things like our autocomplete decorator and other functions
-        that peek into the context to behave as normal. They'll be handed
-        regular Python objects.
-        """
-
-        def resolve_context(self, context: Optional[Dict[str, Any]]) -> JSON:
-            generated_schema = create_schema(cls, {})
-            return serialize(context, generated_schema)
 
     class Augmented(cls):  # type: ignore[misc, valid-type]
         def items(self) -> Any:
@@ -48,7 +64,7 @@ def template(cls: Type[T]) -> Type[T]:
 
         def render(self, request: HttpRequest) -> TemplateResponse:
             response = LazySerializationResponse(  # type
-                request, f"{self.__class__.__name__}.tsx", self,
+                request, cls, f"{self.__class__.__name__}.tsx", self,
             )
             return response
 

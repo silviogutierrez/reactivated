@@ -1,3 +1,4 @@
+import pickle
 from typing import Dict, NamedTuple, Optional
 
 from reactivated import Pick, template
@@ -17,6 +18,27 @@ def test_serialization():
         "first": "thing",
         "second": True,
     }
+
+
+@template
+class PickleTemplate(NamedTuple):
+    first: str
+    second: bool
+
+
+def test_pickling():
+    @template
+    class Test(NamedTuple):
+        first: str
+        second: bool
+
+    context = PickleTemplate(first="thing", second=True)
+    response = context.render(None)
+    # Force response to think its rendered
+    response.content = b"bar"
+    pickled = pickle.dumps(response)
+    assert isinstance(pickled, bytes)
+    assert pickle.loads(pickled).content == b"bar"
 
 
 def test_union_with_pick():

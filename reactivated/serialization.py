@@ -467,6 +467,11 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
 
         ts_type = f"widgets.{SourceWidget.__name__}"
 
+        # Special treatment to register global Enum types and reference them
+        # through `tsType`
+
+        # Tightly coupled, for now. Can likely be improved once we have proper
+        # widget schema generation.
         if isinstance(SubType, django_forms.TypedChoiceField) and (
             choices := list(SubType.choices)
         ):

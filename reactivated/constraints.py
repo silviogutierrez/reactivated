@@ -17,6 +17,10 @@ class EnumConstraint(models.constraints.BaseConstraint):
         model: Optional[Type[Model]],
         schema_editor: Optional[BaseDatabaseSchemaEditor],
     ) -> str:
+        """ We leave this blank as the migration code tries to inject
+        constraint code inline with the field, which doesn't work for custom
+        types in PostgreSQL.
+        """
         return ""
 
     def create_sql(self, model: Optional[Type[Model]], schema_editor: Optional[BaseDatabaseSchemaEditor]) -> Statement:  # type: ignore[override]

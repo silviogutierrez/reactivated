@@ -42,6 +42,12 @@ class EnumChoice(Generic[_GT]):
     def __str__(self) -> str:
         return self.choice.name
 
+    def __hash__(self) -> int:
+        """
+        Used by DRF when creating choices in `rest_framework/fields.py`
+        """
+        return hash((self.choice))
+
     def __eq__(self, other: Union[_GT, Any, str]) -> bool:
         if isinstance(other, str):
             return str(self.choice) == other

@@ -28,8 +28,11 @@ class LazySerializationResponse(TemplateResponse):
 
     def __getstate__(self) -> Any:
         """
-        Raise an exception if trying to pickle an unrendered response. Pickle
-        only rendered data, not the data used to construct the response.
+        First run the normal pickling of `TemplateResponse`. That already has
+        special handling.
+
+        Then, remove our template from pickling because it cannot and should
+        not be pickled. The response only cares about the rendered content.
         """
         obj_dict = super().__getstate__()  # type: ignore[misc]
         del obj_dict["template"]

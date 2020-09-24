@@ -6,7 +6,8 @@ from sample.server.apps.samples import models
 
 class PlaygroundForm(forms.Form):
     choice_field = forms.ChoiceField(
-        choices=(("", "- blank -"), ("first", "First"), ("second", "Second"))
+        choices=(("", "- blank -"), ("first", "First"), ("second", "Second")),
+        initial="first",
     )
 
     # TODO: figure out why adding this class makes the plugin work.

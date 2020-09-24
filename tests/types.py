@@ -1,3 +1,4 @@
+import enum
 from io import StringIO
 from typing import Any, Dict, List, Literal, NamedTuple, Tuple, TypedDict, Union
 
@@ -45,6 +46,18 @@ def test_named_tuple():
                 "type": "object",
             }
         },
+    )
+
+
+class EnumType(enum.Enum):
+    ONE = "One"
+    TWO = "Two"
+
+
+def test_enum():
+    assert create_schema(EnumType, {}) == (
+        {"$ref": "#/definitions/tests.types.EnumType"},
+        {"tests.types.EnumType": {"type": "string", "enum": ["ONE", "TWO"],}},
     )
 
 
@@ -146,6 +159,7 @@ def test_form():
                                 "type": "array",
                             },
                             "name": {"items": {"type": "string"}, "type": "array"},
+                            "style": {"items": {"type": "string"}, "type": "array"},
                         },
                         "type": "object",
                     },
@@ -191,13 +205,27 @@ def test_form():
                         "serializer": "field_serializer",
                         "type": "object",
                     },
+                    "style": {
+                        "additionalProperties": False,
+                        "properties": {
+                            "help_text": {"type": "string"},
+                            "label": {"type": "string"},
+                            "name": {"type": "string"},
+                            "widget": {
+                                "tsType": 'widgets.Select<Types["globals"]["SampleServerAppsSamplesModelsOperaStyle"]>'
+                            },
+                        },
+                        "required": ["name", "label", "help_text", "widget"],
+                        "serializer": "field_serializer",
+                        "type": "object",
+                    },
                 },
-                "required": ["name", "composer", "has_piano_transcription"],
+                "required": ["name", "composer", "style", "has_piano_transcription"],
                 "type": "object",
             },
             "iterator": {
                 "items": {
-                    "enum": ["name", "composer", "has_piano_transcription"],
+                    "enum": ["name", "composer", "style", "has_piano_transcription"],
                     "type": "string",
                 },
                 "type": "array",

@@ -82,14 +82,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "server.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ["DATABASE_NAME"],
+        "USER": os.environ.get("DATABASE_USER", None),
+        "PASSWORD": os.environ.get("DATABASE_PASSWORD", None),
+        "HOST": os.environ.get("DATABASE_HOST", None),
+        "PORT": os.environ.get("DATABASE_PORT", None),
+        # Already set by the environment.
+        # "PORT": os.environ.get("PGPORT"),
     }
 }
 
@@ -125,7 +130,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = "/static/"
-
 
 DEBUG_PORT = int(os.environ.get("DEBUG_PORT", 8000))
 

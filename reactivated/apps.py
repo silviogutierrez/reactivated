@@ -8,7 +8,12 @@ from typing import Any, Dict, NamedTuple, Tuple
 from django.apps import AppConfig
 from django.conf import settings
 
-from . import extract_views_from_urlpatterns, template_registry, type_registry
+from . import (
+    extract_views_from_urlpatterns,
+    global_types,
+    template_registry,
+    type_registry,
+)
 from .serialization import create_schema
 
 logger = logging.getLogger("django.server")
@@ -47,11 +52,46 @@ def get_urls_schema() -> Dict[str, Any]:
 
 
 def get_types_schema() -> Any:
+    """ The package json-schema-to-typescript does expose a way to
+    automatically export any interface it sees. However, this can bloat our
+    generated files.
+
+    Instead, while creating the schema, we occasionally run into types that we
+    want available globally but are not directly referenced by templates.
+
+    These aren't exported by `json-schem-to-typescript` because they're
+    referenced using `tsType`, so the libraary is unaware of their usage.
+
+    So we register them in `globals` and force `json-schema-to-typescript` to
+    expose them.
+
+    We can't just add these types to the `type_registry` because that's only
+    parsed once when generating the parent tuple.
+
+    We could explore doing two passes in the future.
+
+    See `unreachableDefinitions` in json-schema-to-typescript
+    """
+    type_registry["globals"] = Any  # type: ignore[assignment]
     ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore[misc]
     parent_schema = create_schema(ParentTuple, {})
+
     return {
         "definitions": parent_schema.definitions,
-        **parent_schema.definitions["reactivated.apps.ParentTuple"],
+        **{
+            **parent_schema.definitions["reactivated.apps.ParentTuple"],
+            "properties": {
+                **parent_schema.definitions["reactivated.apps.ParentTuple"][
+                    "properties"
+                ],
+                "globals": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": list(global_types.keys()),
+                    "properties": global_types,
+                },
+            },
+        },
     }
 
 

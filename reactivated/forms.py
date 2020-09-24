@@ -1,3 +1,4 @@
+import enum
 import re
 from typing import Any, Dict, NamedTuple, Optional, TypeVar, Union, cast
 
@@ -6,6 +7,20 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 
 from .widgets import Autocomplete as Autocomplete
+
+
+class EnumChoiceField(django_forms.TypedChoiceField):
+    """
+    Enum choices must be serialized to their name rather than their enum
+    representation for the existing value in forms. Choices themselves are
+    handled by the `choices` argument in form and model fields.
+    """
+
+    def prepare_value(self, value: Optional[enum.Enum]) -> Optional[str]:
+        if isinstance(value, enum.Enum):
+            return value.name
+        return value
+
 
 T = TypeVar("T")
 

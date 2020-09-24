@@ -1,4 +1,5 @@
 import datetime
+import enum
 from typing import (
     Any,
     Callable,
@@ -21,7 +22,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
 
-from . import stubs
+from . import fields, stubs
 from .models import ComputedRelation
 
 Schema = Mapping[Any, Any]
@@ -278,6 +279,7 @@ def field_descriptor_schema(
         models.IntegerField: int,
         models.PositiveIntegerField: int,
         models.DecimalField: str,
+        fields.EnumField: str,
     }
 
     try:
@@ -361,6 +363,21 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
         )
 
     assert False, f"Unsupported _GenericAlias {Type}"
+
+
+def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
+    definition_name = f"{Type.__module__}.{Type.__qualname__}"
+
+    return Thing(
+        schema={"$ref": f"#/definitions/{definition_name}"},
+        definitions={
+            **definitions,
+            definition_name: {
+                "type": "string",
+                "enum": list(member.name for member in Type),
+            },
+        },
+    )
 
 
 def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
@@ -448,11 +465,37 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
             SourceWidget.__module__ == "django.forms.widgets"
         ), f"Only core widgets and depth-1 inheritance widgets are currently supported. Check {SubType.widget.__class__}"
 
+        ts_type = f"widgets.{SourceWidget.__name__}"
+
+        # Special treatment to register global Enum types and reference them
+        # through `tsType`
+
+        # Tightly coupled, for now. Can likely be improved once we have proper
+        # widget schema generation.
+        if isinstance(SubType, django_forms.TypedChoiceField) and (
+            choices := list(SubType.choices)
+        ):
+            choice = SubType.coerce(choices[0][0])
+
+            choice_schema, definitions = create_schema(type(choice), definitions)
+
+            if (ref := choice_schema.get("$ref", None)) :
+                generic_name = "".join(
+                    part.capitalize()
+                    for part in ref.replace("#/definitions/", "").split(".")
+                )
+
+                from . import global_types
+
+                global_types[generic_name] = choice_schema  # type: ignore[assignment]
+
+                ts_type = f'widgets.{SourceWidget.__name__}<Types["globals"]["{generic_name}"]>'
+
         properties[field_name] = {
             **field_type_definition,
             "properties": {
                 **field_type_definition["properties"],
-                "widget": {"tsType": f"widgets.{SourceWidget.__name__}"},
+                "widget": {"tsType": ts_type},
             },
         }
         error_properties[field_name] = error_definition
@@ -600,6 +643,8 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return form_schema(Type, definitions)
     elif issubclass(Type, stubs.BaseFormSet):
         return form_set_schema(Type, definitions)
+    elif issubclass(Type, enum.Enum):
+        return enum_schema(Type, definitions)
 
     additional_schema_module: Optional[str] = getattr(
         settings, "REACTIVATED_SERIALIZATION", None

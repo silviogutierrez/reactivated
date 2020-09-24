@@ -19,6 +19,17 @@ jobs:
             - name: Run tests
               run: nix-shell --command "scripts/test.sh --infrastructure"
     server_tests:
+        services:
+            postgres:
+                image: postgres:11
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_DB: postgres
+                ports:
+                    - 5432/tcp
+                      # needed because the postgres container does not provide a healthcheck
+                options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
         name: Sever tests
         runs-on: ubuntu-18.04
         steps:
@@ -38,6 +49,12 @@ jobs:
                   yarn --cwd sample
             - name: Run tests
               run: scripts/test.sh --server
+              env:
+                  DATABASE_USER: postgres
+                  DATABASE_PASSWORD: postgres
+                  DATABASE_NAME: postgres
+                  DATABASE_HOST: localhost
+                  DATABASE_PORT: ${{ job.services.postgres.ports[5432] }}
     client_tests:
         name: Client tests
         runs-on: ubuntu-18.04

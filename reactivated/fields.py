@@ -254,14 +254,23 @@ else:
         from rest_framework import serializers
 
         class DRFEnumChoiceField(serializers.ChoiceField):
+            def to_internal_value(self, data):
+                data = super().to_internal_value(data)
+                if isinstance(data, EnumChoice):
+                    return data.choice
+                return data
+
             def to_representation(self, obj):
-                if isinstance(obj, Enum):
-                    return str(obj)
-                return super().to_representation(obj)
+                obj = super().to_representation(obj)
+                if isinstance(obj, EnumChoice):
+                    return obj.choice.name
+                elif isinstance(obj, Enum):
+                    return obj.name
+                return obj
 
         class DRFReadOnlyEnumField(serializers.CharField):
             def to_representation(self, obj):
-                return str(obj)
+                return str(obj.name)
 
         serializers.ModelSerializer.serializer_choice_field = DRFEnumChoiceField
         serializers.ModelSerializer.serializer_field_mapping[

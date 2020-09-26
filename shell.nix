@@ -33,7 +33,7 @@ mkShell {
     # Purely for formatting right now.
     terraform
   ];
-  src = ./scripts/helpers.sh;
+  src = builtins.path { path = ./scripts/helpers.sh; name = "reactivated"; };
   shellHook = ''
     # Needed to use pip wheels
     SOURCE_DATE_EPOCH=$(date +%s);

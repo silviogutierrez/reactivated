@@ -56,7 +56,7 @@ else
     NEW_VERSION="${CURRENT_VERSION}a${GITHUB_RUN_NUMBER}"
     echo "Snapshot version: $NEW_VERSION"
     yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
-    yarn publish --tag cd
+    # yarn publish --tag cd
 fi
 echo "Published version $NEW_VERSION to NPM"
 cd -
@@ -68,6 +68,6 @@ curl -X PATCH --url $URL \
  --data-binary "$EXISTING"
 
 pip install wheel
-python setup.py sdist bdist_wheel
+# python setup.py sdist bdist_wheel
 twine upload dist/*
 echo "Published version $NEW_VERSION to PyPI"

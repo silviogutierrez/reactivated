@@ -31,6 +31,8 @@ if [ "$IS_SNAPSHOT" = false ]; then
     echo "Release version: $NEW_VERSION"
     NEW_VERSION=$(jq <package.json .version -r)
     yarn publish
+    git push
+    git push --tags
 else
     NEW_VERSION="${CURRENT_VERSION}a${GITHUB_RUN_NUMBER}"
     echo "Snapshot version: $NEW_VERSION"

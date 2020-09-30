@@ -3,16 +3,10 @@ import React from "react";
 import {style} from "typestyle";
 import {Consumer} from "../context";
 import {Field} from "./Field";
-import {getValueForSelect, Widget, WidgetType} from "./Widget";
+import {getValueForSelect, WidgetType} from "./Widget";
 
 import {
     Alert,
-    Button,
-    FormFeedback,
-    FormGroup,
-    FormText,
-    Input,
-    Label,
 } from "reactstrap";
 
 type TODO = any;

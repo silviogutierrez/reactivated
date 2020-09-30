@@ -1,8 +1,9 @@
 {
     "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^4.2.0",
+        "@typescript-eslint/parser": "^4.2.0",
+        "eslint": "^7.9.0",
         "prettier": "^2.1.2",
-        "tslint": "^5.20.0",
-        "tslint-config-prettier": "^1.18.0",
-        "typescript": "^4.0.2"
+        "typescript": "^4.0.3"
     }
 }

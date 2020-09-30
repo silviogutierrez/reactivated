@@ -9,7 +9,7 @@ const styles = {
     header: style({color: "blue"}),
 } as const;
 
-export default (props: any) => (
+export default (props: {form: unknown}) => (
     <div className={styles.layout}>
         <h1 className={styles.header}>Create composer</h1>
         <Form form={props.form}>

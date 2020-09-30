@@ -11,16 +11,17 @@ function disable_github_checks() {
         --header 'Content-Type: application/json' |
         jq ". | {strict, contexts}" -r)
 
-    _=$(curl -X PATCH --url $REPOSITORY_URL \
-        --header "Authorization: Bearer $GITHUB_TOKEN" \
-        --header 'Content-Type: application/json' \
-        --data-binary @- <<EOF
+    _=$(
+        curl -X PATCH --url $REPOSITORY_URL \
+            --header "Authorization: Bearer $GITHUB_TOKEN" \
+            --header 'Content-Type: application/json' \
+            --data-binary @- <<EOF
     {
       "strict": false,
       "contexts": []
     }
 EOF
-)
+    )
     echo "$EXISTING_CHECKS"
 }
 
@@ -70,15 +71,13 @@ if [ "$IS_SNAPSHOT" = false ]; then
 else
     NEW_VERSION="${CURRENT_VERSION}a${GITHUB_RUN_NUMBER}"
     echo "Snapshot version: $NEW_VERSION"
-    EXISTING_CHECKS=$(disable_github_checks)
     yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
-    # yarn publish --tag cd
-    enable_github_checks "$EXISTING_CHECKS"
+    yarn publish --tag cd
 fi
 echo "Published version $NEW_VERSION to NPM"
 cd -
 
 pip install wheel
 python setup.py sdist bdist_wheel
-# twine upload dist/*
+twine upload dist/*
 echo "Published version $NEW_VERSION to PyPI"

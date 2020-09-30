@@ -11,7 +11,7 @@ function disable_github_checks() {
         --header 'Content-Type: application/json' |
         jq ". | {strict, contexts}" -r)
 
-    curl -X PATCH --url $REPOSITORY_URL \
+    _=$(curl -X PATCH --url $REPOSITORY_URL \
         --header "Authorization: Bearer $GITHUB_TOKEN" \
         --header 'Content-Type: application/json' \
         --data-binary @- <<EOF
@@ -20,6 +20,7 @@ function disable_github_checks() {
       "contexts": []
     }
 EOF
+)
     echo "$EXISTING_CHECKS"
 }
 

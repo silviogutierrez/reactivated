@@ -2,7 +2,7 @@ name: Continuous Delivery
 on:
     workflow_dispatch:
         inputs:
-            version:
+            versioning:
                 description: "Versioning"
                 default: minor
                 required: true
@@ -40,6 +40,7 @@ jobs:
                   TWINE_USERNAME: __token__
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             - name: Publish release
               if: github.event_name == 'workflow_dispatch'
               run: scripts/relase.sh --versioning ${{ github.event.inputs.versioning }}

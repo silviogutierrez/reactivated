@@ -26,6 +26,25 @@ cd packages/reactivated/
 
 CURRENT_VERSION=$(jq <package.json .version -r)
 
+URL="https://api.github.com/repos/silviogutierrez/reactivated/branches/master/protection/required_status_checks"
+
+# Disable branch protection
+EXISTING_RAW=$(curl --url $URL \
+ --header "Authorization: Bearer $GITHUB_TOKEN" \
+ --header 'Content-Type: application/json');
+
+EXISTING=$(echo "$EXISTING_RAW" | jq ". | {strict, contexts}" -r)
+
+curl -X PATCH --url $URL \
+ --header "Authorization: Bearer $GITHUB_TOKEN" \
+ --header 'Content-Type: application/json' \
+ --data-binary @- <<EOF
+{
+  "strict": false,
+  "contexts": []
+}
+EOF
+
 if [ "$IS_SNAPSHOT" = false ]; then
     yarn version "--$VERSIONING"
     echo "Release version: $NEW_VERSION"
@@ -41,6 +60,12 @@ else
 fi
 echo "Published version $NEW_VERSION to NPM"
 cd -
+
+# Enable branch protection
+curl -X PATCH --url $URL \
+ --header "Authorization: Bearer $GITHUB_TOKEN" \
+ --header 'Content-Type: application/json' \
+ --data-binary "$EXISTING"
 
 pip install wheel
 python setup.py sdist bdist_wheel

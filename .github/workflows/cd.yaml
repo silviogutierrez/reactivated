@@ -1,5 +1,11 @@
-name: Continuous Deployment
+name: Continuous Delivery
 on:
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Versioning"
+                default: minor
+                required: true
     push:
         branches:
             - master
@@ -8,10 +14,10 @@ on:
             - master
         types: [labeled, opened, synchronize, reopened]
 jobs:
-    snapshot:
+    release:
         name: Publish snapshot
         runs-on: ubuntu-18.04
-        if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'snapshot')
+        if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'snapshot')
         steps:
             - uses: actions/checkout@v1
             - uses: actions/setup-node@v1
@@ -27,8 +33,16 @@ jobs:
               run: |
                   yarn
                   yarn --cwd packages/reactivated
-            - name: Publish
-              run: scripts/snapshot.sh
+            - name: Publish snapshot
+              if: github.event_name != 'workflow_dispatch'
+              run: scripts/release.sh --snapshot
+              env:
+                  TWINE_USERNAME: __token__
+                  TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+            - name: Publish release
+              if: github.event_name == 'workflow_dispatch'
+              run: scripts/relase.sh --versioning ${{ github.event.inputs.versioning }}
               env:
                   TWINE_USERNAME: __token__
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}

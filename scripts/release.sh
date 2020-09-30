@@ -5,7 +5,6 @@ set -e
 REPOSITORY_URL="https://api.github.com/repos/silviogutierrez/reactivated/branches/master/protection/required_status_checks"
 
 function disable_github_checks() {
-    # Disable branch protection
     EXISTING_CHECKS=$(curl --url $REPOSITORY_URL \
         --header "Authorization: Bearer $GITHUB_TOKEN" \
         --header 'Content-Type: application/json' |
@@ -27,7 +26,6 @@ EOF
 
 function enable_github_checks() {
     CHECKS_TO_ENABLE=$1
-    # Enable branch protection
     curl -X PATCH --url $REPOSITORY_URL \
         --header "Authorization: Bearer $GITHUB_TOKEN" \
         --header 'Content-Type: application/json' \

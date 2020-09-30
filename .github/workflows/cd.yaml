@@ -20,6 +20,10 @@ jobs:
         if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'snapshot')
         steps:
             - uses: actions/checkout@v1
+            - name: Configure git
+              run: |
+                  git config --global user.email "silviogutierrez@gmail.com"
+                  git config --global user.name "Silvio J. Gutierrez"
             - uses: actions/setup-node@v1
               with:
                   node-version: "13.x"

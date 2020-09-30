@@ -44,7 +44,6 @@ jobs:
                   TWINE_USERNAME: __token__
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-                  GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
             - name: Publish release
               if: github.event_name == 'workflow_dispatch'
               run: scripts/relase.sh --versioning ${{ github.event.inputs.versioning }}
@@ -52,3 +51,4 @@ jobs:
                   TWINE_USERNAME: __token__
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}

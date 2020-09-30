@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional, cast
 
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms.models import ModelChoiceIterator
 
 
@@ -23,9 +24,10 @@ class Autocomplete(forms.Select):
         # self.choices.queryset = self.choices.queryset._clone()[:10]
         # context = super().get_context(name, value, attrs)
         context = forms.Widget.get_context(self, name, value, attrs)
-        selected = (
-            choices.queryset.filter(**{to_field_name: value}).first() if value else None
-        )
+        try:
+            selected = choices.field.to_python(value)
+        except ValidationError:
+            selected = None
 
         if selected is not None:
             context["widget"]["selected"] = {

@@ -13,8 +13,9 @@ from sample.server.apps.samples import forms
 def autocomplete_view(
     request: HttpRequest,
 ) -> Union[TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
-    form = forms.OperaForm()
-    if request.method == "POST":
+    form = forms.OperaForm(request.POST or None)
+
+    if form.is_valid():
         return redirect("/")
 
     return TemplateResponse(request, "does_not_matter.html", {"form": form})

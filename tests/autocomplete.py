@@ -14,7 +14,8 @@ def test_autocomplete(client):
 
     assert (
         client.post(
-            "/autocomplete-view/", {"name": "Zarzuela", "composer": composer.pk}
+            "/autocomplete-view/",
+            {"name": "Zarzuela", "style": "BUFFA", "composer": composer.pk},
         ).status_code
         == 302
     )
@@ -28,6 +29,16 @@ def test_autocomplete(client):
         "/autocomplete-view/", {"autocomplete": "composer", "query": "Wagner"}
     )
     assert response.json()["results"][0]["label"] == "Richard Wagner"
+
+
+@pytest.mark.django_db
+@pytest.mark.urls("tests.urls")
+def test_invalid_value(client):
+    response = client.post(
+        "/autocomplete-view/", {"name": "Zarzuela", "composer": "21s7"}
+    )
+    assert "Select a valid choice" in response.context["form"].errors["composer"][0]
+    assert response.context["form"]["composer"].value() == "21s7"
 
 
 @pytest.mark.django_db

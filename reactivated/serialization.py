@@ -475,7 +475,8 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         if isinstance(SubType, django_forms.TypedChoiceField) and (
             choices := list(SubType.choices)
         ):
-            choice = SubType.coerce(choices[0][0])
+            # The internal _coerce method checks empty values for us too.
+            choice = SubType._coerce(choices[0][0])  # type: ignore
 
             choice_schema, definitions = create_schema(type(choice), definitions)
 

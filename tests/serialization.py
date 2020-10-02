@@ -2,6 +2,9 @@ from typing import Any, List, Literal, NamedTuple, Tuple
 
 import pytest
 import simplejson
+from django.apps.registry import Apps
+from django.db.models import IntegerField, Model
+from django.forms import ModelForm
 from django.forms.models import ModelChoiceIteratorValue
 from jsonschema import validate
 
@@ -161,3 +164,28 @@ def test_form_set():
     serialized_form_set = serialize(form_set_with_errors, generated_schema)
     assert "name" in serialized_form_set.forms[0].errors
     convert_to_json_and_validate(serialized_form_set, generated_schema)
+
+
+def test_typed_choices_non_enum(settings):
+    settings.INSTALLED_APPS = ["tests.serialization"]
+    test_apps = Apps(settings.INSTALLED_APPS)
+
+    class TestModel(Model):
+        non_enum_typed_field = IntegerField(choices=((0, "Zero"), (1, "One")))
+
+        class Meta:
+            apps = test_apps
+
+    class TestForm(ModelForm):
+        class Meta:
+            model = TestModel
+            fields = "__all__"
+
+    generated_schema = create_schema(TestForm, {})
+    assert generated_schema.definitions[
+        "tests.serialization.test_typed_choices_non_enum.<locals>.TestForm"
+    ]["properties"]["fields"]["properties"]["non_enum_typed_field"]["properties"][
+        "widget"
+    ] == {
+        "tsType": "widgets.Select"
+    }

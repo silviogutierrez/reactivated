@@ -75,9 +75,13 @@ def test_convert_enum_to_choices():
 def test_parse_enum():
     assert fields.parse_enum(EnumTest, None) is None
     assert fields.parse_enum(EnumTest, "SECOND") is EnumTest.SECOND
+    assert fields.parse_enum(EnumTest, "EnumTest.SECOND") is EnumTest.SECOND
 
     with pytest.raises(ValidationError, match=f"Invalid .* {EnumTest}"):
         fields.parse_enum(EnumTest, "FAKE")
+
+    with pytest.raises(ValidationError, match=f"Invalid .* {EnumTest}"):
+        fields.parse_enum(EnumTest, "EnumTest.FAKE")
 
 
 def test_auto_contraint(settings):

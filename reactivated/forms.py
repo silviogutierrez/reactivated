@@ -16,18 +16,6 @@ class EnumChoiceField(django_forms.TypedChoiceField):
     handled by the `choices` argument in form and model fields.
     """
 
-    def to_python(self, value: Optional[Union[enum.Enum, str]]) -> Any:
-        """TypedChoiceField casts the enum back to a string before passing it
-        to coerce, for historical reasons.
-
-        See https://code.djangoproject.com/ticket/18431
-        We want to avoid this, as the stringified enum will not be picked up
-        by parse_enum.
-        """
-        if isinstance(value, enum.Enum):
-            return value
-        return super().to_python(value)
-
     def prepare_value(self, value: Optional[enum.Enum]) -> Optional[str]:
         if isinstance(value, enum.Enum):
             return value.name

@@ -71,7 +71,13 @@ def parse_enum(enum: Type[_GT], value: Optional[str]) -> Optional[_GT]:
         return None
 
     for member in enum:
-        if member.name == value:
+        # Disabled form fields will come in as Enum.Member string
+        # representations. So we handle both naked member names and the full
+        # representation.
+        #
+        # See https://code.djangoproject.com/ticket/18431 and
+        # TypedChoiceField's to_python call chain.
+        if member.name == value or value == str(member):
             return member
 
     raise ValidationError(f"Invalid input for {enum}")

@@ -244,6 +244,9 @@ def test_form_set():
     assert schema.schema == {
         "$ref": "#/definitions/django.forms.formsets.OperaFormFormSet"
     }
+    # Ensure the children of the child form are serialized by passing
+    # definitions around without mutating.
+    assert "sample.server.apps.samples.models.Opera.Style" in schema.definitions
 
 
 class CustomField:

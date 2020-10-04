@@ -569,6 +569,10 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
 
     form_type_schema = create_schema(FormSetForm, form_set_type_schema.definitions)
 
+    # Everything the child form added needs to be part of our global definitions
+    # now.
+    definitions = form_type_schema.definitions
+
     # We use our own management form because base_fields is set dynamically
     # by Django in django.forms.formsets.
     # Because we inject form names into our forms at runtime, we set the __module__

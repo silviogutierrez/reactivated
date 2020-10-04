@@ -24,11 +24,40 @@ def test_enum_form():
             model = models.Continent
 
     form = EnumForm({"hemisphere": "NORTHERN"})
-
     assert form.is_valid()
+
+    form = EnumForm(
+        {"hemisphere": "NORTHERN"},
+        instance=models.Continent(hemisphere=models.Continent.Hemisphere.SOUTHERN),
+    )
+    assert form.is_valid()
+    assert form.initial["hemisphere"] == models.Continent.Hemisphere.SOUTHERN
+    assert form.cleaned_data["hemisphere"] == models.Continent.Hemisphere.NORTHERN
+    assert form.instance.hemisphere == models.Continent.Hemisphere.NORTHERN
 
     form = EnumForm({"hemisphere": "wrong"})
     assert form.is_valid() is False
+
+    form = EnumForm(
+        {"hemisphere": "wrong"},
+        instance=models.Continent(hemisphere=models.Continent.Hemisphere.SOUTHERN),
+    )
+    assert form.is_valid() is False
+    assert form.initial["hemisphere"] == models.Continent.Hemisphere.SOUTHERN
+
+    EnumForm.base_fields["hemisphere"].disabled = True
+    form = EnumForm({"hemisphere": "NORTHERN"})
+    assert form.is_valid() is True
+
+    EnumForm.base_fields["hemisphere"].disabled = True
+    form = EnumForm(
+        {"hemisphere": "SOUTHERN"},
+        instance=models.Continent(hemisphere=models.Continent.Hemisphere.NORTHERN),
+    )
+    assert form.is_valid() is True
+    assert form.initial["hemisphere"] == models.Continent.Hemisphere.NORTHERN
+    assert form.cleaned_data["hemisphere"] == models.Continent.Hemisphere.NORTHERN
+    assert form.instance.hemisphere == models.Continent.Hemisphere.NORTHERN
 
 
 def test_convert_enum_to_choices():
@@ -46,9 +75,13 @@ def test_convert_enum_to_choices():
 def test_parse_enum():
     assert fields.parse_enum(EnumTest, None) is None
     assert fields.parse_enum(EnumTest, "SECOND") is EnumTest.SECOND
+    assert fields.parse_enum(EnumTest, "EnumTest.SECOND") is EnumTest.SECOND
 
     with pytest.raises(ValidationError, match=f"Invalid .* {EnumTest}"):
         fields.parse_enum(EnumTest, "FAKE")
+
+    with pytest.raises(ValidationError, match=f"Invalid .* {EnumTest}"):
+        fields.parse_enum(EnumTest, "EnumTest.FAKE")
 
 
 def test_auto_contraint(settings):

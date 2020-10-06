@@ -1,25 +1,39 @@
-<form method="POST" target="">
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li>{{ message.tags }} {{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+<form method="POST" novalidate target="">
     {% csrf_token %}
-    <button type="submit">Submit</button>
+    <button type="submit">Submit all</button>
 
     {% for name, action in actions.items %}
     <button type="submit" name="action" value="{{ action.name }}">{{ action.name }}</button>
     {% endfor %}
 
     {% for name, form in forms.items %}
-    {{ form.as_p }}
+    <fieldset>
+        <h2>Form: {{ name }}</h2>
+        {{ form.as_p }}
+        <button type="submit" name="form" value="{{ form.prefix|default_if_none:'default' }}">Submit {{ form.prefix|default_if_none:"default" }}</button>
+    </fieldset>
     {% endfor %}
 
     {% for name, form_set in form_sets.items %}
-    <h2>{{ name }}</h2>
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
-        {{ form_set.management_form }}
-        {% for form in form_set %}
-        <div>
-        {{ form.as_p }}
+    <fieldset>
+        <h2>Form set: {{ name }}</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
+            {{ form_set.management_form }}
+            {% for form in form_set %}
+            <div>
+            {{ form.as_p }}
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
+        <button type="submit" name="form" value="{{ form_set.prefix|default_if_none:'default' }}">Submit {{ form_set.prefix|default_if_none:"default" }}</button>
+    </fieldset>
     {% endfor %}
     <!-- <pre>{{ serialized }}</pre> -- >
 </form>

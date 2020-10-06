@@ -25,6 +25,7 @@ if TYPE_CHECKING:
         can_delete: bool
         max_num: int
         min_num: int
+        extra: int
 
     class BaseModelFormSet(BaseFormSet, django_forms.models.BaseModelFormSet):
         pass

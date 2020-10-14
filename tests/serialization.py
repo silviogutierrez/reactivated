@@ -47,7 +47,7 @@ class Foo(NamedTuple):
     spam: Spam
 
     slim_enum_type: Type[SlimEnum]
-    # chunky_type: Type[ChunkyEnum]
+    chunky_enum_type: Type[ChunkyEnum]
 
     pick: Pick[models.Composer, "name", "operas.name"]
     pick_many: List[Pick[models.Composer, "name", "operas.name"]]
@@ -88,6 +88,7 @@ def test_serialization():
         bar=Bar(a="a", b=True),
         spam=Spam(thing=["one", "two", "three", "four"], again="ok"),
         slim_enum_type=SlimEnum,
+        chunky_enum_type=ChunkyEnum,
         pick=composer,
         pick_many=list(models.Composer.objects.all()),
         pick_method=opera,
@@ -111,6 +112,10 @@ def test_serialization():
         "bar": {"a": "a", "b": True},
         "spam": {"thing": ["one", "two", "three", "four"], "again": "ok"},
         "slim_enum_type": {"FIRST": "Ok", "SECOND": "Great"},
+        "chunky_enum_type": {
+            "CHUNKY_FIRST": {"is_important": False, "title": "Chunky First"},
+            "CHUNKY_SECOND": {"is_important": True, "title": "Chunky Second"},
+        },
         "pick": {"name": composer.name, "operas": [{"name": opera.name}]},
         "pick_many": [{"name": "Wagner", "operas": [{"name": "Götterdämmerung"}]}],
         "pick_method": {

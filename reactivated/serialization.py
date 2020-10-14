@@ -818,34 +818,33 @@ def serialize(value: Any, schema: Thing) -> JSON:
     if value is None:
         return None
 
-    dereferenced_schema = (
-        schema.definitions[schema.schema["$ref"].replace("#/definitions/", "")]
-        if "$ref" in schema.schema
-        else schema.schema
-    )
-
-    serializer_path = dereferenced_schema.get("serializer", None)
     serializer: Serializer
+    serializer_path = schema.schema.get("serializer", None)
 
-    # A custom serializer gets priority over anyOf. Technically anyOf could
-    # itself be a serializer of sorts. But callables need both a serializer to
-    # call the value and then a serializer to loop over the anyOf. Not sure how
-    # to abstract this out. So anyOf remains a higher-order construct.
+    # A custom serializer gets priority over anyOf and $ref.
+    # Technically anyOf and $ref could themselves be serializers of sorts. But
+    # callables need both a serializer to call the value and then a serializer
+    # to loop over the anyOf. Not sure how to abstract this out. So anyOf
+    # remains a higher-order construct. Same for $ref.
     if serializer_path is not None:
         serializer = import_string(serializer_path).get_serialized_value
-        return serializer(
+        return serializer(value, schema,)
+    elif "$ref" in schema.schema:
+        dereferenced_schema = schema.definitions[
+            schema.schema["$ref"].replace("#/definitions/", "")
+        ]
+
+        return serialize(
             value, Thing(schema=dereferenced_schema, definitions=schema.definitions)
         )
-    elif "anyOf" in dereferenced_schema:
-        for any_of_schema in dereferenced_schema["anyOf"]:
+    elif "anyOf" in schema.schema:
+        for any_of_schema in schema.schema["anyOf"]:
             return serialize(
                 value, Thing(schema=any_of_schema, definitions=schema.definitions)
             )
 
     # TODO: this falls back to "any" but that feels too loose.
     # Should this be an option?
-    serializer = SERIALIZERS[dereferenced_schema.get("type", "any")]
+    serializer = SERIALIZERS[schema.schema.get("type", "any")]
 
-    return serializer(
-        value, Thing(schema=dereferenced_schema, definitions=schema.definitions)
-    )
+    return serializer(value, schema,)

@@ -42,11 +42,27 @@ class ComputedField(NamedTuple):
     annotation: Any
     is_callable: bool
 
+    @classmethod
+    def get_serialized_value(
+        Type: Type["ComputedField"], value: Any, schema: "Thing"
+    ) -> JSON:
+        called_value = value() if callable(value) is True else value
+        called_value_schema = {**schema.schema}
+        called_value_schema.pop("serializer")
+
+        return serialize(
+            called_value,
+            Thing(schema=called_value_schema, definitions=schema.definitions),
+        )
+
     def get_json_schema(self, definitions: Definitions) -> "Thing":
         annotation_schema = create_schema(self.annotation, definitions=definitions)
 
         return Thing(
-            schema={**annotation_schema.schema, "callable": self.is_callable},
+            schema={
+                **annotation_schema.schema,
+                "serializer": "reactivated.serialization.ComputedField",
+            },
             definitions=annotation_schema.definitions,
         )
 
@@ -808,23 +824,27 @@ def serialize(value: Any, schema: Thing) -> JSON:
         else schema.schema
     )
 
-    if dereferenced_schema.get("callable", False):
-        value = value()
+    serializer_path = dereferenced_schema.get("serializer", None)
+    serializer: Serializer
 
-    if "anyOf" in dereferenced_schema:
+    # A custom serializer gets priority over anyOf. Technically anyOf could
+    # itself be a serializer of sorts. But callables need both a serializer to
+    # call the value and then a serializer to loop over the anyOf. Not sure how
+    # to abstract this out. So anyOf remains a higher-order construct.
+    if serializer_path is not None:
+        serializer = import_string(serializer_path).get_serialized_value
+        return serializer(
+            value, Thing(schema=dereferenced_schema, definitions=schema.definitions)
+        )
+    elif "anyOf" in dereferenced_schema:
         for any_of_schema in dereferenced_schema["anyOf"]:
             return serialize(
                 value, Thing(schema=any_of_schema, definitions=schema.definitions)
             )
 
-    serializer_path = dereferenced_schema.get("serializer", None)
-
-    if serializer_path is not None:
-        serializer: Serializer = import_string(serializer_path).get_serialized_value
-    else:
-        # TODO: this falls back to "any" but that feels too loose.
-        # Should this be an option?
-        serializer = SERIALIZERS[dereferenced_schema.get("type", "any")]
+    # TODO: this falls back to "any" but that feels too loose.
+    # Should this be an option?
+    serializer = SERIALIZERS[dereferenced_schema.get("type", "any")]
 
     return serializer(
         value, Thing(schema=dereferenced_schema, definitions=schema.definitions)

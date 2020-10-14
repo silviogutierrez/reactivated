@@ -400,7 +400,7 @@ class EnumValueType(NamedTuple):
 
 
 def enum_type_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
-    definition_name = f"{Type.__module__}.{Type.__qualname__}"
+    definition_name = f"{Type.__module__}.{Type.__qualname__}EnumType"
 
     if definition_name in definitions:
         return Thing(

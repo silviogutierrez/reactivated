@@ -68,6 +68,13 @@ def test_enum_type():
     )
 
 
+def test_enum_does_not_clobber_enum_type():
+    schema = create_schema(EnumType, {})
+    schema = create_schema(Type[EnumType], schema.definitions)
+    assert "tests.types.EnumType" in schema.definitions
+    assert "tests.types.EnumTypeEnumType" in schema.definitions
+
+
 def test_literal():
     assert create_schema(Literal["hello"], {}) == (
         {"type": "string", "enum": ("hello",)},

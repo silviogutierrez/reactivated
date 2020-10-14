@@ -361,8 +361,74 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
         return Thing(
             schema={"type": "string", "enum": Type.__args__}, definitions=definitions
         )
+    elif Type.__origin__ == type and issubclass(
+        (enum_type := Type.__args__[0]), enum.Enum
+    ):
+        return enum_type_schema(enum_type, definitions)
 
     assert False, f"Unsupported _GenericAlias {Type}"
+
+
+class EnumValueType(NamedTuple):
+    @classmethod
+    def get_serialized_value(
+        Type: Type["EnumValueType"], value: enum.Enum, schema: Thing
+    ) -> JSON:
+        enum_value = value.value
+        enum_value_schema = {**schema.schema}
+        enum_value_schema.pop("serializer")
+
+        return serialize(
+            enum_value, Thing(schema=enum_value_schema, definitions=schema.definitions)
+        )
+
+
+def enum_type_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
+    definition_name = f"{Type.__module__}.{Type.__qualname__}"
+
+    if definition_name in definitions:
+        return Thing(
+            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+        )
+
+    required = []
+    properties = {}
+    definitions = {**definitions}
+
+    for member in Type:
+        member_schema = create_schema(type(member.value), definitions)
+        definitions = {**definitions, **member_schema.definitions}
+
+        required.append(member.name)
+        properties[member.name] = {
+            **member_schema.schema,
+            "serializer": "reactivated.serialization.EnumValueType",
+        }
+
+    return Thing(
+        schema={"$ref": f"#/definitions/{definition_name}"},
+        definitions={
+            **definitions,
+            definition_name: {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": properties,
+                "required": required,
+            },
+        },
+    )
+
+    # call serialize on yourself, but with the value of the enum. Try doing that for callable too.
+    # Basically set a custom serializer then in the custom serliazer, you just access value.value and call serialzie again with the same schema.
+    # For callable, call value() then pass the same schema down.
+    # Beautiful.
+
+    # named_tuple_fields = [
+    #     (member_name, type(member_value.value)) for member_name, member_value in enum_type._member_map_.items()
+    # ]
+    # EnumNamedTuple = NamedTuple('EnumNamedTuple', named_tuple_fields)
+    # EnumNamedTuple.__qualname__ = enum_type.__qualname__
+    # EnumNamedTuple.__module__ = enum_type.__module__
 
 
 def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:

@@ -1,4 +1,5 @@
-from typing import Any, List, Literal, NamedTuple, Tuple
+import enum
+from typing import Any, List, Literal, NamedTuple, Tuple, Type
 
 import pytest
 import simplejson
@@ -23,12 +24,31 @@ class Bar(NamedTuple):
     b: bool
 
 
+class SlimEnum(enum.Enum):
+    FIRST = "Ok"
+    SECOND = "Great"
+
+
+class ChunkyEnumMember(NamedTuple):
+    is_important: bool
+    title: str
+
+
+class ChunkyEnum(enum.Enum):
+    CHUNKY_FIRST = ChunkyEnumMember(is_important=False, title="Chunky First")
+    CHUNKY_SECOND = ChunkyEnumMember(is_important=True, title="Chunky Second")
+
+
 Opera = Pick[models.Opera, "name"]
 
 
 class Foo(NamedTuple):
     bar: Bar
     spam: Spam
+
+    slim_enum_type: Type[SlimEnum]
+    # chunky_type: Type[ChunkyEnum]
+
     pick: Pick[models.Composer, "name", "operas.name"]
     pick_many: List[Pick[models.Composer, "name", "operas.name"]]
     pick_method: Pick[models.Opera, "name", "get_birthplace_of_composer"]
@@ -67,6 +87,7 @@ def test_serialization():
     instance = Foo(
         bar=Bar(a="a", b=True),
         spam=Spam(thing=["one", "two", "three", "four"], again="ok"),
+        slim_enum_type=SlimEnum,
         pick=composer,
         pick_many=list(models.Composer.objects.all()),
         pick_method=opera,
@@ -89,6 +110,7 @@ def test_serialization():
     assert serialized == {
         "bar": {"a": "a", "b": True},
         "spam": {"thing": ["one", "two", "three", "four"], "again": "ok"},
+        "slim_enum_type": {"FIRST": "Ok", "SECOND": "Great"},
         "pick": {"name": composer.name, "operas": [{"name": opera.name}]},
         "pick_many": [{"name": "Wagner", "operas": [{"name": "Götterdämmerung"}]}],
         "pick_method": {

@@ -1,6 +1,6 @@
 import enum
 from io import StringIO
-from typing import Any, Dict, List, Literal, NamedTuple, Tuple, TypedDict, Union
+from typing import Any, Dict, List, Literal, NamedTuple, Tuple, Type, TypedDict, Union
 
 import pytest
 import simplejson
@@ -56,6 +56,13 @@ class EnumType(enum.Enum):
 
 def test_enum():
     assert create_schema(EnumType, {}) == (
+        {"$ref": "#/definitions/tests.types.EnumType"},
+        {"tests.types.EnumType": {"type": "string", "enum": ["ONE", "TWO"],}},
+    )
+
+
+def test_enum_type():
+    assert create_schema(Type[EnumType], {}) != (
         {"$ref": "#/definitions/tests.types.EnumType"},
         {"tests.types.EnumType": {"type": "string", "enum": ["ONE", "TWO"],}},
     )

@@ -9,7 +9,9 @@ pip install -r requirements.txt
 cd packages/reactivated/
 yarn
 
-cd $PROJECT_ROOT/sample
+cd "$PROJECT_ROOT/sample"
 yarn
 
-cd $PROJECT_ROOT
+start_database
+
+cd "$PROJECT_ROOT"

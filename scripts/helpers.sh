@@ -106,3 +106,11 @@ function create_fix() {
 
     gh pr create -l automerge -b '' -t "$TITLE"
 }
+
+function start_database() {
+    POSTGRESQL_DATA="$VIRTUAL_ENV/postgresql"
+    pg_ctl -D "$POSTGRESQL_DATA" stop || true
+    rm -rf "$POSTGRESQL_DATA"
+    initdb "$POSTGRESQL_DATA"
+    pg_ctl -D "$POSTGRESQL_DATA" start
+}

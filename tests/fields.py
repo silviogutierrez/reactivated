@@ -70,9 +70,12 @@ def test_enum_form():
 
 
 def test_convert_enum_to_choices():
-    (first_choice, first_label), (second_choice, second_label), (_, _), (last_choice, last_label) = list(
-        fields.convert_enum_to_choices(EnumTest)
-    )
+    (
+        (first_choice, first_label),
+        (second_choice, second_label),
+        (_, _),
+        (last_choice, last_label),
+    ) = list(fields.convert_enum_to_choices(EnumTest))
     assert str(first_choice) == "FIRST"
     assert first_choice.choice == EnumTest.FIRST
     assert first_label == "First"

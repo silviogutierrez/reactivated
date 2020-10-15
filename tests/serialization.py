@@ -58,6 +58,7 @@ class Foo(NamedTuple):
         models.Composer, "operas_with_piano_transcriptions.name"
     ]
     pick_nested: Pick[models.Composer, "name", Pick["operas", Opera]]
+    pick_enum: Pick[models.Continent, "hemisphere"]
     fixed_tuple_different_types: Tuple[str, int]
     fixed_tuple_same_types: Tuple[str, str]
     complex_type_we_do_not_type: Any
@@ -96,6 +97,7 @@ def test_serialization():
         pick_literal=composer,
         pick_computed_queryset=composer,
         pick_nested=composer,
+        pick_enum=continent,
         fixed_tuple_different_types=("ok", 5),
         fixed_tuple_same_types=("alright", "again"),
         complex_type_we_do_not_type={
@@ -128,6 +130,7 @@ def test_serialization():
             "operas_with_piano_transcriptions": [{"name": "Götterdämmerung"}]
         },
         "pick_nested": {"name": composer.name, "operas": [{"name": opera.name}]},
+        "pick_enum": {"hemisphere": "SOUTHERN"},
         "fixed_tuple_different_types": ["ok", 5],
         "fixed_tuple_same_types": ["alright", "again"],
         "complex_type_we_do_not_type": {

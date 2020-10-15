@@ -283,19 +283,19 @@ def field_descriptor_schema(
     Type: "models.Field[Any, Any]", definitions: Definitions
 ) -> Thing:
     mapping = {
-        models.CharField: str,
-        models.BooleanField: bool,
-        models.TextField: str,
-        models.ForeignKey: ForeignKeyType,
-        models.AutoField: int,
-        models.DateField: datetime.date,
-        models.DateTimeField: datetime.datetime,
-        models.EmailField: str,
-        models.UUIDField: str,
-        models.IntegerField: int,
-        models.PositiveIntegerField: int,
-        models.DecimalField: str,
-        fields.EnumField: str,
+        models.CharField: lambda field: str,
+        models.BooleanField: lambda field: bool,
+        models.TextField: lambda field: str,
+        models.ForeignKey: lambda field: ForeignKeyType,
+        models.AutoField: lambda field: int,
+        models.DateField: lambda field: datetime.date,
+        models.DateTimeField: lambda field: datetime.datetime,
+        models.EmailField: lambda field: str,
+        models.UUIDField: lambda field: str,
+        models.IntegerField: lambda field: int,
+        models.PositiveIntegerField: lambda field: int,
+        models.DecimalField: lambda field: str,
+        fields.EnumField: lambda field: field.enum,
     }
 
     try:
@@ -303,15 +303,17 @@ def field_descriptor_schema(
 
         mapping = {
             **mapping,
-            django_extension_fields.ShortUUIDField: str,
+            django_extension_fields.ShortUUIDField: lambda field: str,
         }
     except ImportError:
         pass
 
-    mapped_type = mapping.get(Type.__class__)
+    mapped_type_callable = mapping.get(Type.__class__)
     assert (
-        mapped_type is not None
+        mapped_type_callable is not None
     ), f"Unsupported model field type {Type.__class__}. This should probably silently return None and allow a custom handler to support the field."
+
+    mapped_type = mapped_type_callable(Type)  # type: ignore[no-untyped-call]
 
     FieldSchemaWithPossibleNull = (
         Union[mapped_type, None] if Type.null is True else mapped_type
@@ -399,6 +401,15 @@ class EnumValueType(NamedTuple):
         )
 
 
+class EnumMemberType(NamedTuple):
+    @classmethod
+    def get_serialized_value(
+        Type: Type["EnumMemberType"], value: enum.Enum, schema: Thing
+    ) -> JSON:
+        member = value.name
+        return serialize(value.name, create_schema(type(member), schema.definitions))
+
+
 def enum_type_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
     definition_name = f"{Type.__module__}.{Type.__qualname__}EnumType"
 
@@ -457,6 +468,7 @@ def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
             definition_name: {
                 "type": "string",
                 "enum": list(member.name for member in Type),
+                "serializer": "reactivated.serialization.EnumMemberType",
             },
         },
     )

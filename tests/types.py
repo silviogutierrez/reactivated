@@ -8,6 +8,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django.core.management import call_command
 from django.db import models as django_models
 
+from reactivated.fields import EnumField
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import ComputedField, create_schema
 from sample.server.apps.samples import forms, models
@@ -58,7 +59,13 @@ class EnumType(enum.Enum):
 def test_enum():
     assert create_schema(EnumType, {}) == (
         {"$ref": "#/definitions/tests.types.EnumType"},
-        {"tests.types.EnumType": {"type": "string", "enum": ["ONE", "TWO", "CHUNK"],}},
+        {
+            "tests.types.EnumType": {
+                "type": "string",
+                "enum": ["ONE", "TWO", "CHUNK"],
+                "serializer": "reactivated.serialization.EnumMemberType",
+            }
+        },
     )
 
 
@@ -315,6 +322,20 @@ def test_custom_schema(settings):
     settings.REACTIVATED_SERIALIZATION = "tests.types.custom_schema"
 
     create_schema(CustomField, {}) == ({"type": "string"}, {})
+
+
+def test_enum_field_descriptor():
+    descriptor = EnumField(enum=EnumType)
+    assert create_schema(descriptor, {}) == (
+        {"$ref": "#/definitions/tests.types.EnumType"},
+        {
+            "tests.types.EnumType": {
+                "type": "string",
+                "enum": ["ONE", "TWO", "CHUNK"],
+                "serializer": "reactivated.serialization.EnumMemberType",
+            }
+        },
+    )
 
 
 def test_get_field_descriptor():

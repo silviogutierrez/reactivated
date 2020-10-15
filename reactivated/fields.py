@@ -58,7 +58,7 @@ class EnumChoice(Generic[_GT]):
 
 def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[EnumChoice[Enum], str]]:
     for member in enum:
-        yield (EnumChoice(member), member.value)
+        yield (EnumChoice(member), str(member.value))
 
 
 models.CharField.__class_getitem__ = classmethod(  # type: ignore[attr-defined]

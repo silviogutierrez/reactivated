@@ -1,4 +1,5 @@
 import enum
+from typing import NamedTuple
 
 import pytest
 import rest_framework
@@ -11,10 +12,18 @@ from reactivated import constraints, fields
 from sample.server.apps.samples import models
 
 
+class Member(NamedTuple):
+    title: str
+
+    def __str__(self) -> str:
+        return self.title
+
+
 class EnumTest(enum.Enum):
     FIRST = "First"
     SECOND = "Second"
     THIRD = "Third"
+    CHUNKY = Member(title="Chunky")
 
 
 def test_enum_form():
@@ -61,15 +70,22 @@ def test_enum_form():
 
 
 def test_convert_enum_to_choices():
-    (first_choice, first_label), (second_choice, second_label), (_, _) = list(
-        fields.convert_enum_to_choices(EnumTest)
-    )
+    (
+        (first_choice, first_label),
+        (second_choice, second_label),
+        (_, _),
+        (last_choice, last_label),
+    ) = list(fields.convert_enum_to_choices(EnumTest))
     assert str(first_choice) == "FIRST"
     assert first_choice.choice == EnumTest.FIRST
-    assert str(first_label) == "First"
+    assert first_label == "First"
     assert str(second_choice) == "SECOND"
-    assert str(second_label) == "Second"
+    assert second_label == "Second"
     assert second_choice.choice == EnumTest.SECOND
+
+    assert last_choice.choice == EnumTest.CHUNKY
+    assert str(last_choice) == "CHUNKY"
+    assert last_label == "Chunky"
 
 
 def test_parse_enum():
@@ -96,7 +112,7 @@ def test_auto_contraint(settings):
 
     constraint = TestModel._meta.constraints[0]
     assert isinstance(constraint, constraints.EnumConstraint)
-    assert constraint.members == ["FIRST", "SECOND", "THIRD"]
+    assert constraint.members == ["FIRST", "SECOND", "THIRD", "CHUNKY"]
     assert constraint.field_name == "enum_field"
     assert constraint.name == "fields_testmodel_enum_field_enum"
 

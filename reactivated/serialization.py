@@ -42,11 +42,27 @@ class ComputedField(NamedTuple):
     annotation: Any
     is_callable: bool
 
+    @classmethod
+    def get_serialized_value(
+        Type: Type["ComputedField"], value: Any, schema: "Thing"
+    ) -> JSON:
+        called_value = value() if callable(value) is True else value
+        called_value_schema = {**schema.schema}
+        called_value_schema.pop("serializer")
+
+        return serialize(
+            called_value,
+            Thing(schema=called_value_schema, definitions=schema.definitions),
+        )
+
     def get_json_schema(self, definitions: Definitions) -> "Thing":
         annotation_schema = create_schema(self.annotation, definitions=definitions)
 
         return Thing(
-            schema={**annotation_schema.schema, "callable": self.is_callable},
+            schema={
+                **annotation_schema.schema,
+                "serializer": "reactivated.serialization.ComputedField",
+            },
             definitions=annotation_schema.definitions,
         )
 
@@ -361,8 +377,74 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
         return Thing(
             schema={"type": "string", "enum": Type.__args__}, definitions=definitions
         )
+    elif Type.__origin__ == type and issubclass(
+        (enum_type := Type.__args__[0]), enum.Enum
+    ):
+        return enum_type_schema(enum_type, definitions)
 
     assert False, f"Unsupported _GenericAlias {Type}"
+
+
+class EnumValueType(NamedTuple):
+    @classmethod
+    def get_serialized_value(
+        Type: Type["EnumValueType"], value: enum.Enum, schema: Thing
+    ) -> JSON:
+        enum_value = value.value
+        enum_value_schema = {**schema.schema}
+        enum_value_schema.pop("serializer")
+
+        return serialize(
+            enum_value, Thing(schema=enum_value_schema, definitions=schema.definitions)
+        )
+
+
+def enum_type_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
+    definition_name = f"{Type.__module__}.{Type.__qualname__}EnumType"
+
+    if definition_name in definitions:
+        return Thing(
+            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+        )
+
+    required = []
+    properties = {}
+    definitions = {**definitions}
+
+    for member in Type:
+        member_schema = create_schema(type(member.value), definitions)
+        definitions = {**definitions, **member_schema.definitions}
+
+        required.append(member.name)
+        properties[member.name] = {
+            **member_schema.schema,
+            "serializer": "reactivated.serialization.EnumValueType",
+        }
+
+    return Thing(
+        schema={"$ref": f"#/definitions/{definition_name}"},
+        definitions={
+            **definitions,
+            definition_name: {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": properties,
+                "required": required,
+            },
+        },
+    )
+
+    # call serialize on yourself, but with the value of the enum. Try doing that for callable too.
+    # Basically set a custom serializer then in the custom serliazer, you just access value.value and call serialzie again with the same schema.
+    # For callable, call value() then pass the same schema down.
+    # Beautiful.
+
+    # named_tuple_fields = [
+    #     (member_name, type(member_value.value)) for member_name, member_value in enum_type._member_map_.items()
+    # ]
+    # EnumNamedTuple = NamedTuple('EnumNamedTuple', named_tuple_fields)
+    # EnumNamedTuple.__qualname__ = enum_type.__qualname__
+    # EnumNamedTuple.__module__ = enum_type.__module__
 
 
 def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
@@ -736,30 +818,33 @@ def serialize(value: Any, schema: Thing) -> JSON:
     if value is None:
         return None
 
-    dereferenced_schema = (
-        schema.definitions[schema.schema["$ref"].replace("#/definitions/", "")]
-        if "$ref" in schema.schema
-        else schema.schema
-    )
+    serializer: Serializer
+    serializer_path = schema.schema.get("serializer", None)
 
-    if dereferenced_schema.get("callable", False):
-        value = value()
+    # A custom serializer gets priority over anyOf and $ref.
+    # Technically anyOf and $ref could themselves be serializers of sorts. But
+    # callables need both a serializer to call the value and then a serializer
+    # to loop over the anyOf. Not sure how to abstract this out. So anyOf
+    # remains a higher-order construct. Same for $ref.
+    if serializer_path is not None:
+        serializer = import_string(serializer_path).get_serialized_value
+        return serializer(value, schema,)
+    elif "$ref" in schema.schema:
+        dereferenced_schema = schema.definitions[
+            schema.schema["$ref"].replace("#/definitions/", "")
+        ]
 
-    if "anyOf" in dereferenced_schema:
-        for any_of_schema in dereferenced_schema["anyOf"]:
+        return serialize(
+            value, Thing(schema=dereferenced_schema, definitions=schema.definitions)
+        )
+    elif "anyOf" in schema.schema:
+        for any_of_schema in schema.schema["anyOf"]:
             return serialize(
                 value, Thing(schema=any_of_schema, definitions=schema.definitions)
             )
 
-    serializer_path = dereferenced_schema.get("serializer", None)
+    # TODO: this falls back to "any" but that feels too loose.
+    # Should this be an option?
+    serializer = SERIALIZERS[schema.schema.get("type", "any")]
 
-    if serializer_path is not None:
-        serializer: Serializer = import_string(serializer_path).get_serialized_value
-    else:
-        # TODO: this falls back to "any" but that feels too loose.
-        # Should this be an option?
-        serializer = SERIALIZERS[dereferenced_schema.get("type", "any")]
-
-    return serializer(
-        value, Thing(schema=dereferenced_schema, definitions=schema.definitions)
-    )
+    return serializer(value, schema,)

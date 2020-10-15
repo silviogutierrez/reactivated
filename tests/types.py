@@ -1,6 +1,6 @@
 import enum
 from io import StringIO
-from typing import Any, Dict, List, Literal, NamedTuple, Tuple, TypedDict, Union
+from typing import Any, Dict, List, Literal, NamedTuple, Tuple, Type, TypedDict, Union
 
 import pytest
 import simplejson
@@ -52,13 +52,60 @@ def test_named_tuple():
 class EnumType(enum.Enum):
     ONE = "One"
     TWO = "Two"
+    CHUNK = NamedTupleType(first="a", second=True, third=4)
 
 
 def test_enum():
     assert create_schema(EnumType, {}) == (
         {"$ref": "#/definitions/tests.types.EnumType"},
-        {"tests.types.EnumType": {"type": "string", "enum": ["ONE", "TWO"],}},
+        {"tests.types.EnumType": {"type": "string", "enum": ["ONE", "TWO", "CHUNK"],}},
     )
+
+
+def test_enum_type():
+    assert create_schema(Type[EnumType], {}) == (
+        {"$ref": "#/definitions/tests.types.EnumTypeEnumType"},
+        {
+            "tests.types.EnumTypeEnumType": {
+                "additionalProperties": False,
+                "properties": {
+                    "CHUNK": {
+                        "$ref": "#/definitions/tests.types.NamedTupleType",
+                        "serializer": "reactivated.serialization.EnumValueType",
+                    },
+                    "ONE": {
+                        "serializer": "reactivated.serialization.EnumValueType",
+                        "type": "string",
+                    },
+                    "TWO": {
+                        "serializer": "reactivated.serialization.EnumValueType",
+                        "type": "string",
+                    },
+                },
+                "required": ["ONE", "TWO", "CHUNK"],
+                "type": "object",
+            },
+            "tests.types.NamedTupleType": {
+                "additionalProperties": False,
+                "properties": {
+                    "first": {"type": "string"},
+                    "fourth_as_property": {"type": "number"},
+                    "second": {"type": "boolean"},
+                    "third": {"type": "number"},
+                },
+                "required": ["first", "second", "third", "fourth_as_property"],
+                "serializer": None,
+                "type": "object",
+            },
+        },
+    )
+
+
+def test_enum_does_not_clobber_enum_type():
+    schema = create_schema(EnumType, {})
+    schema = create_schema(Type[EnumType], schema.definitions)
+    assert "tests.types.EnumType" in schema.definitions
+    assert "tests.types.EnumTypeEnumType" in schema.definitions
 
 
 def test_literal():

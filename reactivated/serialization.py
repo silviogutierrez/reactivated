@@ -168,10 +168,15 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     So we monkeypatch the widget's internal renderer to return JSON directly
     without being wrapped by `mark_safe`.
     """
+    original_render = field.field.widget._render  # type: ignore[attr-defined]
     field.field.widget._render = (  # type: ignore[attr-defined]
         lambda template_name, context, renderer: context
     )
-    context: Any = field.as_widget()["widget"]  # type: ignore[index]
+    widget = field.as_widget()
+    context: Any = widget["widget"]  # type: ignore[index]
+    context["template_name"] = getattr(
+        field.field.widget, "reactivated_widget", context["template_name"]
+    )
     optgroups = context.get("optgroups", None)
 
     # This is our first foray into properly serializing widgets using the
@@ -184,6 +189,8 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
         context["optgroups"] = [
             serialize(optgroup, optgroup_schema) for optgroup in optgroups
         ]
+
+    field.field.widget._render = original_render  # type: ignore[attr-defined]
 
     return context  # type: ignore[no-any-return]
 
@@ -595,6 +602,12 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         }
         error_properties[field_name] = error_definition
 
+    iterator = (
+        {"type": "array", "items": {"enum": required, "type": "string"},}
+        if len(required) > 0
+        else {"type": "array", "items": []}
+    )
+
     definitions = {
         **definitions,
         definition_name: {
@@ -618,10 +631,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
                     "additionalProperties": False,
                 },
                 "prefix": {"type": "string"},
-                "iterator": {
-                    "type": "array",
-                    "items": {"enum": required, "type": "string"},
-                },
+                "iterator": iterator,
             },
             "serializer": "reactivated.serialization.FormType",
             "additionalProperties": False,

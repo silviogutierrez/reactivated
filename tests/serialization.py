@@ -3,9 +3,9 @@ from typing import Any, List, Literal, NamedTuple, Tuple, Type
 
 import pytest
 import simplejson
+from django import forms as django_forms
 from django.apps.registry import Apps
 from django.db.models import IntegerField, Model
-from django.forms import ModelForm
 from django.forms.models import ModelChoiceIteratorValue
 from jsonschema import validate
 
@@ -155,6 +155,20 @@ def test_form():
     convert_to_json_and_validate(serialized_form, generated_schema)
 
 
+def test_custom_widget():
+    class CustomWidget(django_forms.Select):
+        reactivated_widget = "foo"
+
+    class CustomForm(django_forms.Form):
+        field = django_forms.CharField(widget=CustomWidget)
+
+    generated_schema = create_schema(CustomForm, {})
+    form = CustomForm()
+    serialized_form = serialize(form, generated_schema)
+    convert_to_json_and_validate(serialized_form, generated_schema)
+    assert serialized_form.fields["field"].widget["template_name"] == "foo"
+
+
 @pytest.mark.django_db
 def test_form_with_model_choice_iterator_value():
     models.Country.objects.create(
@@ -175,9 +189,9 @@ def test_form_with_model_choice_iterator_value():
     form = forms.ComposerForm()
     serialized_form = serialize(form, generated_schema)
     convert_to_json_and_validate(serialized_form, generated_schema)
-    serialized_form.fields["countries"].widget["optgroups"][0][1][0][
+    assert serialized_form.fields["countries"].widget["optgroups"][0][1][0][
         "value"
-    ] == iterator.value
+    ] == str(iterator.value)
 
 
 @pytest.mark.django_db
@@ -206,7 +220,7 @@ def test_typed_choices_non_enum(settings):
         class Meta:
             apps = test_apps
 
-    class TestForm(ModelForm):
+    class TestForm(django_forms.ModelForm):
         class Meta:
             model = TestModel
             fields = "__all__"

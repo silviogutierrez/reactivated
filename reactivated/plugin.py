@@ -47,6 +47,11 @@ class ReactivatedPlugin(Plugin):
 
         return None
 
+    def get_base_class_hook(self, fullname: str) -> "CB[ClassDefContext]":
+        if fullname in ["django.forms.formsets.BaseFormSet"]:
+            return analyze_stubs
+        return None
+
     def get_dynamic_class_hook(self, fullname: str) -> "CB[DynamicClassDefContext]":
         if fullname in [
             "django.forms.formsets.formset_factory",
@@ -54,6 +59,14 @@ class ReactivatedPlugin(Plugin):
         ]:
             return analyze_formset_factory
         return None
+
+
+def analyze_stubs(ctx: ClassDefContext) -> None:
+    boolean = ctx.api.builtin_type("builtins.bool")
+
+    add_method(
+        ctx, "is_valid", args=[], return_type=Instance(boolean.type, []),
+    )
 
 
 already_analyzed = {}

@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Literal, NamedTuple, Tuple, Type, TypedDict,
 
 import pytest
 import simplejson
+from django import forms as django_forms
 from django.core.exceptions import FieldDoesNotExist
 from django.core.management import call_command
 from django.db import models as django_models
@@ -301,6 +302,15 @@ def test_form_set():
     # Ensure the children of the child form are serialized by passing
     # definitions around without mutating.
     assert "sample.server.apps.samples.models.Opera.Style" in schema.definitions
+
+
+def test_empty_form():
+    class EmptyForm(django_forms.Form):
+        pass
+
+    assert create_schema(EmptyForm, {}).definitions[
+        "tests.types.test_empty_form.<locals>.EmptyForm"
+    ]["properties"]["iterator"] == {"items": [], "type": "array"}
 
 
 class CustomField:

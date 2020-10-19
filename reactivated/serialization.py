@@ -602,6 +602,12 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         }
         error_properties[field_name] = error_definition
 
+    iterator = (
+        {"type": "array", "items": {"enum": required, "type": "string"},}
+        if len(required) > 0
+        else {"type": "array", "items": []}
+    )
+
     definitions = {
         **definitions,
         definition_name: {
@@ -625,10 +631,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
                     "additionalProperties": False,
                 },
                 "prefix": {"type": "string"},
-                "iterator": {
-                    "type": "array",
-                    "items": {"enum": required, "type": "string"},
-                },
+                "iterator": iterator,
             },
             "serializer": "reactivated.serialization.FormType",
             "additionalProperties": False,

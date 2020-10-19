@@ -18,8 +18,9 @@ if TYPE_CHECKING:
         def non_form_errors(self) -> Any:
             ...
 
-        def is_valid(self) -> bool:
-            pass
+        # Our plugin adds this.
+        # def is_valid(self) -> bool:
+        #    pass
 
         can_order: bool
         can_delete: bool

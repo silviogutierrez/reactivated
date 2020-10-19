@@ -172,7 +172,11 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     field.field.widget._render = (  # type: ignore[attr-defined]
         lambda template_name, context, renderer: context
     )
-    context: Any = field.as_widget()["widget"]  # type: ignore[index]
+    widget = field.as_widget()
+    context: Any = widget["widget"]  # type: ignore[index]
+    context["template_name"] = getattr(
+        field.field.widget, "reactivated_widget", context["template_name"]
+    )
     optgroups = context.get("optgroups", None)
 
     # This is our first foray into properly serializing widgets using the

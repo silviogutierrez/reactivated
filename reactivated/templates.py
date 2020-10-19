@@ -79,6 +79,41 @@ class Action(NamedTuple):
     name: str
 
 
+class Extracted(NamedTuple):
+    context_forms: Dict[str, forms.BaseForm]
+    context_form_sets: Dict[str, forms.BaseFormSet]
+    context_actions: Dict[str, Action]
+
+
+def extract_forms_form_sets_and_actions(interface: Any) -> Extracted:
+    context = interface._asdict()
+
+    context_forms = {}
+    context_form_sets = {}
+    context_actions = {}
+
+    for name, item in context.items():
+        if isinstance(item, forms.BaseForm):
+            context_forms[name] = item
+
+        elif isinstance(item, forms.BaseFormSet):
+            context_form_sets[name] = item
+
+        elif isinstance(item, Action):
+            context_actions[name] = item
+        elif getattr(item, "is_reactivated_interface", None) is True:
+            children = extract_forms_form_sets_and_actions(item)
+            context_forms.update(children.context_forms)
+            context_form_sets.update(children.context_form_sets)
+            context_actions.update(children.context_actions)
+
+    return Extracted(
+        context_forms=context_forms,
+        context_form_sets=context_form_sets,
+        context_actions=context_actions,
+    )
+
+
 def interface(cls: T) -> T:
     from . import type_registry
 
@@ -86,6 +121,8 @@ def interface(cls: T) -> T:
     type_registry[type_name] = cls  # type: ignore[assignment]
 
     class Augmented(cls):  # type: ignore[misc, valid-type]
+        is_reactivated_interface = True
+
         def get_serialized(self) -> Any:
             from .serialization import serialize, create_schema
 
@@ -100,31 +137,16 @@ def interface(cls: T) -> T:
             if should_respond_with_json(request):
                 return HttpResponse(serialized, content_type="application/json")
 
-            context = self._asdict()
-            context_forms = {
-                name: possible_form
-                for name, possible_form in context.items()
-                if isinstance(possible_form, forms.BaseForm)
-            }
-            context_form_sets = {
-                name: possible_form_set
-                for name, possible_form_set in context.items()
-                if isinstance(possible_form_set, forms.BaseFormSet)
-            }
-            context_actions = {
-                name: possible_action
-                for name, possible_action in context.items()
-                if isinstance(possible_action, Action)
-            }
+            extracted_context = extract_forms_form_sets_and_actions(self)
 
             return TemplateResponse(
                 request,
                 "reactivated/interface.html",
                 {
                     **self._asdict(),
-                    "forms": context_forms,
-                    "form_sets": context_form_sets,
-                    "actions": context_actions,
+                    "forms": extracted_context.context_forms,
+                    "form_sets": extracted_context.context_form_sets,
+                    "actions": extracted_context.context_actions,
                     "serialized": serialized,
                 },
             )

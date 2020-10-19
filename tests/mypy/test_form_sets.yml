@@ -31,3 +31,11 @@
 
       reveal_type(MyFormSet())  # N: Revealed type is 'main.MyFormSet'
       reveal_type(UseAsType().form_set)  # N: Revealed type is 'main.MyFormSet'
+- case: test_formset_is_valid
+  main: |
+      from django import forms
+
+      class MyFormSet(forms.BaseFormSet):
+          pass
+
+      reveal_type(MyFormSet().is_valid)  # N: Revealed type is 'def () -> builtins.bool'

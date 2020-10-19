@@ -1,4 +1,5 @@
-from typing import Any, List, Literal, NamedTuple, Tuple
+import enum
+from typing import Any, List, Literal, NamedTuple, Tuple, Type
 
 import pytest
 import simplejson
@@ -23,12 +24,31 @@ class Bar(NamedTuple):
     b: bool
 
 
+class SlimEnum(enum.Enum):
+    FIRST = "Ok"
+    SECOND = "Great"
+
+
+class ChunkyEnumMember(NamedTuple):
+    is_important: bool
+    title: str
+
+
+class ChunkyEnum(enum.Enum):
+    CHUNKY_FIRST = ChunkyEnumMember(is_important=False, title="Chunky First")
+    CHUNKY_SECOND = ChunkyEnumMember(is_important=True, title="Chunky Second")
+
+
 Opera = Pick[models.Opera, "name"]
 
 
 class Foo(NamedTuple):
     bar: Bar
     spam: Spam
+
+    slim_enum_type: Type[SlimEnum]
+    chunky_enum_type: Type[ChunkyEnum]
+
     pick: Pick[models.Composer, "name", "operas.name"]
     pick_many: List[Pick[models.Composer, "name", "operas.name"]]
     pick_method: Pick[models.Opera, "name", "get_birthplace_of_composer"]
@@ -38,6 +58,7 @@ class Foo(NamedTuple):
         models.Composer, "operas_with_piano_transcriptions.name"
     ]
     pick_nested: Pick[models.Composer, "name", Pick["operas", Opera]]
+    pick_enum: Pick[models.Continent, "hemisphere"]
     fixed_tuple_different_types: Tuple[str, int]
     fixed_tuple_same_types: Tuple[str, str]
     complex_type_we_do_not_type: Any
@@ -67,6 +88,8 @@ def test_serialization():
     instance = Foo(
         bar=Bar(a="a", b=True),
         spam=Spam(thing=["one", "two", "three", "four"], again="ok"),
+        slim_enum_type=SlimEnum,
+        chunky_enum_type=ChunkyEnum,
         pick=composer,
         pick_many=list(models.Composer.objects.all()),
         pick_method=opera,
@@ -74,6 +97,7 @@ def test_serialization():
         pick_literal=composer,
         pick_computed_queryset=composer,
         pick_nested=composer,
+        pick_enum=continent,
         fixed_tuple_different_types=("ok", 5),
         fixed_tuple_same_types=("alright", "again"),
         complex_type_we_do_not_type={
@@ -89,6 +113,11 @@ def test_serialization():
     assert serialized == {
         "bar": {"a": "a", "b": True},
         "spam": {"thing": ["one", "two", "three", "four"], "again": "ok"},
+        "slim_enum_type": {"FIRST": "Ok", "SECOND": "Great"},
+        "chunky_enum_type": {
+            "CHUNKY_FIRST": {"is_important": False, "title": "Chunky First"},
+            "CHUNKY_SECOND": {"is_important": True, "title": "Chunky Second"},
+        },
         "pick": {"name": composer.name, "operas": [{"name": opera.name}]},
         "pick_many": [{"name": "Wagner", "operas": [{"name": "Götterdämmerung"}]}],
         "pick_method": {
@@ -101,6 +130,7 @@ def test_serialization():
             "operas_with_piano_transcriptions": [{"name": "Götterdämmerung"}]
         },
         "pick_nested": {"name": composer.name, "operas": [{"name": opera.name}]},
+        "pick_enum": {"hemisphere": "SOUTHERN"},
         "fixed_tuple_different_types": ["ok", 5],
         "fixed_tuple_same_types": ["alright", "again"],
         "complex_type_we_do_not_type": {

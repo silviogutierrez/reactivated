@@ -7,10 +7,7 @@ django-extensions==3.0.9
 djangorestframework==3.11.1
 django-stubs==1.5.0
 
-# We need this PR merged: https://github.com/PyCQA/pyflakes/pull/455
-# So we can ignore specific errors.
-https://github.com/PyCQA/pyflakes/archive/ffe938667e03b02ab8c1dfad98d30998e7d712ec.zip
-flake8==3.7.8
+flake8==3.8.4
 isort==4.3.21
 jsonschema==3.1.1
 mypy==0.770

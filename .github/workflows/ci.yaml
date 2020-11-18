@@ -13,7 +13,7 @@ jobs:
         runs-on: ubuntu-18.04
         steps:
             - uses: actions/checkout@v1
-            - uses: cachix/install-nix-action@v10
+            - uses: cachix/install-nix-action@v12
             - name: Nix requirements
               run: nix-shell
             - name: Run tests

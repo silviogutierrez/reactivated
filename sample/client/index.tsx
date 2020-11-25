@@ -3,8 +3,12 @@ import {hydrate} from "react-dom";
 
 import {Provider} from "reactivated/context";
 
-const props = JSON.parse((document.getElementsByName("reactivated-props")[0] as HTMLMetaElement).content);
-const context = JSON.parse((document.getElementsByName("reactivated-context")[0] as HTMLMetaElement).content);
+const props = JSON.parse(
+    (document.getElementsByName("reactivated-props")[0] as HTMLMetaElement).content,
+);
+const context = JSON.parse(
+    (document.getElementsByName("reactivated-context")[0] as HTMLMetaElement).content,
+);
 
 if ((module as any).hot) {
     (module as any).hot.accept();
@@ -17,5 +21,5 @@ hydrate(
     <Provider value={context}>
         <Template {...props} />
     </Provider>,
-    document.documentElement
+    document.documentElement,
 );

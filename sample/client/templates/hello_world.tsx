@@ -11,13 +11,19 @@ const styles = {
 const Foo = () => {
     const context = React.useContext(Context);
     const props = (global as any).__REACTIVATED_PROPS ?? null;
-    const serializedContext = JSON.stringify(context).replace( /</g, "\\u003c");
-    const serializedProps = JSON.stringify(props).replace( /</g, "\\u003c");
+    const serializedContext = JSON.stringify(context).replace(/</g, "\\u003c");
+    const serializedProps = JSON.stringify(props).replace(/</g, "\\u003c");
 
-    return <>
-        <meta name="reactivated-context" content={serializedContext} />
-        <meta name="reactivated-props" suppressHydrationWarning content={serializedProps} />
-    </>
+    return (
+        <>
+            <meta name="reactivated-context" content={serializedContext} />
+            <meta
+                name="reactivated-props"
+                suppressHydrationWarning
+                content={serializedProps}
+            />
+        </>
+    );
 };
 
 export default () => (

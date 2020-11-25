@@ -24,53 +24,15 @@ const app = express();
 
 export const bindRenderPage = (settings: Settings) => ({
     html,
-    helmet,
-    css,
-    pageCSS,
     context,
     props,
 }: {
     html: string;
-    helmet: HelmetData;
-    css: string;
-    pageCSS: string;
     context: any;
     props: any;
-}) => `
-<!DOCTYPE html>
+}) => `<!DOCTYPE html>
 <html>
-    <head ${helmet.htmlAttributes.toString()}>
-        <script>
-            // These go first because scripts below need them.
-            // WARNING: See the following for security issues around embedding JSON in HTML:
-            // http://redux.js.org/recipes/ServerRendering.html#security-considerations
-            window.__PRELOADED_PROPS__ = ${JSON.stringify(props).replace(
-                /</g,
-                "\\u003c",
-            )}
-            window.__PRELOADED_CONTEXT__ = ${JSON.stringify(context).replace(
-                /</g,
-                "\\u003c",
-            )}
-        </script>
-
-        ${helmet.base.toString()}
-        ${helmet.link.toString()}
-        ${helmet.meta.toString()}
-        ${helmet.noscript.toString()}
-        ${helmet.script.toString()}
-        ${helmet.style.toString()}
-        ${helmet.title.toString()}
-        <style id="styles-target">
-            ${css}
-        </style>
-        <style id="page-styles-target">
-            ${pageCSS}
-        </style>
-    </head>
-    <body ${helmet.bodyAttributes.toString()}>
-        <div id="root">${html}</div>
-    </body>
+    ${html}
 </html>
 `;
 
@@ -91,64 +53,19 @@ export const render = (
 
     const templatePath = `${process.cwd()}/client/templates/${context.template_name}`;
 
-    // TODO: disable this in production.
-    if (process.env.NODE_ENV !== "production") {
-        // Our template names have no extension by design, for when we transpile.
-        delete require.cache[`${templatePath}.tsx`];
-        delete require.cache[`${templatePath}.jsx`];
-
-        // When a template includes other components, like Layout, we also want
-        // to clear that cache. Right now, I'm not sure what actually needs to
-        // be cleared. Layout.tsx is not in the cache. Maybe it's cached by
-        // way of another module.
-        //
-        // So we clear *everything* except context, typestyle and helmet because those
-        // are stateful and we need them for the initial page.
-        //
-        // Possible better fix: https://stackoverflow.com/a/14801711
-        for (const cacheKey of Object.keys(require.cache)) {
-            if (
-                !cacheKey.includes("reactivated/context") &&
-                !cacheKey.includes("typestyle") &&
-                !cacheKey.includes("helmet") &&
-                // If we delete React from the cache, this creates two duplicate
-                // instances of React and we get server side rendering issues
-                // when using hooks.
-                // https://reactjs.org/warnings/invalid-hook-call-warning.html
-                //
-                // Note the trailing slash so to avoid matching reactivated.
-                !cacheKey.includes("react/")
-            ) {
-                delete require.cache[cacheKey];
-            }
-        }
-
-        // When developing reactivated itself locally, including Widget.tsx etc.
-        // TODO: has a bug with context.
-        // for (const cacheKey of Object.keys(require.cache)) {
-        //     if (cacheKey.includes('reactivated/dist')) {
-        //         delete require.cache[cacheKey];
-        //     }
-        // }
-    }
-    const typestyle = createTypeStyle();
     const Template = require(templatePath).default;
+    (global as any).__REACTIVATED_PROPS = props;
     // See https://github.com/downshift-js/downshift#resetidcounter
     resetIdCounter();
+
     const rendered = ReactDOMServer.renderToString(
-        <Provider value={{...context, typestyle}}>
+        <Provider value={context}>
             <Template {...props} />
         </Provider>,
     );
-    const helmet = Helmet.renderStatic();
-    const css = getStyles();
-    const pageCSS = typestyle.getStyles();
 
     return renderPage({
         html: rendered,
-        helmet,
-        css,
-        pageCSS,
         props,
         context,
     });

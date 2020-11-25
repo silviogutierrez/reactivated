@@ -1,11 +1,10 @@
 import React from "react";
 import {hydrate} from "react-dom";
-import {setStylesTarget} from "typestyle";
 
 import {Provider} from "reactivated/context";
 
-const props = (window as any).__PRELOADED_PROPS__;
-const context = (window as any).__PRELOADED_CONTEXT__;
+const props = JSON.parse((document.getElementsByName("reactivated-props")[0] as HTMLMetaElement).content);
+const context = JSON.parse((document.getElementsByName("reactivated-context")[0] as HTMLMetaElement).content);
 
 if ((module as any).hot) {
     (module as any).hot.accept();
@@ -14,11 +13,9 @@ if ((module as any).hot) {
 // tslint:disable-next-line
 const Template = require("client/templates/" + context.template_name).default;
 
-setStylesTarget(document.getElementById("styles-target")!);
-
 hydrate(
     <Provider value={context}>
         <Template {...props} />
     </Provider>,
-    document.getElementById("root"),
+    document.documentElement
 );

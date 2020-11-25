@@ -1,6 +1,6 @@
 import React from "react";
-import {style} from "typestyle";
 import Context from "reactivated/context";
+import {style} from "typestyle";
 
 const styles = {
     layout: style({maxWidth: 600, margin: "0 auto"}),

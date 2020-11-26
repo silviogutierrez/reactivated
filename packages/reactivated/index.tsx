@@ -26,6 +26,8 @@ export const ServerData = () => {
         ).toString("base64");
     }
 
+    // We suppress hydration warnings because the client content will always
+    // be an empty string.
     return (
         <>
             <meta

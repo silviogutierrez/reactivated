@@ -8,7 +8,7 @@ const styles = {
     header: style({color: "blue"}),
 } as const;
 
-const Foo = () => {
+export const ServerData = () => {
     const context = React.useContext(Context);
     const props = (global as any).__REACTIVATED_PROPS ?? null;
     const serializedContext = JSON.stringify(context).replace(/</g, "\\u003c");
@@ -29,7 +29,7 @@ const Foo = () => {
 export default () => (
     <>
         <head>
-            <Foo />
+            <ServerData />
             <title>Hello world</title>
             <meta
                 name="viewport"

@@ -5,8 +5,7 @@ import {compile} from "json-schema-to-typescript";
 import path from "path";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import Helmet, {HelmetData} from "react-helmet";
-import {createTypeStyle, getStyles} from "typestyle";
+import {FilledContext, Helmet, HelmetData, HelmetProvider} from "react-helmet-async";
 import webpack from "webpack";
 
 import moduleAlias from "module-alias";
@@ -25,15 +24,11 @@ const app = express();
 export const bindRenderPage = (settings: Settings) => ({
     html,
     helmet,
-    css,
-    pageCSS,
     context,
     props,
 }: {
     html: string;
     helmet: HelmetData;
-    css: string;
-    pageCSS: string;
     context: any;
     props: any;
 }) => `
@@ -61,12 +56,6 @@ export const bindRenderPage = (settings: Settings) => ({
         ${helmet.script.toString()}
         ${helmet.style.toString()}
         ${helmet.title.toString()}
-        <style id="styles-target">
-            ${css}
-        </style>
-        <style id="page-styles-target">
-            ${pageCSS}
-        </style>
     </head>
     <body ${helmet.bodyAttributes.toString()}>
         <div id="root">${html}</div>
@@ -91,7 +80,6 @@ export const render = (
 
     const templatePath = `${process.cwd()}/client/templates/${context.template_name}`;
 
-    // TODO: disable this in production.
     if (process.env.NODE_ENV !== "production") {
         // Our template names have no extension by design, for when we transpile.
         delete require.cache[`${templatePath}.tsx`];
@@ -102,15 +90,21 @@ export const render = (
         // be cleared. Layout.tsx is not in the cache. Maybe it's cached by
         // way of another module.
         //
-        // So we clear *everything* except context, typestyle and helmet because those
-        // are stateful and we need them for the initial page.
+        // So we clear *everything* except:
+        //
+        // Context stateful and we need them for the initial page.
+        //
+        // react-helmet-async has a context that also cannot be cleared. You'll
+        // get a cryptic 404 for this route.
+        //
+        // mini-css-extract-plugin breaks when hot reloading if cleared.
         //
         // Possible better fix: https://stackoverflow.com/a/14801711
         for (const cacheKey of Object.keys(require.cache)) {
             if (
                 !cacheKey.includes("reactivated/context") &&
-                !cacheKey.includes("typestyle") &&
-                !cacheKey.includes("helmet") &&
+                !cacheKey.includes("mini-css-extract-plugin") &&
+                !cacheKey.includes("react-helmet-async") &&
                 // If we delete React from the cache, this creates two duplicate
                 // instances of React and we get server side rendering issues
                 // when using hooks.
@@ -131,27 +125,34 @@ export const render = (
         //     }
         // }
     }
-    const typestyle = createTypeStyle();
-    const Template = require(templatePath).default;
-    // See https://github.com/downshift-js/downshift#resetidcounter
-    resetIdCounter();
-    const rendered = ReactDOMServer.renderToString(
-        <Provider value={{...context, typestyle}}>
-            <Template {...props} />
-        </Provider>,
-    );
-    const helmet = Helmet.renderStatic();
-    const css = getStyles();
-    const pageCSS = typestyle.getStyles();
 
-    return renderPage({
-        html: rendered,
-        helmet,
-        css,
-        pageCSS,
-        props,
-        context,
-    });
+    try {
+        const helmetContext = {} as FilledContext;
+        const Template = require(templatePath).default;
+        // See https://github.com/downshift-js/downshift#resetidcounter
+        resetIdCounter();
+
+        const rendered = ReactDOMServer.renderToString(
+            <HelmetProvider context={helmetContext}>
+                <Provider value={context}>
+                    <Template {...props} />
+                </Provider>
+            </HelmetProvider>,
+        );
+
+        const {helmet} = helmetContext;
+
+        return renderPage({
+            html: rendered,
+            helmet,
+            props,
+            context,
+        });
+    } catch (error) {
+        // tslint:disable-next-line
+        console.log("Error rendering", error);
+        return "Error rendering";
+    }
 };
 
 interface ListenOptions {

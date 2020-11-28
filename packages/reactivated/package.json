@@ -12,6 +12,7 @@
         "module-alias": "^2.2.1",
         "prettier": "^2.1.2",
         "react": "^16.4.1",
+        "react-helmet-async": "^1.0.7",
         "reactstrap": "^8.0.0",
         "ts-morph": "^8.1.0",
         "webpack": "^4.15.1"
@@ -23,12 +24,10 @@
         "@types/node": "^10.5.2",
         "@types/react": "^16.4.6",
         "@types/react-dom": "^16.0.6",
-        "@types/react-helmet": "^5.0.6",
         "@types/reactstrap": "^8.0.1",
         "@types/webpack": "^4.4.5",
         "csstips": "^0.3.0",
         "react-dom": "^16.4.1",
-        "react-helmet": "^5.2.0",
         "typestyle": "^2.0.1"
     },
     "main": "lib/index.js",

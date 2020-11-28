@@ -130,7 +130,7 @@ export const render = (
     const rendered = ReactDOMServer.renderToString(
         <HelmetProvider context={helmetContext}>
             <Provider value={context}>
-                <div>Helo</div>
+                <Template {...props} />
             </Provider>
         </HelmetProvider>,
     );

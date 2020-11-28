@@ -6,7 +6,6 @@ import path from "path";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import Helmet, {HelmetData} from "react-helmet";
-import {createTypeStyle, getStyles} from "typestyle";
 import webpack from "webpack";
 
 import moduleAlias from "module-alias";
@@ -52,6 +51,48 @@ export const render = (
     const {context, props} = JSON.parse(input.toString("utf8"));
 
     const templatePath = `${process.cwd()}/client/templates/${context.template_name}`;
+
+    if (process.env.NODE_ENV !== "production") {
+        // Our template names have no extension by design, for when we transpile.
+        delete require.cache[`${templatePath}.tsx`];
+        delete require.cache[`${templatePath}.jsx`];
+
+        // When a template includes other components, like Layout, we also want
+        // to clear that cache. Right now, I'm not sure what actually needs to
+        // be cleared. Layout.tsx is not in the cache. Maybe it's cached by
+        // way of another module.
+        //
+        // So we clear *everything* except:
+        // 
+        // Context stateful and we need them for the initial page.
+        //
+        // mini-css-extract-plugin breaks when hot reloading if cleared.
+        //
+        // Possible better fix: https://stackoverflow.com/a/14801711
+        for (const cacheKey of Object.keys(require.cache)) {
+            if (
+                !cacheKey.includes("reactivated/context") &&
+                !cacheKey.includes("mini-css-extract-plugin") &&
+                // If we delete React from the cache, this creates two duplicate
+                // instances of React and we get server side rendering issues
+                // when using hooks.
+                // https://reactjs.org/warnings/invalid-hook-call-warning.html
+                //
+                // Note the trailing slash so to avoid matching reactivated.
+                !cacheKey.includes("react/")
+            ) {
+                delete require.cache[cacheKey];
+            }
+        }
+
+        // When developing reactivated itself locally, including Widget.tsx etc.
+        // TODO: has a bug with context.
+        // for (const cacheKey of Object.keys(require.cache)) {
+        //     if (cacheKey.includes('reactivated/dist')) {
+        //         delete require.cache[cacheKey];
+        //     }
+        // }
+    }
 
     const Template = require(templatePath).default;
     (global as any).__REACTIVATED_PROPS = props;

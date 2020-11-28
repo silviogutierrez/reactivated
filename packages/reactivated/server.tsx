@@ -94,6 +94,9 @@ export const render = (
         //
         // Context stateful and we need them for the initial page.
         //
+        // react-helmet-async has a context that also cannot be cleared. You'll
+        // get a cryptic 404 for this route.
+        //
         // mini-css-extract-plugin breaks when hot reloading if cleared.
         //
         // Possible better fix: https://stackoverflow.com/a/14801711
@@ -101,6 +104,7 @@ export const render = (
             if (
                 !cacheKey.includes("reactivated/context") &&
                 !cacheKey.includes("mini-css-extract-plugin") &&
+                !cacheKey.includes("react-helmet-async") &&
                 // If we delete React from the cache, this creates two duplicate
                 // instances of React and we get server side rendering issues
                 // when using hooks.
@@ -122,27 +126,32 @@ export const render = (
         // }
     }
 
-    const helmetContext = {} as FilledContext;
-    const Template = require(templatePath).default;
-    // See https://github.com/downshift-js/downshift#resetidcounter
-    resetIdCounter();
+    try {
+        const helmetContext = {} as FilledContext;
+        const Template = require(templatePath).default;
+        // See https://github.com/downshift-js/downshift#resetidcounter
+        resetIdCounter();
 
-    const rendered = ReactDOMServer.renderToString(
-        <HelmetProvider context={helmetContext}>
-            <Provider value={context}>
-                <Template {...props} />
-            </Provider>
-        </HelmetProvider>,
-    );
+        const rendered = ReactDOMServer.renderToString(
+            <HelmetProvider context={helmetContext}>
+                <Provider value={context}>
+                    <Template {...props} />
+                </Provider>
+            </HelmetProvider>,
+        );
 
-    const {helmet} = helmetContext;
+        const {helmet} = helmetContext;
 
-    return renderPage({
-        html: rendered,
-        helmet,
-        props,
-        context,
-    });
+        return renderPage({
+            html: rendered,
+            helmet,
+            props,
+            context,
+        });
+    } catch (error) {
+        console.log("Error rendering", error);
+        return "Error rendering";
+    }
 };
 
 interface ListenOptions {

@@ -63,7 +63,7 @@ export const render = (
         // way of another module.
         //
         // So we clear *everything* except:
-        // 
+        //
         // Context stateful and we need them for the initial page.
         //
         // mini-css-extract-plugin breaks when hot reloading if cleared.

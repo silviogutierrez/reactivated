@@ -43,3 +43,19 @@ export const ServerData = () => {
         </>
     );
 };
+
+export const getServerData = <T extends {}>() => {
+    const props = JSON.parse(
+        atob(
+            (document.getElementsByName("reactivated-props")[0] as HTMLMetaElement).content,
+        ),
+    );
+    const context: T = JSON.parse(
+        atob(
+            (document.getElementsByName("reactivated-context")[0] as HTMLMetaElement)
+                .content,
+        ),
+    );
+
+    return {props, context};
+}

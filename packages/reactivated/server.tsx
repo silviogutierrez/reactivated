@@ -28,7 +28,7 @@ export const bindRenderPage = (settings: Settings) => ({
     props,
 }: {
     html: string;
-    helmet: any;
+    helmet: HelmetData;
     context: any;
     props: any;
 }) => `
@@ -149,6 +149,7 @@ export const render = (
             context,
         });
     } catch (error) {
+        // tslint:disable-next-line
         console.log("Error rendering", error);
         return "Error rendering";
     }

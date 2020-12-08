@@ -1,11 +1,9 @@
 import React from "react";
 
 export {FormLike, FormSetLike, FieldMap, ManagementForm} from "../components/Form";
-export {Field} from "../components/Field";
 
-import {Field} from "../components/Field";
 import {FieldMap, FormLike} from "../components/Form";
-import {SelectDateWidget, Widget, WidgetType} from "../components/Widget";
+import {SelectDateWidget, WidgetType} from "../components/Widget";
 import Context from "../context";
 
 export const CSRFToken = (props: {}) => {

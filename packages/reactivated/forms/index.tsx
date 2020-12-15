@@ -1,11 +1,9 @@
 import React from "react";
 
 export {FormLike, FormSetLike, FieldMap, ManagementForm} from "../components/Form";
-export {Field} from "../components/Field";
 
-import {Field} from "../components/Field";
 import {FieldMap, FormLike} from "../components/Form";
-import {SelectDateWidget, Widget, WidgetType} from "../components/Widget";
+import {SelectDateWidget, WidgetType} from "../components/Widget";
 import Context from "../context";
 
 export const CSRFToken = (props: {}) => {
@@ -24,6 +22,139 @@ export type FormValues<U extends FieldMap> = {
     [K in keyof U]: FormValue<U[K]["widget"]>;
 };
 
+const removeSubWidgetPrefix = (field: FieldMap[string], prefixed: string) => {
+    const parentWidgetRegex = new RegExp(`^${field.widget.name}_`);
+    return prefixed.replace(parentWidgetRegex, "");
+};
+
+export const getInitialState = <U extends FieldMap>(
+    fieldInterceptor: (form: FormLike<U>, fieldName: keyof U) => U[keyof U],
+    iterator: Array<keyof U>,
+    form: FormLike<U>,
+) => {
+    const initialValuesAsEntries = iterator.map((fieldName) => {
+        const field = fieldInterceptor(form, fieldName);
+
+        if ("subwidgets" in field.widget) {
+            const subwidgetValues = Object.fromEntries(
+                field.widget.subwidgets.map(
+                    (subwidget, name) =>
+                        [
+                            removeSubWidgetPrefix(field, subwidget.name),
+                            subwidget.value,
+                        ] as const,
+                ),
+            );
+
+            return [fieldName, subwidgetValues] as const;
+        } else if (
+            field.widget.template_name === "django/forms/widgets/checkbox.html"
+        ) {
+            return [fieldName, field.widget.attrs.checked] as const;
+        } else {
+            return [fieldName, field.widget.value] as const;
+        }
+    });
+
+    return Object.fromEntries(initialValuesAsEntries) as FormValues<
+        typeof form["fields"]
+    >;
+};
+
+interface UseForm<U extends FieldMap> {
+    form: FormLike<U>;
+    iterator?: Array<keyof U>;
+    fieldInterceptor?: (form: FormLike<U>, fieldName: keyof U) => U[keyof U];
+    changeInterceptor?: (
+        name: keyof U,
+        prevValues: FormValues<U>,
+        nextValues: FormValues<U>,
+    ) => FormValues<U>;
+}
+
+interface FormHandler<U extends FieldMap> {
+    fieldInterceptor: (form: FormLike<U>, fieldName: keyof U) => U[keyof U];
+    errors: NonNullable<{[P in keyof U]?: string[] | undefined}>;
+    setValues: React.Dispatch<React.SetStateAction<FormValues<U>>>;
+    setErrors: React.Dispatch<
+        React.SetStateAction<{[P in keyof U]?: string[] | undefined}>
+    >;
+    initialState: FormValues<U>;
+    handleChange: (name: keyof U, rawValue: unknown | null) => void;
+    values: FormValues<U>;
+}
+
+/**
+ * Lots going on here.
+ *
+ * @param iterator: the fields to display.
+ *
+ * @param fieldInterceptor: an optional way to mutate a field prior to rendering it.
+ * Useful to disable fields conditionally.
+ *
+ * @param setValues: a way to bubble up values, like in formsets. This is not
+ * the actual way to set the canonical values for the form.
+ *
+ * @param changeInterceptor: a way to catch values that are about to be updated
+ * including the name of the changed value. This lets us revert values, mutate
+ * them, and blank out other values based on a change.
+ */
+export const useForm = <U extends FieldMap>(options: UseForm<U>): FormHandler<U> => {
+    const iterator = options.iterator ?? options.form.iterator;
+    const fieldInterceptor =
+        options.fieldInterceptor ?? ((form, fieldName) => form.fields[fieldName]);
+    const initialState = getInitialState(fieldInterceptor, iterator, options.form);
+    const changeInterceptor =
+        options.changeInterceptor ?? ((_, prevValues, nextValues) => nextValues);
+
+    const [values, setValues] = React.useState(() => {
+        return initialState;
+    });
+
+    // For our changeHandler, we need both the top level widget and the subwidget so we know what our
+    // value processor needs to return. For subwidgets, our value processor needs to return an object.
+
+    // For top level widgets, it can just return the value itself.
+    const handleChange = (name: keyof U, rawValue: unknown | null) => {
+        const value = (rawValue ?? "") as string;
+
+        /*
+         * TODO: handle select, subwidgets, etc.
+         *
+        const processedValue =
+            subwidget.template_name === "django/forms/widgets/select.html" ||
+            (subwidget.template_name as "quick") === "quick"
+                ? [value.toString()]
+                : value.toString();
+        */
+
+        // We need the callback syntax to make sure we have the latest values on a form.
+        setValues((prevValues) => {
+            const nextValues = changeInterceptor(name, prevValues, {
+                ...prevValues,
+                [name]: value,
+            });
+
+            return nextValues;
+        });
+    };
+
+    const initialErrors =
+        options.form.errors ?? ({} as NonNullable<typeof options.form.errors>);
+
+    const [errors, setErrors] = React.useState(initialErrors);
+
+    return {
+        fieldInterceptor,
+        errors,
+        setErrors,
+        setValues,
+        initialState,
+        handleChange,
+        values,
+    };
+};
+
 interface BaseFieldsProps<U extends FieldMap> {
     fieldInterceptor?: (form: FormLike<U>, fieldName: keyof U) => U[keyof U];
     changeInterceptor?: (
@@ -32,7 +163,9 @@ interface BaseFieldsProps<U extends FieldMap> {
         nextValues: FormValues<U>,
     ) => FormValues<U>;
     form: FormLike<U>;
-    children: (props: {error: string[] | null; field: U[keyof U]}) => React.ReactNode;
+    children: (
+        props: FormHandler<U> & {error: string[] | null; field: U[keyof U]},
+    ) => React.ReactNode;
 }
 
 interface IncludeFieldsProps<U extends FieldMap> extends BaseFieldsProps<U> {
@@ -66,24 +199,28 @@ export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
     };
 
     const iterator = getIterator();
+    const handler = useForm({...props, iterator});
 
     return (
         <>
             {iterator
                 .map(
                     (fieldName) =>
-                        [fieldName, getField(props.form, fieldName)] as const,
+                        [
+                            fieldName,
+                            handler.fieldInterceptor(props.form, fieldName),
+                        ] as const,
                 )
                 .map(([fieldName, field]) => {
                     const {widget} = field;
                     const error =
-                        props.form.errors != null
-                            ? props.form.errors[fieldName] ?? null
+                        handler.errors != null
+                            ? handler.errors[fieldName] ?? null
                             : null;
 
                     return (
                         <React.Fragment key={fieldName.toString()}>
-                            {props.children({field, error})}
+                            {props.children({field, error, ...handler})}
                         </React.Fragment>
                     );
                 })}

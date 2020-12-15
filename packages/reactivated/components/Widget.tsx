@@ -2,9 +2,6 @@ import React from "react";
 
 import {classes} from "typestyle";
 
-import {Button, Form, FormGroup, FormText, Input, Label} from "reactstrap";
-import {Autocomplete as AutocompleteWidget} from "./Autocomplete";
-
 const TEXTAREA_ROWS = 10;
 
 interface BaseWidget {
@@ -165,13 +162,6 @@ export type WidgetType =
     | SelectDateWidget
     | ClearableFileInput;
 
-export interface Props {
-    widget: WidgetType;
-    has_errors: boolean;
-    passed_validation: boolean;
-    className?: string;
-}
-
 export const getValue = (optgroup: Optgroup) => {
     const rawValue = optgroup[1][0].value;
 
@@ -195,112 +185,3 @@ export const getValueForSelect = (widget: Select | Autocomplete | SelectMultiple
 
 export const isHidden = (widget: WidgetType) =>
     "type" in widget && widget.type === "hidden";
-
-export const Widget = (props: Props) => {
-    const {className, widget} = props;
-
-    switch (widget.template_name) {
-        case "reactivated/autocomplete": {
-            return <AutocompleteWidget {...props} widget={widget} />;
-        }
-        case "django/forms/widgets/select.html": {
-            /*
-            if (isMultiple(widget)) {
-                return <div>I am a select multiple</div>;
-            }
-            */
-            // return <div>I am a select single</div>;
-            const value = getValueForSelect(widget);
-
-            return (
-                <Input
-                    type="select"
-                    readOnly={widget.attrs.disabled === true}
-                    invalid={props.has_errors}
-                    valid={value !== "" && value !== [] && props.passed_validation}
-                    name={widget.name}
-                    className={className}
-                    multiple={isMultiple(widget)}
-                    defaultValue={value}
-                >
-                    {widget.optgroups.map((optgroup, index) => (
-                        <option key={index} value={getValue(optgroup)}>
-                            {optgroup[1][0].label}
-                        </option>
-                    ))}
-                </Input>
-            );
-        }
-        case "django/forms/widgets/textarea.html":
-            return (
-                <Input
-                    readOnly={widget.attrs.disabled === true}
-                    invalid={props.has_errors}
-                    valid={
-                        widget.value !== "" &&
-                        widget.value != null &&
-                        props.passed_validation
-                    }
-                    type="textarea"
-                    className={className}
-                    defaultValue={widget.value != null ? widget.value : ""}
-                    id={widget.name}
-                    name={widget.name}
-                    rows={TEXTAREA_ROWS}
-                />
-            );
-        case "django/forms/widgets/checkbox.html":
-            return (
-                <Input
-                    readOnly={widget.attrs.disabled === true}
-                    invalid={props.has_errors}
-                    valid={
-                        widget.value !== "" &&
-                        widget.value != null &&
-                        props.passed_validation
-                    }
-                    type="checkbox"
-                    className={className}
-                    defaultChecked={widget.attrs.checked === true}
-                    id={widget.name}
-                    name={widget.name}
-                />
-            );
-        case "django/forms/widgets/select_date.html":
-            throw new Error(
-                "SelectDate has no default JSX implementation. Write your own",
-            );
-        case "django/forms/widgets/clearable_file_input.html":
-        case "django/forms/widgets/hidden.html":
-        case "django/forms/widgets/number.html":
-        case "django/forms/widgets/text.html":
-        case "django/forms/widgets/password.html":
-        case "django/forms/widgets/email.html":
-        case "django/forms/widgets/date.html": {
-            return (
-                <Input
-                    readOnly={widget.attrs.disabled === true}
-                    invalid={props.has_errors}
-                    valid={
-                        widget.value !== "" &&
-                        widget.value != null &&
-                        props.passed_validation
-                    }
-                    type={widget.type}
-                    className={className}
-                    defaultValue={widget.value != null ? widget.value : ""}
-                    id={widget.name}
-                    name={widget.name}
-                />
-            );
-            // return <div>I am a text</div>;
-        }
-        default: {
-            const exhaustiveCheck: never = widget;
-            throw new Error(
-                "Cannot happen, unknown widget type: \n" +
-                    JSON.stringify(widget, null, 4), // tslint:disable-line
-            );
-        }
-    }
-};

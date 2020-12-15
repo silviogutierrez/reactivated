@@ -10,6 +10,10 @@ class EnumConstraint(models.constraints.BaseConstraint):
     def __init__(self, *, members: List[str], name: str, field_name: str) -> None:
         self.members = members
         self.field_name = field_name
+
+        # Other libraries, like django extensions, depend on this instance variable.
+        self.fields: List[str] = []
+
         super().__init__(name)
 
     def constraint_sql(

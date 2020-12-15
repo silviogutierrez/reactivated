@@ -119,6 +119,8 @@ export const useForm = <U extends FieldMap>(options: UseForm<U>): FormHandler<U>
         const value = (rawValue ?? "") as string;
 
         /*
+         * TODO: handle select, subwidgets, etc.
+         *
         const processedValue =
             subwidget.template_name === "django/forms/widgets/select.html" ||
             (subwidget.template_name as "quick") === "quick"

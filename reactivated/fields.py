@@ -92,7 +92,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         self,
         *,
         enum: Type[_GT],
-        default: Union[Type[NOT_PROVIDED], _GT] = NOT_PROVIDED,
+        default: Union[Type[NOT_PROVIDED], _GT, None] = NOT_PROVIDED,
         null: bool = False,
         verbose_name: Optional[Union[str, bytes]] = None,
         unique: bool = False,
@@ -197,7 +197,7 @@ if TYPE_CHECKING:
     @overload
     def EnumField(  # type: ignore[misc]
         enum: Type[TEnum],
-        default: Union[Type[NOT_PROVIDED], TEnum] = NOT_PROVIDED,
+        default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
         null: Literal[False] = False,
         verbose_name: Optional[Union[str, bytes]] = None,
         unique: bool = False,
@@ -215,7 +215,7 @@ if TYPE_CHECKING:
     @overload
     def EnumField(
         enum: Type[TEnum],
-        default: Union[Type[NOT_PROVIDED], TEnum] = NOT_PROVIDED,
+        default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
         null: Literal[True] = True,
         verbose_name: Optional[Union[str, bytes]] = None,
         unique: bool = False,
@@ -232,7 +232,7 @@ if TYPE_CHECKING:
 
     def EnumField(
         enum: Type[TEnum],
-        default: Union[Type[NOT_PROVIDED], TEnum] = NOT_PROVIDED,
+        default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
         null: Literal[True, False] = False,
         verbose_name: Optional[Union[str, bytes]] = None,
         unique: bool = False,

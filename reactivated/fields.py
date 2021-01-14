@@ -62,6 +62,18 @@ def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[EnumChoice[Enum]
         yield (EnumChoice(member), str(member.value))
 
 
+def coerce_to_enum(
+    enum: Type[_GT], value: Union[_GT, EnumChoice[_GT], str, None]
+) -> Optional[_GT]:
+    if isinstance(value, EnumChoice):
+        return value.choice
+    elif isinstance(value, enum):
+        return value
+    # Narrow the type
+    assert isinstance(value, str) or value is None
+    return parse_enum(enum, value)
+
+
 models.CharField.__class_getitem__ = classmethod(  # type: ignore[attr-defined]
     lambda cls, key: cls
 )
@@ -167,13 +179,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         return parse_enum(self.enum, value)
 
     def to_python(self, value: Union[_GT, EnumChoice[_GT], str, None]) -> Optional[_GT]:
-        if isinstance(value, EnumChoice):
-            return value.choice
-        elif isinstance(value, self.enum):
-            return value
-        # Narrow the type
-        assert isinstance(value, str) or value is None
-        return parse_enum(self.enum, value)
+        return coerce_to_enum(self.enum, value)
 
     def get_prep_value(self, value: Union[_GT, str, None]) -> Optional[str]:
         member = self.to_python(value)

@@ -11,6 +11,25 @@ from .widgets import Autocomplete as Autocomplete
 
 class EnumChoiceField(django_forms.TypedChoiceField):
     """
+    def _coerce(self, value):
+        from .fields import EnumChoice
+
+        if isinstance(value, EnumChoice):
+            return value.choice
+        return super()._coerce(value)
+    """
+
+    def __init__(self, *args, **kwargs):
+        from .fields import coerce_to_enum, convert_enum_to_choices
+
+        if "coerce" not in kwargs:
+            assert "enum" in kwargs, "enum argument is required"
+            enum = kwargs.pop("enum")
+            kwargs["coerce"] = lambda value: coerce_to_enum(enum, value)
+            kwargs["choices"] = convert_enum_to_choices(enum)
+        return super().__init__(*args, **kwargs)
+
+    """
     Enum choices must be serialized to their name rather than their enum
     representation for the existing value in forms. Choices themselves are
     handled by the `choices` argument in form and model fields.

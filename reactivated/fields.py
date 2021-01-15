@@ -202,6 +202,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
 
     def formfield(self, **kwargs: Any) -> Any:
         from .forms import EnumChoiceField
+
         defaults = {**kwargs, "choices_form_class": EnumChoiceField}
         return super().formfield(**defaults)
 

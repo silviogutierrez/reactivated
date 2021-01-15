@@ -1,18 +1,19 @@
 import enum
 import re
-from typing import Any, Dict, NamedTuple, Optional, TypeVar, Union, cast, Type
+from typing import Any, Dict, NamedTuple, Optional, Type, TypeVar, Union, cast
 
 from django import forms as django_forms
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 
-from .widgets import Autocomplete as Autocomplete
-
 from .fields import _GT
+from .widgets import Autocomplete as Autocomplete
 
 
 class EnumChoiceField(django_forms.TypedChoiceField):
-    def __init__(self, *args: Any, enum: Optional[Type[_GT]] = None, **kwargs: Any) -> None:
+    def __init__(
+        self, *args: Any, enum: Optional[Type[_GT]] = None, **kwargs: Any
+    ) -> None:
         from .fields import coerce_to_enum, EnumChoiceIterator
 
         if enum is not None:

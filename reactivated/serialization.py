@@ -22,7 +22,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
 
-from . import fields, stubs
+from . import fields, forms, stubs
 from .models import ComputedRelation
 
 Schema = Mapping[Any, Any]
@@ -573,12 +573,8 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
 
         # Tightly coupled, for now. Can likely be improved once we have proper
         # widget schema generation.
-        if (
-            isinstance(SubType, django_forms.TypedChoiceField)
-            and (choices := SubType.choices)
-            and isinstance(choices, fields.EnumChoiceIterator)
-        ):
-            choice_schema, definitions = create_schema(choices.enum, definitions)
+        if isinstance(SubType, forms.EnumChoiceField):
+            choice_schema, definitions = create_schema(SubType.enum, definitions)
 
             if (ref := choice_schema.get("$ref", None)) :
                 generic_name = "".join(

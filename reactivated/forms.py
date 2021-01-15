@@ -20,12 +20,15 @@ class EnumChoiceField(django_forms.TypedChoiceField):
     """
 
     def __init__(self, *args, **kwargs):
-        from .fields import coerce_to_enum, convert_enum_to_choices
+        from .fields import coerce_to_enum, EnumChoiceIterator
 
         # kwargs["choices"] = convert_enum_to_choices(kwargs["choices"])
 
-        if "coerce" not in kwargs:
+        if "enum" in kwargs:
+            assert kwargs.get("choices", None) is None, "Pass enum or choices. Not both"
+            kwargs["choices"] = EnumChoiceIterator(kwargs.pop("enum"))
             kwargs["coerce"] = lambda value: coerce_to_enum(enum, value)
+
         return super().__init__(*args, **kwargs)
 
     """

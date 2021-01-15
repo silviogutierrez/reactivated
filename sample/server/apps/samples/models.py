@@ -20,7 +20,7 @@ class Continent(models.Model):
         NORTHERN = "Northern"
 
     name = models.CharField(max_length=100)
-    hemisphere = EnumField(choices=Hemisphere, default=Hemisphere.SOUTHERN)
+    hemisphere = EnumField(enum=Hemisphere, default=Hemisphere.SOUTHERN)
 
 
 class Country(models.Model):
@@ -93,7 +93,7 @@ class Opera(models.Model):
     composer = models.ForeignKey(
         "Composer", on_delete=models.CASCADE, related_name="operas"
     )
-    style = EnumField(choices=Style, default=Style.GRAND)
+    style = EnumField(enum=Style, default=Style.GRAND)
     has_piano_transcription = models.BooleanField(default=False)
 
     objects = cast(OperaManager, OperaManager.from_queryset(OperaQuerySet)())

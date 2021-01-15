@@ -573,13 +573,12 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
 
         # Tightly coupled, for now. Can likely be improved once we have proper
         # widget schema generation.
-        if isinstance(SubType, django_forms.TypedChoiceField) and (
-            choices := list(SubType.choices)
+        if (
+            isinstance(SubType, django_forms.TypedChoiceField)
+            and (choices := SubType.choices)
+            and isinstance(choices, fields.EnumChoiceIterator)
         ):
-            # The internal _coerce method checks empty values for us too.
-            choice = SubType._coerce(choices[0][0])  # type: ignore
-
-            choice_schema, definitions = create_schema(type(choice), definitions)
+            choice_schema, definitions = create_schema(choice.enum, definitions)
 
             if (ref := choice_schema.get("$ref", None)) :
                 generic_name = "".join(

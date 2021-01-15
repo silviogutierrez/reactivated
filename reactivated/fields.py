@@ -18,7 +18,6 @@ from django.db import DatabaseError, models
 from django.db.models.fields import NOT_PROVIDED
 
 from .constraints import EnumConstraint
-from .forms import EnumChoiceField
 
 if TYPE_CHECKING:
     from django.db.models.fields import _ValidatorCallable, _ErrorMessagesToOverride
@@ -202,6 +201,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         return self.get_prep_value(value)
 
     def formfield(self, **kwargs: Any) -> Any:
+        from .forms import EnumChoiceField
         defaults = {**kwargs, "choices_form_class": EnumChoiceField}
         return super().formfield(**defaults)
 

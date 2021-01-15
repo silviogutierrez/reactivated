@@ -1,6 +1,6 @@
 import enum
 import re
-from typing import Any, Dict, NamedTuple, Optional, TypeVar, Union, cast
+from typing import Any, Dict, NamedTuple, Optional, TypeVar, Union, cast, Type
 
 from django import forms as django_forms
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -8,25 +8,16 @@ from django.template.response import TemplateResponse
 
 from .widgets import Autocomplete as Autocomplete
 
+from .fields import _GT
+
 
 class EnumChoiceField(django_forms.TypedChoiceField):
-    """
-    def _coerce(self, value):
-        from .fields import EnumChoice
-
-        if isinstance(value, EnumChoice):
-            return value.choice
-        return super()._coerce(value)
-    """
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, enum: Optional[Type[_GT]] = None, **kwargs: Any) -> None:
         from .fields import coerce_to_enum, EnumChoiceIterator
 
-        # kwargs["choices"] = convert_enum_to_choices(kwargs["choices"])
-
-        if "enum" in kwargs:
+        if enum is not None:
             assert kwargs.get("choices", None) is None, "Pass enum or choices. Not both"
-            kwargs["choices"] = EnumChoiceIterator(kwargs.pop("enum"))
+            kwargs["choices"] = EnumChoiceIterator(enum)
             kwargs["coerce"] = lambda value: coerce_to_enum(enum, value)
 
         return super().__init__(*args, **kwargs)

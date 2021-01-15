@@ -578,7 +578,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
             and (choices := SubType.choices)
             and isinstance(choices, fields.EnumChoiceIterator)
         ):
-            choice_schema, definitions = create_schema(choice.enum, definitions)
+            choice_schema, definitions = create_schema(choices.enum, definitions)
 
             if (ref := choice_schema.get("$ref", None)) :
                 generic_name = "".join(

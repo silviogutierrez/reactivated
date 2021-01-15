@@ -22,11 +22,10 @@ class EnumChoiceField(django_forms.TypedChoiceField):
     def __init__(self, *args, **kwargs):
         from .fields import coerce_to_enum, convert_enum_to_choices
 
+        # kwargs["choices"] = convert_enum_to_choices(kwargs["choices"])
+
         if "coerce" not in kwargs:
-            assert "enum" in kwargs, "enum argument is required"
-            enum = kwargs.pop("enum")
             kwargs["coerce"] = lambda value: coerce_to_enum(enum, value)
-            kwargs["choices"] = convert_enum_to_choices(enum)
         return super().__init__(*args, **kwargs)
 
     """

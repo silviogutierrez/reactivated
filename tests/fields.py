@@ -105,7 +105,7 @@ def test_auto_contraint(settings):
     test_apps = Apps(settings.INSTALLED_APPS)
 
     class TestModel(Model):
-        enum_field = fields.EnumField(enum=EnumTest)
+        enum_field = fields.EnumField(choices=EnumTest)
 
         class Meta:
             apps = test_apps
@@ -122,7 +122,7 @@ def test_drf_serializer(settings):
     test_apps = Apps(settings.INSTALLED_APPS)
 
     class TestModel(Model):
-        enum_field = fields.EnumField(enum=EnumTest)
+        enum_field = fields.EnumField(choices=EnumTest)
 
         class Meta:
             apps = test_apps

@@ -62,6 +62,14 @@ def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[EnumChoice[Enum]
         yield (EnumChoice(member), str(member.value))
 
 
+class EnumChoiceIterator(Generic[_GT]):
+    def __init__(self, enum: Type[_GT]) -> None:
+        self.enum = enum
+
+    def __iter__(self) -> Any:
+        return convert_enum_to_choices(self.enum)
+
+
 def coerce_to_enum(
     enum: Type[_GT], value: Union[_GT, EnumChoice[_GT], str, None]
 ) -> Optional[_GT]:
@@ -103,7 +111,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     def __init__(
         self,
         *,
-        enum: Type[_GT],
+        choices: Type[_GT],
         default: Union[Type[NOT_PROVIDED], _GT, None] = NOT_PROVIDED,
         null: bool = False,
         verbose_name: Optional[Union[str, bytes]] = None,
@@ -117,13 +125,13 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         validators: Iterable[_ValidatorCallable] = (),
         error_messages: Optional[_ErrorMessagesToOverride] = None,
     ):
-        self.enum = enum
-        choices = convert_enum_to_choices(enum)
+        self.choices = EnumChoiceIterator(enum=choices)
+        # choices = convert_enum_to_choices(choices)
         # We skip the constructor for CharField because we do *not* want
         # MaxLengthValidator added, as our enum members do not support __len__.
         models.Field.__init__(
             self,
-            choices=choices,
+            choices=self.choices,
             max_length=63,
             default=default,
             null=null,
@@ -141,9 +149,8 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
 
     def deconstruct(self) -> Any:
         name, path, args, kwargs = super().deconstruct()
-        kwargs["enum"] = self.enum
+        kwargs["enum"] = self.choices
         del kwargs["max_length"]
-        del kwargs["choices"]
         return name, path, args, kwargs
 
     def contribute_to_class(self, cls, name, **kwargs):  # type: ignore[no-untyped-def]
@@ -162,7 +169,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         # Fortunately, we can create a name dynamically.
         cls._meta.constraints.append(
             EnumConstraint(
-                members=self.enum._member_names_,  # type: ignore[arg-type]
+                members=self.choices.enum._member_names_,  # type: ignore[arg-type]
                 field_name=name,
                 name=f"{cls._meta.db_table}_{name}_enum",
             )
@@ -176,10 +183,10 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     def from_db_value(
         self, value: Optional[str], expression: Any, connection: Any
     ) -> Optional[_GT]:
-        return parse_enum(self.enum, value)
+        return parse_enum(self.choices.enum, value)
 
     def to_python(self, value: Union[_GT, EnumChoice[_GT], str, None]) -> Optional[_GT]:
-        return coerce_to_enum(self.enum, value)
+        return coerce_to_enum(self.choices.enum, value)
 
     def get_prep_value(self, value: Union[_GT, str, None]) -> Optional[str]:
         member = self.to_python(value)
@@ -194,7 +201,6 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
 
     def formfield(self, **kwargs: Any) -> Any:
         defaults = {**kwargs, "choices_form_class": EnumChoiceField}
-        # defaults.update({'choices': EnumChoiceIterator(self.enum)})
         return super().formfield(**defaults)
 
 
@@ -202,7 +208,7 @@ if TYPE_CHECKING:
 
     @overload
     def EnumField(  # type: ignore[misc]
-        enum: Type[TEnum],
+        choices: Type[TEnum],
         default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
         null: Literal[False] = False,
         verbose_name: Optional[Union[str, bytes]] = None,
@@ -220,7 +226,7 @@ if TYPE_CHECKING:
 
     @overload
     def EnumField(
-        enum: Type[TEnum],
+        choices: Type[TEnum],
         default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
         null: Literal[True] = True,
         verbose_name: Optional[Union[str, bytes]] = None,
@@ -237,7 +243,7 @@ if TYPE_CHECKING:
         ...
 
     def EnumField(
-        enum: Type[TEnum],
+        choices: Type[TEnum],
         default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
         null: Literal[True, False] = False,
         verbose_name: Optional[Union[str, bytes]] = None,
@@ -251,7 +257,7 @@ if TYPE_CHECKING:
         validators: Iterable[_ValidatorCallable] = (),
         error_messages: Optional[_ErrorMessagesToOverride] = None,
     ) -> Union[_EnumField[TEnum, TEnum], _EnumField[Optional[TEnum], Optional[TEnum]]]:  # type: ignore[type-var]
-        return _EnumField[TEnum, TEnum](enum=enum, default=default, null=null)
+        return _EnumField[TEnum, TEnum](choices=choices, default=default, null=null)
 
 
 else:

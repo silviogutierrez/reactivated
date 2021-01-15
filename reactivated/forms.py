@@ -20,7 +20,7 @@ class EnumChoiceField(django_forms.TypedChoiceField):
             kwargs["choices"] = EnumChoiceIterator(enum)
             kwargs["coerce"] = lambda value: coerce_to_enum(enum, value)
         else:
-            self.enum = cast(EnumChoiceIterator, kwargs["choices"]).enum
+            self.enum = cast(EnumChoiceIterator[_GT], kwargs["choices"]).enum
 
         return super().__init__(*args, **kwargs)
 

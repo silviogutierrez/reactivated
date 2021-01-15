@@ -573,7 +573,11 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
 
         # Tightly coupled, for now. Can likely be improved once we have proper
         # widget schema generation.
-        if isinstance(SubType, forms.EnumChoiceField):
+        #
+        # Note we need issubclass here and not isinstance because consumer apps
+        # like Joy crash when running mypy. Oddly enough, mypy does not crash
+        # when run directly on reactivated.
+        if issubclass(SubType.__class__, forms.EnumChoiceField):
             choice_schema, definitions = create_schema(SubType.enum, definitions)
 
             if (ref := choice_schema.get("$ref", None)) :

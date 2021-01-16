@@ -27,6 +27,7 @@ class EnumChoiceField(django_forms.TypedChoiceField):
         self,
         *,
         coerce: Optional[Callable[[Any], Optional[_GT]]] = None,
+        empty_value: Optional[str] = "",
         enum: Optional[Type[_GT]] = None,
         choices: Optional[EnumChoiceIterator[_GT]] = None,
         required: bool = True,
@@ -60,6 +61,7 @@ class EnumChoiceField(django_forms.TypedChoiceField):
 
         return super().__init__(
             coerce=coerce,
+            empty_value=empty_value,
             choices=choices,
             required=required,
             widget=widget,

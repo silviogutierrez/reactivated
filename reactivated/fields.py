@@ -62,6 +62,10 @@ def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[EnumChoice[Enum]
 
 
 class EnumChoiceIterator(Generic[_GT]):
+    """ This is a special iterator that preserves the original enum. Useful so
+    we can use the "choices" argument that triggers special Django behaviors,
+    but leave our enum intact for reference."""
+
     def __init__(self, enum: Type[_GT]) -> None:
         self.enum = enum
 
@@ -126,7 +130,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     ):
         self.enum = enum
         self.choices = EnumChoiceIterator(enum=enum)
-        # choices = convert_enum_to_choices(choices)
+
         # We skip the constructor for CharField because we do *not* want
         # MaxLengthValidator added, as our enum members do not support __len__.
         models.Field.__init__(

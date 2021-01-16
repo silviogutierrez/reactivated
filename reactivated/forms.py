@@ -14,6 +14,12 @@ class EnumChoiceField(django_forms.TypedChoiceField):
     def __init__(
         self, *args: Any, enum: Optional[Type[_GT]] = None, **kwargs: Any
     ) -> None:
+        """ When instantiated by a model form, choices will be populated and
+        enum will not, as Django strips all but a defined set of kwargs.
+
+        When using this field directly in a form, enum will be populated and
+        choices should be None."""
+
         if enum is not None:
             self.enum = enum
             assert kwargs.get("choices", None) is None, "Pass enum or choices. Not both"

@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Model
 
 from reactivated import constraints, fields
+from reactivated.forms import EnumChoiceField
 from sample.server.apps.samples import models
 
 
@@ -26,7 +27,7 @@ class EnumTest(enum.Enum):
     CHUNKY = Member(title="Chunky")
 
 
-def test_enum_form():
+def test_enum_model_form():
     class EnumForm(forms.ModelForm):
         class Meta:
             fields = ["hemisphere"]
@@ -67,6 +68,18 @@ def test_enum_form():
     assert form.initial["hemisphere"] == models.Continent.Hemisphere.NORTHERN
     assert form.cleaned_data["hemisphere"] == models.Continent.Hemisphere.NORTHERN
     assert form.instance.hemisphere == models.Continent.Hemisphere.NORTHERN
+
+
+def test_enum_form_field():
+    class EnumForm(forms.Form):
+        enum_form_field = EnumChoiceField(enum=EnumTest)
+
+    form = EnumForm({"enum_form_field": "THIRD"},)
+    assert form.is_valid()
+    assert form.cleaned_data["enum_form_field"] == EnumTest.THIRD
+
+    form = EnumForm(initial={"enum_form_field": EnumTest.SECOND})
+    assert form["enum_form_field"].value() == "SECOND"
 
 
 def test_convert_enum_to_choices():

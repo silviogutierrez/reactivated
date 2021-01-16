@@ -22,7 +22,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
 
-from . import fields, stubs
+from . import fields, forms, stubs
 from .models import ComputedRelation
 
 Schema = Mapping[Any, Any]
@@ -573,13 +573,12 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
 
         # Tightly coupled, for now. Can likely be improved once we have proper
         # widget schema generation.
-        if isinstance(SubType, django_forms.TypedChoiceField) and (
-            choices := list(SubType.choices)
-        ):
-            # The internal _coerce method checks empty values for us too.
-            choice = SubType._coerce(choices[0][0])  # type: ignore
-
-            choice_schema, definitions = create_schema(type(choice), definitions)
+        #
+        # Note we need issubclass here and not isinstance because consumer apps
+        # like Joy crash when running mypy. Oddly enough, mypy does not crash
+        # when run directly on reactivated.
+        if issubclass(SubType.__class__, forms.EnumChoiceField):
+            choice_schema, definitions = create_schema(SubType.enum, definitions)
 
             if (ref := choice_schema.get("$ref", None)) :
                 generic_name = "".join(

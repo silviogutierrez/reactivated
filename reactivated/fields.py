@@ -18,7 +18,6 @@ from django.db import DatabaseError, models
 from django.db.models.fields import NOT_PROVIDED
 
 from .constraints import EnumConstraint
-from .forms import EnumChoiceField
 
 if TYPE_CHECKING:
     from django.db.models.fields import _ValidatorCallable, _ErrorMessagesToOverride
@@ -60,6 +59,30 @@ class EnumChoice(Generic[_GT]):
 def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[EnumChoice[Enum], str]]:
     for member in enum:
         yield (EnumChoice(member), str(member.value))
+
+
+class EnumChoiceIterator(Generic[_GT]):
+    """ This is a special iterator that preserves the original enum. Useful so
+    we can use the "choices" argument that triggers special Django behaviors,
+    but leave our enum intact for reference."""
+
+    def __init__(self, enum: Type[_GT]) -> None:
+        self.enum = enum
+
+    def __iter__(self) -> Any:
+        return convert_enum_to_choices(self.enum)
+
+
+def coerce_to_enum(
+    enum: Type[_GT], value: Union[_GT, EnumChoice[_GT], str, None]
+) -> Optional[_GT]:
+    if isinstance(value, EnumChoice):
+        return value.choice
+    elif isinstance(value, enum):
+        return value
+    # Narrow the type
+    assert isinstance(value, str) or value is None
+    return parse_enum(enum, value)
 
 
 models.CharField.__class_getitem__ = classmethod(  # type: ignore[attr-defined]
@@ -106,12 +129,13 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         error_messages: Optional[_ErrorMessagesToOverride] = None,
     ):
         self.enum = enum
-        choices = convert_enum_to_choices(enum)
+        self.choices = EnumChoiceIterator(enum=enum)
+
         # We skip the constructor for CharField because we do *not* want
         # MaxLengthValidator added, as our enum members do not support __len__.
         models.Field.__init__(
             self,
-            choices=choices,
+            choices=self.choices,
             max_length=63,
             default=default,
             null=null,
@@ -167,13 +191,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         return parse_enum(self.enum, value)
 
     def to_python(self, value: Union[_GT, EnumChoice[_GT], str, None]) -> Optional[_GT]:
-        if isinstance(value, EnumChoice):
-            return value.choice
-        elif isinstance(value, self.enum):
-            return value
-        # Narrow the type
-        assert isinstance(value, str) or value is None
-        return parse_enum(self.enum, value)
+        return coerce_to_enum(self.enum, value)
 
     def get_prep_value(self, value: Union[_GT, str, None]) -> Optional[str]:
         member = self.to_python(value)
@@ -187,8 +205,15 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         return self.get_prep_value(value)
 
     def formfield(self, **kwargs: Any) -> Any:
-        defaults = {**kwargs, "choices_form_class": EnumChoiceField}
-        # defaults.update({'choices': EnumChoiceIterator(self.enum)})
+        from .forms import EnumChoiceField
+
+        # We need to pass our own choice iterator otherwise list() is called upon
+        # our choices by super().formfield and we lose the enum.
+        defaults = {
+            **kwargs,
+            "choices_form_class": EnumChoiceField,
+            "choices": self.choices,
+        }
         return super().formfield(**defaults)
 
 

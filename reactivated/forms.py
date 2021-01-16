@@ -26,7 +26,7 @@ class EnumChoiceField(django_forms.TypedChoiceField):
     def __init__(
         self,
         *,
-        coerce: Callable[[Any], Optional[_GT]],
+        coerce: Optional[Callable[[Any], Optional[_GT]]] = None,
         enum: Optional[Type[_GT]] = None,
         choices: Optional[EnumChoiceIterator[_GT]] = None,
         required: bool = True,
@@ -44,8 +44,10 @@ class EnumChoiceField(django_forms.TypedChoiceField):
         """ When instantiated by a model form, choices will be populated and
         enum will not, as Django strips all but a defined set of kwargs.
 
+        And coerce will be populated by the model as well.
+
         When using this field directly in a form, enum will be populated and
-        choices should be None."""
+        choices and coerce should be None."""
 
         if enum is not None and choices is None:
             self.enum = enum

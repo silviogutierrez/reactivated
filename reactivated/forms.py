@@ -1,8 +1,20 @@
 import enum
 import re
-from typing import Any, Dict, NamedTuple, Optional, Type, TypeVar, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from django import forms as django_forms
+from django.forms.widgets import Widget
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 
@@ -12,7 +24,22 @@ from .widgets import Autocomplete as Autocomplete
 
 class EnumChoiceField(django_forms.TypedChoiceField):
     def __init__(
-        self, *args: Any, enum: Optional[Type[_GT]] = None, **kwargs: Any
+        self,
+        *,
+        coerce: Callable[[Any], Optional[_GT]],
+        enum: Optional[Type[_GT]] = None,
+        choices: Optional[EnumChoiceIterator[_GT]] = None,
+        required: bool = True,
+        widget: Optional[Union[Widget, Type[Widget]]] = None,
+        label: Optional[str] = None,
+        initial: Optional[_GT] = None,
+        help_text: str = "",
+        error_messages: Optional[Any] = None,
+        show_hidden_initial: bool = False,
+        validators: Sequence[Any] = (),
+        localize: bool = False,
+        disabled: bool = False,
+        label_suffix: Optional[Any] = None,
     ) -> None:
         """ When instantiated by a model form, choices will be populated and
         enum will not, as Django strips all but a defined set of kwargs.
@@ -20,15 +47,30 @@ class EnumChoiceField(django_forms.TypedChoiceField):
         When using this field directly in a form, enum will be populated and
         choices should be None."""
 
-        if enum is not None:
+        if enum is not None and choices is None:
             self.enum = enum
-            assert kwargs.get("choices", None) is None, "Pass enum or choices. Not both"
-            kwargs["choices"] = EnumChoiceIterator(enum)
-            kwargs["coerce"] = lambda value: coerce_to_enum(enum, value)
+            choices = EnumChoiceIterator(enum)
+            coerce = lambda value: coerce_to_enum(self.enum, value)
+        elif enum is None and choices is not None:
+            self.enum = choices.enum
         else:
-            self.enum = cast(EnumChoiceIterator[_GT], kwargs["choices"]).enum
+            assert False, "Pass enum or choices. Not both"
 
-        return super().__init__(*args, **kwargs)
+        return super().__init__(
+            coerce=coerce,
+            choices=choices,
+            required=required,
+            widget=widget,
+            label=label,
+            initial=initial,
+            help_text=help_text,
+            error_messages=error_messages,
+            show_hidden_initial=show_hidden_initial,
+            validators=validators,
+            localize=localize,
+            disabled=disabled,
+            label_suffix=label_suffix,
+        )
 
     """
     Enum choices must be serialized to their name rather than their enum

@@ -2,7 +2,6 @@ import React from "react";
 import Helmet from "react-helmet";
 
 import Context from "reactivated/context";
-import {style} from "typestyle";
 
 interface Props {
     title: string;
@@ -10,7 +9,7 @@ interface Props {
 }
 
 const styles = {
-    layout: style({maxWidth: 800, margin: "0 auto"}),
+    layout: {maxWidth: 800, margin: "0 auto"},
 } as const;
 
 export const Layout = (props: Props) => {
@@ -28,7 +27,7 @@ export const Layout = (props: Props) => {
 
                 <script defer src="/media/dist/bundle.js" />
             </Helmet>
-            <div className={styles.layout}>{props.children}</div>
+            <div style={styles.layout}>{props.children}</div>
         </>
     );
 };

@@ -1,6 +1,5 @@
 // Note: changing the file requires restarting the development server
 import React from "react";
-import {createTypeStyle, TypeStyle} from "typestyle";
 
 import * as models from "./models";
 
@@ -12,7 +11,6 @@ const Context = React.createContext({
     template_name: "",
     csrf_token: "",
     messages: [] as models.Message[],
-    typestyle: createTypeStyle(),
 });
 
 export const {Consumer, Provider} = Context;

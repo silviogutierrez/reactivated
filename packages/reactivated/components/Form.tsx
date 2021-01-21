@@ -1,19 +1,7 @@
 import React from "react";
 
-import {style} from "typestyle";
 import {Consumer} from "../context";
 import {getValueForSelect, WidgetType} from "./Widget";
-
-type TODO = any;
-
-export const Styles = {
-    // Bootstrap hides error messages unless they are general siblings of
-    // a form-control. This isn't the case with the autocomplete and other
-    // composite widgets. So we force it to always display.
-    feedback: style({
-        display: "block",
-    }),
-} as const;
 
 interface FieldLike {
     name: string;

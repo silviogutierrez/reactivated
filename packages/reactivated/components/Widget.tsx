@@ -1,7 +1,5 @@
 import React from "react";
 
-import {classes} from "typestyle";
-
 const TEXTAREA_ROWS = 10;
 
 interface BaseWidget {

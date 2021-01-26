@@ -13,6 +13,7 @@ from . import (
     global_types,
     template_registry,
     type_registry,
+    value_registry,
 )
 from .serialization import create_schema
 
@@ -99,11 +100,16 @@ def get_templates() -> Dict[str, Tuple[Any]]:
     return template_registry
 
 
+def get_values() -> Dict[str, Any]:
+    return value_registry
+
+
 def get_schema() -> str:
     schema = {
         "urls": get_urls_schema(),
         "templates": get_templates(),
         "types": get_types_schema(),
+        "values": get_values(),
     }
     return json.dumps(schema, indent=4)
 

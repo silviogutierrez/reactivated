@@ -41,6 +41,11 @@ default_app_config = "reactivated.apps.ReactivatedConfig"
 type_registry: Dict[str, Tuple[Any]] = {}
 global_types: Dict[str, Tuple[Any]] = {}
 template_registry: Dict[str, Tuple[Any]] = {}
+value_registry: Dict[str, Any] = {}
+
+
+def export(**kwargs: Any) -> None:
+    value_registry.update(**kwargs)
 
 
 _SingleSerializable = Union[

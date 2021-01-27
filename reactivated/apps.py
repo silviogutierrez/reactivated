@@ -134,7 +134,7 @@ class ReactivatedConfig(AppConfig):
         generate_schema()
 
 
-def generate_schema() -> None:
+def generate_schema(skip_cache: bool = False) -> None:
     """
     For development usage only, this requires Node and Python installed
 
@@ -147,8 +147,8 @@ def generate_schema() -> None:
 
     digest = hashlib.sha1(schema).hexdigest().encode()
 
-    if os.path.exists("client/generated.tsx"):
-        with open("client/generated.tsx", "r+b") as existing:
+    if skip_cache is False and os.path.exists("client/generated/index.tsx"):
+        with open("client/generated/index.tsx", "r+b") as existing:
             already_generated = existing.read()
 
             if digest in already_generated:
@@ -166,7 +166,9 @@ def generate_schema() -> None:
     )
     out, error = process.communicate(schema)
 
-    with open("client/generated.tsx", "w+b") as output:
+    os.makedirs("client/generated", exist_ok=True)
+
+    with open("client/generated/index.tsx", "w+b") as output:
         output.write(b"// Digest: %s\n" % digest)
         output.write(out)
         logger.info("Finished generating.")

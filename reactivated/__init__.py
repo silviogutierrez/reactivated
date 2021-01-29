@@ -1,5 +1,6 @@
 import abc
 import datetime
+import inspect
 from typing import (
     Any,
     Callable,
@@ -17,9 +18,7 @@ from typing import (
     overload,
 )
 
-import simplejson
 from django import forms as django_forms
-from django.conf import settings
 from django.core.exceptions import ViewDoesNotExist
 from django.db.models.query import QuerySet, ValuesIterable
 from django.http import HttpRequest, HttpResponse
@@ -41,6 +40,15 @@ default_app_config = "reactivated.apps.ReactivatedConfig"
 type_registry: Dict[str, Tuple[Any]] = {}
 global_types: Dict[str, Tuple[Any]] = {}
 template_registry: Dict[str, Tuple[Any]] = {}
+value_registry: Dict[str, Any] = {}
+
+
+def export(var: Any) -> None:
+    """ See: https://stackoverflow.com/a/18425523 """
+    callers_local_vars = inspect.currentframe().f_back.f_locals.items()  # type: ignore[union-attr]
+    name = [var_name for var_name, var_val in callers_local_vars if var_val is var][0]
+
+    value_registry.update({name: var})
 
 
 _SingleSerializable = Union[
@@ -379,50 +387,6 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
     assert False
 
 
-"""
-def wrap_with_globals(props: Any, definitions: Dict) -> Any:
-    message_schema = create_schema(Message, definitions)
-
-    return {
-        **props,
-        'properties': {
-            **props['properties'],
-            'template_name': {'type': 'string'},
-            'csrf_token': {'type': 'string'},
-            'messages': {
-                'type': 'array',
-                'items': message_schema,
-            },
-        },
-        'required': [
-            *props['required'],
-            'template_name',
-            'csrf_token',
-            'messages',
-        ],
-    }
-"""
-
-
-def generate_schema() -> Dict[str, Any]:
-    definitions: Dict[str, Any] = {}
-
-    schema = {
-        # "title": "Schema",
-        "type": "object",
-        "definitions": definitions,
-        "properties": {
-            # name: wrap_with_globals(create_schema(Props, definitions, ref=False), definitions)
-            name: create_schema(Props, definitions, ref=False)
-            for name, Props in type_registry.items()
-        },
-        "additionalProperties": False,
-        "required": [name for name in type_registry.keys()],
-    }
-
-    return schema
-
-
 class WidgetType(TypeHint):
     name = "WidgetType"
 
@@ -460,15 +424,6 @@ class FormSetType(NamedTuple):
     empty_form: FormType
     management_form: FormType
     prefix: str
-
-
-def generate_settings() -> str:
-    settings_to_serialize = {
-        setting_name: setting_value
-        for setting_name, setting_value in settings._wrapped.__dict__.items()
-        if setting_name not in ["_explicit_settings"]
-    }
-    return simplejson.dumps(settings_to_serialize, indent=4)
 
 
 def describe_pattern(p):  # type: ignore[no-untyped-def]

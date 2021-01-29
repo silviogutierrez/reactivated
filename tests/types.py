@@ -437,12 +437,13 @@ def test_build_nested_schema():
     )
 
 
-def test_generate_types_schema(settings):
+@pytest.mark.skip(reason="needs to be an e2e test with node")
+def test_generate_client_assets(settings):
     # This technically loads the full sample site, which expects to be run
     # from the sample subdirectory.
     settings.ROOT_URLCONF = "sample.server.urls"
     output = StringIO()
-    call_command("generate_types_schema", stdout=output)
+    call_command("generate_client_assets", stdout=output)
     schema = simplejson.loads(output.getvalue())
     assert "types" in schema
     assert "urls" in schema

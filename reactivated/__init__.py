@@ -1,5 +1,6 @@
 import abc
 import datetime
+import inspect
 from typing import (
     Any,
     Callable,
@@ -42,8 +43,12 @@ template_registry: Dict[str, Tuple[Any]] = {}
 value_registry: Dict[str, Any] = {}
 
 
-def export(**kwargs: Any) -> None:
-    value_registry.update(**kwargs)
+def export(var: Any) -> None:
+    """ See: https://stackoverflow.com/a/18425523 """
+    callers_local_vars = inspect.currentframe().f_back.f_locals.items()  # type: ignore[union-attr]
+    name = [var_name for var_name, var_val in callers_local_vars if var_val is var][0]
+
+    value_registry.update({name: var})
 
 
 _SingleSerializable = Union[

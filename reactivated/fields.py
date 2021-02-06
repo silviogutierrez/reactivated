@@ -10,12 +10,13 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    cast,
     overload,
 )
 
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, models
-from django.db.models.fields import NOT_PROVIDED
+from django.db.models.fields import BLANK_CHOICE_DASH, NOT_PROVIDED
 
 from .constraints import EnumConstraint
 
@@ -56,7 +57,11 @@ class EnumChoice(Generic[_GT]):
         return False
 
 
-def convert_enum_to_choices(enum: Type[Enum]) -> Iterable[Tuple[EnumChoice[Enum], str]]:
+def convert_enum_to_choices(
+    *, enum: Type[Enum], include_blank: bool = False
+) -> Iterable[Tuple[Union[EnumChoice[Enum], Literal[""]], str]]:
+    if include_blank is True:
+        yield cast(Tuple[Literal[""], str], BLANK_CHOICE_DASH[0])
     for member in enum:
         yield (EnumChoice(member), str(member.value))
 
@@ -66,11 +71,12 @@ class EnumChoiceIterator(Generic[_GT]):
     we can use the "choices" argument that triggers special Django behaviors,
     but leave our enum intact for reference."""
 
-    def __init__(self, enum: Type[_GT]) -> None:
+    def __init__(self, *, enum: Type[_GT], include_blank: bool = False) -> None:
         self.enum = enum
+        self.include_blank = include_blank
 
     def __iter__(self) -> Any:
-        return convert_enum_to_choices(self.enum)
+        return convert_enum_to_choices(enum=self.enum, include_blank=self.include_blank)
 
 
 def coerce_to_enum(
@@ -207,12 +213,17 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     def formfield(self, **kwargs: Any) -> Any:
         from .forms import EnumChoiceField
 
+        include_blank = self.blank or not (self.has_default() or "initial" in kwargs)
+        choices_with_blank = EnumChoiceIterator(
+            include_blank=include_blank, enum=self.enum
+        )
+
         # We need to pass our own choice iterator otherwise list() is called upon
         # our choices by super().formfield and we lose the enum.
         defaults = {
             **kwargs,
             "choices_form_class": EnumChoiceField,
-            "choices": self.choices,
+            "choices": choices_with_blank,
         }
         return super().formfield(**defaults)
 

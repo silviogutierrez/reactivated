@@ -88,13 +88,24 @@ def test_convert_enum_to_choices():
         (second_choice, second_label),
         (_, _),
         (last_choice, last_label),
-    ) = list(fields.convert_enum_to_choices(EnumTest))
+    ) = list(fields.convert_enum_to_choices(enum=EnumTest))
     assert str(first_choice) == "FIRST"
     assert first_choice.choice == EnumTest.FIRST
     assert first_label == "First"
     assert str(second_choice) == "SECOND"
     assert second_label == "Second"
     assert second_choice.choice == EnumTest.SECOND
+
+    assert last_choice.choice == EnumTest.CHUNKY
+    assert str(last_choice) == "CHUNKY"
+    assert last_label == "Chunky"
+
+    ((first_choice, first_label), *rest, (last_choice, last_label),) = list(
+        fields.convert_enum_to_choices(include_blank=True, enum=EnumTest)
+    )
+
+    assert first_choice == ""
+    assert first_label == "---------"
 
     assert last_choice.choice == EnumTest.CHUNKY
     assert str(last_choice) == "CHUNKY"

@@ -52,7 +52,7 @@ class EnumChoiceField(django_forms.TypedChoiceField):
 
         if enum is not None and choices is None:
             self.enum = enum
-            choices = EnumChoiceIterator(enum)
+            choices = EnumChoiceIterator(enum=enum, include_blank=required)
             coerce = lambda value: coerce_to_enum(self.enum, value)
         elif enum is None and choices is not None:
             self.enum = choices.enum

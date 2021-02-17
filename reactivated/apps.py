@@ -1,3 +1,4 @@
+import atexit
 import importlib
 import json
 import logging
@@ -124,6 +125,31 @@ class ReactivatedConfig(AppConfig):
         """
         if settings.DEBUG is False:
             return
+
+        if (
+            os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+            or os.environ.get("RUN_MAIN") == "true"
+        ):
+            print("Starting node process")
+            from . import renderer
+
+            renderer.proc = subprocess.Popen(
+                [
+                    "yarn",
+                    "babel-node",
+                    "--extensions",
+                    ".ts,.tsx",
+                    "node_modules/reactivated/renderer.js",
+                ],
+                stderr=subprocess.STDOUT,
+                stdin=subprocess.PIPE,
+            )
+
+            def cleanup() -> None:
+                print("Cleaning up node process")
+                renderer.proc.terminate()
+
+            atexit.register(cleanup)
 
         is_server_started = "DJANGO_SEVER_STARTING" in os.environ
 

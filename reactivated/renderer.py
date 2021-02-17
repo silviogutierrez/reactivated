@@ -1,10 +1,11 @@
 from typing import Any, List
 
-import requests
 import simplejson
 from django.conf import settings
 from django.http import HttpRequest
 from django.template.defaultfilters import escape
+
+proc = None
 
 
 def get_accept_list(request: HttpRequest) -> List[str]:
@@ -45,6 +46,8 @@ def render_jsx_to_string(
         request._is_reactivated_response = True  # type: ignore[attr-defined]
         return data
 
-    return requests.post(  # type: ignore[no-any-return]
-        f"{settings.REACTIVATED_SERVER}/__ssr/", headers=headers, data=data
-    ).json()["rendered"]
+    out, error = proc.communicate(data.encode())
+    return "ok"
+    # return requests.post(  # type: ignore[no-any-return]
+    #     f"{settings.REACTIVATED_SERVER}/__ssr/", headers=headers, data=data
+    # ).json()["rendered"]

@@ -40,7 +40,7 @@ export interface URLInput extends BaseWidget {
 }
 
 export interface NumberInput extends BaseWidget {
-    type: "checkbox";
+    type: "number";
     template_name: "django/forms/widgets/number.html";
     value: string | null;
     attrs: BaseWidget["attrs"] & {
@@ -49,7 +49,7 @@ export interface NumberInput extends BaseWidget {
 }
 
 export interface CheckboxInput extends BaseWidget {
-    type: "number";
+    type: "checkbox";
     template_name: "django/forms/widgets/checkbox.html";
     value: string | null;
     attrs: BaseWidget["attrs"] & {

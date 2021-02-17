@@ -14,9 +14,25 @@ interface BaseWidget {
     };
 }
 
+// Note: maxlength isn't actually part of the widget. Rather, it is added at
+// runtime by forms.CharField (and children, like URLField)
+//
+// Kind of messy.
+//
+// Also, not sure why we need type instead of just using template_name.
+
 export interface TextInput extends BaseWidget {
     type: "text";
     template_name: "django/forms/widgets/text.html";
+    value: string | null;
+    attrs: BaseWidget["attrs"] & {
+        maxlength?: string;
+    };
+}
+
+export interface URLInput extends BaseWidget {
+    type: "url";
+    template_name: "django/forms/widgets/url.html";
     value: string | null;
     attrs: BaseWidget["attrs"] & {
         maxlength?: string;
@@ -33,7 +49,7 @@ export interface NumberInput extends BaseWidget {
 }
 
 export interface CheckboxInput extends BaseWidget {
-    type: "number";
+    type: "checkbox";
     template_name: "django/forms/widgets/checkbox.html";
     value: string | null;
     attrs: BaseWidget["attrs"] & {
@@ -147,6 +163,7 @@ export interface SelectDateWidget extends BaseWidget {
 
 export type WidgetType =
     | TextInput
+    | URLInput
     | NumberInput
     | CheckboxInput
     | PasswordInput

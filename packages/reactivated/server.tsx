@@ -80,7 +80,7 @@ export const render = (
 
     const templatePath = `${process.cwd()}/client/templates/${context.template_name}`;
 
-    if (process.env.NODE_ENV !== "production") {
+    if (false && process.env.NODE_ENV !== "production") {
         // Our template names have no extension by design, for when we transpile.
         delete require.cache[`${templatePath}.tsx`];
         delete require.cache[`${templatePath}.jsx`];

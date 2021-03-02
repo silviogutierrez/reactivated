@@ -2,16 +2,18 @@ import express, {Request, Response} from "express";
 
 import {BODY_SIZE_LIMIT, render} from "./server";
 
-const app = express();
-app.use(express.json({limit: BODY_SIZE_LIMIT}));
+const OK_RESPONSE = 200;
 
-app.post("/__ssr/", (req, res) => {
-    const rendered = render(Buffer.from(JSON.stringify(req.body)));
-    res.json({rendered});
-});
-
-const PORT = 1987;
-
+// const app = express();
+// app.use(express.json({limit: BODY_SIZE_LIMIT}));
+//
+// app.post("/", (req, res) => {
+//     const rendered = render(Buffer.from(JSON.stringify(req.body)));
+//     res.json({rendered});
+// });
+//
+// const PORT = 3001;
+//
 // app.listen(PORT, () => {
 //     // tslint:disable-next-line
 //     console.log(`Listening on ${PORT}`);
@@ -56,9 +58,28 @@ const server = http.createServer((req, res) => {
 
     // The 'end' event indicates that the entire body has been received.
     req.on("end", () => {
-        res.write(render(body));
-        res.end();
+        res.writeHead(OK_RESPONSE, {"Content-Type": "text/html"});
+        res.end(render(body));
     });
 });
 
-server.listen(0);
+server.listen(0, () => {
+    const address = server.address();
+
+    if (typeof address === "string") {
+        throw new Error();
+    }
+    process.stdout.write(`RENDERER:${address.port.toString()}:LISTENING`);
+    // render(Buffer.from(JSON.stringify(fakeRender)));
+    const templatePath = `${process.cwd()}/client/templates/${
+        fakeRender.context.template_name
+    }`;
+    // require(templatePath);
+    // process.stdout.write("Done requiring");
+});
+
+const fakeRender = {
+    context: {
+        template_name: "BusinessPage",
+    },
+};

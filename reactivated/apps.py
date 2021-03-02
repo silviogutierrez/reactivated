@@ -3,8 +3,9 @@ import importlib
 import json
 import logging
 import os
+import re
 import subprocess
-from typing import Any, Dict, NamedTuple, Tuple
+from typing import Any, Dict, NamedTuple, Optional, Tuple
 
 from django.apps import AppConfig
 from django.conf import settings
@@ -115,6 +116,16 @@ def get_schema() -> str:
     return json.dumps(schema, indent=4)
 
 
+def wait_and_get_port(process: Any) -> Optional[int]:
+    output = ""
+
+    for c in iter(lambda: process.stdout.read(1), b""):
+        output += c
+
+        if match := re.match(r"RENDERER:([\d]+):LISTENING", output):
+            return int(match.group(1))
+
+
 class ReactivatedConfig(AppConfig):
     name = "reactivated"
 
@@ -131,25 +142,25 @@ class ReactivatedConfig(AppConfig):
             or os.environ.get("RUN_MAIN") == "true"
         ):
             print("Starting node process")
-            from . import renderer
-
-            renderer.proc = subprocess.Popen(
+            process = subprocess.Popen(
                 [
-                    "yarn",
-                    "babel-node",
+                    "node_modules/.bin/babel-node",
                     "--extensions",
                     ".ts,.tsx",
                     "node_modules/reactivated/renderer.js",
                 ],
-                stderr=subprocess.STDOUT,
-                stdin=subprocess.PIPE,
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
             )
 
             def cleanup() -> None:
                 print("Cleaning up node process")
-                renderer.proc.terminate()
+                process.terminate()
 
             atexit.register(cleanup)
+            from . import renderer
+
+            renderer.renderer_port = wait_and_get_port(process)
 
         is_server_started = "DJANGO_SEVER_STARTING" in os.environ
 

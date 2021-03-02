@@ -134,14 +134,20 @@ class ReactivatedConfig(AppConfig):
         Django's dev server actually starts twice. So we prevent generation on
         the first start. TODO: handle noreload.
         """
-        if settings.DEBUG is False:
-            return
+        process = None
 
-        if (
+        if settings.DEBUG is False:
+            print("Starting production node process")
+            process = subprocess.Popen(
+                ["node", "node_modules/reactivated/renderer.js",],
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
+            )
+        elif (
             os.environ.get("WERKZEUG_RUN_MAIN") == "true"
             or os.environ.get("RUN_MAIN") == "true"
         ):
-            print("Starting node process")
+            print("Starting development node process")
             process = subprocess.Popen(
                 [
                     "node_modules/.bin/babel-node",
@@ -152,6 +158,8 @@ class ReactivatedConfig(AppConfig):
                 encoding="utf-8",
                 stdout=subprocess.PIPE,
             )
+
+        if process is not None:
 
             def cleanup() -> None:
                 print("Cleaning up node process")

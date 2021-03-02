@@ -80,6 +80,6 @@ server.listen(0, () => {
 
 const fakeRender = {
     context: {
-        template_name: "BusinessPage",
+        template_name: "HomePage",
     },
 };

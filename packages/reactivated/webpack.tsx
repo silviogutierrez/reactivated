@@ -33,11 +33,11 @@ export const createConfig = (settings: Settings) => {
         },
         output: {
             filename: "bundle.js",
-            publicPath: `${settings.MEDIA_URL}dist/`,
+            publicPath: `${settings.STATIC_URL}dist/`,
         },
         serve: {
             devMiddleware: {
-                publicPath: `${settings.MEDIA_URL}dist/`,
+                publicPath: `${settings.STATIC_URL}dist/`,
             },
         },
 

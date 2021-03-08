@@ -78,8 +78,6 @@ def render_jsx_to_string(
 ) -> str:
     from reactivated import encode_complex_types
 
-    renderer_port = wait_and_get_port()
-
     respond_with_json = should_respond_with_json(request)
 
     payload = {"context": {**context, "template_name": template_name}, "props": props}
@@ -93,6 +91,8 @@ def render_jsx_to_string(
     ):
         request._is_reactivated_response = True  # type: ignore[attr-defined]
         return data
+
+    renderer_port = wait_and_get_port()
 
     return requests.post(
         f"http://localhost:{renderer_port}", headers=headers, data=data

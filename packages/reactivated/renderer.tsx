@@ -13,8 +13,17 @@ const server = http.createServer((req, res) => {
         body = Buffer.concat([body, chunk as Buffer]);
     });
     req.on("end", () => {
-        res.writeHead(OK_RESPONSE, {"Content-Type": "text/html"});
-        res.end(render(body));
+        const result = render(body);
+
+        if (result.status === "success") {
+            res.writeHead(OK_RESPONSE, {"Content-Type": "text/html"});
+            res.end(result.rendered);
+        } else {
+            res.writeHead(ERROR_REPONSE, {"Content-Type": "application/json"});
+            res.end(
+                JSON.stringify(result.error, Object.getOwnPropertyNames(result.error)),
+            );
+        }
     });
 });
 
@@ -27,7 +36,7 @@ server.listen(0, () => {
     process.stdout.write(`RENDERER:${address.port.toString()}:LISTENING`);
 
     // TODO: load this from a passed in parameter.
-    const warmUpTemplate = "HomePage";
-    const templatePath = `${process.cwd()}/client/templates/${warmUpTemplate}`;
-    require(templatePath);
+    // const warmUpTemplate = "HomePage";
+    // const templatePath = `${process.cwd()}/client/templates/${warmUpTemplate}`;
+    // require(templatePath);
 });

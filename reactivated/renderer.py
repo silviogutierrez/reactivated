@@ -94,6 +94,10 @@ def render_jsx_to_string(
 
     renderer_port = wait_and_get_port()
 
-    return requests.post(
+    response = requests.post(
         f"http://localhost:{renderer_port}", headers=headers, data=data
-    ).text
+    )
+    if response.status_code == 200:
+        return response.text
+    else:
+        raise Exception(response.json()["stack"])

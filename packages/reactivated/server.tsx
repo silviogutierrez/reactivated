@@ -68,10 +68,20 @@ const defaultRenderPage = bindRenderPage({
     STATIC_URL: "/static/",
 });
 
+type Result =
+    | {
+          status: "success";
+          rendered: string;
+      }
+    | {
+          status: "error";
+          error: any;
+      };
+
 export const render = (
     input: Buffer,
     renderPage: typeof defaultRenderPage = defaultRenderPage,
-) => {
+): Result => {
     const {context, props} = JSON.parse(input.toString("utf8"));
 
     const templatePath = `${process.cwd()}/client/templates/${context.template_name}`;
@@ -136,16 +146,17 @@ export const render = (
 
         const {helmet} = helmetContext;
 
-        return renderPage({
-            html: rendered,
-            helmet,
-            props,
-            context,
-        });
+        return {
+            status: "success",
+            rendered: renderPage({
+                html: rendered,
+                helmet,
+                props,
+                context,
+            }),
+        };
     } catch (error) {
-        // tslint:disable-next-line
-        console.log("Error rendering", error);
-        return "Error rendering";
+        return {status: "error", error};
     }
 };
 

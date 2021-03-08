@@ -7,7 +7,13 @@ import {FilledContext, Helmet, HelmetData, HelmetProvider} from "react-helmet-as
 import webpack from "webpack";
 
 import moduleAlias from "module-alias";
-moduleAlias.addAlias("@client", `${process.cwd()}/client`);
+
+// Useful when running e2e tests or the like, where the output is not
+// co-located with the running process.
+const REACTIVATED_CLIENT_ROOT =
+    process.env.REACTIVATED_CLIENT_ROOT ?? `${process.cwd()}/client`;
+
+moduleAlias.addAlias("@client", REACTIVATED_CLIENT_ROOT);
 
 import httpProxy, {ServerOptions} from "http-proxy";
 
@@ -84,7 +90,7 @@ export const render = (
 ): Result => {
     const {context, props} = JSON.parse(input.toString("utf8"));
 
-    const templatePath = `${process.cwd()}/client/templates/${context.template_name}`;
+    const templatePath = `${REACTIVATED_CLIENT_ROOT}/templates/${context.template_name}`;
 
     if (process.env.NODE_ENV !== "production") {
         // Our template names have no extension by design, for when we transpile.

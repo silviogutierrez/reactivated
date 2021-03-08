@@ -1,11 +1,9 @@
-import atexit
 import importlib
 import json
 import logging
 import os
-import re
 import subprocess
-from typing import Any, Dict, NamedTuple, Optional, Tuple
+from typing import Any, Dict, NamedTuple, Tuple
 
 from django.apps import AppConfig
 from django.conf import settings
@@ -116,16 +114,6 @@ def get_schema() -> str:
     return json.dumps(schema, indent=4)
 
 
-def wait_and_get_port(process: Any) -> Optional[int]:
-    output = ""
-
-    for c in iter(lambda: process.stdout.read(1), b""):
-        output += c
-
-        if match := re.match(r"RENDERER:([\d]+):LISTENING", output):
-            return int(match.group(1))
-
-
 class ReactivatedConfig(AppConfig):
     name = "reactivated"
 
@@ -134,41 +122,13 @@ class ReactivatedConfig(AppConfig):
         Django's dev server actually starts twice. So we prevent generation on
         the first start. TODO: handle noreload.
         """
-        process = None
 
-        if settings.DEBUG is False:
-            print("Starting production node process")
-            process = subprocess.Popen(
-                ["node", "node_modules/reactivated/renderer.js",],
-                encoding="utf-8",
-                stdout=subprocess.PIPE,
-            )
-        elif (
+        if (
             os.environ.get("WERKZEUG_RUN_MAIN") == "true"
             or os.environ.get("RUN_MAIN") == "true"
         ):
-            print("Starting development node process")
-            process = subprocess.Popen(
-                [
-                    "node_modules/.bin/babel-node",
-                    "--extensions",
-                    ".ts,.tsx",
-                    "node_modules/reactivated/renderer.js",
-                ],
-                encoding="utf-8",
-                stdout=subprocess.PIPE,
-            )
-
-        if process is not None:
-
-            def cleanup() -> None:
-                print("Cleaning up node process")
-                process.terminate()
-
-            atexit.register(cleanup)
-            from . import renderer
-
-            renderer.renderer_port = wait_and_get_port(process)
+            # Triggers for the subprocess of the dev server after restarts or initial start.
+            pass
 
         is_server_started = "DJANGO_SEVER_STARTING" in os.environ
 

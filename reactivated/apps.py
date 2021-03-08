@@ -122,8 +122,13 @@ class ReactivatedConfig(AppConfig):
         Django's dev server actually starts twice. So we prevent generation on
         the first start. TODO: handle noreload.
         """
-        if settings.DEBUG is False:
-            return
+
+        if (
+            os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+            or os.environ.get("RUN_MAIN") == "true"
+        ):
+            # Triggers for the subprocess of the dev server after restarts or initial start.
+            pass
 
         is_server_started = "DJANGO_SEVER_STARTING" in os.environ
 

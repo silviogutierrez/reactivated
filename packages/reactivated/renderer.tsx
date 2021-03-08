@@ -1,18 +1,42 @@
-import express, {Request, Response} from "express";
-
 import {BODY_SIZE_LIMIT, render} from "./server";
 
-const app = express();
-app.use(express.json({limit: BODY_SIZE_LIMIT}));
+const OK_RESPONSE = 200;
 
-app.post("/__ssr/", (req, res) => {
-    const rendered = render(Buffer.from(JSON.stringify(req.body)));
-    res.json({rendered});
+const ERROR_REPONSE = 500;
+
+import http from "http";
+
+const server = http.createServer((req, res) => {
+    let body = Buffer.from(""); // , 'utf8');
+
+    req.on("data", (chunk) => {
+        body = Buffer.concat([body, chunk as Buffer]);
+    });
+    req.on("end", () => {
+        const result = render(body);
+
+        if (result.status === "success") {
+            res.writeHead(OK_RESPONSE, {"Content-Type": "text/html"});
+            res.end(result.rendered);
+        } else {
+            res.writeHead(ERROR_REPONSE, {"Content-Type": "application/json"});
+            res.end(
+                JSON.stringify(result.error, Object.getOwnPropertyNames(result.error)),
+            );
+        }
+    });
 });
 
-const PORT = 1987;
+server.listen(0, () => {
+    const address = server.address();
 
-app.listen(PORT, () => {
-    // tslint:disable-next-line
-    console.log(`Listening on ${PORT}`);
+    if (typeof address === "string") {
+        throw new Error();
+    }
+    process.stdout.write(`RENDERER:${address.port.toString()}:LISTENING`);
+
+    // TODO: load this from a passed in parameter.
+    // const warmUpTemplate = "HomePage";
+    // const templatePath = `${process.cwd()}/client/templates/${warmUpTemplate}`;
+    // require(templatePath);
 });

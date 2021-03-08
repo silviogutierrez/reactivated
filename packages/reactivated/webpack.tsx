@@ -1,8 +1,6 @@
 import path from "path";
 import webpack from "webpack";
 
-import express, {Application} from "express";
-
 import {Settings} from "./models";
 import {BODY_SIZE_LIMIT, render} from "./server";
 
@@ -33,11 +31,11 @@ export const createConfig = (settings: Settings) => {
         },
         output: {
             filename: "bundle.js",
-            publicPath: `${settings.MEDIA_URL}dist/`,
+            publicPath: `${settings.STATIC_URL}dist/`,
         },
         serve: {
             devMiddleware: {
-                publicPath: `${settings.MEDIA_URL}dist/`,
+                publicPath: `${settings.STATIC_URL}dist/`,
             },
         },
 
@@ -51,25 +49,6 @@ export const createConfig = (settings: Settings) => {
                 "**": {
                     target: `http://localhost:${DJANGO_DEBUG_PORT}`,
                 },
-            },
-            before: (app: Application) => {
-                // Try accessing request.body in a Django view that was proxied
-                // by webpack with application/json headers and JSON content.
-                // Django will process it, but webpack will not accept back
-                // Django's response. Not quite sure why.
-                //
-                // See https://github.com/chimurai/http-proxy-middleware/issues/40
-                // for a possibly related issue.
-                //
-                // Fix: bind body parsing *only* to the /__ssr/ route when using
-                // webpack.
-                //
-                // In renderer.tsx, we do bind globally.
-                app.use("/__ssr/", express.json({limit: BODY_SIZE_LIMIT}));
-                app.post("/__ssr/", (req, res) => {
-                    const rendered = render(Buffer.from(JSON.stringify(req.body)));
-                    res.json({rendered});
-                });
             },
         },
         // Docs say to put this in.

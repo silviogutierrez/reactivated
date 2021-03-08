@@ -1,10 +1,57 @@
-from typing import Any, List
+import atexit
+import logging
+import re
+import subprocess
+from typing import Any, List, Optional
 
 import requests
 import simplejson
 from django.conf import settings
 from django.http import HttpRequest
 from django.template.defaultfilters import escape
+
+renderer_process_port = None
+logger = logging.getLogger("django.server")
+
+
+def wait_and_get_port() -> Optional[int]:
+    global renderer_process_port
+
+    if renderer_process_port is not None:
+        return renderer_process_port
+
+    renderer_command = (
+        ["node", "node_modules/reactivated/renderer.js",]
+        if settings.DEBUG is False
+        else [
+            "node_modules/.bin/babel-node",
+            "--extensions",
+            ".ts,.tsx",
+            "node_modules/reactivated/renderer.js",
+        ]
+    )
+
+    logger.info("Starting render process")
+
+    process = subprocess.Popen(
+        renderer_command, encoding="utf-8", stdout=subprocess.PIPE,
+    )
+
+    def cleanup() -> None:
+        logger.info("Cleaning up renderer process")
+        process.terminate()
+
+    atexit.register(cleanup)
+
+    output = ""
+
+    for c in iter(lambda: process.stdout.read(1), b""):  # type: ignore[union-attr]
+        output += c
+
+        if match := re.match(r"RENDERER:([\d]+):LISTENING", output):
+            renderer_process_port = int(match.group(1))
+            return renderer_process_port
+    assert False, "Could not bind to renderer"
 
 
 def get_accept_list(request: HttpRequest) -> List[str]:
@@ -45,6 +92,12 @@ def render_jsx_to_string(
         request._is_reactivated_response = True  # type: ignore[attr-defined]
         return data
 
-    return requests.post(  # type: ignore[no-any-return]
-        f"{settings.REACTIVATED_SERVER}/__ssr/", headers=headers, data=data
-    ).json()["rendered"]
+    renderer_port = wait_and_get_port()
+
+    response = requests.post(
+        f"http://localhost:{renderer_port}", headers=headers, data=data
+    )
+    if response.status_code == 200:
+        return response.text
+    else:
+        raise Exception(response.json()["stack"])

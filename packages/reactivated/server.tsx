@@ -1,5 +1,3 @@
-import {resetIdCounter} from "downshift";
-import express, {Request, Response} from "express";
 import fs from "fs";
 import {compile} from "json-schema-to-typescript";
 import path from "path";
@@ -18,8 +16,6 @@ import {Settings} from "./models";
 
 // TODO: WHAT DOES THIS NEED TO BE? Even 100k was super fragile and a 10 choice field broke it.
 export const BODY_SIZE_LIMIT = "100000000k";
-
-const app = express();
 
 export const bindRenderPage = (settings: Settings) => ({
     html,
@@ -72,10 +68,20 @@ const defaultRenderPage = bindRenderPage({
     STATIC_URL: "/static/",
 });
 
+type Result =
+    | {
+          status: "success";
+          rendered: string;
+      }
+    | {
+          status: "error";
+          error: any;
+      };
+
 export const render = (
     input: Buffer,
     renderPage: typeof defaultRenderPage = defaultRenderPage,
-) => {
+): Result => {
     const {context, props} = JSON.parse(input.toString("utf8"));
 
     const templatePath = `${process.cwd()}/client/templates/${context.template_name}`;
@@ -129,8 +135,6 @@ export const render = (
     try {
         const helmetContext = {} as FilledContext;
         const Template = require(templatePath).default;
-        // See https://github.com/downshift-js/downshift#resetidcounter
-        resetIdCounter();
 
         const rendered = ReactDOMServer.renderToString(
             <HelmetProvider context={helmetContext}>
@@ -142,16 +146,17 @@ export const render = (
 
         const {helmet} = helmetContext;
 
-        return renderPage({
-            html: rendered,
-            helmet,
-            props,
-            context,
-        });
+        return {
+            status: "success",
+            rendered: renderPage({
+                html: rendered,
+                helmet,
+                props,
+                context,
+            }),
+        };
     } catch (error) {
-        // tslint:disable-next-line
-        console.log("Error rendering", error);
-        return "Error rendering";
+        return {status: "error", error};
     }
 };
 
@@ -159,69 +164,3 @@ interface ListenOptions {
     node: number | string;
     django: number | string;
 }
-
-export default (settings: Settings) => ({
-    listen: async (options: ListenOptions, callback?: () => void) => {
-        const renderPage = bindRenderPage(settings);
-        const proxy = httpProxy.createProxyServer();
-
-        proxy.on("proxyRes", (proxyRes, req, res) => {
-            let body = Buffer.from(""); // , 'utf8');
-
-            proxyRes.on("data", (data) => {
-                body = Buffer.concat([body, data as Buffer]);
-            });
-            proxyRes.on("end", () => {
-                const response = body; // .toString('utf8');
-
-                // console.log(req.headers);
-                // console.log('first', req.headers['x-requested-with']);
-                // console.log('second', req.headers['X-Requested-With']);
-                // console.log('third', req.headers['Accept']);
-                // console.log('fourth', req.headers['accept']);
-                const isAjax = req.headers["x-requested-with"] === "XMLHttpRequest";
-
-                if (
-                    isAjax === true ||
-                    "raw" in (req as any).query ||
-                    proxyRes.headers["content-type"] !== "application/ssr+json"
-                ) {
-                    res.writeHead(proxyRes.statusCode!, proxyRes.headers);
-                    res.end(response);
-                } else {
-                    let content;
-
-                    try {
-                        content = render(response, renderPage);
-                    } catch (error) {
-                        content = error.stack;
-                    }
-
-                    res.writeHead(proxyRes.statusCode!, {
-                        ...proxyRes.headers,
-                        "Content-Type": "text/html; charset=utf-8",
-                        "Content-Length": Buffer.byteLength(content),
-                    });
-                    res.end(content);
-                }
-            });
-        });
-
-        const target =
-            typeof options.django === "number"
-                ? `http://localhost:${options.django}`
-                : ({
-                      socketPath: options.django,
-                  } as ServerOptions["target"]);
-
-        app.use(PATHS, (req, res, next) => {
-            proxy.web(req, res, {
-                // Change origin cannot be used with sockets.
-                // changeOrigin: true,
-                selfHandleResponse: true,
-                target,
-            });
-        });
-        app.listen(options.node, callback);
-    },
-});

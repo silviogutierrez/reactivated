@@ -7,7 +7,7 @@ const ERROR_REPONSE = 500;
 import http from "http";
 
 const server = http.createServer((req, res) => {
-    let body = Buffer.from(""); // , 'utf8');
+    let body = Buffer.from("");
 
     req.on("data", (chunk) => {
         body = Buffer.concat([body, chunk as Buffer]);
@@ -16,7 +16,7 @@ const server = http.createServer((req, res) => {
         const result = render(body);
 
         if (result.status === "success") {
-            res.writeHead(OK_RESPONSE, {"Content-Type": "text/html"});
+            res.writeHead(OK_RESPONSE, {"Content-Type": "text/html; charset=utf-8"});
             res.end(result.rendered);
         } else {
             res.writeHead(ERROR_REPONSE, {"Content-Type": "application/json"});

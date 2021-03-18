@@ -1,0 +1,12 @@
+{
+    "name": "create-django-app",
+    "version": "0.0.1",
+    "main": "index.js",
+    "repository": "https://github.com/silviogutierrez/reactivated/",
+    "author": "Silvio J. Gutierrez",
+    "license": "MIT",
+    "devDependencies": {
+        "@types/node": "^14.14.35",
+        "typescript": "^4.2.3"
+    }
+}

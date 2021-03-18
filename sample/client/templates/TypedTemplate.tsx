@@ -5,9 +5,13 @@ import {Layout} from "@client/components/Layout";
 import {Types} from "@client/generated";
 
 const styles = {
-    layout: css`${{maxWidth: 600, margin: "0 auto"}}`,
+    layout: css`
+        ${{maxWidth: 600, margin: "0 auto"}}
+    `,
 
-    header: css`${{color: "blue"}}`,
+    header: css`
+        ${{color: "blue"}}
+    `,
 } as const;
 
 export default class extends React.Component<Types["TypedTemplateProps"], {}> {

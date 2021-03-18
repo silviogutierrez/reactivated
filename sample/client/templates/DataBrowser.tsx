@@ -5,7 +5,6 @@ import {Layout} from "@client/components/Layout";
 import {Types} from "@client/generated";
 import {
     CSRFToken,
-    Field,
     FieldMap,
     Fields,
     FormSetLike,
@@ -13,12 +12,16 @@ import {
 } from "reactivated/forms";
 
 const styles = {
-    layout: css`${{maxWidth: 600, margin: "0 auto"}}`,
+    layout: css`
+        ${{maxWidth: 600, margin: "0 auto"}}
+    `,
 
-    header: css`${{color: "blue"}}`,
+    header: css`
+        ${{color: "blue"}}
+    `,
 } as const;
 
-const FormSet = ({formSet}: {formSet: FormSetLike<FieldMap>}) => (
+export const FormSet = ({formSet}: {formSet: FormSetLike<FieldMap>}) => (
     <>
         <ManagementForm formSet={formSet} />
         <table>
@@ -35,6 +38,7 @@ const FormSet = ({formSet}: {formSet: FormSetLike<FieldMap>}) => (
                         <Fields form={form}>
                             {({field, error}) => (
                                 <td>
+                                    {/*
                                     <Field
                                         field={field}
                                         label={false}
@@ -43,6 +47,7 @@ const FormSet = ({formSet}: {formSet: FormSetLike<FieldMap>}) => (
                                             form.errors != null && error == null
                                         }
                                     />
+                                    */}
                                 </td>
                             )}
                         </Fields>
@@ -64,7 +69,8 @@ export default (props: Types["DataBrowserProps"]) => (
                 <div key={formSetForm.prefix}>
                     <h3>Composer: {formSetForm.fields.name.widget.value}</h3>
                     <Fields form={formSetForm}>
-                        {({field, error}) => (
+                        {({field, error}) => ({
+                            /*
                             <Field
                                 field={field}
                                 error={error}
@@ -72,13 +78,15 @@ export default (props: Types["DataBrowserProps"]) => (
                                     formSetForm.errors != null && error == null
                                 }
                             />
-                        )}
+                            */
+                        })}
                     </Fields>
                 </div>
             ))}
             <h3>Add new</h3>
             <Fields form={props.composer_form}>
-                {({field, error}) => (
+                {({field, error}) => ({
+                    /*
                     <Field
                         field={field}
                         error={error}
@@ -86,6 +94,7 @@ export default (props: Types["DataBrowserProps"]) => (
                             props.composer_form.errors != null && error == null
                         }
                     />
+                    {/*
                 )}
             </Fields>
 
@@ -95,6 +104,7 @@ export default (props: Types["DataBrowserProps"]) => (
             <h3>Add opera</h3>
             <Fields form={props.opera_form}>
                 {({field, error}) => (
+                    {/*
                     <Field
                         field={field}
                         error={error}
@@ -102,7 +112,8 @@ export default (props: Types["DataBrowserProps"]) => (
                             props.composer_form.errors != null && error == null
                         }
                     />
-                )}
+                    */
+                })}
             </Fields>
             <button type="submit">Submit</button>
         </form>

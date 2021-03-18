@@ -1,21 +1,23 @@
 let
-  stableTarball = fetchTarball
-    "https://github.com/NixOS/nixpkgs-channels/archive/0a146054bdf6f70f66de4426f84c9358521be31e.tar.gz";
-  unstableTarball = fetchTarball
-    "https://github.com/NixOS/nixpkgs-channels/archive/0a146054bdf6f70f66de4426f84c9358521be31e.tar.gz";
-  pkgs = import stableTarball { };
-  unstable = import unstableTarball { };
-in with pkgs;
+  pkgs = import (fetchTarball
+    "https://github.com/NixOS/nixpkgs/archive/1ac507ba981970c8e864624542e31eb1f4049751.tar.gz")
+    { };
 
-mkShell {
-  buildInputs = [
+  unstable = import (fetchTarball
+    "https://github.com/NixOS/nixpkgs/archive/4a2481f0c7085c5fc4eab5e0a6e09dad54d4caaa.tar.gz")
+    { };
+in with pkgs;
+let
+  dependencies =
+    [ python38 python38Packages.virtualenv python38Packages.pip nodejs-14_x ];
+  devDependencies = [
     gitAndTools.gh
     jq
 
     python38
     python38Packages.virtualenv
-    nodejs-13_x
-    (yarn.override { nodejs = nodejs-13_x; })
+    nodejs-14_x
+    (yarn.override { nodejs = nodejs-14_x; })
 
     # Otherwise AWS gets some weird conflicts with python 2.7
     (tmuxp.override { python = python38; })
@@ -33,13 +35,19 @@ mkShell {
     # Purely for formatting right now.
     terraform
   ];
+in mkShell {
+  dependencies = dependencies;
+  buildInputs = dependencies ++ devDependencies;
   src = ./scripts/helpers.sh;
   shellHook = ''
+    set -e
     # Needed to use pip wheels
     SOURCE_DATE_EPOCH=$(date +%s);
-
     source $src;
 
-    setup_environment;
+    set -a
+    setup_environment
+    set +a
+    set +e
   '';
 }

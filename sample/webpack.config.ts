@@ -1,4 +1,5 @@
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import {createConfig} from "reactivated/webpack";
 
 const config = createConfig({
@@ -14,6 +15,7 @@ const options = {mode: "developoment"};
 export default {
     ...config,
     plugins: [
+        new ForkTsCheckerWebpackPlugin(),
         new MiniCssExtractPlugin({
             filename: "[name].css",
             chunkFilename: "[id].css",

@@ -226,7 +226,7 @@ export default ({version}: {version: string}) => (
                 type="text/css"
                 href={`${context.environment.STATIC_URL}dist/main.css`}
             />
-            <script defer src={`${context.environment.STATIC_URL}dist/main.js`} />
+            <script defer src={`${context.environment.STATIC_URL}dist/bundle.js`} />
         </Helmet>
         <header>
             <a
@@ -234,6 +234,7 @@ export default ({version}: {version: string}) => (
                 href="https://www.djangoproject.com/"
                 target="_blank"
                 rel="noopener"
+                onClick={() => alert("Look how easy that was")}
             >
                 django reactivated
             </a>

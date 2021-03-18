@@ -1,5 +1,5 @@
 import React from "react";
-import {style} from "typestyle";
+import {css} from "@linaria/core";
 
 import {Layout} from "@client/components/Layout";
 import {Types} from "@client/generated";
@@ -13,9 +13,9 @@ import {
 } from "reactivated/forms";
 
 const styles = {
-    layout: style({maxWidth: 600, margin: "0 auto"}),
+    layout: css`${{maxWidth: 600, margin: "0 auto"}}`,
 
-    header: style({color: "blue"}),
+    header: css`${{color: "blue"}}`,
 } as const;
 
 const FormSet = ({formSet}: {formSet: FormSetLike<FieldMap>}) => (

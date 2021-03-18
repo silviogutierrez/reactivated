@@ -13,6 +13,10 @@ const options = {mode: "developoment"};
 
 export default {
     ...config,
+    plugins: [new MiniCssExtractPlugin({
+        filename: "[name].css",
+        chunkFilename: "[id].css",
+    })],
     module: {
         rules: [
             {

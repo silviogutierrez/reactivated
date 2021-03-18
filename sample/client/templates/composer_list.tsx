@@ -1,10 +1,10 @@
 import React from "react";
-import {style} from "typestyle";
+import {css} from "@linaria/core";
 
 const styles = {
-    layout: style({maxWidth: 600, margin: "0 auto"}),
+    layout: css`${{maxWidth: 600, margin: "0 auto"}}`,
 
-    header: style({color: "blue"}),
+    header: css`${{color: "blue"}}`,
 } as const;
 
 export default (props: any) => (

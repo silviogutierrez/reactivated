@@ -23,6 +23,7 @@ from . import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("django/", samples.django),
     path("hello-world/", views.hello_world),
     path("sample-form/", views.sample_form),
     path("schema/", schema),

@@ -2,6 +2,7 @@ from typing import Union
 
 from django.http import (
     HttpRequest,
+    HttpResponse,
     HttpResponsePermanentRedirect,
     HttpResponseRedirect,
     JsonResponse,
@@ -179,3 +180,7 @@ def form_playground(
     form = forms.PlaygroundForm(request.POST or None)
 
     return templates.FormPlayground(form=form).render(request)
+
+
+def django(request: HttpRequest,) -> HttpResponse:
+    return templates.DjangoDefault(version="foo").render(request)

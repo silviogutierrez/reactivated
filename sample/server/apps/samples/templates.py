@@ -36,3 +36,8 @@ class AjaxPlayground(NamedTuple):
 @template
 class FormPlayground(NamedTuple):
     form: forms.PlaygroundForm
+
+
+@template
+class DjangoDefault(NamedTuple):
+    version: str

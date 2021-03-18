@@ -40,14 +40,11 @@ in mkShell {
   buildInputs = dependencies ++ devDependencies;
   src = ./scripts/helpers.sh;
   shellHook = ''
-    set -e
     # Needed to use pip wheels
     SOURCE_DATE_EPOCH=$(date +%s);
+
     source $src;
 
-    set -a
-    setup_environment
-    set +a
-    set +e
+    setup_environment;
   '';
 }

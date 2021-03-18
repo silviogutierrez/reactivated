@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import fs from "fs";
 import path from "path";
 import child_process from "child_process";

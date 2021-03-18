@@ -1,13 +1,232 @@
 import React from "react";
 import {Helmet} from "react-helmet-async";
 
+import {css} from "@linaria/core";
+
+css`
+    :global() {
+        html {
+            line-height: 1.15;
+        }
+        a {
+            color: #19865c;
+        }
+        header {
+            border-bottom: 1px solid #efefef;
+        }
+        body {
+            max-width: 960px;
+            color: #525252;
+            font-family: Roboto, sans-serif;
+            margin: 0 auto;
+        }
+        main {
+            text-align: center;
+        }
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        p,
+        ul {
+            padding: 0;
+            margin: 0;
+            font-weight: 400;
+        }
+        header {
+            display: grid;
+            grid-template-columns: auto auto;
+            align-items: self-end;
+            justify-content: space-between;
+            gap: 7px;
+            padding-top: 20px;
+            padding-bottom: 10px;
+        }
+        .logo {
+            font-weight: 700;
+            font-size: 1.375rem;
+            text-decoration: none;
+        }
+        .figure {
+            margin-top: 19vh;
+            max-width: 265px;
+            position: relative;
+            z-index: -9;
+            overflow: visible;
+        }
+        .exhaust__line {
+            animation: thrust 70ms 100 ease-in-out alternate;
+        }
+        .smoke {
+            animation: smoke 0.1s 70 ease-in-out alternate;
+        }
+        @keyframes smoke {
+            0% {
+                transform: translate3d(-5px, 0, 0);
+            }
+            100% {
+                transform: translate3d(5px, 0, 0);
+            }
+        }
+        .flame {
+            animation: burnInner2 0.1s 70 ease-in-out alternate;
+        }
+        @keyframes burnInner2 {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+            100% {
+                transform: translate3d(0, 3px, 0);
+            }
+        }
+        @keyframes thrust {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.5;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .exhaust__line,
+            .smoke,
+            .flame {
+                animation: none;
+            }
+        }
+        h1 {
+            font-size: 1.375rem;
+            max-width: 32rem;
+            margin: 5px auto 0;
+        }
+        main p {
+            line-height: 1.25;
+            max-width: 26rem;
+            margin: 15px auto 0;
+        }
+        footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 5px;
+            padding: 25px 0;
+            position: fixed;
+            box-sizing: border-box;
+            left: 50%;
+            bottom: 0;
+            width: 960px;
+            transform: translateX(-50%);
+            transform-style: preserve-3d;
+            border-top: 1px solid #efefef;
+        }
+        .option {
+            display: grid;
+            grid-template-columns: min-content 1fr;
+            gap: 10px;
+            box-sizing: border-box;
+            text-decoration: none;
+        }
+        .option svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            fill: gray;
+            border: 1px solid #d6d6d6;
+            padding: 5px;
+            border-radius: 100%;
+        }
+        .option p {
+            font-weight: 300;
+            line-height: 1.25;
+            color: #525252;
+            display: table;
+        }
+        .option .option__heading {
+            color: #19865c;
+            font-size: 1.25rem;
+            font-weight: 400;
+        }
+        @media (max-width: 996px) {
+            body,
+            footer {
+                max-width: 780px;
+            }
+        }
+        @media (max-width: 800px) {
+            footer {
+                height: 100%;
+                grid-template-columns: 1fr;
+                gap: 60px;
+                position: relative;
+                padding: 25px;
+            }
+            .figure {
+                margin-top: 10px;
+            }
+            main {
+                padding: 0 25px;
+            }
+            main h1 {
+                font-size: 1.25rem;
+            }
+            header {
+                grid-template-columns: 1fr;
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            footer {
+                width: 100%;
+                margin-top: 50px;
+            }
+        }
+        @media (min-width: 801px) and (max-height: 730px) {
+            .figure {
+                margin-top: 80px;
+            }
+        }
+        @media (min-width: 801px) and (max-height: 600px) {
+            footer {
+                position: relative;
+                margin: 135px auto 0;
+            }
+            .figure {
+                margin-top: 50px;
+            }
+        }
+        .sr-only {
+            clip: rect(1px, 1px, 1px, 1px);
+            clip-path: inset(50%);
+            height: 1px;
+            overflow: hidden;
+            position: absolute;
+            white-space: nowrap;
+            width: 1px;
+        }
+    }
+`;
+
+const context = {
+    environment: {
+        STATIC_URL: "/static/",
+    },
+};
+
 export default ({version}: {version: string}) => (
     <>
         <Helmet>
             <meta charSet="utf-8" />
             <title>The install worked successfully! Congratulations!</title>
             <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <link rel="stylesheet" type="text/css" href="/static/admin/css/fonts.css" />
+            <link
+                rel="stylesheet"
+                type="text/css"
+                href={`${context.environment.STATIC_URL}admin/css/fonts.css`}
+            />
+            <link
+                rel="stylesheet"
+                type="text/css"
+                href={`${context.environment.STATIC_URL}dist/main.css`}
+            />
+            <script defer src={`${context.environment.STATIC_URL}dist/main.js`} />
         </Helmet>
         <header>
             <a
@@ -16,18 +235,18 @@ export default ({version}: {version: string}) => (
                 target="_blank"
                 rel="noopener"
             >
-                django
+                django reactivated
             </a>
             <p>
                 View{" "}
                 <a
-                    href="{`https://docs.djangoproject.com/en/${version}/releases/`}"
+                    href={`https://docs.djangoproject.com/en/${version}/releases/`}
                     target="_blank"
                     rel="noopener"
                 >
                     release notes
                 </a>{" "}
-                for Django {"{"}version{"}"}
+                for Django {version}
             </p>
         </header>
         <main>
@@ -75,7 +294,7 @@ export default ({version}: {version: string}) => (
             <p>
                 You are seeing this page because{" "}
                 <a
-                    href="{`https://docs.djangoproject.com/en/${version}/ref/settings/#debug`}"
+                    href={`https://docs.djangoproject.com/en/${version}/ref/settings/#debug`}
                     target="_blank"
                     rel="noopener"
                 >
@@ -87,7 +306,7 @@ export default ({version}: {version: string}) => (
         <footer>
             <a
                 className="option"
-                href="https://docs.djangoproject.com/en/{{ version }}/"
+                href={`https://docs.djangoproject.com/en/${version}/`}
                 target="_blank"
                 rel="noopener"
             >
@@ -103,7 +322,7 @@ export default ({version}: {version: string}) => (
             </a>
             <a
                 className="option"
-                href="{`https://docs.djangoproject.com/en/${version}/intro/tutorial01/`}"
+                href={`https://docs.djangoproject.com/en/${version}/intro/tutorial01/`}
                 target="_blank"
                 rel="noopener"
             >

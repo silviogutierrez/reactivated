@@ -9,6 +9,7 @@ from django.http import (
 )
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
+from django.utils.version import get_docs_version
 from django.views.decorators.csrf import csrf_exempt
 
 from reactivated.forms import autocomplete
@@ -183,4 +184,4 @@ def form_playground(
 
 
 def django(request: HttpRequest,) -> HttpResponse:
-    return templates.DjangoDefault(version="foo").render(request)
+    return templates.DjangoDefault(version=get_docs_version()).render(request)

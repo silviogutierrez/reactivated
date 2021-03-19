@@ -1,0 +1,17 @@
+{
+    "name": "Reactivated Sample",
+    "description": "",
+    "website": "https://www..com/",
+    "repository": "https://github.com/silviogutierrez/reactivated",
+    "keywords": ["django"],
+    "success_url": "/django/",
+    "env": {},
+    "formation": {
+        "web": {
+            "quantity": 1,
+            "size": "FREE"
+        }
+    },
+    "stack": "container",
+    "addons": ["heroku-redis", "heroku-postgresql"]
+}

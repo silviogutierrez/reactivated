@@ -48,4 +48,4 @@ COPY --from=assets /app/dist/*.css assets/dist/
 
 RUN ln -s $(dirname `readlink /usr/local/bin/python`)/gunicorn /usr/local/bin/gunicorn;
 
-CMD gunicorn server.wsgi --forwarded-allow-ips="*" --bind 0.0.0.0:8000 --workers 1 --preload
+CMD gunicorn server.wsgi --forwarded-allow-ips="*" --bind 0.0.0.0:$PORT --workers 1 --preload

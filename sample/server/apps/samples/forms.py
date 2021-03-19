@@ -1,7 +1,7 @@
 from django import forms
 
 from reactivated.forms import Autocomplete
-from sample.server.apps.samples import models
+from server.apps.samples import models
 
 
 class PlaygroundForm(forms.Form):

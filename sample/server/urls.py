@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path
 
 from reactivated.views import schema
-from sample.server.apps.samples import views as samples
+from server.apps.samples import views as samples
 
 from . import views
 

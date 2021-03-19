@@ -27,6 +27,8 @@ let
     shfmt
     nixfmt
 
+    heroku
+
     postgresql
 
     # For psycopg2 to build

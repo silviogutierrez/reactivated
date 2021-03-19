@@ -295,6 +295,7 @@ def field_descriptor_schema(
         models.TextField: lambda field: str,
         models.ForeignKey: lambda field: ForeignKeyType,
         models.AutoField: lambda field: int,
+        models.BigAutoField: lambda field: int,
         models.DateField: lambda field: datetime.date,
         models.DateTimeField: lambda field: datetime.datetime,
         models.EmailField: lambda field: str,

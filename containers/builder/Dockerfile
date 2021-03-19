@@ -15,6 +15,7 @@ COPY requirements.txt .
 COPY setup.py .
 COPY README.md .
 COPY packages packages
+COPY reactivated reactivated
 
 RUN pip install setuptools && pip install -r requirements.txt
 

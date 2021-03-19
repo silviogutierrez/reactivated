@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 import reactivated.constraints
 import reactivated.fields
-import sample.server.apps.samples.models
+import server.apps.samples.models
 
 
 class Migration(migrations.Migration):
@@ -61,10 +61,10 @@ class Migration(migrations.Migration):
                 (
                     "hemisphere",
                     reactivated.fields.EnumField(
-                        default=sample.server.apps.samples.models.Continent.Hemisphere[
+                        default=server.apps.samples.models.Continent.Hemisphere[
                             "SOUTHERN"
                         ],
-                        enum=sample.server.apps.samples.models.Continent.Hemisphere,
+                        enum=server.apps.samples.models.Continent.Hemisphere,
                     ),
                 ),
             ],
@@ -85,8 +85,8 @@ class Migration(migrations.Migration):
                 (
                     "style",
                     reactivated.fields.EnumField(
-                        default=sample.server.apps.samples.models.Opera.Style["GRAND"],
-                        enum=sample.server.apps.samples.models.Opera.Style,
+                        default=server.apps.samples.models.Opera.Style["GRAND"],
+                        enum=server.apps.samples.models.Opera.Style,
                     ),
                 ),
                 ("has_piano_transcription", models.BooleanField(default=False)),

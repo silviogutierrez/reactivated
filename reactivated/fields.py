@@ -136,6 +136,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     ):
         self.enum = enum
         self.choices = EnumChoiceIterator(enum=enum)
+        self.db_collation = None
 
         # We skip the constructor for CharField because we do *not* want
         # MaxLengthValidator added, as our enum members do not support __len__.

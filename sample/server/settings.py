@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+from django.utils.log import DEFAULT_LOGGING
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -23,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = "clearly fake"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -33,7 +35,7 @@ ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS = [
     "reactivated",
     "django_extensions",
-    "sample.server.apps.samples",
+    "server.apps.samples",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -88,7 +91,7 @@ WSGI_APPLICATION = "server.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ["DATABASE_NAME"],
+        "NAME": os.environ.get("DATABASE_NAME", None),
         "USER": os.environ.get("DATABASE_USER", None),
         "PASSWORD": os.environ.get("DATABASE_PASSWORD", None),
         "HOST": os.environ.get("DATABASE_HOST", None),
@@ -136,3 +139,10 @@ DEBUG_PORT = int(os.environ.get("DEBUG_PORT", 8000))
 RUNSERVERPLUS_SERVER_ADDRESS_PORT = f"0.0.0.0:{DEBUG_PORT}"
 
 REACTIVATED_SERVER = f"http://0.0.0.0:{DEBUG_PORT + 200}"
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+STATIC_ROOT = os.path.join(BASE_DIR, "assets")
+
+
+DEFAULT_LOGGING["handlers"]["console"]["filters"] = []

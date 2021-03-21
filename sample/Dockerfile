@@ -69,4 +69,4 @@ COPY --from=client /app/dist/*.css assets/dist/
 # Not needed, use -m because the python bin folder does not come over from our /nix/python copy.
 # RUN ln -s $(dirname `readlink /usr/local/bin/python`)/gunicorn /usr/local/bin/gunicorn;
 
-CMD python -m gunicorn.app.wsgiapp --forwarded-allow-ips="*" --bind 0.0.0.0:$PORT --workers 1 --preload
+CMD python -m gunicorn.app.wsgiapp server.wsgi --forwarded-allow-ips="*" --bind 0.0.0.0:$PORT --workers 1 --preload

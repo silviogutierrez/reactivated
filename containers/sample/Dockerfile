@@ -4,6 +4,9 @@ COPY package.json .
 RUN NODE_ENV=development yarn --pure-lockfile
 RUN NODE_ENV=production yarn --pure-lockfile --modules-folder /production_node_modules
 
+COPY requirements.txt requirements.txt
+RUN pip install setuptools && pip install -r requirements.txt
+
 COPY .babelrc.json .
 COPY webpack.config.tsx .
 COPY manage.py .

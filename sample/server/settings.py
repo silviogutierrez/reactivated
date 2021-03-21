@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+import dj_database_url
 from django.utils.log import DEFAULT_LOGGING
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -146,3 +147,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, "assets")
 
 
 DEFAULT_LOGGING["handlers"]["console"]["filters"] = []
+
+DATABASES["default"].update(
+    dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"), conn_max_age=500, ssl_require=True
+    )
+)

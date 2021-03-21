@@ -22,5 +22,5 @@ simplejson==3.16.0
 twine==2.0.0
 
 # Install reactivated package locally
-reactivated==0.20.1a258
+reactivated==0.20.1a262
 whitenoise==5.2.0

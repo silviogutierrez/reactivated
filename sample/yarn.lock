@@ -5103,10 +5103,10 @@ react@^16.12.0, react@^16.4.1:
     object-assign "^4.1.1"
     prop-types "^15.6.2"
 
-reactivated@0.20.1-a258:
-  version "0.20.1-a258"
-  resolved "https://registry.yarnpkg.com/reactivated/-/reactivated-0.20.1-a258.tgz#70a0492fb61f208f03012860391e46b8732fdde7"
-  integrity sha512-WegBgMzDeM2e1/YoI8Oj0qrVIw79Tmh59zg2w0eEQO4ueUxgSt66sR81BpBbh9zcoMbrG8ltbCnFS0H3Ez6SwA==
+reactivated@0.20.1-a262:
+  version "0.20.1-a262"
+  resolved "https://registry.yarnpkg.com/reactivated/-/reactivated-0.20.1-a262.tgz#8ffddb10c64d0f0a6936eaaa466db539ffabc1b5"
+  integrity sha512-thoBB6h1zV0RfEkR2tI3Uw2sPtmGAJM4eYCLeScDzka7IjUYTdDsb8TcTpFhlG6b+QAC//R+u4jORZES0w4VSg==
   dependencies:
     json-schema-to-typescript "^5.5.0"
     module-alias "^2.2.1"

@@ -1,11 +1,11 @@
 setup:
-  addons:
-    - plan: heroku-postgresql
-    - plan: heroku-redis
+    addons:
+        - plan: heroku-postgresql
+        - plan: heroku-redis
 build:
-  docker:
-    web: sample/Dockerfile
-    # release:
-    #   image: web
-    #   command:
-    #     - python manage.py migrate
+    docker:
+        web: sample/Dockerfile
+release:
+    image: web
+    command:
+        - python manage.py migrate

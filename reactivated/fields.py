@@ -188,7 +188,10 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         )
 
     def db_type(self, connection: Any) -> str:
-        if connection.settings_dict["ENGINE"] != "django.db.backends.postgresql":
+        if connection.settings_dict["ENGINE"] not in [
+            "django.db.backends.postgresql",
+            "django.db.backends.postgresql_psycopg2",
+        ]:
             raise DatabaseError("EnumField is only supported on PostgreSQL")
         return super().db_type(connection)
 

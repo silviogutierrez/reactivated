@@ -155,6 +155,29 @@ def test_form():
     convert_to_json_and_validate(serialized_form, generated_schema)
 
 
+def test_widget_inheritance():
+    class WidgetMixin:
+        pass
+
+    class ChildWidget(WidgetMixin, django_forms.TextInput):
+        pass
+
+    class FormWithChildWidget(django_forms.Form):
+        my_field = django_forms.CharField(widget=ChildWidget)
+
+    # No error, depth-1 inheritance.
+    create_schema(FormWithChildWidget, {})
+
+    class GrandchildWidget(ChildWidget):
+        pass
+
+    class FormWithGrandchildWidget(django_forms.Form):
+        my_field = django_forms.CharField(widget=GrandchildWidget)
+
+    with pytest.raises(AssertionError, match="depth-1"):
+        create_schema(FormWithGrandchildWidget, {})
+
+
 def test_custom_widget():
     class CustomWidget(django_forms.Select):
         reactivated_widget = "foo"

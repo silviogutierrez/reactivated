@@ -62,8 +62,12 @@ class Composer(models.Model):
     def operas_with_piano_transcriptions(self) -> "models.QuerySet[Opera]":
         return self.operas.all()
 
-    @computed_foreign_key(model=lambda: Opera)
+    @computed_foreign_key(model=lambda: Opera, null=False)
     def main_opera(self) -> Optional["Opera"]:
+        return self.operas.all().first()
+
+    @computed_foreign_key(model=lambda: Opera, null=True)
+    def favorite_opera(self) -> Optional["Opera"]:
         return self.operas.all().first()
 
     @property

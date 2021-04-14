@@ -10,6 +10,7 @@ from django.core.management import call_command
 from django.db import models as django_models
 
 from reactivated.fields import EnumField
+from reactivated.models import ComputedRelation
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import ComputedField, create_schema
 from sample.server.apps.samples import forms, models
@@ -390,6 +391,17 @@ def test_get_field_descriptor():
     assert isinstance(descriptor, ComputedField)
     assert descriptor.name == "get_birthplace_of_composer"
     assert descriptor.annotation == Union[str, None]
+
+    descriptor, path = get_field_descriptor(
+        models.Opera, ["composer", "favorite_opera"]
+    )
+    assert isinstance(descriptor, ComputedRelation)
+
+    descriptor, path = get_field_descriptor(
+        models.Opera, ["composer", "favorite_opera", "composer"]
+    )
+    assert isinstance(descriptor, django_models.ForeignKey)
+    assert path == (("composer", False, False), ("favorite_opera", False, True))
 
 
 def test_build_nested_schema():

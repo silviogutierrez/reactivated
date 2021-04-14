@@ -63,8 +63,10 @@ class Composer(models.Model):
         return self.operas.all()
 
     @computed_foreign_key(model=lambda: Opera, null=False)
-    def main_opera(self) -> Optional["Opera"]:
-        return self.operas.all().first()
+    def main_opera(self) -> "Opera":
+        main = self.operas.all().first()
+        assert main is not None
+        return main
 
     @computed_foreign_key(model=lambda: Opera, null=True)
     def favorite_opera(self) -> Optional["Opera"]:

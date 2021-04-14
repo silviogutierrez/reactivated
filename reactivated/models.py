@@ -1,11 +1,12 @@
 from typing import Any  # noqa
-from typing import Callable, Generic, Optional, Type, TypeVar, Union, overload
+from typing import Callable, Generic, Literal, Optional, Type, TypeVar, Union, overload
 
 from django.db import models
 
 T = TypeVar("T")
 S = TypeVar("S", bound=models.Model)
-SInstance = TypeVar("SInstance", bound=Union[models.Model, None])
+SInstance = TypeVar("SInstance", bound=models.Model)
+SOptionalInstance = TypeVar("SOptionalInstance", bound=Union[models.Model, None])
 SQuerySet = TypeVar("SQuerySet", bound="models.QuerySet[Any]")
 Z = TypeVar("Z", bound=Union["models.QuerySet[Any]", models.Model, None])
 
@@ -60,13 +61,42 @@ def computed_relation(
     return inner
 
 
+@overload
+def computed_foreign_key(
+    *,
+    label: Optional[str] = None,
+    model: Union[Callable[[], Type[S]], Type[S]],
+    null: Literal[True],
+) -> Callable[
+    [Callable[[T], SOptionalInstance]], ComputedRelation[T, S, SOptionalInstance]
+]:
+    ...
+
+
+@overload
+def computed_foreign_key(
+    *,
+    label: Optional[str] = None,
+    model: Union[Callable[[], Type[S]], Type[S]],
+    null: Literal[False],
+) -> Callable[[Callable[[T], SInstance]], ComputedRelation[T, S, SInstance]]:
+    ...
+
+
 def computed_foreign_key(
     *,
     label: Optional[str] = None,
     model: Union[Callable[[], Type[S]], Type[S]],
     null: bool = False,
-) -> Callable[[Callable[[T], SInstance]], ComputedRelation[T, S, SInstance]]:
-    def inner(fget: Callable[[T], SInstance]) -> ComputedRelation[T, S, SInstance]:
+) -> Union[
+    Callable[[Callable[[T], SInstance]], ComputedRelation[T, S, SInstance]],
+    Callable[
+        [Callable[[T], SOptionalInstance]], ComputedRelation[T, S, SOptionalInstance]
+    ],
+]:
+    def inner(
+        fget: Callable[[T], SOptionalInstance]
+    ) -> ComputedRelation[T, S, SOptionalInstance]:
         return ComputedRelation(
             fget=fget, label=label, model=model, many=False, null=null
         )

@@ -359,19 +359,19 @@ def test_get_field_descriptor():
 
     descriptor, path = get_field_descriptor(models.Opera, ["composer", "name"])
     assert isinstance(descriptor, django_models.CharField)
-    assert path == (("composer", False),)
+    assert path == (("composer", False, False),)
 
     descriptor, path = get_field_descriptor(
         models.Opera, ["composer", "countries", "name"]
     )
     assert isinstance(descriptor, django_models.CharField)
-    assert path == (("composer", False), ("countries", True))
+    assert path == (("composer", False, False), ("countries", True, False))
 
     descriptor, path = get_field_descriptor(
         models.Opera, ["composer", "composer_countries", "was_born"]
     )
     assert isinstance(descriptor, django_models.BooleanField)
-    assert path == (("composer", False), ("composer_countries", True))
+    assert path == (("composer", False, False), ("composer_countries", True, False))
 
     descriptor, path = get_field_descriptor(models.Composer, ["countries"])
     assert isinstance(descriptor, django_models.ManyToManyField)
@@ -403,14 +403,17 @@ def test_build_nested_schema():
         "required": [],
     }
 
-    build_nested_schema(schema, (("a", False), ("b", False)))
+    build_nested_schema(schema, (("a", False, False), ("b", False, False)))
     assert schema["properties"]["a"]["properties"]["b"]["type"] == "object"
 
-    build_nested_schema(schema, (("a", False), ("c", False)))
+    build_nested_schema(schema, (("a", False, False), ("c", False, False)))
     assert schema["properties"]["a"]["properties"]["b"]["type"] == "object"
     assert schema["properties"]["a"]["properties"]["c"]["type"] == "object"
 
-    build_nested_schema(schema, (("a", False), ("multiple", True), ("single", False)))
+    build_nested_schema(
+        schema,
+        (("a", False, False), ("multiple", True, False), ("single", False, False)),
+    )
     assert schema["properties"]["a"]["properties"]["multiple"]["type"] == "array"
     assert (
         schema["properties"]["a"]["properties"]["multiple"]["items"]["properties"][
@@ -420,7 +423,12 @@ def test_build_nested_schema():
     )
 
     build_nested_schema(
-        schema, (("a", False), ("multiple", True), ("second_single", False))
+        schema,
+        (
+            ("a", False, False),
+            ("multiple", True, False),
+            ("second_single", False, False),
+        ),
     )
     assert schema["properties"]["a"]["properties"]["multiple"]["type"] == "array"
     assert (

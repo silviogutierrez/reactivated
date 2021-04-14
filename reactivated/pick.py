@@ -14,7 +14,7 @@ from .serialization import (
     create_schema,
 )
 
-FieldSegment = Tuple[str, bool]
+FieldSegment = Tuple[str, bool, bool]
 
 JSONSchema = Any
 
@@ -78,7 +78,17 @@ def get_field_descriptor(
             )
         ) or field_descriptor.many_to_many is True
 
-        return nested_descriptor, ((field_name, is_multiple), *nested_field_names)
+        # Note: OneToOneRel, like EmailUser.profile could technically be null, but that usually throws an attribute error or is unlikely.
+        # So we don't count it as null.
+        is_null = (
+            isinstance(field_descriptor, (models.ForeignKey, ComputedRelation))
+            and field_descriptor.null is True
+        )
+
+        return (
+            nested_descriptor,
+            ((field_name, is_multiple, is_null), *nested_field_names),
+        )
 
     assert False, "Unknown descriptor"
 
@@ -103,7 +113,9 @@ def serialize(instance: models.Model, schema: JSONSchema) -> Any:
 
 
 def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSONSchema:
-    for item, is_multiple in path:
+    needs_null = []
+
+    for item, is_multiple, is_null in path:
         existing_subschema = schema["properties"].get(item)
 
         if is_multiple:
@@ -129,7 +141,18 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
                     "required": [],
                 }
                 schema["required"].append(item)
+
+                if is_null is True:
+                    needs_null.append((item, schema["properties"][item]))
             schema = schema["properties"][item]
+
+    # Should have used recursion. Instead we used dictionary references so we
+    # null items this way.
+    for item, marked_for_null in needs_null:
+        contents = {**marked_for_null}
+        marked_for_null.clear()
+        marked_for_null.update({"anyOf": [contents, {"type": "null"},]})
+
     return schema
 
 
@@ -154,6 +177,11 @@ class BasePickHolder:
 
             field_schema = create_schema(field_descriptor, definitions)
             definitions = {**definitions, **field_schema.definitions}
+
+            # Should have used recursion. But instead we have top level null
+            # handling here as well.
+            if list(reference.keys()) == ["anyOf"]:
+                reference = reference["anyOf"][0]
 
             reference["properties"][field_descriptor.name] = field_schema.schema
             reference["required"].append(field_descriptor.name)

@@ -146,6 +146,8 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
                     needs_null.append((item, schema["properties"][item]))
             schema = schema["properties"][item]
 
+    # Should have used recursion. Instead we used dictionary references so we
+    # null items this way.
     for item, marked_for_null in needs_null:
         contents = {**marked_for_null}
         marked_for_null.clear()
@@ -176,6 +178,8 @@ class BasePickHolder:
             field_schema = create_schema(field_descriptor, definitions)
             definitions = {**definitions, **field_schema.definitions}
 
+            # Should have used recursion. But instead we have top level null
+            # handling here as well.
             if list(reference.keys()) == ["anyOf"]:
                 reference = reference["anyOf"][0]
 

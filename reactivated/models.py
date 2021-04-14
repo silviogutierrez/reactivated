@@ -5,6 +5,8 @@ from django.db import models
 
 T = TypeVar("T")
 S = TypeVar("S", bound=models.Model)
+SInstance = TypeVar("SInstance", bound=Union[models.Model, None])
+SQuerySet = TypeVar("SQuerySet", bound="models.QuerySet[Any]")
 Z = TypeVar("Z", bound=Union["models.QuerySet[Any]", models.Model, None])
 
 
@@ -15,12 +17,13 @@ class ComputedRelation(Generic[T, S, Z]):
         label: Optional[str] = None,
         fget: Callable[[T], Z],
         model: Union[Callable[[], Type[S]], Type[S]],
+        many: bool,
     ) -> None:
         self.name = fget.__name__
 
         self._model = model  # model if isinstance(model, type) else model()
         self.fget: Callable[[T], Z] = fget
-        self.many_to_many = True
+        self.many_to_many = many
         self.label = label
 
     @property
@@ -46,8 +49,17 @@ class ComputedRelation(Generic[T, S, Z]):
 
 def computed_relation(
     *, label: Optional[str] = None, model: Union[Callable[[], Type[S]], Type[S]],
-) -> Callable[[Callable[[T], Z]], ComputedRelation[T, S, Z]]:
-    def inner(fget: Callable[[T], Z]) -> ComputedRelation[T, S, Z]:
-        return ComputedRelation(fget=fget, label=label, model=model)
+) -> Callable[[Callable[[T], SQuerySet]], ComputedRelation[T, S, SQuerySet]]:
+    def inner(fget: Callable[[T], SQuerySet]) -> ComputedRelation[T, S, SQuerySet]:
+        return ComputedRelation(fget=fget, label=label, model=model, many=True)
+
+    return inner
+
+
+def computed_foreign_key(
+    *, label: Optional[str] = None, model: Union[Callable[[], Type[S]], Type[S]],
+) -> Callable[[Callable[[T], SInstance]], ComputedRelation[T, S, SInstance]]:
+    def inner(fget: Callable[[T], SInstance]) -> ComputedRelation[T, S, SInstance]:
+        return ComputedRelation(fget=fget, label=label, model=model, many=False)
 
     return inner

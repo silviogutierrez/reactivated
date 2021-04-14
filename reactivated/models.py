@@ -18,6 +18,7 @@ class ComputedRelation(Generic[T, S, Z]):
         fget: Callable[[T], Z],
         model: Union[Callable[[], Type[S]], Type[S]],
         many: bool,
+        null: bool,
     ) -> None:
         self.name = fget.__name__
 
@@ -25,6 +26,7 @@ class ComputedRelation(Generic[T, S, Z]):
         self.fget: Callable[[T], Z] = fget
         self.many_to_many = many
         self.label = label
+        self.null = null
 
     @property
     def related_model(self) -> Type[S]:
@@ -51,15 +53,22 @@ def computed_relation(
     *, label: Optional[str] = None, model: Union[Callable[[], Type[S]], Type[S]],
 ) -> Callable[[Callable[[T], SQuerySet]], ComputedRelation[T, S, SQuerySet]]:
     def inner(fget: Callable[[T], SQuerySet]) -> ComputedRelation[T, S, SQuerySet]:
-        return ComputedRelation(fget=fget, label=label, model=model, many=True)
+        return ComputedRelation(
+            fget=fget, label=label, model=model, many=True, null=False
+        )
 
     return inner
 
 
 def computed_foreign_key(
-    *, label: Optional[str] = None, model: Union[Callable[[], Type[S]], Type[S]],
+    *,
+    label: Optional[str] = None,
+    model: Union[Callable[[], Type[S]], Type[S]],
+    null: bool = False,
 ) -> Callable[[Callable[[T], SInstance]], ComputedRelation[T, S, SInstance]]:
     def inner(fget: Callable[[T], SInstance]) -> ComputedRelation[T, S, SInstance]:
-        return ComputedRelation(fget=fget, label=label, model=model, many=False)
+        return ComputedRelation(
+            fget=fget, label=label, model=model, many=False, null=null
+        )
 
     return inner

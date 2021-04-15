@@ -350,36 +350,42 @@ def test_enum_field_descriptor():
 
 
 def test_get_field_descriptor():
+    descriptor, path = get_field_descriptor(models.Opera, ["pk"])
+    assert isinstance(descriptor.descriptor, django_models.AutoField)
+    assert descriptor.descriptor.name == "id"
+    assert descriptor.target_name == "pk"
+    assert path == ()
+
     descriptor, path = get_field_descriptor(models.Opera, ["has_piano_transcription"])
-    assert isinstance(descriptor, django_models.BooleanField)
+    assert isinstance(descriptor.descriptor, django_models.BooleanField)
     assert path == ()
 
     descriptor, path = get_field_descriptor(models.Opera, ["composer"])
-    assert isinstance(descriptor, django_models.ForeignKey)
+    assert isinstance(descriptor.descriptor, django_models.ForeignKey)
     assert path == ()
 
     descriptor, path = get_field_descriptor(models.Opera, ["composer", "name"])
-    assert isinstance(descriptor, django_models.CharField)
+    assert isinstance(descriptor.descriptor, django_models.CharField)
     assert path == (("composer", False, False),)
 
     descriptor, path = get_field_descriptor(
         models.Opera, ["composer", "countries", "name"]
     )
-    assert isinstance(descriptor, django_models.CharField)
+    assert isinstance(descriptor.descriptor, django_models.CharField)
     assert path == (("composer", False, False), ("countries", True, False))
 
     descriptor, path = get_field_descriptor(
         models.Opera, ["composer", "composer_countries", "was_born"]
     )
-    assert isinstance(descriptor, django_models.BooleanField)
+    assert isinstance(descriptor.descriptor, django_models.BooleanField)
     assert path == (("composer", False, False), ("composer_countries", True, False))
 
     descriptor, path = get_field_descriptor(models.Composer, ["countries"])
-    assert isinstance(descriptor, django_models.ManyToManyField)
+    assert isinstance(descriptor.descriptor, django_models.ManyToManyField)
     assert path == ()
 
     descriptor, path = get_field_descriptor(models.Opera, ["has_piano_transcription"])
-    assert isinstance(descriptor, django_models.BooleanField)
+    assert isinstance(descriptor.descriptor, django_models.BooleanField)
     assert path == ()
 
     with pytest.raises(FieldDoesNotExist):
@@ -388,19 +394,19 @@ def test_get_field_descriptor():
     descriptor, path = get_field_descriptor(
         models.Opera, ["get_birthplace_of_composer"]
     )
-    assert isinstance(descriptor, ComputedField)
-    assert descriptor.name == "get_birthplace_of_composer"
-    assert descriptor.annotation == Union[str, None]
+    assert isinstance(descriptor.descriptor, ComputedField)
+    assert descriptor.descriptor.name == "get_birthplace_of_composer"
+    assert descriptor.descriptor.annotation == Union[str, None]
 
     descriptor, path = get_field_descriptor(
         models.Opera, ["composer", "favorite_opera"]
     )
-    assert isinstance(descriptor, ComputedRelation)
+    assert isinstance(descriptor.descriptor, ComputedRelation)
 
     descriptor, path = get_field_descriptor(
         models.Opera, ["composer", "favorite_opera", "composer"]
     )
-    assert isinstance(descriptor, django_models.ForeignKey)
+    assert isinstance(descriptor.descriptor, django_models.ForeignKey)
     assert path == (("composer", False, False), ("favorite_opera", False, True))
 
 

@@ -1,6 +1,16 @@
 from __future__ import annotations
 
-from typing import Any, List, Literal, Sequence, Tuple, Type, get_type_hints
+from typing import (
+    Any,
+    List,
+    Literal,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    get_type_hints,
+)
 
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
@@ -19,18 +29,31 @@ FieldSegment = Tuple[str, bool, bool]
 JSONSchema = Any
 
 
+class FieldDescriptorWrapper(NamedTuple):
+    descriptor: FieldDescriptor
+    target_name: Optional[str] = None
+
+
 def get_field_descriptor(
     model_class: Type[models.Model], field_chain: List[str]
-) -> Tuple[FieldDescriptor, Sequence[FieldSegment]]:
+) -> Tuple[FieldDescriptorWrapper, Sequence[FieldSegment]]:
     field_name, *remaining = field_chain
 
     try:
-        field_descriptor: FieldDescriptor = model_class._meta.get_field(field_name)
+        field_descriptor = (
+            FieldDescriptorWrapper(descriptor=model_class._meta.pk, target_name="pk")  # type: ignore[arg-type]
+            if field_name == "pk"
+            else FieldDescriptorWrapper(
+                descriptor=model_class._meta.get_field(field_name)
+            )
+        )
     except FieldDoesNotExist as e:
         possible_method_or_property = getattr(model_class, field_name, None)
 
         if isinstance(possible_method_or_property, ComputedRelation):
-            field_descriptor = possible_method_or_property
+            field_descriptor = FieldDescriptorWrapper(
+                descriptor=possible_method_or_property
+            )
         elif possible_method_or_property is not None:
             # TODO: stronger checks here. This could just be a random method with
             # more than the `self` argument. Which would fail at runtime.
@@ -41,10 +64,12 @@ def get_field_descriptor(
             )
             annotations = get_type_hints(possible_method)
 
-            field_descriptor = ComputedField(
-                name=field_name,
-                annotation=annotations["return"],
-                is_callable=is_callable,
+            field_descriptor = FieldDescriptorWrapper(
+                descriptor=ComputedField(
+                    name=field_name,
+                    annotation=annotations["return"],
+                    is_callable=is_callable,
+                )
             )
         else:
             raise e
@@ -52,7 +77,7 @@ def get_field_descriptor(
     if len(remaining) == 0:
         return field_descriptor, ()
     elif isinstance(
-        field_descriptor,
+        field_descriptor.descriptor,
         (
             models.ForeignKey,
             models.OneToOneField,
@@ -65,24 +90,27 @@ def get_field_descriptor(
         ),
     ):
         nested_descriptor, nested_field_names = get_field_descriptor(
-            field_descriptor.related_model, remaining
+            field_descriptor.descriptor.related_model, remaining
         )
 
         # TODO: Maybe RelatedField replaces all of the above?
         # Consolidate around many_* properties
         # OneToOneRel is a subclass of ManyToOneRel so we need to short circuit.
         is_multiple = (
-            not isinstance(field_descriptor, models.OneToOneRel)
+            not isinstance(field_descriptor.descriptor, models.OneToOneRel)
             and isinstance(
-                field_descriptor, (models.ManyToManyField, models.ManyToOneRel)
+                field_descriptor.descriptor,
+                (models.ManyToManyField, models.ManyToOneRel),
             )
-        ) or field_descriptor.many_to_many is True
+        ) or field_descriptor.descriptor.many_to_many is True
 
         # Note: OneToOneRel, like EmailUser.profile could technically be null, but that usually throws an attribute error or is unlikely.
         # So we don't count it as null.
         is_null = (
-            isinstance(field_descriptor, (models.ForeignKey, ComputedRelation))
-            and field_descriptor.null is True
+            isinstance(
+                field_descriptor.descriptor, (models.ForeignKey, ComputedRelation)
+            )
+            and field_descriptor.descriptor.null is True
         )
 
         return (
@@ -175,7 +203,7 @@ class BasePickHolder:
             )
             reference = build_nested_schema(schema, path)
 
-            field_schema = create_schema(field_descriptor, definitions)
+            field_schema = create_schema(field_descriptor.descriptor, definitions)
             definitions = {**definitions, **field_schema.definitions}
 
             # Should have used recursion. But instead we have top level null
@@ -183,8 +211,11 @@ class BasePickHolder:
             if list(reference.keys()) == ["anyOf"]:
                 reference = reference["anyOf"][0]
 
-            reference["properties"][field_descriptor.name] = field_schema.schema
-            reference["required"].append(field_descriptor.name)
+            target_name = (
+                field_descriptor.target_name or field_descriptor.descriptor.name
+            )
+            reference["properties"][target_name] = field_schema.schema
+            reference["required"].append(target_name)
 
         return Thing(schema=schema, definitions=definitions)
 

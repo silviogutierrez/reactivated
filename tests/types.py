@@ -10,6 +10,7 @@ from django.core.management import call_command
 from django.db import models as django_models
 
 from reactivated.fields import EnumField
+from reactivated.models import ComputedRelation
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import ComputedField, create_schema
 from sample.server.apps.samples import forms, models
@@ -349,36 +350,42 @@ def test_enum_field_descriptor():
 
 
 def test_get_field_descriptor():
+    descriptor, path = get_field_descriptor(models.Opera, ["pk"])
+    assert isinstance(descriptor.descriptor, django_models.AutoField)
+    assert descriptor.descriptor.name == "id"
+    assert descriptor.target_name == "pk"
+    assert path == ()
+
     descriptor, path = get_field_descriptor(models.Opera, ["has_piano_transcription"])
-    assert isinstance(descriptor, django_models.BooleanField)
+    assert isinstance(descriptor.descriptor, django_models.BooleanField)
     assert path == ()
 
     descriptor, path = get_field_descriptor(models.Opera, ["composer"])
-    assert isinstance(descriptor, django_models.ForeignKey)
+    assert isinstance(descriptor.descriptor, django_models.ForeignKey)
     assert path == ()
 
     descriptor, path = get_field_descriptor(models.Opera, ["composer", "name"])
-    assert isinstance(descriptor, django_models.CharField)
-    assert path == (("composer", False),)
+    assert isinstance(descriptor.descriptor, django_models.CharField)
+    assert path == (("composer", False, False),)
 
     descriptor, path = get_field_descriptor(
         models.Opera, ["composer", "countries", "name"]
     )
-    assert isinstance(descriptor, django_models.CharField)
-    assert path == (("composer", False), ("countries", True))
+    assert isinstance(descriptor.descriptor, django_models.CharField)
+    assert path == (("composer", False, False), ("countries", True, False))
 
     descriptor, path = get_field_descriptor(
         models.Opera, ["composer", "composer_countries", "was_born"]
     )
-    assert isinstance(descriptor, django_models.BooleanField)
-    assert path == (("composer", False), ("composer_countries", True))
+    assert isinstance(descriptor.descriptor, django_models.BooleanField)
+    assert path == (("composer", False, False), ("composer_countries", True, False))
 
     descriptor, path = get_field_descriptor(models.Composer, ["countries"])
-    assert isinstance(descriptor, django_models.ManyToManyField)
+    assert isinstance(descriptor.descriptor, django_models.ManyToManyField)
     assert path == ()
 
     descriptor, path = get_field_descriptor(models.Opera, ["has_piano_transcription"])
-    assert isinstance(descriptor, django_models.BooleanField)
+    assert isinstance(descriptor.descriptor, django_models.BooleanField)
     assert path == ()
 
     with pytest.raises(FieldDoesNotExist):
@@ -387,9 +394,20 @@ def test_get_field_descriptor():
     descriptor, path = get_field_descriptor(
         models.Opera, ["get_birthplace_of_composer"]
     )
-    assert isinstance(descriptor, ComputedField)
-    assert descriptor.name == "get_birthplace_of_composer"
-    assert descriptor.annotation == Union[str, None]
+    assert isinstance(descriptor.descriptor, ComputedField)
+    assert descriptor.descriptor.name == "get_birthplace_of_composer"
+    assert descriptor.descriptor.annotation == Union[str, None]
+
+    descriptor, path = get_field_descriptor(
+        models.Opera, ["composer", "favorite_opera"]
+    )
+    assert isinstance(descriptor.descriptor, ComputedRelation)
+
+    descriptor, path = get_field_descriptor(
+        models.Opera, ["composer", "favorite_opera", "composer"]
+    )
+    assert isinstance(descriptor.descriptor, django_models.ForeignKey)
+    assert path == (("composer", False, False), ("favorite_opera", False, True))
 
 
 def test_build_nested_schema():
@@ -403,14 +421,17 @@ def test_build_nested_schema():
         "required": [],
     }
 
-    build_nested_schema(schema, (("a", False), ("b", False)))
+    build_nested_schema(schema, (("a", False, False), ("b", False, False)))
     assert schema["properties"]["a"]["properties"]["b"]["type"] == "object"
 
-    build_nested_schema(schema, (("a", False), ("c", False)))
+    build_nested_schema(schema, (("a", False, False), ("c", False, False)))
     assert schema["properties"]["a"]["properties"]["b"]["type"] == "object"
     assert schema["properties"]["a"]["properties"]["c"]["type"] == "object"
 
-    build_nested_schema(schema, (("a", False), ("multiple", True), ("single", False)))
+    build_nested_schema(
+        schema,
+        (("a", False, False), ("multiple", True, False), ("single", False, False)),
+    )
     assert schema["properties"]["a"]["properties"]["multiple"]["type"] == "array"
     assert (
         schema["properties"]["a"]["properties"]["multiple"]["items"]["properties"][
@@ -420,7 +441,12 @@ def test_build_nested_schema():
     )
 
     build_nested_schema(
-        schema, (("a", False), ("multiple", True), ("second_single", False))
+        schema,
+        (
+            ("a", False, False),
+            ("multiple", True, False),
+            ("second_single", False, False),
+        ),
     )
     assert schema["properties"]["a"]["properties"]["multiple"]["type"] == "array"
     assert (

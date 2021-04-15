@@ -57,6 +57,8 @@ class Foo(NamedTuple):
     pick_computed_queryset: Pick[
         models.Composer, "operas_with_piano_transcriptions.name"
     ]
+    pick_computed_foreign_key: Pick[models.Composer, "main_opera.name"]
+    pick_computed_null_foreign_key: Pick[models.Composer, "favorite_opera.name"]
     pick_nested: Pick[models.Composer, "name", Pick["operas", Opera]]
     pick_enum: Pick[models.Continent, "hemisphere"]
     fixed_tuple_different_types: Tuple[str, int]
@@ -95,6 +97,8 @@ def test_serialization():
         pick_method=opera,
         pick_property=composer,
         pick_literal=composer,
+        pick_computed_foreign_key=composer,
+        pick_computed_null_foreign_key=composer,
         pick_computed_queryset=composer,
         pick_nested=composer,
         pick_enum=continent,
@@ -107,6 +111,44 @@ def test_serialization():
     )
     definitions = {}
     generated_schema = create_schema(Foo, definitions)
+
+    # TODO: flesh out type creation for Pick as well. These are currently our
+    # only tests. Moreover, all other type tests are in tests/types.py.
+    assert generated_schema.definitions["tests.serialization.Foo"]["properties"][
+        "pick_computed_foreign_key"
+    ] == {
+        "additionalProperties": False,
+        "properties": {
+            "main_opera": {
+                "additionalProperties": False,
+                "properties": {"name": {"type": "string"}},
+                "required": ["name"],
+                "type": "object",
+            }
+        },
+        "required": ["main_opera"],
+        "type": "object",
+    }
+    assert generated_schema.definitions["tests.serialization.Foo"]["properties"][
+        "pick_computed_null_foreign_key"
+    ] == {
+        "additionalProperties": False,
+        "properties": {
+            "favorite_opera": {
+                "anyOf": [
+                    {
+                        "additionalProperties": False,
+                        "properties": {"name": {"type": "string"}},
+                        "required": ["name"],
+                        "type": "object",
+                    },
+                    {"type": "null"},
+                ]
+            }
+        },
+        "required": ["favorite_opera"],
+        "type": "object",
+    }
 
     serialized = serialize(instance, generated_schema)
 
@@ -126,6 +168,8 @@ def test_serialization():
         },
         "pick_property": {"did_live_in_more_than_one_country": True,},
         "pick_literal": {"name": composer.name, "operas": [{"name": opera.name}]},
+        "pick_computed_foreign_key": {"main_opera": {"name": opera.name}},
+        "pick_computed_null_foreign_key": {"favorite_opera": {"name": opera.name}},
         "pick_computed_queryset": {
             "operas_with_piano_transcriptions": [{"name": "Götterdämmerung"}]
         },
@@ -153,6 +197,29 @@ def test_form():
     serialized_form = serialize(form_with_errors, generated_schema)
     assert "name" in serialized_form.errors
     convert_to_json_and_validate(serialized_form, generated_schema)
+
+
+def test_widget_inheritance():
+    class WidgetMixin:
+        pass
+
+    class ChildWidget(WidgetMixin, django_forms.TextInput):
+        pass
+
+    class FormWithChildWidget(django_forms.Form):
+        my_field = django_forms.CharField(widget=ChildWidget)
+
+    # No error, depth-1 inheritance.
+    create_schema(FormWithChildWidget, {})
+
+    class GrandchildWidget(ChildWidget):
+        pass
+
+    class FormWithGrandchildWidget(django_forms.Form):
+        my_field = django_forms.CharField(widget=GrandchildWidget)
+
+    with pytest.raises(AssertionError, match="depth-1"):
+        create_schema(FormWithGrandchildWidget, {})
 
 
 def test_custom_widget():

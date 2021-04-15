@@ -560,7 +560,9 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         SourceWidget = SubType.widget.__class__
 
         if SourceWidget.__module__ != "django.forms.widgets":
-            SourceWidget = SubType.widget.__class__.__bases__[0]
+            for base_class in SubType.widget.__class__.__bases__:
+                if issubclass(base_class, django_forms.widgets.Widget):
+                    SourceWidget = base_class
 
         assert (
             SourceWidget.__module__ == "django.forms.widgets"

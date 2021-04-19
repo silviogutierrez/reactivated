@@ -32,6 +32,7 @@ JSONSchema = Any
 class FieldDescriptorWrapper(NamedTuple):
     descriptor: FieldDescriptor
     target_name: Optional[str] = None
+    annotation: Optional[Any] = None
 
 
 def get_field_descriptor(
@@ -39,12 +40,25 @@ def get_field_descriptor(
 ) -> Tuple[FieldDescriptorWrapper, Sequence[FieldSegment]]:
     field_name, *remaining = field_chain
 
+    localns = (
+        model_class.resolve_type_hints()
+        if hasattr(model_class, "resolve_type_hints")
+        else {}
+    )
+    overrides = get_type_hints(model_class, localns=localns)
+    annotation = overrides.get(field_name, None)
+
+    if annotation:
+        print("Override", field_name, annotation)
+
     try:
+
         field_descriptor = (
-            FieldDescriptorWrapper(descriptor=model_class._meta.pk, target_name="pk")  # type: ignore[arg-type]
+            FieldDescriptorWrapper(descriptor=model_class._meta.pk, annotation=annotation, target_name="pk")  # type: ignore[arg-type]
             if field_name == "pk"
             else FieldDescriptorWrapper(
-                descriptor=model_class._meta.get_field(field_name)
+                descriptor=model_class._meta.get_field(field_name),
+                annotation=annotation,
             )
         )
     except FieldDoesNotExist as e:
@@ -203,7 +217,9 @@ class BasePickHolder:
             )
             reference = build_nested_schema(schema, path)
 
-            field_schema = create_schema(field_descriptor.descriptor, definitions)
+            field_schema = create_schema(
+                field_descriptor.annotation or field_descriptor.descriptor, definitions
+            )
             definitions = {**definitions, **field_schema.definitions}
 
             # Should have used recursion. But instead we have top level null

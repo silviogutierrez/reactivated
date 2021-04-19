@@ -48,9 +48,6 @@ def get_field_descriptor(
     overrides = get_type_hints(model_class, localns=localns)
     annotation = overrides.get(field_name, None)
 
-    if annotation:
-        print("Override", field_name, annotation)
-
     try:
 
         field_descriptor = (

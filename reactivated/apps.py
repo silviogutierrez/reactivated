@@ -146,6 +146,8 @@ def generate_schema(skip_cache: bool = False) -> None:
     You can use this function for your E2E test prep.
     """
     logger.info("Generating interfaces and client side code")
+    # print(get_schema())
+    # return
     schema = get_schema().encode()
 
     import hashlib

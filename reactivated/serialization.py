@@ -145,7 +145,7 @@ class FieldType(NamedTuple):
                 definitions=definitions,
             )
 
-        schema = named_tuple_schema(Type, definitions)
+        schema = named_tuple_schema(Type, definitions, exclude="widget")
 
         definitions = {
             **definitions,
@@ -481,7 +481,9 @@ def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
     )
 
 
-def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
+def named_tuple_schema(
+    Type: Any, definitions: Definitions, exclude: Sequence[str] = ()
+) -> Thing:
     definition_name = f"{Type.__module__}.{Type.__qualname__}"
 
     if definition_name in definitions:
@@ -494,6 +496,9 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
     definitions = {**definitions}
 
     for field_name, Subtype in get_type_hints(Type).items():
+        if field_name in exclude:
+            continue
+
         field_schema = create_schema(Subtype, definitions)
         definitions = {**definitions, **field_schema.definitions}
 
@@ -501,6 +506,9 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
         properties[field_name] = field_schema.schema
 
     for field_name in dir(Type):
+        if field_name in exclude:
+            continue
+
         if field_name in properties:
             continue
 
@@ -595,11 +603,17 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
                 ts_type = f'widgets.{SourceWidget.__name__}<Types["globals"]["{generic_name}"]>'
 
         properties[field_name] = {
-            **field_type_definition,
-            "properties": {
-                **field_type_definition["properties"],
-                "widget": {"tsType": ts_type},
-            },
+            "allOf": [
+                {
+                    "$ref": f"#/definitions/{FieldType.__module__}.{FieldType.__qualname__}"
+                },
+                {
+                    "type": "object",
+                    "properties": {"widget": {"tsType": ts_type},},
+                    "required": ["widget"],
+                    "additionalProperties": False,
+                },
+            ]
         }
         error_properties[field_name] = error_definition
 
@@ -672,11 +686,9 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
     else:
         FormSetForm = Type.form
 
-    form_type_schema = create_schema(FormSetForm, form_set_type_schema.definitions)
-
-    # Everything the child form added needs to be part of our global definitions
-    # now.
-    definitions = form_type_schema.definitions
+    form_type_schema, definitions = create_schema(
+        FormSetForm, form_set_type_schema.definitions
+    )
 
     # We use our own management form because base_fields is set dynamically
     # by Django in django.forms.formsets.
@@ -689,18 +701,10 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
     ManagementForm.__module__ = django_forms.formsets.ManagementForm.__module__
     ManagementForm.__qualname__ = django_forms.formsets.ManagementForm.__qualname__
 
-    management_form_schema = create_schema(ManagementForm, form_type_schema.definitions)
+    management_form_schema, definitions = create_schema(ManagementForm, definitions)
 
     form_set_type_definition = form_set_type_schema.definitions[
         f"{FormSetType.__module__}.{FormSetType.__qualname__}"
-    ]
-
-    form_type_definition = form_type_schema.definitions[
-        f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"
-    ]
-
-    management_form_definition = management_form_schema.definitions[
-        f"{ManagementForm.__module__}.{ManagementForm.__qualname__}"
     ]
 
     definitions = {
@@ -710,9 +714,9 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
             "serializer": "reactivated.serialization.FormSetType",
             "properties": {
                 **form_set_type_definition["properties"],
-                "empty_form": form_type_definition,
-                "forms": {"type": "array", "items": form_type_definition},
-                "management_form": management_form_definition,
+                "empty_form": form_type_schema,
+                "forms": {"type": "array", "items": form_type_schema},
+                "management_form": management_form_schema,
             },
         },
     }

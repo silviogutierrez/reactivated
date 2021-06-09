@@ -32,6 +32,7 @@ JSONSchema = Any
 class FieldDescriptorWrapper(NamedTuple):
     descriptor: FieldDescriptor
     target_name: Optional[str] = None
+    annotation: Optional[Any] = None
 
 
 def get_field_descriptor(
@@ -39,12 +40,22 @@ def get_field_descriptor(
 ) -> Tuple[FieldDescriptorWrapper, Sequence[FieldSegment]]:
     field_name, *remaining = field_chain
 
+    resolved_hints = (
+        model_class.resolve_type_hints()  # type: ignore[attr-defined]
+        if hasattr(model_class, "resolve_type_hints")
+        else {}
+    )
+
     try:
+        overrides = get_type_hints(model_class, localns=resolved_hints)
+        annotation = overrides.get(field_name, None)
+
         field_descriptor = (
-            FieldDescriptorWrapper(descriptor=model_class._meta.pk, target_name="pk")  # type: ignore[arg-type]
+            FieldDescriptorWrapper(descriptor=model_class._meta.pk, annotation=annotation, target_name="pk")  # type: ignore[arg-type]
             if field_name == "pk"
             else FieldDescriptorWrapper(
-                descriptor=model_class._meta.get_field(field_name)
+                descriptor=model_class._meta.get_field(field_name),
+                annotation=annotation,
             )
         )
     except FieldDoesNotExist as e:
@@ -62,7 +73,7 @@ def get_field_descriptor(
                 if isinstance(possible_method_or_property, property)
                 else (possible_method_or_property, True)
             )
-            annotations = get_type_hints(possible_method)
+            annotations = get_type_hints(possible_method, localns=resolved_hints)
 
             field_descriptor = FieldDescriptorWrapper(
                 descriptor=ComputedField(
@@ -203,7 +214,9 @@ class BasePickHolder:
             )
             reference = build_nested_schema(schema, path)
 
-            field_schema = create_schema(field_descriptor.descriptor, definitions)
+            field_schema = create_schema(
+                field_descriptor.annotation or field_descriptor.descriptor, definitions
+            )
             definitions = {**definitions, **field_schema.definitions}
 
             # Should have used recursion. But instead we have top level null

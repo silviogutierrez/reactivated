@@ -40,15 +40,15 @@ def get_field_descriptor(
 ) -> Tuple[FieldDescriptorWrapper, Sequence[FieldSegment]]:
     field_name, *remaining = field_chain
 
-    localns = (
+    resolved_hints = (
         model_class.resolve_type_hints()
         if hasattr(model_class, "resolve_type_hints")
         else {}
     )
-    overrides = get_type_hints(model_class, localns=localns)
-    annotation = overrides.get(field_name, None)
 
     try:
+        overrides = get_type_hints(model_class, localns=resolved_hints)
+        annotation = overrides.get(field_name, None)
 
         field_descriptor = (
             FieldDescriptorWrapper(descriptor=model_class._meta.pk, annotation=annotation, target_name="pk")  # type: ignore[arg-type]
@@ -73,7 +73,7 @@ def get_field_descriptor(
                 if isinstance(possible_method_or_property, property)
                 else (possible_method_or_property, True)
             )
-            annotations = get_type_hints(possible_method)
+            annotations = get_type_hints(possible_method, localns=resolved_hints)
 
             field_descriptor = FieldDescriptorWrapper(
                 descriptor=ComputedField(

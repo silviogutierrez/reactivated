@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import enum
-from typing import Any, List, Literal, NamedTuple, Tuple, Type
+from typing import Any, List, Literal, NamedTuple, Optional, Tuple, Type
 
 import pytest
 import simplejson
@@ -299,4 +301,65 @@ def test_typed_choices_non_enum(settings):
         "widget"
     ] == {
         "tsType": "widgets.Select"
+    }
+
+
+def test_override_pick_types(settings):
+    settings.INSTALLED_APPS = ["tests.serialization"]
+    test_apps = Apps(settings.INSTALLED_APPS)
+
+    class TestModel(Model):
+        forced_nullable: Optional[int] = IntegerField()
+        forced_non_nullable: int = IntegerField(null=True)
+        forced_none: None = IntegerField()
+
+        class Meta:
+            apps = test_apps
+
+    Picked = Pick[TestModel, "forced_nullable", "forced_non_nullable", "forced_none"]
+    assert create_schema(Picked, {}).schema == {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "forced_nullable": {"anyOf": [{"type": "number"}, {"type": "null"}]},
+            "forced_non_nullable": {"type": "number"},
+            "forced_none": {"type": "null"},
+        },
+        "required": ["forced_nullable", "forced_non_nullable", "forced_none"],
+    }
+
+
+def test_deferred_evaluation_of_types(settings):
+    settings.INSTALLED_APPS = ["tests.serialization"]
+    test_apps = Apps(settings.INSTALLED_APPS)
+
+    class TestModel(Model):
+        deferred_field: DoesNotExist = IntegerField()
+
+        @property
+        def bar(self) -> DoesNotExist:
+            assert False
+
+        @classmethod
+        def resolve_type_hints(cls):
+            return {
+                "DoesNotExist": bool,
+            }
+
+        class Meta:
+            apps = test_apps
+
+    Picked = Pick[TestModel, "bar", "deferred_field"]
+
+    assert create_schema(Picked, {}).schema == {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "bar": {
+                "type": "boolean",
+                "serializer": "reactivated.serialization.ComputedField",
+            },
+            "deferred_field": {"type": "boolean"},
+        },
+        "required": ["bar", "deferred_field"],
     }

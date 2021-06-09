@@ -1,5 +1,6 @@
 import enum
 import re
+from enum import unique
 from typing import (
     Any,
     Callable,
@@ -58,6 +59,8 @@ class EnumChoiceField(django_forms.TypedChoiceField):
             self.enum = choices.enum
         else:
             assert False, "Pass enum or choices. Not both"
+
+        unique(self.enum)
 
         return super().__init__(
             coerce=coerce,

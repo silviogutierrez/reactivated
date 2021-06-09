@@ -82,6 +82,18 @@ def test_enum_form_field():
     assert form["enum_form_field"].value() == "SECOND"
 
 
+def test_enum_uniqueness():
+    class EnumWithDuplicates(enum.Enum):
+        ONE = 1
+        TWO = 1
+
+    with pytest.raises(ValueError, match="duplicate values found"):
+        EnumChoiceField(enum=EnumWithDuplicates)
+
+    with pytest.raises(ValueError, match="duplicate values found"):
+        fields.EnumField(enum=EnumWithDuplicates)
+
+
 def test_convert_enum_to_choices():
     (
         (first_choice, first_label),

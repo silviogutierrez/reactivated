@@ -1,5 +1,5 @@
 import pickle
-from typing import Dict, NamedTuple, Optional
+from typing import Dict, NamedTuple, Optional, List
 
 from reactivated import Pick, template
 from sample.server.apps.samples import models
@@ -67,3 +67,15 @@ def test_non_class_based_members():
     assert response.resolve_context(response.context_data) == {
         "non_class_member": {"a": "b"}
     }
+
+
+def test_pick_name():
+    MyPick = Pick[models.Opera, "name"]
+
+    @template
+    class FooThing(NamedTuple):
+        thing: MyPick
+        bar: List[MyPick]
+
+    assert MyPick.pick_name == "MyPick"
+    assert MyPick.pick_module == "tests.templates"

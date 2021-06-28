@@ -1,11 +1,14 @@
-from typing import Any, Dict, NamedTuple, Optional, Type, TypeVar
+import inspect
+from typing import Any, Dict, NamedTuple, Optional, Type, TypeVar, get_type_hints
 
 from django import forms
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 
+from .pick import BasePickHolder
 from .renderer import should_respond_with_json
 from .serialization import JSON, create_schema, serialize
+from .stubs import _GenericAlias
 
 T = TypeVar("T", bound=NamedTuple)
 
@@ -44,6 +47,28 @@ class LazySerializationResponse(TemplateResponse):
 
 
 def template(cls: Type[T]) -> Type[T]:
+    callers_local_vars = inspect.currentframe().f_back.f_locals.items()  # type: ignore[union-attr]
+
+    picks = []
+
+    for key, possible_pick in get_type_hints(cls).items():
+        if (
+            isinstance(possible_pick, _GenericAlias)
+            and possible_pick.__origin__ == list
+        ):
+            picks.append((key, possible_pick.__args__[0]))
+        elif isinstance(possible_pick, type) and issubclass(possible_pick, BasePickHolder):
+            picks.append((key, possible_pick))
+
+    for name, pick in picks:
+        try:
+            name = [
+                var_name for var_name, var_val in callers_local_vars if var_val is pick
+            ][0]
+            pick.pick_name = name
+        except IndexError:
+            pass
+
     from . import type_registry, template_registry
 
     type_name = f"{cls.__name__}Props"

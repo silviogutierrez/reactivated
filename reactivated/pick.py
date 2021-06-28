@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 from typing import (
     Any,
     List,
@@ -198,9 +199,19 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
 class BasePickHolder:
     model_class: Type[models.Model]
     fields: List[str] = []
+    pick_name: Optional[str] = None
+    pick_module: str
 
     @classmethod
     def get_json_schema(cls: Type[BasePickHolder], definitions: Definitions) -> Thing:
+        definition_name = f"{cls.pick_module}.{cls.pick_name or id(cls)}"
+
+        if definition_name in definitions:
+            return Thing(
+                schema={"$ref": f"#/definitions/{definition_name}"},
+                definitions=definitions,
+            )
+
         schema = {
             "type": "object",
             "additionalProperties": False,
@@ -230,12 +241,16 @@ class BasePickHolder:
             reference["properties"][target_name] = field_schema.schema
             reference["required"].append(target_name)
 
-        return Thing(schema=schema, definitions=definitions)
+        return Thing(
+            schema={"$ref": f"#/definitions/{definition_name}"},
+            definitions={**definitions, definition_name: schema,},
+        )
 
 
 class Pick:
     def __class_getitem__(cls: Any, item: Any) -> Any:
         meta_model, *meta_fields = item
+        module_name = inspect.currentframe().f_back.f_globals["__name__"]  # type: ignore[union-attr]
 
         if isinstance(meta_model, str):
             nested_fields = []
@@ -259,5 +274,6 @@ class Pick:
         class PickHolder(BasePickHolder):
             model_class = meta_model
             fields = flattened_fields
+            pick_module = module_name
 
         return PickHolder

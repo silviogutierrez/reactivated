@@ -43,6 +43,10 @@ class ChunkyEnum(enum.Enum):
 
 Opera = Pick[models.Opera, "name"]
 
+ComputedForeign = Pick[models.Composer, "main_opera.name"]
+
+ComputedForeignNull = Pick[models.Composer, "favorite_opera.name"]
+
 
 class Foo(NamedTuple):
     bar: Bar
@@ -59,8 +63,8 @@ class Foo(NamedTuple):
     pick_computed_queryset: Pick[
         models.Composer, "operas_with_piano_transcriptions.name"
     ]
-    pick_computed_foreign_key: Pick[models.Composer, "main_opera.name"]
-    pick_computed_null_foreign_key: Pick[models.Composer, "favorite_opera.name"]
+    pick_computed_foreign_key: ComputedForeign
+    pick_computed_null_foreign_key: ComputedForeignNull
     pick_nested: Pick[models.Composer, "name", Pick["operas", Opera]]
     pick_enum: Pick[models.Continent, "hemisphere"]
     fixed_tuple_different_types: Tuple[str, int]
@@ -73,6 +77,10 @@ def convert_to_json_and_validate(instance, schema):
     validate(
         instance=converted, schema={"definitions": schema.definitions, **schema.schema}
     )
+
+
+class Small(NamedTuple):
+    thing: Pick[models.Opera, "name"]
 
 
 @pytest.mark.django_db
@@ -118,6 +126,9 @@ def test_serialization():
     # only tests. Moreover, all other type tests are in tests/types.py.
     assert generated_schema.definitions["tests.serialization.Foo"]["properties"][
         "pick_computed_foreign_key"
+    ] == {"$ref": f"#/definitions/tests.serialization.{id(ComputedForeign)}"}
+    assert generated_schema.definitions[
+        f"tests.serialization.{id(ComputedForeign)}"
     ] == {
         "additionalProperties": False,
         "properties": {
@@ -131,8 +142,12 @@ def test_serialization():
         "required": ["main_opera"],
         "type": "object",
     }
+
     assert generated_schema.definitions["tests.serialization.Foo"]["properties"][
         "pick_computed_null_foreign_key"
+    ] == {"$ref": f"#/definitions/tests.serialization.{id(ComputedForeignNull)}"}
+    assert generated_schema.definitions[
+        f"tests.serialization.{id(ComputedForeignNull)}"
     ] == {
         "additionalProperties": False,
         "properties": {
@@ -317,7 +332,9 @@ def test_override_pick_types(settings):
             apps = test_apps
 
     Picked = Pick[TestModel, "forced_nullable", "forced_non_nullable", "forced_none"]
-    assert create_schema(Picked, {}).schema == {
+    assert create_schema(Picked, {}).definitions[
+        f"tests.serialization.{id(Picked)}"
+    ] == {
         "type": "object",
         "additionalProperties": False,
         "properties": {
@@ -351,7 +368,9 @@ def test_deferred_evaluation_of_types(settings):
 
     Picked = Pick[TestModel, "bar", "deferred_field"]
 
-    assert create_schema(Picked, {}).schema == {
+    assert create_schema(Picked, {}).definitions[
+        f"tests.serialization.{id(Picked)}"
+    ] == {
         "type": "object",
         "additionalProperties": False,
         "properties": {

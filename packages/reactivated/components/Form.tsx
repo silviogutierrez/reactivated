@@ -1,6 +1,5 @@
 import React from "react";
 
-import {Consumer} from "../context";
 import {getValueForSelect, WidgetType} from "./Widget";
 
 interface FieldLike {

@@ -865,6 +865,16 @@ def serialize(value: Any, schema: Thing) -> JSON:
             return serialize(
                 value, Thing(schema=any_of_schema, definitions=schema.definitions)
             )
+    elif "allOf" in schema.schema:
+        serialized = {}
+
+        for all_of_schema in schema.schema["allOf"]:
+            serialized.update(
+                serialize(
+                    value, Thing(schema=all_of_schema, definitions=schema.definitions)
+                )
+            )
+        return serialized
 
     # TODO: this falls back to "any" but that feels too loose.
     # Should this be an option?

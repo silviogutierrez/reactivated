@@ -109,6 +109,7 @@ class Message(NamedTuple):
 
 class Request(NamedTuple):
     path: str
+    url: str
 
 
 class Context(NamedTuple):

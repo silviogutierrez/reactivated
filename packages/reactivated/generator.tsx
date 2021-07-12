@@ -109,6 +109,8 @@ import * as widgets from "reactivated/components/Widget";
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
 
+export const Context = React.createContext<Types["Context"]>(null!);
+
 `);
 
 // tslint:disable-next-line

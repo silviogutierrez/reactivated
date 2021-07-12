@@ -11,11 +11,13 @@ from django.http import HttpRequest
 from django.template.defaultfilters import escape
 
 renderer_process_port = None
+process = None
 logger = logging.getLogger("django.server")
 
 
 def wait_and_get_port() -> Optional[int]:
     global renderer_process_port
+    global process
 
     if renderer_process_port is not None:
         return renderer_process_port
@@ -76,12 +78,12 @@ def should_respond_with_json(request: HttpRequest) -> bool:
 def render_jsx_to_string(
     request: HttpRequest, template_name: str, context: Any, props: Any
 ) -> str:
-    from reactivated import encode_complex_types
+    pass
 
     respond_with_json = should_respond_with_json(request)
 
     payload = {"context": {**context, "template_name": template_name}, "props": props}
-    data = simplejson.dumps(payload, indent=4, default=encode_complex_types)
+    data = simplejson.dumps(payload, indent=4)  # , default=encode_complex_types)
     headers = {"Content-Type": "application/json"}
 
     if "debug" in request.GET:
@@ -97,6 +99,7 @@ def render_jsx_to_string(
     response = requests.post(
         f"http://localhost:{renderer_port}", headers=headers, data=data
     )
+
     if response.status_code == 200:
         return response.text
     else:

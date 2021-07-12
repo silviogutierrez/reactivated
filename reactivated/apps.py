@@ -3,10 +3,22 @@ import json
 import logging
 import os
 import subprocess
-from typing import Any, Dict, NamedTuple, Tuple
+from typing import (
+    Any,
+    Dict,
+    List,
+    Literal,
+    NamedTuple,
+    Optional,
+    Tuple,
+    Type,
+    TypedDict,
+    get_type_hints,
+)
 
 from django.apps import AppConfig
 from django.conf import settings
+from django.utils.module_loading import import_string
 
 from . import (
     extract_views_from_urlpatterns,
@@ -15,7 +27,7 @@ from . import (
     type_registry,
     value_registry,
 )
-from .serialization import create_schema
+from .serialization import JSON, Thing, create_schema
 
 logger = logging.getLogger("django.server")
 
@@ -52,6 +64,83 @@ def get_urls_schema() -> Dict[str, Any]:
     return reverse
 
 
+class Message(NamedTuple):
+    level: int
+    level_tag: Literal["info", "success", "error", "warning", "debug"]
+    message: str
+
+
+class Request(NamedTuple):
+    path: str
+    url: str
+
+    @classmethod
+    def get_serialized_value(Type: Type["Request"], value: Any, schema: Thing) -> JSON:
+        return {"path": value.path, "url": value.build_absolute_uri()}
+
+
+class BaseContext(TypedDict):
+    request: Request
+    messages: List[Message]
+    csrf_token: str
+    template_name: str
+
+
+class ComplexType(TypedDict):
+    required: int
+    optional: Optional[bool]
+
+
+class SampleContextOne(TypedDict):
+    complex: ComplexType
+    boolean: bool
+
+
+class SampleContextTwo(TypedDict):
+    number: int
+
+
+def sample_context_processor_one() -> SampleContextOne:
+    return {
+        "complex": {"required": 5, "optional": True,},
+        "boolean": True,
+    }
+
+
+def sample_context_processor_two() -> SampleContextTwo:
+    return {
+        "number": 5,
+    }
+
+
+def create_context_processor_type(definitions: Any) -> Any:
+    from .serialization import Thing
+
+    context_processors = [
+        "server.core.context_processors.environment",
+        "server.core.context_processors.user",
+        # "reactivated.apps.sample_context_processor_one",
+        # "reactivated.apps.sample_context_processor_two",
+        # "django.template.context_processors.debug",
+        # "django.template.context_processors.request",
+        # "django.contrib.auth.context_processors.auth",
+        # "django.contrib.messages.context_processors.messages",
+    ]
+
+    schemas = []
+
+    schema, definitions = create_schema(BaseContext, definitions)
+    schemas.append(schema)
+
+    for context_processor in context_processors:
+        definition = import_string(context_processor)
+        annotations = get_type_hints(definition)
+        schema, definitions = create_schema(annotations["return"], definitions)
+        schemas.append(schema)
+
+    return Thing(schema={"allOf": schemas,}, definitions=definitions,)
+
+
 def get_types_schema() -> Any:
     """ The package json-schema-to-typescript does expose a way to
     automatically export any interface it sees. However, this can bloat our
@@ -74,17 +163,18 @@ def get_types_schema() -> Any:
     See `unreachableDefinitions` in json-schema-to-typescript
     """
     type_registry["globals"] = Any  # type: ignore[assignment]
+    type_registry["Context"] = Any  # type: ignore[assignment]
     ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore[misc]
-    parent_schema = create_schema(ParentTuple, {})
+    parent_schema, definitions = create_schema(ParentTuple, {})
+    context_schema, definitions = create_context_processor_type(definitions)
 
     return {
-        "definitions": parent_schema.definitions,
+        "definitions": definitions,
         **{
-            **parent_schema.definitions["reactivated.apps.ParentTuple"],
+            **definitions["reactivated.apps.ParentTuple"],
             "properties": {
-                **parent_schema.definitions["reactivated.apps.ParentTuple"][
-                    "properties"
-                ],
+                **definitions["reactivated.apps.ParentTuple"]["properties"],
+                "Context": context_schema,
                 "globals": {
                     "type": "object",
                     "additionalProperties": False,

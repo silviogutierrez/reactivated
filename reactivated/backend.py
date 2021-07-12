@@ -8,6 +8,7 @@ from django.utils.functional import cached_property
 from django.utils.module_loading import import_string
 
 from .renderer import render_jsx_to_string
+from .serialization import serialize
 
 
 class JSX(BaseEngine):
@@ -68,6 +69,8 @@ class JSXTemplate:
         props = context or {}
         context = {}
 
+        from .apps import create_context_processor_type
+
         if request is not None:
             context["request"] = request
             context["csrf_token"] = str(csrf_token_lazy(request))
@@ -75,7 +78,10 @@ class JSXTemplate:
             for context_processor in self.backend.template_context_processors:
                 context.update(context_processor(request))
 
-            return render_jsx_to_string(request, template_name, context, props)
+            serialized_context = serialize(context, create_context_processor_type({}))
+            return render_jsx_to_string(
+                request, template_name, serialized_context, props
+            )
 
         assert (
             False

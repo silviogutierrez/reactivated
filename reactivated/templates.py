@@ -60,8 +60,6 @@ def template(cls: Type[T]) -> Type[T]:
             return self._asdict().items()
 
         def get_serialized(self) -> Any:
-            from .serialization import serialize, create_schema
-
             generated_schema = create_schema(cls, {})
             return serialize(self, generated_schema)
 
@@ -124,8 +122,6 @@ def interface(cls: T) -> T:
         is_reactivated_interface = True
 
         def get_serialized(self) -> Any:
-            from .serialization import serialize, create_schema
-
             generated_schema = create_schema(cls, {})
             return serialize(self, generated_schema)
 

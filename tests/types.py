@@ -9,6 +9,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django.core.management import call_command
 from django.db import models as django_models
 
+from reactivated.apps import create_context_processor_type
 from reactivated.fields import EnumField
 from reactivated.models import ComputedRelation
 from reactivated.pick import build_nested_schema, get_field_descriptor
@@ -474,3 +475,10 @@ def test_generate_client_assets(settings):
     assert "types" in schema
     assert "urls" in schema
     assert "templates" in schema
+
+
+def test_context_processor_type():
+    schema, definitions = create_context_processor_type({})
+    print(schema)
+    print(definitions)
+    assert False

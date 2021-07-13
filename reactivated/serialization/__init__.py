@@ -22,8 +22,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
 
-from . import fields, forms, stubs
-from .models import ComputedRelation
+from reactivated import fields, forms, stubs
+from reactivated.models import ComputedRelation
 
 Schema = Mapping[Any, Any]
 
@@ -121,6 +121,27 @@ type Optgroup = [
     number,
 ];
 """
+
+
+class BaseIntersectionHolder:
+    types: List[Type[NamedTuple]] = []
+
+    @classmethod
+    def get_json_schema(cls: Type["BaseIntersectionHolder"], definitions: Definitions) -> Thing:
+        schemas = []
+        for context_processor in cls.types:
+            schema, definitions = create_schema(context_processor, definitions)
+            schemas.append(schema)
+
+        return Thing(schema={"allOf": schemas,}, definitions=definitions,)
+
+
+class Intersection:
+    def __class_getitem__(cls: Type["Intersection"], item: List[Type[NamedTuple]]) -> Type[BaseIntersectionHolder]:
+        class IntersectionHolder(BaseIntersectionHolder):
+            types = item
+
+        return IntersectionHolder
 
 
 class FieldType(NamedTuple):
@@ -588,7 +609,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
                     for part in ref.replace("#/definitions/", "").split(".")
                 )
 
-                from . import global_types
+                from reactivated import global_types
 
                 global_types[generic_name] = choice_schema  # type: ignore[assignment]
 

@@ -64,82 +64,6 @@ def get_urls_schema() -> Dict[str, Any]:
     return reverse
 
 
-class Message(NamedTuple):
-    level: int
-    level_tag: Literal["info", "success", "error", "warning", "debug"]
-    message: str
-
-
-class Request(NamedTuple):
-    path: str
-    url: str
-
-    @classmethod
-    def get_serialized_value(Type: Type["Request"], value: Any, schema: Thing) -> JSON:
-        return {"path": value.path, "url": value.build_absolute_uri()}
-
-
-class BaseContext(TypedDict):
-    request: Request
-    messages: List[Message]
-    csrf_token: str
-    template_name: str
-
-
-class ComplexType(TypedDict):
-    required: int
-    optional: Optional[bool]
-
-
-class SampleContextOne(TypedDict):
-    complex: ComplexType
-    boolean: bool
-
-
-class SampleContextTwo(TypedDict):
-    number: int
-
-
-def sample_context_processor_one() -> SampleContextOne:
-    return {
-        "complex": {"required": 5, "optional": True,},
-        "boolean": True,
-    }
-
-
-def sample_context_processor_two() -> SampleContextTwo:
-    return {
-        "number": 5,
-    }
-
-
-def create_context_processor_type(definitions: Any) -> Any:
-    from .serialization import Thing
-
-    context_processors = [
-        "server.core.context_processors.environment",
-        "server.core.context_processors.user",
-        # "reactivated.apps.sample_context_processor_one",
-        # "reactivated.apps.sample_context_processor_two",
-        # "django.template.context_processors.debug",
-        # "django.template.context_processors.request",
-        # "django.contrib.auth.context_processors.auth",
-        # "django.contrib.messages.context_processors.messages",
-    ]
-
-    schemas = []
-
-    schema, definitions = create_schema(BaseContext, definitions)
-    schemas.append(schema)
-
-    for context_processor in context_processors:
-        definition = import_string(context_processor)
-        annotations = get_type_hints(definition)
-        schema, definitions = create_schema(annotations["return"], definitions)
-        schemas.append(schema)
-
-    return Thing(schema={"allOf": schemas,}, definitions=definitions,)
-
 
 def get_types_schema() -> Any:
     """ The package json-schema-to-typescript does expose a way to
@@ -163,10 +87,19 @@ def get_types_schema() -> Any:
     See `unreachableDefinitions` in json-schema-to-typescript
     """
     type_registry["globals"] = Any  # type: ignore[assignment]
-    type_registry["Context"] = Any  # type: ignore[assignment]
+
+    context_processors = []
+
+    from .serialization.context_processors import create_context_processor_type
+
+    for engine in settings.TEMPLATES:
+        if engine["BACKEND"] == "reactivated.backend.JSX":
+            context_processors.extend(engine["OPTIONS"]["context_processors"])
+
+    type_registry["Context"] = create_context_processor_type(context_processors)
+
     ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore[misc]
     parent_schema, definitions = create_schema(ParentTuple, {})
-    context_schema, definitions = create_context_processor_type(definitions)
 
     return {
         "definitions": definitions,
@@ -174,7 +107,6 @@ def get_types_schema() -> Any:
             **definitions["reactivated.apps.ParentTuple"],
             "properties": {
                 **definitions["reactivated.apps.ParentTuple"]["properties"],
-                "Context": context_schema,
                 "globals": {
                     "type": "object",
                     "additionalProperties": False,

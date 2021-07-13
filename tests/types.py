@@ -1,6 +1,17 @@
 import enum
 from io import StringIO
-from typing import Any, Dict, List, Literal, NamedTuple, Tuple, Type, TypedDict, Union
+from typing import (
+    Any,
+    Dict,
+    List,
+    Literal,
+    NamedTuple,
+    Tuple,
+    Type,
+    TypedDict,
+    Union,
+    Optional,
+)
 
 import pytest
 import simplejson
@@ -9,7 +20,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django.core.management import call_command
 from django.db import models as django_models
 
-from reactivated.apps import create_context_processor_type
+from reactivated.serialization.context_processors import create_context_processor_type
 from reactivated.fields import EnumField
 from reactivated.models import ComputedRelation
 from reactivated.pick import build_nested_schema, get_field_descriptor
@@ -477,8 +488,115 @@ def test_generate_client_assets(settings):
     assert "templates" in schema
 
 
+class ComplexType(TypedDict):
+    required: int
+    optional: Optional[bool]
+
+
+class SampleContextOne(TypedDict):
+    complex: ComplexType
+    boolean: bool
+
+
+class SampleContextTwo(TypedDict):
+    number: int
+
+
+def sample_context_processor_one() -> SampleContextOne:
+    return {
+        "complex": {"required": 5, "optional": True,},
+        "boolean": True,
+    }
+
+
+def sample_context_processor_two() -> SampleContextTwo:
+    return {
+        "number": 5,
+    }
+
+
 def test_context_processor_type():
-    schema, definitions = create_context_processor_type({})
-    print(schema)
-    print(definitions)
-    assert False
+    context_processors = [
+        "tests.types.sample_context_processor_one",
+        "tests.types.sample_context_processor_two",
+    ]
+
+    schema, definitions = create_context_processor_type(context_processors, {})
+    assert schema == {
+        "allOf": [
+            {
+                "$ref": "#/definitions/reactivated.serialization.context_processors.BaseContext"
+            },
+            {"$ref": "#/definitions/tests.types.SampleContextOne"},
+            {"$ref": "#/definitions/tests.types.SampleContextTwo"},
+        ]
+    }
+    assert definitions == {
+        "reactivated.serialization.context_processors.Request": {
+            "serializer": "reactivated.serialization.context_processors.Request",
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {"path": {"type": "string"}, "url": {"type": "string"}},
+            "required": ["path", "url"],
+        },
+        "reactivated.serialization.context_processors.Message": {
+            "serializer": None,
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "level": {"type": "number"},
+                "level_tag": {
+                    "type": "string",
+                    "enum": ("info", "success", "error", "warning", "debug"),
+                },
+                "message": {"type": "string"},
+            },
+            "required": ["level", "level_tag", "message"],
+        },
+        "reactivated.serialization.context_processors.BaseContext": {
+            "serializer": None,
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "request": {
+                    "$ref": "#/definitions/reactivated.serialization.context_processors.Request"
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/reactivated.serialization.context_processors.Message"
+                    },
+                },
+                "csrf_token": {"type": "string"},
+                "template_name": {"type": "string"},
+            },
+            "required": ["request", "messages", "csrf_token", "template_name"],
+        },
+        "tests.types.ComplexType": {
+            "serializer": None,
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "required": {"type": "number"},
+                "optional": {"anyOf": [{"type": "boolean"}, {"type": "null"}]},
+            },
+            "required": ["required", "optional"],
+        },
+        "tests.types.SampleContextOne": {
+            "serializer": None,
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "complex": {"$ref": "#/definitions/tests.types.ComplexType"},
+                "boolean": {"type": "boolean"},
+            },
+            "required": ["complex", "boolean"],
+        },
+        "tests.types.SampleContextTwo": {
+            "serializer": None,
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {"number": {"type": "number"}},
+            "required": ["number"],
+        },
+    }

@@ -8,7 +8,8 @@ from django.utils.functional import cached_property
 from django.utils.module_loading import import_string
 
 from .renderer import render_jsx_to_string
-from .serialization import serialize
+from .serialization import serialize, Intersection, create_schema
+from .serialization.context_processors import create_context_processor_type
 
 
 class JSX(BaseEngine):
@@ -69,7 +70,7 @@ class JSXTemplate:
         props = context or {}
         context = {}
 
-        from .apps import create_context_processor_type
+        from .serialization.context_processors import create_context_processor_type
 
         if request is not None:
             context["request"] = request
@@ -78,7 +79,8 @@ class JSXTemplate:
             for context_processor in self.backend.template_context_processors:
                 context.update(context_processor(request))
 
-            serialized_context = serialize(context, create_context_processor_type({}))
+            serialized_context = serialize(context, create_schema(create_context_processor_type(self.backend.context_processors), {}))
+
             return render_jsx_to_string(
                 request, template_name, serialized_context, props
             )

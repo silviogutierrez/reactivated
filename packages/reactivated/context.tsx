@@ -17,5 +17,12 @@ export default <TContext extends {}>() => {
         );
     };
 
-    return {Context, Provider};
+    const getServerData = () => {
+        const props: Record<string, unknown> = (window as any).__PRELOADED_PROPS__;
+        const context: TContext = (window as any).__PRELOADED_CONTEXT__;
+
+        return {props, context};
+    };
+
+    return {Context, Provider, getServerData};
 };

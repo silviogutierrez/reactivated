@@ -521,7 +521,9 @@ def test_context_processor_type():
         "tests.types.sample_context_processor_two",
     ]
 
-    schema, definitions = create_context_processor_type(context_processors, {})
+    ContextProcessorType = create_context_processor_type(context_processors)
+    schema, definitions = create_schema(ContextProcessorType, {})
+
     assert schema == {
         "allOf": [
             {

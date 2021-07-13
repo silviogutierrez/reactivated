@@ -3,18 +3,7 @@ import json
 import logging
 import os
 import subprocess
-from typing import (
-    Any,
-    Dict,
-    List,
-    Literal,
-    NamedTuple,
-    Optional,
-    Tuple,
-    Type,
-    TypedDict,
-    get_type_hints,
-)
+from typing import Any, Dict, NamedTuple, Tuple
 
 from django.apps import AppConfig
 from django.conf import settings
@@ -92,7 +81,7 @@ def get_types_schema() -> Any:
 
     for engine in settings.TEMPLATES:
         if engine["BACKEND"] == "reactivated.backend.JSX":
-            context_processors.extend(engine["OPTIONS"]["context_processors"])
+            context_processors.extend(engine["OPTIONS"]["context_processors"])  # type: ignore[index]
 
     type_registry["Context"] = create_context_processor_type(context_processors)
 

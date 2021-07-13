@@ -1,20 +1,9 @@
-from typing import (
-    Any,
-    Dict,
-    List,
-    Literal,
-    NamedTuple,
-    Optional,
-    Tuple,
-    Type,
-    TypedDict,
-    get_type_hints,
-)
+from typing import Any, List, Literal, NamedTuple, Type, TypedDict, get_type_hints
 
 from django.http import HttpRequest
 from django.utils.module_loading import import_string
 
-from . import JSON, Intersection, Thing, create_schema
+from . import JSON, Intersection, Thing
 
 
 class Message(NamedTuple):
@@ -50,4 +39,4 @@ def create_context_processor_type(context_processors: List[str]) -> Any:
         if annotation := annotations.get("return", None):
             types.append(annotation)
 
-    return Intersection[types]
+    return Intersection[types]  # type: ignore[misc]

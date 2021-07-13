@@ -18,7 +18,6 @@ from typing import (
 
 from django.apps import AppConfig
 from django.conf import settings
-from django.utils.module_loading import import_string
 
 from . import (
     extract_views_from_urlpatterns,
@@ -27,7 +26,7 @@ from . import (
     type_registry,
     value_registry,
 )
-from .serialization import JSON, Thing, create_schema
+from .serialization import create_schema
 
 logger = logging.getLogger("django.server")
 
@@ -62,7 +61,6 @@ def get_urls_schema() -> Dict[str, Any]:
         }
 
     return reverse
-
 
 
 def get_types_schema() -> Any:

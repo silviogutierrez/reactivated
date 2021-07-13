@@ -6,11 +6,11 @@ from typing import (
     List,
     Literal,
     NamedTuple,
+    Optional,
     Tuple,
     Type,
     TypedDict,
     Union,
-    Optional,
 )
 
 import pytest
@@ -20,11 +20,11 @@ from django.core.exceptions import FieldDoesNotExist
 from django.core.management import call_command
 from django.db import models as django_models
 
-from reactivated.serialization.context_processors import create_context_processor_type
 from reactivated.fields import EnumField
 from reactivated.models import ComputedRelation
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import ComputedField, create_schema
+from reactivated.serialization.context_processors import create_context_processor_type
 from sample.server.apps.samples import forms, models
 
 

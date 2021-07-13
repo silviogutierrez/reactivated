@@ -11,10 +11,10 @@ from typing import (
     get_type_hints,
 )
 
-from . import Thing, JSON, create_schema, Intersection
+from django.http import HttpRequest
 from django.utils.module_loading import import_string
 
-from django.http import HttpRequest
+from . import JSON, Intersection, Thing, create_schema
 
 
 class Message(NamedTuple):

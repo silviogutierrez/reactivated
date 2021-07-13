@@ -127,7 +127,9 @@ class BaseIntersectionHolder:
     types: List[Type[NamedTuple]] = []
 
     @classmethod
-    def get_json_schema(cls: Type["BaseIntersectionHolder"], definitions: Definitions) -> Thing:
+    def get_json_schema(
+        cls: Type["BaseIntersectionHolder"], definitions: Definitions
+    ) -> Thing:
         schemas = []
         for context_processor in cls.types:
             schema, definitions = create_schema(context_processor, definitions)
@@ -137,7 +139,9 @@ class BaseIntersectionHolder:
 
 
 class Intersection:
-    def __class_getitem__(cls: Type["Intersection"], item: List[Type[NamedTuple]]) -> Type[BaseIntersectionHolder]:
+    def __class_getitem__(
+        cls: Type["Intersection"], item: List[Type[NamedTuple]]
+    ) -> Type[BaseIntersectionHolder]:
         class IntersectionHolder(BaseIntersectionHolder):
             types = item
 

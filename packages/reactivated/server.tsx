@@ -141,7 +141,7 @@ export const render = (
     try {
         const helmetContext = {} as FilledContext;
         const Template = require(templatePath).default;
-        const Provider = require(contextPath).Context.Provider;
+        const Provider = require(contextPath).Provider;
 
         const rendered = ReactDOMServer.renderToString(
             <HelmetProvider context={helmetContext}>

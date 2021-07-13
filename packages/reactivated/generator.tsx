@@ -105,12 +105,13 @@ export function reverse<T extends All['name']>(name: T, args?: Extract<WithArgum
 interfaces.addStatements(`
 import React from "react"
 import * as widgets from "reactivated/components/Widget";
+import createContext from "reactivated/context";
 import createForms from "reactivated/forms";
 
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
 
-export const Context = React.createContext<Types["Context"]>(null!);
+export const {Context, Provider} = createContext<Types["Context"]>();
 
 const forms = createForms(Context);
 

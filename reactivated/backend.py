@@ -19,7 +19,6 @@ class JSX(BaseEngine):
     def __init__(self, params):
         # params = params.copy()
         options = params.pop("OPTIONS").copy()
-        # assert False
 
         self.context_processors = options.pop("context_processors", [])
         super().__init__(params)

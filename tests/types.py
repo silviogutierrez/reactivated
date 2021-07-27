@@ -517,6 +517,7 @@ def sample_context_processor_two() -> SampleContextTwo:
 
 def test_context_processor_type():
     context_processors = [
+        "django.template.context_processors.request",
         "tests.types.sample_context_processor_one",
         "tests.types.sample_context_processor_two",
     ]

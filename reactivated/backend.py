@@ -3,7 +3,6 @@ import os
 from django.conf import settings
 from django.template import TemplateDoesNotExist, TemplateSyntaxError
 from django.template.backends.base import BaseEngine
-from django.template.backends.utils import csrf_token_lazy
 from django.utils.functional import cached_property
 from django.utils.module_loading import import_string
 
@@ -72,9 +71,6 @@ class JSXTemplate:
         from .serialization.context_processors import create_context_processor_type
 
         if request is not None:
-            context["request"] = request
-            context["csrf_token"] = str(csrf_token_lazy(request))
-
             for context_processor in self.backend.template_context_processors:
                 context.update(context_processor(request))
 

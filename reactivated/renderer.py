@@ -79,7 +79,7 @@ def render_jsx_to_string(
     respond_with_json = should_respond_with_json(request)
 
     payload = {"context": {**context, "template_name": template_name}, "props": props}
-    data = simplejson.dumps(payload, indent=4)  # , default=encode_complex_types)
+    data = simplejson.dumps(payload, indent=4)
     headers = {"Content-Type": "application/json"}
 
     if "debug" in request.GET:

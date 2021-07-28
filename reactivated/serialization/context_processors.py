@@ -53,7 +53,7 @@ TYPE_HINTS = {
 }
 
 
-def get_annotation_or_type_hints(item: any) -> Any:
+def get_annotation_or_type_hints(item: Any) -> Any:
     override_name = f"{item.__module__}.{item.__qualname__}"
 
     if override := TYPE_HINTS.get(override_name, None):

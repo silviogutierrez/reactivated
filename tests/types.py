@@ -338,9 +338,8 @@ def custom_schema(Type, definitions):
 
 
 def test_custom_schema(settings):
-    with pytest.raises(AssertionError) as e:
+    with pytest.raises(AssertionError, match="Unsupported"):
         create_schema(CustomField, {})
-        assert "Unsupported" in str(e.value)
 
     settings.REACTIVATED_SERIALIZATION = "tests.types.custom_schema"
 
@@ -515,7 +514,16 @@ def sample_context_processor_two() -> SampleContextTwo:
     }
 
 
+def sample_unannotated_context_processor():
+    pass
+
+
 def test_context_processor_type():
+    with pytest.raises(AssertionError, match="No annotations found"):
+        ContextProcessorType = create_context_processor_type(
+            ["tests.types.sample_unannotated_context_processor"]
+        )
+
     context_processors = [
         "django.template.context_processors.request",
         "tests.types.sample_context_processor_one",
@@ -530,11 +538,21 @@ def test_context_processor_type():
             {
                 "$ref": "#/definitions/reactivated.serialization.context_processors.BaseContext"
             },
+            {
+                "$ref": "#/definitions/reactivated.serialization.context_processors.RequestProcessor"
+            },
             {"$ref": "#/definitions/tests.types.SampleContextOne"},
             {"$ref": "#/definitions/tests.types.SampleContextTwo"},
         ]
     }
     assert definitions == {
+        "reactivated.serialization.context_processors.BaseContext": {
+            "serializer": None,
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {"template_name": {"type": "string"}},
+            "required": ["template_name"],
+        },
         "reactivated.serialization.context_processors.Request": {
             "serializer": "reactivated.serialization.context_processors.Request",
             "type": "object",
@@ -542,38 +560,16 @@ def test_context_processor_type():
             "properties": {"path": {"type": "string"}, "url": {"type": "string"}},
             "required": ["path", "url"],
         },
-        "reactivated.serialization.context_processors.Message": {
-            "serializer": None,
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {
-                "level": {"type": "number"},
-                "level_tag": {
-                    "type": "string",
-                    "enum": ("info", "success", "error", "warning", "debug"),
-                },
-                "message": {"type": "string"},
-            },
-            "required": ["level", "level_tag", "message"],
-        },
-        "reactivated.serialization.context_processors.BaseContext": {
+        "reactivated.serialization.context_processors.RequestProcessor": {
             "serializer": None,
             "type": "object",
             "additionalProperties": False,
             "properties": {
                 "request": {
                     "$ref": "#/definitions/reactivated.serialization.context_processors.Request"
-                },
-                "messages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/reactivated.serialization.context_processors.Message"
-                    },
-                },
-                "csrf_token": {"type": "string"},
-                "template_name": {"type": "string"},
+                }
             },
-            "required": ["request", "messages", "csrf_token", "template_name"],
+            "required": ["request"],
         },
         "tests.types.ComplexType": {
             "serializer": None,

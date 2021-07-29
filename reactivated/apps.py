@@ -74,17 +74,26 @@ def get_types_schema() -> Any:
     See `unreachableDefinitions` in json-schema-to-typescript
     """
     type_registry["globals"] = Any  # type: ignore[assignment]
+
+    context_processors = []
+
+    from .serialization.context_processors import create_context_processor_type
+
+    for engine in settings.TEMPLATES:
+        if engine["BACKEND"] == "reactivated.backend.JSX":
+            context_processors.extend(engine["OPTIONS"]["context_processors"])  # type: ignore[index]
+
+    type_registry["Context"] = create_context_processor_type(context_processors)
+
     ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore[misc]
-    parent_schema = create_schema(ParentTuple, {})
+    parent_schema, definitions = create_schema(ParentTuple, {})
 
     return {
-        "definitions": parent_schema.definitions,
+        "definitions": definitions,
         **{
-            **parent_schema.definitions["reactivated.apps.ParentTuple"],
+            **definitions["reactivated.apps.ParentTuple"],
             "properties": {
-                **parent_schema.definitions["reactivated.apps.ParentTuple"][
-                    "properties"
-                ],
+                **definitions["reactivated.apps.ParentTuple"]["properties"],
                 "globals": {
                     "type": "object",
                     "additionalProperties": False,

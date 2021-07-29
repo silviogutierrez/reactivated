@@ -1,5 +1,4 @@
 import abc
-import datetime
 import inspect
 from typing import (
     Any,
@@ -20,10 +19,8 @@ from typing import (
 
 from django import forms as django_forms
 from django.core.exceptions import ViewDoesNotExist
-from django.db.models.query import QuerySet, ValuesIterable
 from django.http import HttpRequest, HttpResponse
 from django.urls import URLPattern, URLResolver
-from django.utils.functional import Promise
 from mypy_extensions import Arg, KwArg
 
 from .backend import JSX as JSX  # noqa: F401
@@ -99,61 +96,6 @@ NoArgsView = Callable[[HttpRequest], Union[P, HttpResponse]]
 def to_camel_case(snake_str: str) -> str:
     components = snake_str.split("_")
     return "".join(x.title() for x in components)
-
-
-class Message(NamedTuple):
-    level: int
-    level_tag: str
-    message: str
-
-
-class Request(NamedTuple):
-    path: str
-
-
-class Context(NamedTuple):
-    template_name: str
-    csrf_token: str
-    request: Request
-    messages: List[Message]
-
-
-def encode_complex_types(obj: Any) -> _SingleSerializable:
-    """
-    Handles dates, forms, and other types.
-    From: https://stackoverflow.com/a/22238613
-    """
-    if isinstance(obj, (datetime.datetime, datetime.date)):
-        return obj.isoformat()
-
-    # Handle lazy strings for Django. This is the parent class.
-    if isinstance(obj, Promise):
-        return str(obj)
-
-    # Processor: django.contrib.messages.context_processors.messages
-    from django.contrib.messages.storage.base import BaseStorage
-
-    if isinstance(obj, BaseStorage):
-        return [
-            Message(level=m.level, level_tag=m.level_tag, message=m.message)
-            for m in obj
-        ]
-
-    # Processor: django.template.context_processors.request
-    if isinstance(obj, HttpRequest):
-        return {"path": obj.path, "url": obj.build_absolute_uri()}
-
-    if isinstance(obj, QuerySet):
-        if obj._iterable_class is ValuesIterable:  # type: ignore[attr-defined]
-            return list(obj)
-        raise TypeError(
-            "Type %s not serializable. Only when you call values() does it become serializable."
-            % type(obj)
-        )
-
-    # return f'[Unserializable: {type(obj)}]'
-
-    raise TypeError("Type %s not serializable" % type(obj))
 
 
 def render_jsx(

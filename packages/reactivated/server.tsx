@@ -17,7 +17,6 @@ moduleAlias.addAlias("@client", REACTIVATED_CLIENT_ROOT);
 
 import httpProxy, {ServerOptions} from "http-proxy";
 
-import {Provider} from "./context";
 import {Settings} from "./models";
 
 // TODO: WHAT DOES THIS NEED TO BE? Even 100k was super fragile and a 10 choice field broke it.
@@ -91,6 +90,7 @@ export const render = (
     const {context, props} = JSON.parse(input.toString("utf8"));
 
     const templatePath = `${REACTIVATED_CLIENT_ROOT}/templates/${context.template_name}`;
+    const contextPath = `${REACTIVATED_CLIENT_ROOT}/generated`;
 
     if (process.env.NODE_ENV !== "production") {
         // Our template names have no extension by design, for when we transpile.
@@ -141,6 +141,7 @@ export const render = (
     try {
         const helmetContext = {} as FilledContext;
         const Template = require(templatePath).default;
+        const Provider = require(contextPath).Provider;
 
         const rendered = ReactDOMServer.renderToString(
             <HelmetProvider context={helmetContext}>

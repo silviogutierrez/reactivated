@@ -238,6 +238,16 @@ def test_custom_widget():
     assert serialized_form.fields["field"].widget["template_name"] == "foo"
 
 
+def test_subwidget():
+    class SubwidgetForm(django_forms.Form):
+        date_field = django_forms.DateField(widget=django_forms.SelectDateWidget)
+
+    generated_schema = create_schema(SubwidgetForm, {})
+    form = SubwidgetForm()
+    serialized_form = serialize(form, generated_schema)
+    convert_to_json_and_validate(serialized_form, generated_schema)
+
+
 @pytest.mark.django_db
 def test_form_with_model_choice_iterator_value():
     models.Country.objects.create(

@@ -4,15 +4,22 @@ export {FormLike, FormSetLike, FieldMap, ManagementForm} from "../components/For
 
 import {FieldMap, FormLike} from "../components/Form";
 import {SelectDateWidget, WidgetType} from "../components/Widget";
-import Context from "../context";
 
-export const CSRFToken = (props: {}) => {
-    const context = React.useContext(Context);
+export default <TContext extends {csrf_token: string}>(
+    Context: React.Context<TContext>,
+) => ({
+    CSRFToken: (props: {}) => {
+        const context = React.useContext(Context);
 
-    return (
-        <input type="hidden" name="csrfmiddlewaretoken" value={context.csrf_token} />
-    );
-};
+        return (
+            <input
+                type="hidden"
+                name="csrfmiddlewaretoken"
+                value={context.csrf_token}
+            />
+        );
+    },
+});
 
 type FormValue<U extends WidgetType> = U extends SelectDateWidget
     ? {[subWidgetName: string]: U["subwidgets"][number]["value"]}

@@ -22,8 +22,8 @@ from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
 
-from . import fields, forms, stubs
-from .models import ComputedRelation
+from reactivated import fields, forms, stubs
+from reactivated.models import ComputedRelation
 
 Schema = Mapping[Any, Any]
 
@@ -123,6 +123,31 @@ type Optgroup = [
 """
 
 
+class BaseIntersectionHolder:
+    types: List[Type[NamedTuple]] = []
+
+    @classmethod
+    def get_json_schema(
+        cls: Type["BaseIntersectionHolder"], definitions: Definitions
+    ) -> Thing:
+        schemas = []
+        for context_processor in cls.types:
+            schema, definitions = create_schema(context_processor, definitions)
+            schemas.append(schema)
+
+        return Thing(schema={"allOf": schemas,}, definitions=definitions,)
+
+
+class Intersection:
+    def __class_getitem__(
+        cls: Type["Intersection"], item: List[Type[NamedTuple]]
+    ) -> Type[BaseIntersectionHolder]:
+        class IntersectionHolder(BaseIntersectionHolder):
+            types = item
+
+        return IntersectionHolder
+
+
 class FieldType(NamedTuple):
     name: str
     label: str
@@ -177,18 +202,27 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     context["template_name"] = getattr(
         field.field.widget, "reactivated_widget", context["template_name"]
     )
-    optgroups = context.get("optgroups", None)
 
     # This is our first foray into properly serializing widgets using the
     # serialization framework.
     #
     # Eventually all widgets can be serialized this way and the frontend widget
     # types can disappear and be generated from the code here.
-    if optgroups is not None:
-        optgroup_schema = create_schema(Optgroup, {})  # type: ignore[misc]
-        context["optgroups"] = [
-            serialize(optgroup, optgroup_schema) for optgroup in optgroups
-        ]
+    #
+    # We should not just handle optgroups but every property, and do so
+    # recursively.
+    def handle_optgroups(widget_context: Any) -> None:
+        optgroups = widget_context.get("optgroups", None)
+        if optgroups is not None:
+            optgroup_schema = create_schema(Optgroup, {})  # type: ignore[misc]
+            widget_context["optgroups"] = [
+                serialize(optgroup, optgroup_schema) for optgroup in optgroups
+            ]
+
+    for subwidget_context in context.get("subwidgets", []):
+        handle_optgroups(subwidget_context)
+
+    handle_optgroups(context)
 
     field.field.widget._render = original_render  # type: ignore[attr-defined]
 
@@ -588,7 +622,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
                     for part in ref.replace("#/definitions/", "").split(".")
                 )
 
-                from . import global_types
+                from reactivated import global_types
 
                 global_types[generic_name] = choice_schema  # type: ignore[assignment]
 
@@ -865,6 +899,16 @@ def serialize(value: Any, schema: Thing) -> JSON:
             return serialize(
                 value, Thing(schema=any_of_schema, definitions=schema.definitions)
             )
+    elif "allOf" in schema.schema:
+        serialized = {}
+
+        for all_of_schema in schema.schema["allOf"]:
+            serialized.update(
+                serialize(
+                    value, Thing(schema=all_of_schema, definitions=schema.definitions)
+                )
+            )
+        return serialized
 
     # TODO: this falls back to "any" but that feels too loose.
     # Should this be an option?

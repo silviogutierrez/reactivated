@@ -202,18 +202,27 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     context["template_name"] = getattr(
         field.field.widget, "reactivated_widget", context["template_name"]
     )
-    optgroups = context.get("optgroups", None)
 
     # This is our first foray into properly serializing widgets using the
     # serialization framework.
     #
     # Eventually all widgets can be serialized this way and the frontend widget
     # types can disappear and be generated from the code here.
-    if optgroups is not None:
-        optgroup_schema = create_schema(Optgroup, {})  # type: ignore[misc]
-        context["optgroups"] = [
-            serialize(optgroup, optgroup_schema) for optgroup in optgroups
-        ]
+    #
+    # We should not just handle optgroups but every property, and do so
+    # recursively.
+    def handle_optgroups(widget_context: Any) -> None:
+        optgroups = widget_context.get("optgroups", None)
+        if optgroups is not None:
+            optgroup_schema = create_schema(Optgroup, {})  # type: ignore[misc]
+            widget_context["optgroups"] = [
+                serialize(optgroup, optgroup_schema) for optgroup in optgroups
+            ]
+
+    for subwidget_context in context.get("subwidgets", []):
+        handle_optgroups(subwidget_context)
+
+    handle_optgroups(context)
 
     field.field.widget._render = original_render  # type: ignore[attr-defined]
 

@@ -340,8 +340,8 @@ def field_descriptor_schema(
     }
 
     try:
-        from django_extensions.db import (
-            fields as django_extension_fields,  # type: ignore[import]
+        from django_extensions.db import (  # type: ignore[import]
+            fields as django_extension_fields,
         )
 
         mapping = {

@@ -158,11 +158,11 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
     You can use this function for your E2E test prep.
     """
     logger.info("Generating interfaces and client side code")
-    schema = schema.encode()
+    encoded_schema = schema.encode()
 
     import hashlib
 
-    digest = hashlib.sha1(schema).hexdigest().encode()
+    digest = hashlib.sha1(encoded_schema).hexdigest().encode()
 
     if skip_cache is False and os.path.exists("client/generated/index.tsx"):
         with open("client/generated/index.tsx", "r+b") as existing:
@@ -181,7 +181,7 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
         stdout=subprocess.PIPE,
         stdin=subprocess.PIPE,
     )
-    out, error = process.communicate(schema)
+    out, error = process.communicate(encoded_schema)
 
     os.makedirs("client/generated", exist_ok=True)
 

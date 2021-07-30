@@ -1,8 +1,8 @@
 import atexit
 import logging
-import os
 import re
 import subprocess
+import sys
 from typing import Any, List, Optional
 
 import requests
@@ -39,7 +39,7 @@ def wait_and_get_port() -> Optional[int]:
     )
 
     def cleanup() -> None:
-        if "PYTEST_CURRENT_TEST" not in os.environ:
+        if "pytest" in sys.modules:
             logger.info("Cleaning up renderer process")
         process.terminate()
 

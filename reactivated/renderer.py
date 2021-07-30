@@ -1,5 +1,6 @@
 import atexit
 import logging
+import os
 import re
 import subprocess
 from typing import Any, List, Optional
@@ -38,7 +39,8 @@ def wait_and_get_port() -> Optional[int]:
     )
 
     def cleanup() -> None:
-        logger.info("Cleaning up renderer process")
+        if "PYTEST_CURRENT_TEST" not in os.environ:
+            logger.info("Cleaning up renderer process")
         process.terminate()
 
     atexit.register(cleanup)

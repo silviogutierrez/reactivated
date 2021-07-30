@@ -39,7 +39,9 @@ class LazySerializationResponse(TemplateResponse):
         return obj_dict
 
     def resolve_context(self, context: Optional[Dict[str, Any]]) -> JSON:
-        generated_schema = create_schema(self.template, {})
+        from . import definitions_registry
+
+        generated_schema = create_schema(self.template, definitions_registry)
         return serialize(context, generated_schema)
 
 
@@ -113,7 +115,7 @@ def extract_forms_form_sets_and_actions(interface: Any) -> Extracted:
 
 
 def interface(cls: T) -> T:
-    from . import type_registry
+    from . import type_registry, definitions_registry
 
     type_name = f"{cls.__name__}Props"  # type: ignore[attr-defined]
     type_registry[type_name] = cls  # type: ignore[assignment]
@@ -122,7 +124,7 @@ def interface(cls: T) -> T:
         is_reactivated_interface = True
 
         def get_serialized(self) -> Any:
-            generated_schema = create_schema(cls, {})
+            generated_schema = create_schema(cls, definitions_registry)
             return serialize(self, generated_schema)
 
         def render(self, request: HttpRequest) -> HttpResponse:

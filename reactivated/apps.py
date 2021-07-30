@@ -9,6 +9,7 @@ from django.apps import AppConfig
 from django.conf import settings
 
 from . import (
+    definitions_registry,
     extract_views_from_urlpatterns,
     global_types,
     template_registry,
@@ -86,7 +87,8 @@ def get_types_schema() -> Any:
     type_registry["Context"] = create_context_processor_type(context_processors)
 
     ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore[misc]
-    parent_schema, definitions = create_schema(ParentTuple, {})
+    parent_schema, definitions = create_schema(ParentTuple, definitions_registry)
+    definitions_registry.update(definitions)
 
     return {
         "definitions": definitions,
@@ -131,6 +133,7 @@ class ReactivatedConfig(AppConfig):
         Django's dev server actually starts twice. So we prevent generation on
         the first start. TODO: handle noreload.
         """
+        schema = get_schema()
 
         if (
             os.environ.get("WERKZEUG_RUN_MAIN") == "true"
@@ -145,17 +148,17 @@ class ReactivatedConfig(AppConfig):
             os.environ["DJANGO_SEVER_STARTING"] = "true"
             return
 
-        generate_schema()
+        generate_schema(schema)
 
 
-def generate_schema(skip_cache: bool = False) -> None:
+def generate_schema(schema: str, skip_cache: bool = False) -> None:
     """
     For development usage only, this requires Node and Python installed
 
     You can use this function for your E2E test prep.
     """
     logger.info("Generating interfaces and client side code")
-    schema = get_schema().encode()
+    schema = schema.encode()
 
     import hashlib
 

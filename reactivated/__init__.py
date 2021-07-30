@@ -39,6 +39,7 @@ type_registry: Dict[str, Tuple[Any]] = {}
 global_types: Dict[str, Tuple[Any]] = {}
 template_registry: Dict[str, Tuple[Any]] = {}
 value_registry: Dict[str, Any] = {}
+definitions_registry: Dict[Any, Any] = {}
 
 
 def export(var: Any) -> None:

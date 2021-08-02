@@ -2,6 +2,7 @@ import atexit
 import logging
 import re
 import subprocess
+import sys
 from typing import Any, List, Optional
 
 import requests
@@ -38,7 +39,12 @@ def wait_and_get_port() -> Optional[int]:
     )
 
     def cleanup() -> None:
-        logger.info("Cleaning up renderer process")
+        # Pytest has issues with this, see https://github.com/pytest-dev/pytest/issues/5502
+        # We can't use the env variable PYTEST_CURRENT_TEST because this happens
+        # after running all tests and closing the session.
+        # See: https://stackoverflow.com/questions/25188119/test-if-code-is-executed-from-within-a-py-test-session
+        if "pytest" not in sys.modules:
+            logger.info("Cleaning up renderer process")
         process.terminate()
 
     atexit.register(cleanup)

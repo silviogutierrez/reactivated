@@ -340,7 +340,9 @@ def field_descriptor_schema(
     }
 
     try:
-        from django_extensions.db import fields as django_extension_fields  # type: ignore[import]
+        from django_extensions.db import (  # type: ignore[import]
+            fields as django_extension_fields,
+        )
 
         mapping = {
             **mapping,
@@ -517,7 +519,6 @@ def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
 
 def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
     definition_name = f"{Type.__module__}.{Type.__qualname__}"
-
     if definition_name in definitions:
         return Thing(
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions

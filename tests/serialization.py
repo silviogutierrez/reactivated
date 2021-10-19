@@ -202,10 +202,7 @@ def test_form():
 
 
 def test_widget_inheritance():
-    class WidgetMixin:
-        pass
-
-    class ChildWidget(WidgetMixin, django_forms.TextInput):
+    class ChildWidget(django_forms.TextInput):
         pass
 
     class FormWithChildWidget(django_forms.Form):
@@ -220,7 +217,7 @@ def test_widget_inheritance():
     class FormWithGrandchildWidget(django_forms.Form):
         my_field = django_forms.CharField(widget=GrandchildWidget)
 
-    with pytest.raises(AssertionError, match="depth-1"):
+    with pytest.raises(AssertionError, match="is not supported"):
         create_schema(FormWithGrandchildWidget, {})
 
 
@@ -274,16 +271,10 @@ def test_unique_pick(settings):
 
 
 def test_form_field():
-    Testing = Pick[models.Opera, "stopme"]
-
     class Form(django_forms.Form):
         field = django_forms.CharField()
 
     generated_schema = create_schema(Form, {})
-    generated_schema = create_schema(Testing, {})
-    assert False
-    # breakpoint()
-
 
 @pytest.mark.django_db
 def test_form_with_model_choice_iterator_value():

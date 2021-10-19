@@ -13,6 +13,7 @@ from typing import (
     Sequence,
     Tuple,
     Type,
+    TypeVar,
     Union,
     get_type_hints,
 )
@@ -517,7 +518,9 @@ def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
     )
 
 
-def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
+def named_tuple_schema(
+    Type: Any, definitions: Definitions, serializer_name: Optional[str] = None
+) -> Thing:
     definition_name = f"{Type.__module__}.{Type.__qualname__}"
     if definition_name in definitions:
         return Thing(
@@ -555,7 +558,7 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
             definition_name: {
                 "serializer": definition_name
                 if callable(getattr(Type, "get_serialized_value", None))
-                else None,
+                else serializer_name,
                 "type": "object",
                 "additionalProperties": False,
                 "properties": properties,
@@ -590,6 +593,8 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
     error_properties = {}
 
     for field_name, SubType in Type.base_fields.items():  # type: ignore[attr-defined]
+        widget_schema, definitions = create_schema(SubType.widget, definitions)
+
         required.append(field_name)
 
         SourceWidget = SubType.widget.__class__
@@ -753,11 +758,153 @@ def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> 
     )
 
 
+Override = TypeVar("Override")
+
+
+TYPE_HINTS = {}
+
+
+def register(path: str) -> Callable[[Override], Override]:
+    def inner(override: Override) -> Override:
+        TYPE_HINTS[path] = override
+        return override
+
+    return inner
+
+
+class BaseWidgetAttrs(NamedTuple):
+    id: str
+    placeholder: Optional[str]
+    disabled: Optional[bool]
+    required: Optional[bool]
+
+
+class BaseWidget(NamedTuple):
+    name: str
+    is_hidden: bool
+    required: bool
+    value: Optional[str]
+    attrs: BaseWidgetAttrs
+
+
+class MaxLengthAttrs(BaseWidgetAttrs):
+    max_length: Optional[str]
+
+
+@register("django.forms.widgets.HiddenInput")
+class HiddenInput(BaseWidget):
+    pass
+
+
+@register("django.forms.widgets.TextInput")
+class TextInput(BaseWidget):
+    attrs: MaxLengthAttrs
+
+
+@register("django.forms.widgets.URLInput")
+class URLInput(BaseWidget):
+    attrs: MaxLengthAttrs
+
+
+class StepAttrs(BaseWidgetAttrs):
+    step: str
+
+
+@register("django.forms.widgets.NumberInput")
+class NumberInput(BaseWidget):
+    attrs: StepAttrs
+
+
+class CheckAttrs(BaseWidgetAttrs):
+    checked: Optional[bool]
+
+
+@register("django.forms.widgets.CheckboxInput")
+class CheckboxInput(BaseWidget):
+    attrs: CheckAttrs
+
+
+@register("django.forms.widgets.PasswordInput")
+class PasswordInput(BaseWidget):
+    pass
+
+
+@register("django.forms.widgets.EmailInput")
+class EmailInput(BaseWidget):
+    pass
+
+
+class TextareaAttrs(BaseWidgetAttrs):
+    cols: str
+    rows: str
+
+
+@register("django.forms.widgets.Textarea")
+class Textarea(BaseWidget):
+    attrs: TextareaAttrs
+
+
+@register("django.forms.widgets.DateInput")
+class DateInput(BaseWidget):
+    pass
+
+
+@register("django.forms.widgets.Select")
+class Select(BaseWidget):
+    pass
+
+
+@register("taggit.forms.TagWidget")
+class TagWidget(TextInput):
+    pass
+
+
+@register("django.forms.widgets.ClearableFileInput")
+class ClearableFileInput(BaseWidget):
+    checkbox_name: str
+    checkbox_id: str
+    is_initial: bool
+    input_text: str
+    initial_text: str
+    clear_checkbox_label: str
+
+
+def widget_schema(Type: Type[django_forms.Widget], definitions: Definitions) -> Thing:
+    definition_name = f"{Type.__module__}.{Type.__qualname__}"
+
+    annotation = TYPE_HINTS.get(definition_name)
+
+    if annotation is None:
+        if len(Type.__bases__) == 1:
+            Parent = Type.__bases__[0]
+            parent_definition_name = f"{Parent.__module__}.{Parent.__qualname__}"
+
+            if Parent.get_context is Type.get_context:  # type: ignore[attr-defined]
+                annotation = TYPE_HINTS.get(parent_definition_name)
+
+        if annotation is None:
+            assert False, f"{Type} is not supported."
+        """
+        ), f"Only core widgets and depth-1 inheritance widgets are currently supported. Check {SubType.widget.__class__}"
+
+"""
+    schema = named_tuple_schema(
+        annotation, definitions, serializer_name="widget_serializer"
+    )
+    return schema
+
+
+def widget_serializer(value: object, schema: Thing) -> JSON:
+    pass
+
+
 def create_schema(Type: Any, definitions: Definitions) -> Thing:
     if isinstance(Type, stubs._GenericAlias):
         return generic_alias_schema(Type, definitions)
     elif isinstance(Type, models.Field):
         return field_descriptor_schema(Type, definitions)
+    elif isinstance(Type, django_forms.Widget):
+        return widget_schema(Type.__class__, definitions)
     elif Type == Any:
         return Thing(schema={}, definitions=definitions)
     elif callable(getattr(Type, "get_json_schema", None)):

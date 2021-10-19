@@ -149,8 +149,8 @@ class ReactivatedConfig(AppConfig):
             os.environ["DJANGO_SEVER_STARTING"] = "true"
             return
 
-        # schema = get_schema()
-        # generate_schema(schema)
+        schema = get_schema()
+        generate_schema(schema)
 
 
 def generate_schema(schema: str, skip_cache: bool = False) -> None:

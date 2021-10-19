@@ -105,6 +105,7 @@ export function reverse<T extends All['name']>(name: T, args?: Extract<WithArgum
 interfaces.addStatements(`
 import React from "react"
 import * as widgets from "reactivated/components/Widget";
+import * as types from "reactivated/types";
 import createContext from "reactivated/context";
 import createForms from "reactivated/forms";
 

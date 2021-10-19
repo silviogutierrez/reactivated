@@ -248,6 +248,43 @@ def test_subwidget():
     convert_to_json_and_validate(serialized_form, generated_schema)
 
 
+def test_unique_pick(settings):
+    settings.INSTALLED_APPS = ["tests.serialization"]
+    test_apps = Apps(settings.INSTALLED_APPS)
+
+    class TestModel(Model):
+        first = IntegerField()
+        second = IntegerField()
+        third = IntegerField()
+
+        class Meta:
+            apps = test_apps
+
+    First = Pick[TestModel, "first"]
+    Second = Pick[TestModel, "second"]
+    Third = Pick[TestModel, "third"]
+    RepeatOfFirst = Pick[TestModel, "first"]
+    RepeatOfSecond = Pick[TestModel, "second"]
+
+    assert First.definition_name.endswith("TestModel")
+    assert Second.definition_name.endswith("TestModel2")
+    assert Third.definition_name.endswith("TestModel3")
+    assert First.definition_name == RepeatOfFirst.definition_name
+    assert Second.definition_name == RepeatOfSecond.definition_name
+
+
+def test_form_field():
+    Testing = Pick[models.Opera, "stopme"]
+
+    class Form(django_forms.Form):
+        field = django_forms.CharField()
+
+    generated_schema = create_schema(Form, {})
+    generated_schema = create_schema(Testing, {})
+    assert False
+    # breakpoint()
+
+
 @pytest.mark.django_db
 def test_form_with_model_choice_iterator_value():
     models.Country.objects.create(

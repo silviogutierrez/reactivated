@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import inspect
 from typing import (
     Any,
+    Dict,
     List,
     Literal,
     NamedTuple,
@@ -198,9 +200,18 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
 class BasePickHolder:
     model_class: Type[models.Model]
     fields: List[str] = []
+    definition_name: str
 
     @classmethod
     def get_json_schema(cls: Type[BasePickHolder], definitions: Definitions) -> Thing:
+        definition_name = cls.definition_name
+
+        if definition_name in definitions:
+            return Thing(
+                schema={"$ref": f"#/definitions/{definition_name}"},
+                definitions=definitions,
+            )
+
         schema = {
             "type": "object",
             "additionalProperties": False,
@@ -230,11 +241,18 @@ class BasePickHolder:
             reference["properties"][target_name] = field_schema.schema
             reference["required"].append(target_name)
 
-        return Thing(schema=schema, definitions=definitions)
+        return Thing(
+            schema={"$ref": f"#/definitions/{definition_name}"},
+            definitions={**definitions, definition_name: schema,},
+        )
+
+
+unique_picks_per_module: Dict[str, Any] = {}
 
 
 class Pick:
     def __class_getitem__(cls: Any, item: Any) -> Any:
+        module_name = inspect.currentframe().f_back.f_globals["__name__"]  # type: ignore[union-attr]
         meta_model, *meta_fields = item
 
         if isinstance(meta_model, str):
@@ -256,8 +274,26 @@ class Pick:
             else:
                 assert False, f"Unsupported pick property {field_or_literal}"
 
+        pick_name = meta_model.__name__
+        count = 1
+
+        while True:
+            _definition_name = f"{module_name}.{pick_name}"
+            existing_pick = unique_picks_per_module.get(_definition_name)
+
+            if not existing_pick:
+                break
+            elif existing_pick.fields == flattened_fields:
+                return existing_pick
+            else:
+                count += 1
+                pick_name = f"{meta_model.__name__}{count}"
+
         class PickHolder(BasePickHolder):
             model_class = meta_model
             fields = flattened_fields
+            definition_name = _definition_name
+
+        unique_picks_per_module[PickHolder.definition_name] = PickHolder
 
         return PickHolder

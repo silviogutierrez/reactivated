@@ -630,11 +630,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
                 ts_type = f'widgets.{SourceWidget.__name__}<Types["globals"]["{generic_name}"]>'
 
         properties[field_name] = {
-            **field_type_definition,
-            "properties": {
-                **field_type_definition["properties"],
-                "widget": {"tsType": ts_type},
-            },
+            "tsType": f"types.FormFieldType<{ts_type}>",
         }
         error_properties[field_name] = error_definition
 

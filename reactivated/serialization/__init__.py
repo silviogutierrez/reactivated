@@ -77,6 +77,14 @@ class Thing(NamedTuple):
     schema: Schema
     definitions: Definitions
 
+    def dereference(self) -> Schema:
+        ref = self.schema.get("$ref")
+
+        if not ref:
+            return self.schema
+
+        return self.definitions[ref.replace("#/definitions/", "")]
+
 
 class ForeignKeyType:
     @classmethod
@@ -154,37 +162,6 @@ class FieldType(NamedTuple):
     label: str
     help_text: str
 
-    # TODO: way to mark this as a custom property we define. This is just so it is
-    # marked as required.
-    #
-    # The actual widget name is done by `form_schema`, which is kind of odd.
-    # We need a better way to make a custom schema that is self contained.
-    widget: Any
-
-    @classmethod
-    def get_json_schema(Type: Type["FieldType"], definitions: Definitions) -> "Thing":
-        definition_name = f"{Type.__module__}.{Type.__qualname__}"
-
-        if definition_name in definitions:
-            return Thing(
-                schema={"$ref": f"#/definitions/{definition_name}"},
-                definitions=definitions,
-            )
-
-        schema = named_tuple_schema(Type, definitions)
-
-        definitions = {
-            **definitions,
-            definition_name: {
-                **schema.definitions[definition_name],
-                "serializer": "field_serializer",
-            },
-        }
-
-        return Thing(
-            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
-        )
-
 
 def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     """
@@ -245,7 +222,7 @@ class FormType(NamedTuple):
 
         fields = {
             field.name: FieldType(
-                widget=extract_widget_context(field),
+                # widget=extract_widget_context(field),
                 name=field.name,
                 label=str(
                     field.label
@@ -582,10 +559,9 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         f"{FormType.__module__}.{FormType.__qualname__}"
     ]
     """
-    field_type_definition = schema.definitions[
-        f"{FieldType.__module__}.{FieldType.__qualname__}"
-    ]
 
+
+    field_schema, definitions = create_schema(FieldType, definitions)
     error_definition = create_schema(FormError, definitions).schema
 
     required = []
@@ -594,20 +570,23 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
 
     for field_name, SubType in Type.base_fields.items():  # type: ignore[attr-defined]
         widget_schema, definitions = create_schema(SubType.widget, definitions)
-
         required.append(field_name)
 
-        SourceWidget = SubType.widget.__class__
+        properties[field_name] = {
+             "allOf": [
+                 field_schema,
+                 {
+                     "type": "object",
+                     "properties": {
+                         "widget": widget_schema,
+                     },
+                     "additionalProperties": False,
+                     "required": ["widget"],
+                 },
+             ],
+        }
 
-        if SourceWidget.__module__ != "django.forms.widgets":
-            for base_class in SubType.widget.__class__.__bases__:
-                if issubclass(base_class, django_forms.widgets.Widget):
-                    SourceWidget = base_class
-
-        assert (
-            SourceWidget.__module__ == "django.forms.widgets"
-        ), f"Only core widgets and depth-1 inheritance widgets are currently supported. Check {SubType.widget.__class__}"
-
+        """
         ts_type = f"widgets.{SourceWidget.__name__}"
 
         # Special treatment to register global Enum types and reference them
@@ -637,6 +616,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         properties[field_name] = {
             "tsType": f"types.FormFieldType<{ts_type}>",
         }
+        """
         error_properties[field_name] = error_definition
 
     iterator = (
@@ -867,6 +847,17 @@ class ClearableFileInput(BaseWidget):
     input_text: str
     initial_text: str
     clear_checkbox_label: str
+
+
+class SelectDateWidgetValue(NamedTuple):
+    year: Optional[str]
+    month: Optional[str]
+    day: Optional[str]
+
+
+@register("django.forms.widgets.SelectDateWidget")
+class SelectDateWidget(BaseWidget):
+    value: SelectDateWidgetValue  # type: ignore[assignment]
 
 
 def widget_schema(Type: Type[django_forms.Widget], definitions: Definitions) -> Thing:

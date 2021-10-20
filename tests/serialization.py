@@ -69,7 +69,13 @@ class Foo(NamedTuple):
 
 
 def convert_to_json_and_validate(instance, schema):
-    converted = simplejson.loads(simplejson.dumps(instance))
+
+    class DecimalEncoder(simplejson.JSONEncoder):
+        def default(self, o):
+            assert False
+            return super(DecimalEncoder, self).default(o)
+
+    converted = simplejson.loads(simplejson.dumps(instance, cls=DecimalEncoder))
     validate(
         instance=converted, schema={"definitions": schema.definitions, **schema.schema}
     )
@@ -235,7 +241,7 @@ def test_custom_widget():
     assert serialized_form.fields["field"].widget["template_name"] == "foo"
 
 
-def test_subwidget():
+def test_select_date_widget():
     class SubwidgetForm(django_forms.Form):
         date_field = django_forms.DateField(widget=django_forms.SelectDateWidget)
 
@@ -243,6 +249,13 @@ def test_subwidget():
     form = SubwidgetForm()
     serialized_form = serialize(form, generated_schema)
     convert_to_json_and_validate(serialized_form, generated_schema)
+
+
+def test_form_field():
+    class Form(django_forms.Form):
+        field = django_forms.CharField()
+
+    generated_schema = create_schema(Form, {})
 
 
 def test_unique_pick(settings):
@@ -269,12 +282,6 @@ def test_unique_pick(settings):
     assert First.definition_name == RepeatOfFirst.definition_name
     assert Second.definition_name == RepeatOfSecond.definition_name
 
-
-def test_form_field():
-    class Form(django_forms.Form):
-        field = django_forms.CharField()
-
-    generated_schema = create_schema(Form, {})
 
 @pytest.mark.django_db
 def test_form_with_model_choice_iterator_value():

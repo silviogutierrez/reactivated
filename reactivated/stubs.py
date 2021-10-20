@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, ClassVar, List, Mapping, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, List, Mapping, Type, Union, Optional
 
 if TYPE_CHECKING:
     from django import forms as django_forms
@@ -38,7 +38,15 @@ if TYPE_CHECKING:
     class _TypedDictMeta:
         pass
 
-
+    from typing import Optional as Undefined
 else:
     from typing import _GenericAlias, _TypedDictMeta  # noqa: F401
     from django.forms.formsets import BaseFormSet  # noqa: F401
+
+    class Undefined:
+        def __class_getitem__(
+            cls: Type["Undefined"], item: Any
+        ) -> Any:
+            optional = Optional.__getitem__(item)
+            optional._reactivated_undefined = True
+            return optional

@@ -23,7 +23,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
 
-from reactivated import fields, forms, stubs
+from reactivated import fields, stubs
 from reactivated.models import ComputedRelation
 
 Schema = Mapping[Any, Any]
@@ -221,23 +221,26 @@ class FormType(NamedTuple):
         form = value
 
         fields = {
-            field.name: FieldType(
-                # widget=extract_widget_context(field),
-                name=field.name,
-                label=str(
-                    field.label
-                ),  # This can be a lazy proxy, so we must call str on it.
-                help_text=str(
-                    field.help_text
-                ),  # This can be a lazy proxy, so we must call str on it.
-            )
+            field.name: {
+                **FieldType(
+                    # widget=extract_widget_context(field),
+                    name=field.name,
+                    label=str(
+                        field.label
+                    ),  # This can be a lazy proxy, so we must call str on it.
+                    help_text=str(
+                        field.help_text
+                    ),  # This can be a lazy proxy, so we must call str on it.
+                )._asdict(),
+                "widget": extract_widget_context(field),
+            }
             for field in form
         }
 
         return FormType(
             name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",
             errors=form.errors or None,
-            fields=fields,
+            fields=fields,  # type: ignore
             iterator=list(fields.keys()),
             prefix=form.prefix or "",
         )
@@ -512,7 +515,10 @@ def named_tuple_schema(
         field_schema = create_schema(Subtype, definitions)
         definitions = {**definitions, **field_schema.definitions}
 
-        required.append(field_name)
+        is_undefined = getattr(Subtype, "_reactivated_undefined", False)
+
+        if is_undefined is False:
+            required.append(field_name)
         properties[field_name] = field_schema.schema
 
     for field_name in dir(Type):
@@ -553,14 +559,6 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
         )
 
-    schema = named_tuple_schema(FormType, definitions)
-    """
-    form_type_definition = schema.definitions[
-        f"{FormType.__module__}.{FormType.__qualname__}"
-    ]
-    """
-
-
     field_schema, definitions = create_schema(FieldType, definitions)
     error_definition = create_schema(FormError, definitions).schema
 
@@ -573,17 +571,16 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
         required.append(field_name)
 
         properties[field_name] = {
-             "allOf": [
-                 field_schema,
-                 {
-                     "type": "object",
-                     "properties": {
-                         "widget": widget_schema,
-                     },
-                     "additionalProperties": False,
-                     "required": ["widget"],
-                 },
-             ],
+            "_reactivated_testing_merge": True,
+            "allOf": [
+                field_schema,
+                {
+                    "type": "object",
+                    "properties": {"widget": widget_schema,},
+                    "additionalProperties": False,
+                    "required": ["widget"],
+                },
+            ],
         }
 
         """
@@ -754,12 +751,15 @@ def register(path: str) -> Callable[[Override], Override]:
 
 class BaseWidgetAttrs(NamedTuple):
     id: str
-    placeholder: Optional[str]
-    disabled: Optional[bool]
-    required: Optional[bool]
+    disabled: stubs.Undefined[bool] = None
+    required: stubs.Undefined[bool] = None
+    placeholder: stubs.Undefined[str] = None
 
 
 class BaseWidget(NamedTuple):
+    template_name: str
+    subwidgets: Any
+
     name: str
     is_hidden: bool
     required: bool

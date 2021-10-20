@@ -69,15 +69,31 @@ class Foo(NamedTuple):
 
 
 def convert_to_json_and_validate(instance, schema):
+    def merge_all_of(json_input):
+        if isinstance(json_input, dict):
+            if (allOf := json_input.get("allOf")) and json_input.get("_reactivated_testing_merge") is True:
+                merged = {
+                    "type": "object",
+                    "properties": {},
+                    "required": [],
+                    "additionalProperties": False,
+                }
+                for to_merge in allOf:
+                    dereferenced = schema.definitions[to_merge["$ref"].replace("#/definitions/", "")] if "$ref" in to_merge else to_merge
+                    merged["properties"].update(dereferenced["properties"])
+                    merged["required"].extend(dereferenced["required"])
+                return merged
 
-    class DecimalEncoder(simplejson.JSONEncoder):
-        def default(self, o):
-            assert False
-            return super(DecimalEncoder, self).default(o)
+            return {key: merge_all_of(value) for key, value in json_input.items()}
+        elif isinstance(json_input, list):
+            return [merge_all_of(value) for value in json_input]
+        return json_input
 
-    converted = simplejson.loads(simplejson.dumps(instance, cls=DecimalEncoder))
+    merged_definitions = merge_all_of(schema.definitions)
+    converted = simplejson.loads(simplejson.dumps(instance))
+
     validate(
-        instance=converted, schema={"definitions": schema.definitions, **schema.schema}
+        instance=converted, schema={"definitions": merged_definitions, **schema.schema}
     )
 
 

@@ -1,8 +1,23 @@
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, List, Optional, TypedDict, Union, cast
 
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.models import ModelChoiceIterator
+
+from reactivated.serialization import BaseWidget, register
+
+
+class AutocompleteValue(TypedDict):
+    value: Union[str, int]
+    label: str
+
+
+class AutocompleteContext(BaseWidget):
+    value: List[str]  # type: ignore[assignment]
+    selected: Optional[AutocompleteValue]
+
+
+register("reactivated.widgets.Autocomplete")(AutocompleteContext)
 
 
 class Autocomplete(forms.Select):

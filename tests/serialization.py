@@ -71,7 +71,9 @@ class Foo(NamedTuple):
 def convert_to_json_and_validate(instance, schema):
     def merge_all_of(json_input):
         if isinstance(json_input, dict):
-            if (allOf := json_input.get("allOf")) and json_input.get("_reactivated_testing_merge") is True:
+            if (allOf := json_input.get("allOf")) and json_input.get(
+                "_reactivated_testing_merge"
+            ) is True:
                 merged = {
                     "type": "object",
                     "properties": {},
@@ -79,7 +81,13 @@ def convert_to_json_and_validate(instance, schema):
                     "additionalProperties": False,
                 }
                 for to_merge in allOf:
-                    dereferenced = schema.definitions[to_merge["$ref"].replace("#/definitions/", "")] if "$ref" in to_merge else to_merge
+                    dereferenced = (
+                        schema.definitions[
+                            to_merge["$ref"].replace("#/definitions/", "")
+                        ]
+                        if "$ref" in to_merge
+                        else to_merge
+                    )
                     merged["properties"].update(dereferenced["properties"])
                     merged["required"].extend(dereferenced["required"])
                 return merged
@@ -265,13 +273,6 @@ def test_select_date_widget():
     form = SubwidgetForm()
     serialized_form = serialize(form, generated_schema)
     convert_to_json_and_validate(serialized_form, generated_schema)
-
-
-def test_form_field():
-    class Form(django_forms.Form):
-        field = django_forms.CharField()
-
-    generated_schema = create_schema(Form, {})
 
 
 def test_unique_pick(settings):

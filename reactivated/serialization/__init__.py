@@ -401,7 +401,8 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
         # Mixed types would have to be a Union of enums.
 
         return Thing(
-            schema={"type": "string", "enum": Type.__args__}, definitions=definitions
+            schema={"type": "string", "enum": list(Type.__args__)},
+            definitions=definitions,
         )
     elif Type.__origin__ == type and issubclass(
         (enum_type := Type.__args__[0]), enum.Enum
@@ -758,7 +759,6 @@ class BaseWidgetAttrs(NamedTuple):
 
 class BaseWidget(NamedTuple):
     template_name: str
-    subwidgets: Any
 
     name: str
     is_hidden: bool
@@ -768,21 +768,23 @@ class BaseWidget(NamedTuple):
 
 
 class MaxLengthAttrs(BaseWidgetAttrs):
-    max_length: Optional[str]
+    maxlength: Optional[str]
 
 
 @register("django.forms.widgets.HiddenInput")
 class HiddenInput(BaseWidget):
-    pass
+    type: Literal["hidden"]
 
 
 @register("django.forms.widgets.TextInput")
 class TextInput(BaseWidget):
+    type: Literal["text"]
     attrs: MaxLengthAttrs
 
 
 @register("django.forms.widgets.URLInput")
 class URLInput(BaseWidget):
+    type: Literal["url"]
     attrs: MaxLengthAttrs
 
 
@@ -792,6 +794,7 @@ class StepAttrs(BaseWidgetAttrs):
 
 @register("django.forms.widgets.NumberInput")
 class NumberInput(BaseWidget):
+    type: Literal["number"]
     attrs: StepAttrs
 
 
@@ -801,17 +804,18 @@ class CheckAttrs(BaseWidgetAttrs):
 
 @register("django.forms.widgets.CheckboxInput")
 class CheckboxInput(BaseWidget):
+    type: Literal["checkbox"]
     attrs: CheckAttrs
 
 
 @register("django.forms.widgets.PasswordInput")
 class PasswordInput(BaseWidget):
-    pass
+    type: Literal["password"]
 
 
 @register("django.forms.widgets.EmailInput")
 class EmailInput(BaseWidget):
-    pass
+    type: Literal["email"]
 
 
 class TextareaAttrs(BaseWidgetAttrs):
@@ -826,12 +830,13 @@ class Textarea(BaseWidget):
 
 @register("django.forms.widgets.DateInput")
 class DateInput(BaseWidget):
-    pass
+    type: Literal["date"]
 
 
 @register("django.forms.widgets.Select")
 class Select(BaseWidget):
-    pass
+    optgroups: List[Optgroup]
+    value: List[str]  # type: ignore[assignment]
 
 
 @register("taggit.forms.TagWidget")
@@ -841,6 +846,7 @@ class TagWidget(TextInput):
 
 @register("django.forms.widgets.ClearableFileInput")
 class ClearableFileInput(BaseWidget):
+    type: Literal["file"]
     checkbox_name: str
     checkbox_id: str
     is_initial: bool

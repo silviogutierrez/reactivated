@@ -839,6 +839,17 @@ class Select(BaseWidget):
     value: List[str]  # type: ignore[assignment]
 
 
+class SelectMultipleAttrs(BaseWidgetAttrs):
+    multiple: bool
+
+
+@register("django.forms.widgets.SelectMultiple")
+class SelectMultiple(BaseWidget):
+    attrs: SelectMultipleAttrs
+    optgroups: List[Optgroup]
+    value: List[str]  # type: ignore[assignment]
+
+
 @register("taggit.forms.TagWidget")
 class TagWidget(TextInput):
     pass
@@ -864,6 +875,7 @@ class SelectDateWidgetValue(NamedTuple):
 @register("django.forms.widgets.SelectDateWidget")
 class SelectDateWidget(BaseWidget):
     value: SelectDateWidgetValue  # type: ignore[assignment]
+    subwidgets: Tuple[Select, Select, Select]
 
 
 def widget_schema(Type: Type[django_forms.Widget], definitions: Definitions) -> Thing:

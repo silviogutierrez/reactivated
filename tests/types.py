@@ -131,7 +131,7 @@ def test_enum_does_not_clobber_enum_type():
 
 def test_literal():
     assert create_schema(Literal["hello"], {}) == (
-        {"type": "string", "enum": ("hello",)},
+        {"type": "string", "enum": ["hello",]},
         {},
     )
 

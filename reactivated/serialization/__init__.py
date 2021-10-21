@@ -768,7 +768,7 @@ class BaseWidget(NamedTuple):
 
 
 class MaxLengthAttrs(BaseWidgetAttrs):
-    maxlength: Optional[str]
+    maxlength: stubs.Undefined[str]
 
 
 @register("django.forms.widgets.HiddenInput")
@@ -799,7 +799,7 @@ class NumberInput(BaseWidget):
 
 
 class CheckAttrs(BaseWidgetAttrs):
-    checked: Optional[bool]
+    checked: stubs.Undefined[bool]
 
 
 @register("django.forms.widgets.CheckboxInput")

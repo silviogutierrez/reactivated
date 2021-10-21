@@ -43,8 +43,21 @@ else:
     from typing import _GenericAlias, _TypedDictMeta  # noqa: F401
     from django.forms.formsets import BaseFormSet  # noqa: F401
 
+    class BaseUndefinedHolder:
+        _reactivated_undefined = True
+        type: Any
+
+        @classmethod
+        def get_json_schema(cls: Type["BaseUndefinedHolder"], definitions: Any) -> Any:
+            from .serialization import create_schema
+
+            return create_schema(cls.type, definitions)
+
     class Undefined:
+        wrapped: Any
+
         def __class_getitem__(cls: Type["Undefined"], item: Any) -> Any:
-            optional = Optional.__getitem__(item)
-            optional._reactivated_undefined = True
-            return optional
+            class Undefined(BaseUndefinedHolder):
+                type = Optional[item]
+
+            return Undefined

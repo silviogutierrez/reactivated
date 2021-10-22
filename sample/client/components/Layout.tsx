@@ -1,7 +1,7 @@
 import React from "react";
 import Helmet from "react-helmet";
 
-import Context from "reactivated/context";
+import {Context} from "@client/generated";
 
 interface Props {
     title: string;

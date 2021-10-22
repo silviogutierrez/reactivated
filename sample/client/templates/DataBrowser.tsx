@@ -2,9 +2,8 @@ import React from "react";
 import {style} from "typestyle";
 
 import {Layout} from "@client/components/Layout";
-import {Types} from "@client/generated";
+import {CSRFToken, Types} from "@client/generated";
 import {
-    CSRFToken,
     Field,
     FieldMap,
     Fields,

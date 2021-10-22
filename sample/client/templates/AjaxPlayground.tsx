@@ -1,8 +1,7 @@
 import React from "react";
-import Context from "reactivated/context";
 
 import {Layout} from "@client/components/Layout";
-import {Types} from "@client/generated";
+import {Context, Types} from "@client/generated";
 
 export default class extends React.Component<Types["AjaxPlaygroundProps"], {}> {
     static contextType = Context;

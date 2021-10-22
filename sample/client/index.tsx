@@ -1,14 +1,8 @@
 import React from "react";
 import {hydrate} from "react-dom";
 
-import {Provider} from "reactivated/context";
-
-const props = JSON.parse(
-    (document.getElementsByName("reactivated-props")[0] as HTMLMetaElement).content,
-);
-const context = JSON.parse(
-    (document.getElementsByName("reactivated-context")[0] as HTMLMetaElement).content,
-);
+import {getServerData, Provider} from "@client/generated";
+const {props, context} = getServerData();
 
 if ((module as any).hot) {
     (module as any).hot.accept();

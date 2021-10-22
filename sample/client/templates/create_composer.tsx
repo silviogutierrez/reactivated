@@ -12,7 +12,7 @@ const styles = {
 export default (props: any) => (
     <div className={styles.layout}>
         <h1 className={styles.header}>Create composer</h1>
-    {/*
+        {/*
         <Form form={props.form}>
             <button type="submit">Submit</button>
         </Form>

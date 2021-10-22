@@ -25,9 +25,10 @@ def wait_and_get_port() -> Optional[int]:
         ["node", "node_modules/reactivated/renderer.js",]
         if settings.DEBUG is False
         else [
-            "node_modules/.bin/babel-node",
-            "--extensions",
-            ".ts,.tsx",
+            "node_modules/.bin/ts-node",
+            # "--extensions",
+            # ".ts,.tsx",
+            # ".ts,.tsx",
             "node_modules/reactivated/renderer.js",
         ]
     )

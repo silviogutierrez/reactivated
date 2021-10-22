@@ -500,7 +500,10 @@ def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
 
 
 def named_tuple_schema(
-    Type: Any, definitions: Definitions, serializer_name: Optional[str] = None, tag: Optional[str] = None,
+    Type: Any,
+    definitions: Definitions,
+    serializer_name: Optional[str] = None,
+    tag: Optional[str] = None,
 ) -> Thing:
     definition_name = f"{Type.__module__}.{Type.__qualname__}"
     if definition_name in definitions:
@@ -906,7 +909,10 @@ def widget_schema(Type: Type[django_forms.Widget], definitions: Definitions) -> 
 
 """
     schema = named_tuple_schema(
-        annotation, definitions, serializer_name="widget_serializer", tag=definition_name,
+        annotation,
+        definitions,
+        serializer_name="widget_serializer",
+        tag=definition_name,
     )
     return schema
 

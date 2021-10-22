@@ -2,19 +2,19 @@ import React from "react";
 
 // import {Form} from "reactivated";
 
-import {Layout} from "@client/components/Layout";
 import {Types} from "@client/generated";
 
-export default class extends React.Component<Types["FormPlaygroundProps"], {}> {
-    render() {
-        return (
-            <Layout title="Form playground">
+export default (props: Types["FormPlaygroundProps"]) => {
+    return (
+        <div>
+            {props.form.iterator.map((thing) => (
+                <h1 key={thing}>{thing}</h1>
+            ))}
             {/*
-                <Form form={this.props.form}>
-                    <button type="submit">Submit</button>
-                </Form>
-            */}
-            </Layout>
-        );
-    }
-}
+            <Form form={this.props.form}>
+                <button type="submit">Submit</button>
+            </Form>
+        */}
+        </div>
+    );
+};

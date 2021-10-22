@@ -150,7 +150,6 @@ class ReactivatedConfig(AppConfig):
             return
 
         schema = get_schema()
-        print(schema)
         generate_schema(schema)
 
 

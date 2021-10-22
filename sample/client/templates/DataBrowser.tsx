@@ -3,13 +3,11 @@ import {style} from "typestyle";
 
 import {Layout} from "@client/components/Layout";
 import {CSRFToken, Types} from "@client/generated";
-import {
-    Field,
-    FieldMap,
-    Fields,
-    FormSetLike,
-    ManagementForm,
-} from "reactivated/forms";
+import {FieldMap, Fields, FormSetLike, ManagementForm} from "reactivated/forms";
+
+const Field = (props: any) => {
+    return <div>TODO</div>;
+};
 
 const styles = {
     layout: style({maxWidth: 600, margin: "0 auto"}),

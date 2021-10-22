@@ -1,4 +1,9 @@
 import fs from "fs";
+
+// Must be above the compile import as get-stdin used by
+// json-schema-to-typescript messes up the descriptor even if unused.
+const stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
+
 import {compile} from "json-schema-to-typescript";
 import {
     Project,
@@ -9,8 +14,6 @@ import {
     WriterFunction,
     Writers,
 } from "ts-morph";
-
-const stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
 const {urls, templates, types, values} = schema;
@@ -104,7 +107,6 @@ export function reverse<T extends All['name']>(name: T, args?: Extract<WithArgum
 
 interfaces.addStatements(`
 import React from "react"
-import * as widgets from "reactivated/components/Widget";
 // import * as types from "reactivated/types";
 import createContext from "reactivated/context";
 import createForms from "reactivated/forms";

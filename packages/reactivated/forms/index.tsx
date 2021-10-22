@@ -21,7 +21,7 @@ export default <TContext extends {csrf_token: string}>(
     },
 });
 
-type FormValue<U extends WidgetType> = U extends SelectDateWidget
+type FormValue<U extends {value: unknown}> = U extends SelectDateWidget
     ? {[subWidgetName: string]: U["subwidgets"][number]["value"]}
     : U["value"];
 
@@ -41,6 +41,7 @@ export const getInitialState = <U extends FieldMap>(
 ) => {
     const initialValuesAsEntries = iterator.map((fieldName) => {
         const field = fieldInterceptor(form, fieldName);
+        /*
 
         if ("subwidgets" in field.widget) {
             const subwidgetValues = Object.fromEntries(
@@ -61,6 +62,8 @@ export const getInitialState = <U extends FieldMap>(
         } else {
             return [fieldName, field.widget.value] as const;
         }
+        */
+        return [fieldName, ""] as const;
     });
 
     return Object.fromEntries(initialValuesAsEntries) as FormValues<

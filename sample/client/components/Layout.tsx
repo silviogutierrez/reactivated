@@ -1,7 +1,5 @@
 import React from "react";
-import Helmet from "react-helmet";
-
-import {Context} from "@client/generated";
+import {HelmetProvider} from "react-helmet-async";
 
 interface Props {
     title: string;
@@ -13,11 +11,9 @@ const styles = {
 } as const;
 
 export const Layout = (props: Props) => {
-    const context = React.useContext(Context);
-
     return (
         <>
-            <Helmet key={context.request.path}>
+            <HelmetProvider>
                 <meta charSet="utf-8" />
                 <title>{props.title}</title>
                 <meta
@@ -26,7 +22,7 @@ export const Layout = (props: Props) => {
                 />
 
                 <script defer src="/media/dist/bundle.js" />
-            </Helmet>
+            </HelmetProvider>
             <div style={styles.layout}>{props.children}</div>
         </>
     );

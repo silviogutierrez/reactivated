@@ -4,7 +4,7 @@ import {getValueForSelect, WidgetType} from "./Widget";
 
 interface FieldLike {
     name: string;
-    widget: WidgetType;
+    widget: {name: string; value: unknown};
     label: string;
     help_text: string;
 }

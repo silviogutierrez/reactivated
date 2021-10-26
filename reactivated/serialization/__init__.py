@@ -177,6 +177,9 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     )
     widget = field.as_widget()
     context: Any = widget["widget"]  # type: ignore[index]
+    context[
+        "tag"
+    ] = f"{field.field.widget.__class__.__module__}.{field.field.widget.__class__.__qualname__}"
     context["template_name"] = getattr(
         field.field.widget, "reactivated_widget", context["template_name"]
     )
@@ -368,7 +371,13 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
             definitions = {**definitions, **subschema.definitions}
 
         return Thing(
-            schema={"type": "array", "items": subschemas}, definitions=definitions
+            schema={
+                "type": "array",
+                "minItems": len(subschemas),
+                "maxItems": len(subschemas),
+                "items": subschemas,
+            },
+            definitions=definitions,
         )
     elif Type.__origin__ == Union:
         subschemas = ()

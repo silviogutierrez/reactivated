@@ -2,64 +2,148 @@ import React from "react";
 
 import {Layout} from "@client/components/Layout";
 import {CSRFToken, Types} from "@client/generated";
-import {useForm, FormLike, FieldMap} from "reactivated/forms";
+import {useForm, FormLike, FormHandler, FieldMap} from "reactivated/forms";
+
+import {
+    ReactivatedSerializationCheckboxInput,
+    ReactivatedSerializationSelectDateWidget,
+    ReactivatedSerializationSelect,
+    ReactivatedSerializationTextInput,
+} from "@client/generated";
+
+type WidgetType =
+    | ReactivatedSerializationCheckboxInput
+    | ReactivatedSerializationSelectDateWidget
+    | ReactivatedSerializationSelect
+    | ReactivatedSerializationTextInput;
+
+// type Validators = {[K in WidgetType["tag"]]: (widget: any, input: any) => any};
+
+/*
+const validators: Validators = {
+    "django.forms.widgets.CheckboxInput": (
+        widget: ReactivatedSerializationCheckboxInput,
+        input: HTML,
+    ) => {
+        if (widget.attrs.checked) {
+            return true;
+        }
+    },
+};
+*/
+
+const Widget = ({form, widget}: {form: FormHandler<any>; widget: WidgetType}) => {
+    if (widget.tag === "django.forms.widgets.TextInput") {
+        return (
+            <input
+                type="text"
+                name={widget.name}
+                value={form.values[widget.name] ?? ("" as any)}
+                onChange={(event) => form.handleChange(widget.name, event.target.value)}
+            />
+        );
+    } else if (widget.tag === "django.forms.widgets.CheckboxInput") {
+        return (
+            <input
+                type="checkbox"
+                name={widget.name}
+                checked={form.values[widget.name] ?? false}
+                onChange={(event) =>
+                    form.handleChange(widget.name, event.target.checked)
+                }
+            />
+        );
+    } else if (widget.tag === "django.forms.widgets.Select") {
+        const selected = Array.isArray(form.values[widget.name])
+            ? form.values[widget.name][0]
+            : form.values[widget.name];
+
+        return (
+            <select
+                value={selected ?? ""}
+                onChange={(event) => {
+                    form.handleChange(widget.name, event.target.value);
+                }}
+            >
+                {widget.optgroups.map((optgroup) => {
+                    const member = optgroup[1][0];
+                    const value = member.value == null ? "" : member.value.toString();
+                    return (
+                        <option key={value} value={value}>
+                            {member.label}
+                        </option>
+                    );
+                })}
+            </select>
+        );
+    }
+
+    return <div>TODO</div>;
+};
 
 const Form = <T extends FieldMap>(props: {form: FormLike<FieldMap>}) => {
     const form = useForm({form: props.form});
-    return <div>
-                {props.form.iterator.map((thing) => {
-                    const field = props.form.fields[thing];
+    return (
+        <div>
+            {props.form.iterator.map((thing) => {
+                const field = props.form.fields[thing];
 
-                    if (field.widget.subwidgets != null) {
-                        return (
-                            <div key={thing}>
-                                <h1>{thing}</h1>
-                                <div style={{display: "flex"}}>
+                if (field.widget.subwidgets != null) {
+                    return (
+                        <div key={thing}>
+                            <h1>{thing}</h1>
+                            <div style={{display: "flex"}}>
                                 {field.widget.subwidgets.map((subwidget) => (
                                     <input
                                         key={subwidget.name}
                                         type="text"
                                         name={subwidget.name}
                                         onChange={(event) => {
-                                            const unprefixed = subwidget.name.replace(`${field.widget.name}_`, "");
+                                            const unprefixed = subwidget.name.replace(
+                                                `${field.widget.name}_`,
+                                                "",
+                                            );
 
                                             const value = {
-                                                ...form.values[thing] as any,
+                                                ...(form.values[thing] as any),
                                                 [unprefixed]: event.target.value,
-                                            }
+                                            };
                                             form.handleChange(thing, value);
                                         }}
                                     />
                                 ))}
-                                </div>
                             </div>
-                        );
-                    }
-
-                    return (
-                        <div key={thing}>
-                            <h1>{thing}</h1>
-                            <input
-                                type="text"
-                                name={field.widget.name}
-                                value={form.values[thing] ?? "" as any}
-                                onChange={(event) =>
-                                    form.handleChange(thing, event.target.value)
-                                }
-                            />
                         </div>
                     );
-                })}
-                <button type="submit">Submit</button>
-                <div>
+                }
+
+                return (
+                    <div key={thing}>
+                        <h1>{thing}</h1>
+                        <Widget form={form} widget={field.widget as WidgetType} />
+                        {/*}
+                        <input
+                            type="text"
+                            name={field.widget.name}
+                            value={form.values[thing] ?? ("" as any)}
+                            onChange={(event) =>
+                                form.handleChange(thing, event.target.value)
+                            }
+                        />
+                        */}
+                    </div>
+                );
+            })}
+            <button type="submit">Submit</button>
+            <div>
                 <h1>Form</h1>
                 <pre>{JSON.stringify(form.values, null, 2)}</pre>
                 <pre>{JSON.stringify(form.initialState, null, 2)}</pre>
-                </div>
-                <div></div>
+            </div>
+            <div></div>
         </div>
-}
-
+    );
+};
 
 export default (props: Types["CreateOperaProps"]) => {
     return (

@@ -1,5 +1,5 @@
-from typing import Union
 import datetime
+from typing import Union
 
 from django.http import (
     HttpRequest,
@@ -53,12 +53,17 @@ def create_opera(
         form = forms.OperaForm()
 
     posted = forms.OperaForm({"name": "test", "style": "VERISMO"})
-    pre_filled = forms.OperaForm(initial={"name": "test", "date_written": datetime.date.today(), "style": models.Opera.Style.BUFFA})
+    pre_filled = forms.OperaForm(
+        initial={
+            "name": "test",
+            "date_written": datetime.date.today(),
+            "style": models.Opera.Style.BUFFA,
+            "has_piano_transcription": True,
+        }
+    )
 
     return templates.CreateOpera(
-        form=form,
-        posted=posted,
-        pre_filled=pre_filled,
+        form=form, posted=posted, pre_filled=pre_filled,
     ).render(request)
 
 

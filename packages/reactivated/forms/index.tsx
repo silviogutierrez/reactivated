@@ -60,7 +60,7 @@ interface UseForm<U extends FieldMap> {
     ) => FormValues<U>;
 }
 
-interface FormHandler<U extends FieldMap> {
+export interface FormHandler<U extends FieldMap> {
     fieldInterceptor: (form: FormLike<U>, fieldName: keyof U) => U[keyof U];
     errors: NonNullable<{[P in keyof U]?: string[] | undefined}>;
     setValues: React.Dispatch<React.SetStateAction<FormValues<U>>>;

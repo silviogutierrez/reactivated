@@ -100,6 +100,7 @@ class Opera(models.Model):
         "Composer", on_delete=models.CASCADE, related_name="operas"
     )
     style = EnumField(enum=Style, default=Style.GRAND)
+    date_written = models.DateField()
     has_piano_transcription = models.BooleanField(default=False)
 
     objects = cast(OperaManager, OperaManager.from_queryset(OperaQuerySet)())

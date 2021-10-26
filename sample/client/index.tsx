@@ -15,5 +15,5 @@ hydrate(
     <Provider value={context}>
         <Template {...props} />
     </Provider>,
-    document.documentElement,
+    document.getElementById("root"),
 );

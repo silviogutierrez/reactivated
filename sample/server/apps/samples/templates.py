@@ -36,3 +36,10 @@ class AjaxPlayground(NamedTuple):
 @template
 class FormPlayground(NamedTuple):
     form: forms.PlaygroundForm
+
+
+@template
+class CreateOpera(NamedTuple):
+    form: forms.OperaForm
+    pre_filled: forms.OperaForm
+    posted: forms.OperaForm

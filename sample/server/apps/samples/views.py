@@ -1,4 +1,5 @@
 from typing import Union
+import datetime
 
 from django.http import (
     HttpRequest,
@@ -51,7 +52,14 @@ def create_opera(
     else:
         form = forms.OperaForm()
 
-    return TemplateResponse(request, "create_opera.tsx", {"form": form})
+    posted = forms.OperaForm({"name": "test", "style": "VERISMO"})
+    pre_filled = forms.OperaForm(initial={"name": "test", "date_written": datetime.date.today(), "style": models.Opera.Style.BUFFA})
+
+    return templates.CreateOpera(
+        form=form,
+        posted=posted,
+        pre_filled=pre_filled,
+    ).render(request)
 
 
 @autocomplete

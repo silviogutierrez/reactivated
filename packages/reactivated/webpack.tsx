@@ -17,7 +17,7 @@ export const createConfig = (settings: Settings) => {
             rules: [
                 {
                     test: /\.tsx?$/,
-                    loader: "awesome-typescript-loader",
+                    loader: "ts-loader",
                 },
             ],
         },

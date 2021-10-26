@@ -7,7 +7,7 @@ interface Props {
 }
 
 const styles = {
-    layout: {maxWidth: 800, margin: "0 auto"},
+    layout: {margin: "0 auto"},
 } as const;
 
 export const Layout = (props: Props) => {
@@ -21,7 +21,7 @@ export const Layout = (props: Props) => {
                     content="width=device-width, initial-scale=1, shrink-to-fit=no"
                 />
 
-                <script defer src="/media/dist/bundle.js" />
+                <script defer src="/static/dist/bundle.js" />
             </HelmetProvider>
             <div style={styles.layout}>{props.children}</div>
         </>

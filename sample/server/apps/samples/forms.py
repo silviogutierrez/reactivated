@@ -34,7 +34,10 @@ class OperaForm(forms.ModelForm):
     class Meta:
         model = models.Opera
         fields = "__all__"
-        widgets = {"composer": Autocomplete()}
+        widgets = {
+            "composer": Autocomplete(),
+            "date_written": forms.SelectDateWidget,
+        }
 
 
 OperaFormSet = forms.modelformset_factory(

@@ -41,29 +41,7 @@ export const getInitialState = <U extends FieldMap>(
 ) => {
     const initialValuesAsEntries = iterator.map((fieldName) => {
         const field = fieldInterceptor(form, fieldName);
-        /*
-
-        if ("subwidgets" in field.widget) {
-            const subwidgetValues = Object.fromEntries(
-                field.widget.subwidgets.map(
-                    (subwidget, name) =>
-                        [
-                            removeSubWidgetPrefix(field, subwidget.name),
-                            subwidget.value,
-                        ] as const,
-                ),
-            );
-
-            return [fieldName, subwidgetValues] as const;
-        } else if (
-            field.widget.template_name === "django/forms/widgets/checkbox.html"
-        ) {
-            return [fieldName, field.widget.attrs.checked] as const;
-        } else {
-            return [fieldName, field.widget.value] as const;
-        }
-        */
-        return [fieldName, ""] as const;
+        return [fieldName, field.widget.value];
     });
 
     return Object.fromEntries(initialValuesAsEntries) as FormValues<
@@ -127,6 +105,7 @@ export const useForm = <U extends FieldMap>(options: UseForm<U>): FormHandler<U>
     // For top level widgets, it can just return the value itself.
     const handleChange = (name: keyof U, rawValue: unknown | null) => {
         const value = (rawValue ?? "") as string;
+        console.log(name, value);
 
         /*
          * TODO: handle select, subwidgets, etc.

@@ -2,9 +2,14 @@ import React from "react";
 
 import {getValueForSelect, WidgetType} from "./Widget";
 
+interface WidgetLike {
+    name: string;
+    value: unknown;
+}
+
 interface FieldLike {
     name: string;
-    widget: {name: string; value: unknown};
+    widget: WidgetLike & {subwidgets?: WidgetLike[]};
     label: string;
     help_text: string;
 }

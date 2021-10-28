@@ -44,6 +44,7 @@ def create_opera(
     request: HttpRequest,
 ) -> Union[TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
     if request.method == "POST":
+        assert False
         form = forms.OperaForm(request.POST)
 
         if form.is_valid():

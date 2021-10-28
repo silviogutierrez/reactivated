@@ -5,7 +5,7 @@
         "sourceMap": true,
         "noImplicitAny": true,
         // "noUnusedParameters": true,
-        "noUnusedLocals": true,
+        // "noUnusedLocals": true,
         "noImplicitThis": true,
         "module": "commonjs",
         "target": "es6",
@@ -13,6 +13,18 @@
         "allowJs": true,
         "jsx": "react",
         "baseUrl": ".",
+        "lib": [
+            "dom",
+            // "dom.iterable",
+            "es6",
+
+            // "es2016.array.include",
+            // "es2018.promise",
+            // "es2017.object",
+            // We need fromEntries in forms.
+            "es2019.object"
+            // "es2019.array"
+        ],
         "paths": {
             "@client/*": ["client/*"]
         }

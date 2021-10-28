@@ -17,20 +17,44 @@ type WidgetType =
     | ReactivatedSerializationSelect
     | ReactivatedSerializationTextInput;
 
-// type Validators = {[K in WidgetType["tag"]]: (widget: any, input: any) => any};
+type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V>
+? T
+: never;
 
-/*
+
+type GetValue<T> = T extends {value_from_datadict: unknown} ? T["value_from_datadict"] : string | null;
+
+
+type Validators = {[K in WidgetType["tag"]]: (widget: DiscriminateUnion<WidgetType, "tag", K>, value: unknown) => GetValue<DiscriminateUnion<WidgetType, "tag", K>>};
+
 const validators: Validators = {
-    "django.forms.widgets.CheckboxInput": (
-        widget: ReactivatedSerializationCheckboxInput,
-        input: HTML,
-    ) => {
-        if (widget.attrs.checked) {
+    "django.forms.widgets.CheckboxInput": (widget, value) => {
+        if (widget.attrs.checked === true) {
             return true;
         }
+        return false;
+    },
+    "django.forms.widgets.SelectDateWidget": (value) => {
+        return "selectdate";
+    },
+    "django.forms.widgets.Select": (widget, value) => {
+        return widget.value[0];
+    },
+    "django.forms.widgets.TextInput": (widget) => {
+        return widget.value;
     },
 };
-*/
+
+const CheckboxInput = (props: {name: string, value: true | false, onChange: (value: boolean) => void}) => {
+    return (
+        <input
+            type="checkbox"
+            name={props.name}
+            checked={props.value}
+            onChange={(event) => props.onChange(event.target.checked)}
+        />
+    );
+}
 
 const Widget = ({form, widget}: {form: FormHandler<any>; widget: WidgetType}) => {
     if (widget.tag === "django.forms.widgets.TextInput") {
@@ -81,13 +105,47 @@ const Widget = ({form, widget}: {form: FormHandler<any>; widget: WidgetType}) =>
     return <div>TODO</div>;
 };
 
+type FormValue<U> = U extends {value_from_datadict: unknown} ? U["value_from_datadict"] : U extends {subwidgets: unknown}
+    ? {subwidget: "TBD"}
+    : U extends ReactivatedSerializationSelect ? U["optgroups"][number][1][0]["value"] : "";
+
+
+export type FormValues<U extends FieldMap> = Simplify<{
+    [K in keyof U]: FormValue<U[K]["widget"]>;
+}>;
+
+const useInitialState = <T extends FieldMap>(form: FormLike<T>) => {
+    const initialValuesAsEntries = form.iterator.map((fieldName) => {
+        // const field = fieldInterceptor(form, fieldName);
+        const field = form.fields[fieldName];
+        const widget = field.widget as WidgetType;
+
+        const value = widget.tag in validators ? validators[widget.tag](widget as any, widget.value) : widget.value;
+        return [fieldName, value];
+    });
+
+    return Object.fromEntries(initialValuesAsEntries) as FormValues<
+        T
+    >;
+}
+
+
+const useNewForm = <T extends FieldMap>({form}: {form: FormLike<T>}) => {
+    const initialState = useInitialState(form);
+    const [values, setValues] = React.useState(initialState);
+
+    return {values, initialState, setValues};
+}
+
 const Form = <T extends FieldMap>(props: {form: FormLike<FieldMap>}) => {
-    const form = useForm({form: props.form});
+    const form = useNewForm({form: props.form});
+    
     return (
         <div>
             {props.form.iterator.map((thing) => {
                 const field = props.form.fields[thing];
 
+                /*
                 if (field.widget.subwidgets != null) {
                     return (
                         <div key={thing}>
@@ -116,11 +174,25 @@ const Form = <T extends FieldMap>(props: {form: FormLike<FieldMap>}) => {
                         </div>
                     );
                 }
+                */
 
+                const widget = (field.widget as WidgetType);
                 return (
                     <div key={thing}>
                         <h1>{thing}</h1>
+                        {widget.tag === "django.forms.widgets.CheckboxInput" && (
+                            <CheckboxInput
+                                name={field.widget.name}
+                                value={(form.values[thing as any] as any) as boolean}
+                                onChange={(value) => {
+                                    form.setValues({...form.values, [thing]: value as any});
+                                    console.log("ok");
+                                }}
+                            />
+                        )}
+                        {/*
                         <Widget form={form} widget={field.widget as WidgetType} />
+                        */}
                         {/*}
                         <input
                             type="text"
@@ -145,7 +217,16 @@ const Form = <T extends FieldMap>(props: {form: FormLike<FieldMap>}) => {
     );
 };
 
+type Simplify<T> = {[KeyType in keyof T]: T[KeyType]};
+
 export default (props: Types["CreateOperaProps"]) => {
+    const casted = useInitialState(props.pre_filled);
+    /*
+    initialState = {
+
+    }
+    */
+
     return (
         <Layout title="Create opera">
             <form method="POST" action="">

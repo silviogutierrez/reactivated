@@ -826,6 +826,7 @@ class CheckAttrs(BaseWidgetAttrs):
 class CheckboxInput(BaseWidget):
     type: Literal["checkbox"]
     attrs: CheckAttrs
+    value_from_datadict: bool
 
 
 @register("django.forms.widgets.PasswordInput")
@@ -887,9 +888,9 @@ class ClearableFileInput(BaseWidget):
 
 
 class SelectDateWidgetValue(NamedTuple):
-    year: Optional[str]
-    month: Optional[str]
-    day: Optional[str]
+    year: Optional[Union[str, int]]
+    month: Optional[Union[str, int]]
+    day: Optional[Union[str, int]]
 
 
 @register("django.forms.widgets.SelectDateWidget")

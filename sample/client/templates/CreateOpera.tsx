@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useDebugValue } from "react";
 
 import {Layout} from "@client/components/Layout";
 import {CSRFToken, Types} from "@client/generated";
@@ -22,7 +22,7 @@ type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<
 : never;
 
 
-type GetValue<T> = T extends {value_from_datadict: unknown} ? T["value_from_datadict"] : string | null;
+type GetValue<T> = T extends {value_from_datadict: unknown} ? T["value_from_datadict"] : string;
 
 
 type Validators = {[K in WidgetType["tag"]]: (widget: DiscriminateUnion<WidgetType, "tag", K>, value: unknown) => GetValue<DiscriminateUnion<WidgetType, "tag", K>>};
@@ -41,7 +41,7 @@ const validators: Validators = {
         return widget.value[0];
     },
     "django.forms.widgets.TextInput": (widget) => {
-        return widget.value;
+        return widget.value ?? "";
     },
 };
 
@@ -52,6 +52,17 @@ const CheckboxInput = (props: {name: string, value: true | false, onChange: (val
             name={props.name}
             checked={props.value}
             onChange={(event) => props.onChange(event.target.checked)}
+        />
+    );
+}
+
+const TextInput = (props: {name: string, value: string, onChange: (value: string) => void}) => {
+    return (
+        <input
+            type="text"
+            name={props.name}
+            value={props.value}
+            onChange={(event) => props.onChange(event.target.value)}
         />
     );
 }
@@ -134,7 +145,52 @@ const useNewForm = <T extends FieldMap>({form}: {form: FormLike<T>}) => {
     const initialState = useInitialState(form);
     const [values, setValues] = React.useState(initialState);
 
-    return {values, initialState, setValues};
+    const handlers = {
+        "django.forms.widgets.CheckboxInput": (name: keyof T) => (value: boolean) => {
+            setValues({
+                ...values,
+                [name]: value,
+            });
+        },
+        "django.forms.widgets.TextInput": (name: keyof T) => (value: string) => {
+            setValues({
+                ...values,
+                [name]: value,
+            });
+        },
+    };
+    const defaultHandler = (name: keyof T) => (value: string) => {
+        setValues({
+            ...values,
+            [name]: value,
+        });
+    }
+
+    type Tagged = {[K in keyof T]: {
+        name: K,
+        tag: T[K]["widget"] extends WidgetType ? T[K]["widget"]["tag"] : never,
+        value: T[K]["widget"] extends {"value_from_datadict": unknown} ? T[K]["widget"]["value_from_datadict"] : string,
+        handler: T[K]["widget"] extends {"value_from_datadict": unknown} ? (value: T[K]["widget"]["value_from_datadict"]) => void : (value: string) => void,
+        widget: T[K]["widget"],
+    }};
+
+    const iterate = (callback: (field: Tagged[keyof T]) => void) => {
+        return form.iterator.map((fieldName) => {
+            const field = form.fields[fieldName];
+            const handler: any = (handlers[(field.widget as any).tag as keyof typeof handlers] ?? defaultHandler)(fieldName);
+
+            return callback({
+                name: fieldName,
+                tag: (field.widget as any).tag,
+                value: values[fieldName],
+                handler,
+                widget: field.widget,
+            })
+        });
+    }
+
+
+    return {values, initialState, setValues, iterate};
 }
 
 const Form = <T extends FieldMap>(props: {form: FormLike<FieldMap>}) => {
@@ -190,6 +246,15 @@ const Form = <T extends FieldMap>(props: {form: FormLike<FieldMap>}) => {
                                 }}
                             />
                         )}
+                        {widget.tag === "django.forms.widgets.TextInput" && (
+                            <TextInput
+                                name={field.widget.name}
+                                value={form.values[thing]}
+                                onChange={(value) => {
+                                    form.setValues({...form.values, [thing]: value as any});
+                                }}
+                            />
+                        )}
                         {/*
                         <Widget form={form} widget={field.widget as WidgetType} />
                         */}
@@ -208,9 +273,10 @@ const Form = <T extends FieldMap>(props: {form: FormLike<FieldMap>}) => {
             })}
             <button type="submit">Submit</button>
             <div>
-                <h1>Form</h1>
-                <pre>{JSON.stringify(form.values, null, 2)}</pre>
+                <h1>Form initial</h1>
                 <pre>{JSON.stringify(form.initialState, null, 2)}</pre>
+                <h1>Form state</h1>
+                <pre>{JSON.stringify(form.values, null, 2)}</pre>
             </div>
             <div></div>
         </div>
@@ -220,6 +286,15 @@ const Form = <T extends FieldMap>(props: {form: FormLike<FieldMap>}) => {
 type Simplify<T> = {[KeyType in keyof T]: T[KeyType]};
 
 export default (props: Types["CreateOperaProps"]) => {
+    const preFilled = useNewForm({form: props.pre_filled});
+    const rendered = preFilled.iterate(field => {
+        if (field.tag === "django.forms.widgets.CheckboxInput") {
+            return <CheckboxInput key={field.name} name={field.name} value={field.value} onChange={field.handler} />
+        }
+        else if (field.tag === "django.forms.widgets.TextInput") {
+            return <TextInput key={field.name} name={field.name} value={field.value} onChange={field.handler} />
+        }
+    });
     const casted = useInitialState(props.pre_filled);
     /*
     initialState = {
@@ -229,6 +304,11 @@ export default (props: Types["CreateOperaProps"]) => {
 
     return (
         <Layout title="Create opera">
+            {rendered}
+            <h1>Form initial</h1>
+            <pre>{JSON.stringify(preFilled.initialState, null, 2)}</pre>
+            <h1>Form state</h1>
+            <pre>{JSON.stringify(preFilled.values, null, 2)}</pre>
             <form method="POST" action="">
                 <CSRFToken />
                 <div style={{display: "flex"}}>

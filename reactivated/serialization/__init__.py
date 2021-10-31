@@ -785,6 +785,7 @@ class BaseWidget(NamedTuple):
     required: bool
     value: Optional[str]
     attrs: BaseWidgetAttrs
+    value_from_datadict: Optional[str]
 
 
 class MaxLengthAttrs(BaseWidgetAttrs):
@@ -826,7 +827,7 @@ class CheckAttrs(BaseWidgetAttrs):
 class CheckboxInput(BaseWidget):
     type: Literal["checkbox"]
     attrs: CheckAttrs
-    value_from_datadict: bool
+    value_from_datadict: bool  # type: ignore[assignment]
 
 
 @register("django.forms.widgets.PasswordInput")

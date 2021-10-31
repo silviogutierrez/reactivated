@@ -33,7 +33,7 @@ ComposerFormSet = forms.modelformset_factory(
 class OperaForm(forms.ModelForm):
     class Meta:
         model = models.Opera
-        fields = "__all__"
+        fields = ["name", "has_piano_transcription"]
         widgets = {
             "composer": Autocomplete(),
             "date_written": forms.SelectDateWidget,

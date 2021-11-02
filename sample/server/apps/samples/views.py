@@ -3,11 +3,12 @@ from typing import Union
 
 from django.http import (
     HttpRequest,
+    HttpResponse,
     HttpResponsePermanentRedirect,
     HttpResponseRedirect,
     JsonResponse,
 )
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.template.response import TemplateResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -42,7 +43,7 @@ def composer_list(request: HttpRequest) -> TemplateResponse:
 @autocomplete
 def create_opera(
     request: HttpRequest,
-) -> Union[TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
+) -> Union[HttpResponse, TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
     if request.method == "POST":
         assert False
         form = forms.OperaForm(request.POST)
@@ -53,15 +54,23 @@ def create_opera(
     else:
         form = forms.OperaForm()
 
-    posted = forms.OperaForm({"name": "test", "style": "VERISMO"})
+    posted = forms.OperaForm({"name": "test", "style": "VERISMO", "choice_field": 2})
     pre_filled = forms.OperaForm(
         initial={
             "name": "test",
             "date_written": datetime.date.today(),
             "style": models.Opera.Style.BUFFA,
             "has_piano_transcription": True,
+            "choice_field": 2,
         }
     )
+
+    if "django" in request.GET:
+        return render(request, "create_opera.html", {
+            "form": form,
+            "pre_filled": pre_filled,
+            "posted": posted,
+        })
 
     return templates.CreateOpera(
         form=form, posted=posted, pre_filled=pre_filled,

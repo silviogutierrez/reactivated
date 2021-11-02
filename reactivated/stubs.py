@@ -39,9 +39,17 @@ if TYPE_CHECKING:
         pass
 
     from typing import Optional as Undefined
+
+    from datetime import date as ActualDate
 else:
     from typing import _GenericAlias, _TypedDictMeta  # noqa: F401
     from django.forms.formsets import BaseFormSet  # noqa: F401
+
+    class ActualDate:
+        @classmethod
+        def get_json_schema(cls: Type["ActualDate"], definitions: Any) -> Any:
+            from .serialization import Thing
+            return Thing(schema={"tsType": "Date"}, definitions=definitions)
 
     class BaseUndefinedHolder:
         _reactivated_undefined = True

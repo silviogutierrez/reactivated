@@ -1,10 +1,11 @@
 import React from "react";
 import {
     ReactivatedSerializationCheckboxInput,
-    // ReactivatedSerializationSelectDateWidget,
-    // ReactivatedSerializationSelect,
+    ReactivatedSerializationSelectDateWidget,
+    ReactivatedSerializationSelect,
     ReactivatedSerializationTextInput,
 } from "@client/generated";
+import { Formatters } from "tslint";
 
 // Move to utilities?
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V>
@@ -15,8 +16,8 @@ type Simplify<T> = {[KeyType in keyof T]: T[KeyType]};
 
 type Widget_GENERATEME =
     | ReactivatedSerializationCheckboxInput
-    // | ReactivatedSerializationSelectDateWidget
-    // | ReactivatedSerializationSelect
+    | ReactivatedSerializationSelectDateWidget
+    | ReactivatedSerializationSelect
     | ReactivatedSerializationTextInput;
 
 
@@ -49,6 +50,12 @@ const initializers: Initializers = {
             return true;
         }
         return false;
+    },
+    "django.forms.widgets.Select": (widget) => {
+        return widget.value[0];
+    },
+    "django.forms.widgets.SelectDateWidget": (widget) => {
+        return new Date('1995-12-17T13:24:00+00:00');
     },
     "django.forms.widgets.TextInput": (widget) => {
         return widget.value;
@@ -106,7 +113,7 @@ const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}) => {
             tag: K;
             value: DiscriminateUnion<Widget_GENERATEME, "tag", K>["value_from_datadict"];
             handler: (value: DiscriminateUnion<Widget_GENERATEME, "tag", K>["value_from_datadict"]) => void;
-            widget: DiscriminateUnion<Widget_GENERATEME, "tag", K>["value_from_datadict"];
+            widget: DiscriminateUnion<Widget_GENERATEME, "tag", K>,
         };
     }[Widget_GENERATEME["tag"]];
 
@@ -151,7 +158,6 @@ const TextInput = (props: {name: string, value: string | null, onChange: (value:
     );
 }
 
-
 export const Form = <T extends FieldMap>(props: {form: FormLike<T>}) => {
     const form = useForm(props);
 
@@ -161,6 +167,22 @@ export const Form = <T extends FieldMap>(props: {form: FormLike<T>}) => {
         }
         else if (field.tag === "django.forms.widgets.TextInput") {
             return <TextInput key={field.name} name={field.name} value={field.value} onChange={field.handler} />
+        }
+        else if (field.tag === "django.forms.widgets.SelectDateWidget") {
+            return <React.Fragment key={field.name}>
+                {field.widget.subwidgets.map(subwidget => {
+                    return <TextInput key={subwidget.name} name={subwidget.name} value={""} onChange={field.handler} />
+                })}
+            </React.Fragment>
+        }
+        else if (field.tag === "django.forms.widgets.Select") {
+            return <select key={field.name} value={field.value ?? ""} onChange={(event) => {field.handler(event.currentTarget.value)}}>
+                {field.widget.optgroups.map(optgroup =>  {
+                    const value = (optgroup[1][0].value ?? "").toString();
+                    return <option key={value} value={value}>{optgroup[1][0].label}</option>
+                }
+                )}
+            </select>
         }
     });
 

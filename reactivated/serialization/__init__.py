@@ -897,7 +897,8 @@ class SelectDateWidgetValue(NamedTuple):
 @register("django.forms.widgets.SelectDateWidget")
 class SelectDateWidget(BaseWidget):
     value: SelectDateWidgetValue  # type: ignore[assignment]
-    subwidgets: Tuple[Select, Select, Select]
+    subwidgets: Tuple[django_forms.Select, django_forms.Select, django_forms.Select]
+    value_from_datadict: Optional[Union[stubs.ActualDate, str]]  # type: ignore[assignment]
 
 
 def widget_schema(Type: Type[django_forms.Widget], definitions: Definitions) -> Thing:
@@ -945,6 +946,8 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return Type.get_json_schema(definitions)  # type: ignore[no-any-return]
     elif issubclass(Type, tuple) and callable(getattr(Type, "_asdict", None)):
         return named_tuple_schema(Type, definitions)
+    elif issubclass(Type, django_forms.Widget):
+        return widget_schema(Type, definitions)
     elif type(Type) == stubs._TypedDictMeta:
         return named_tuple_schema(Type, definitions)
     elif issubclass(Type, datetime.datetime):

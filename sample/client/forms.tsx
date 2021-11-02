@@ -158,6 +158,18 @@ const TextInput = (props: {name: string, value: string | null, onChange: (value:
     );
 }
 
+const Select = (props: {name: string, value: string | null, optgroups: ReactivatedSerializationSelect["optgroups"], onChange: (value: string) => void}) => {
+    const {name, optgroups, value} = props;
+
+    return <select key={name} value={value ?? ""} onChange={(event) => props.onChange(event.target.value)}>
+        {optgroups.map(optgroup =>  {
+            const value = (optgroup[1][0].value ?? "").toString();
+            return <option key={value} value={value}>{optgroup[1][0].label}</option>
+        }
+        )}
+    </select>
+}
+
 export const Form = <T extends FieldMap>(props: {form: FormLike<T>}) => {
     const form = useForm(props);
 
@@ -176,13 +188,7 @@ export const Form = <T extends FieldMap>(props: {form: FormLike<T>}) => {
             </React.Fragment>
         }
         else if (field.tag === "django.forms.widgets.Select") {
-            return <select key={field.name} value={field.value ?? ""} onChange={(event) => {field.handler(event.currentTarget.value)}}>
-                {field.widget.optgroups.map(optgroup =>  {
-                    const value = (optgroup[1][0].value ?? "").toString();
-                    return <option key={value} value={value}>{optgroup[1][0].label}</option>
-                }
-                )}
-            </select>
+            return <Select key={field.name} name={field.name} value={field.value} optgroups={field.widget.optgroups} onChange={field.handler} />
         }
     });
 

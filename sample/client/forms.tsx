@@ -55,7 +55,7 @@ const initializers: Initializers = {
         return widget.value[0];
     },
     "django.forms.widgets.SelectDateWidget": (widget) => {
-        return new Date('1995-12-17T13:24:00+00:00');
+        return widget.value;
     },
     "django.forms.widgets.TextInput": (widget) => {
         return widget.value;
@@ -158,10 +158,10 @@ const TextInput = (props: {name: string, value: string | null, onChange: (value:
     );
 }
 
-const Select = (props: {name: string, value: string | null, optgroups: ReactivatedSerializationSelect["optgroups"], onChange: (value: string) => void}) => {
+const Select = (props: {name: string, value: string | number | null, optgroups: ReactivatedSerializationSelect["optgroups"], onChange: (value: string) => void}) => {
     const {name, optgroups, value} = props;
 
-    return <select key={name} value={value ?? ""} onChange={(event) => props.onChange(event.target.value)}>
+    return <select key={name} name={name} value={value ?? ""} onChange={(event) => props.onChange(event.target.value)}>
         {optgroups.map(optgroup =>  {
             const value = (optgroup[1][0].value ?? "").toString();
             return <option key={value} value={value}>{optgroup[1][0].label}</option>
@@ -178,17 +178,50 @@ export const Form = <T extends FieldMap>(props: {form: FormLike<T>}) => {
             return <CheckboxInput key={field.name} name={field.name} value={field.value} onChange={field.handler} />
         }
         else if (field.tag === "django.forms.widgets.TextInput") {
-            return <TextInput key={field.name} name={field.name} value={field.value} onChange={field.handler} />
-        }
-        else if (field.tag === "django.forms.widgets.SelectDateWidget") {
-            return <React.Fragment key={field.name}>
-                {field.widget.subwidgets.map(subwidget => {
-                    return <TextInput key={subwidget.name} name={subwidget.name} value={""} onChange={field.handler} />
-                })}
-            </React.Fragment>
-        }
-        else if (field.tag === "django.forms.widgets.Select") {
-            return <Select key={field.name} name={field.name} value={field.value} optgroups={field.widget.optgroups} onChange={field.handler} />
+            return (
+                <TextInput
+                    key={field.name}
+                    name={field.name}
+                    value={field.value}
+                    onChange={field.handler}
+                />
+            );
+        } else if (field.tag === "django.forms.widgets.SelectDateWidget") {
+
+            return (
+                <React.Fragment key={field.name}>
+                    {field.widget.subwidgets.map((subwidget) => {
+                        const unprefixedName = subwidget.name.replace(`${field.name}_`, "") as keyof typeof field.value;
+
+                        return (
+                            <Select
+                                key={subwidget.name}
+                                name={subwidget.name}
+                                value={field.value[unprefixedName]}
+                                optgroups={subwidget.optgroups}
+                                onChange={(value) => {
+                                    field.handler(
+                                        {
+                                            ...field.value,
+                                            [unprefixedName]: value,
+                                        }
+                                    );
+                                }}
+                            />
+                        );
+                    })}
+                </React.Fragment>
+            );
+        } else if (field.tag === "django.forms.widgets.Select") {
+            return (
+                <Select
+                    key={field.name}
+                    name={field.name}
+                    value={field.value}
+                    optgroups={field.widget.optgroups}
+                    onChange={field.handler}
+                />
+            );
         }
     });
 

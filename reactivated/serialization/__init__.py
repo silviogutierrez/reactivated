@@ -898,7 +898,7 @@ class SelectDateWidgetValue(NamedTuple):
 class SelectDateWidget(BaseWidget):
     value: SelectDateWidgetValue  # type: ignore[assignment]
     subwidgets: Tuple[django_forms.Select, django_forms.Select, django_forms.Select]
-    value_from_datadict: Optional[Union[stubs.ActualDate, str]]  # type: ignore[assignment]
+    value_from_datadict: SelectDateWidgetValue  # type: ignore[assignment]
 
 
 def widget_schema(Type: Type[django_forms.Widget], definitions: Definitions) -> Thing:

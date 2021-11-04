@@ -250,6 +250,7 @@ class FormType(NamedTuple):
     ) -> JSON:
         form = value
 
+        """
         fields = {
             field.name: {
                 **FieldType(
@@ -266,6 +267,19 @@ class FormType(NamedTuple):
             }
             for field in form
         }
+        """
+
+        fields = {}
+        for field in form:
+            original_render = field.field.widget._render  # type: ignore[attr-defined]
+            field.field.widget._render = (  # type: ignore[attr-defined]
+                lambda template_name, context, renderer: context
+            )
+            widget = field.as_widget()
+            field.field.widget._render = original_render  # type: ignore[attr-defined]
+            field.widget = widget["widget"]
+            generated = field_schema(field.field, schema.definitions)
+            fields[field.name] = serialize(field, generated)
 
         return FormType(
             name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",
@@ -807,6 +821,7 @@ TYPE_HINTS = {}
 
 def register(path: str) -> Callable[[Override], Override]:
     def inner(override: Override) -> Override:
+        override._reactivated_overriden_path = path
         TYPE_HINTS[path] = override
         return override
 
@@ -829,6 +844,31 @@ class BaseWidget(NamedTuple):
     value: Optional[str]
     attrs: BaseWidgetAttrs
     value_from_datadict: Optional[str]
+
+    @classmethod
+    def get_serialized_value(
+        Type: Type["BaseWidget"], value: Any, schema: "Thing"
+    ) -> JSON:
+        serialized = serialize(value, schema, suppress_custom_serializer=True)
+        serialized["tag"] = Type._reactivated_overriden_path
+        return serialized
+        """
+        if schema.schema["properties"].get("subwidgets", None) is None:
+            breakpoint()
+        widget = django_forms.Widget
+        import pprint
+        # pprint.pprint(schema.schema)
+        serialized = serialize(value, schema, suppress_custom_serializer=True)
+
+        if subwidgets := serialized.get("subwidgets", None):
+            serialized["subwidgets"] = [
+                {**serialized_subwidget} for serialized_subwidget in sub
+            ]
+            pprint.pprint(serialized)
+            assert False
+
+        return serialized
+        """
 
 
 class MaxLengthAttrs(BaseWidgetAttrs):
@@ -951,7 +991,7 @@ class SelectDateWidget(BaseWidget):
     # value_from_datadict: SelectDateWidgetValue  # type: ignore[assignment]
 
 @register("django.forms.widgets.SplitDateTimeWidget")
-class SelectDateWidget(BaseWidget):
+class SplitDateTimeWidget(BaseWidget):
     pass
     # subwidgets: SelectDateWidgetSubwidgets
 
@@ -979,7 +1019,6 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
     schema = named_tuple_schema(
         annotation,
         definitions,
-        serializer_name="widget_serializer",
         tag=definition_name,
         exclude=["subwidgets"]
     )
@@ -1018,10 +1057,6 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
             schema = schema.add_property("subwidgets", tuple_schema)
 
     return schema
-
-
-def widget_serializer(value: object, schema: Thing) -> JSON:
-    pass
 
 
 def create_schema(Type: Any, definitions: Definitions) -> Thing:
@@ -1141,7 +1176,7 @@ SERIALIZERS: Dict[str, Serializer] = {
 }
 
 
-def serialize(value: Any, schema: Thing) -> JSON:
+def serialize(value: Any, schema: Thing, suppress_custom_serializer: bool = False) -> JSON:
     if value is None:
         return None
 
@@ -1153,7 +1188,7 @@ def serialize(value: Any, schema: Thing) -> JSON:
     # callables need both a serializer to call the value and then a serializer
     # to loop over the anyOf. Not sure how to abstract this out. So anyOf
     # remains a higher-order construct. Same for $ref.
-    if serializer_path is not None:
+    if serializer_path is not None and suppress_custom_serializer is False:
         serializer = import_string(serializer_path).get_serialized_value
         return serializer(value, schema,)
     elif "$ref" in schema.schema:

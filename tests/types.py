@@ -207,19 +207,19 @@ def test_rename_me():
     class Form(django_forms.Form):
         # first = django_forms.CharField()
         # second = django_forms.ChoiceField(choices=((1, "First"), (2, "Second")))
-        #instantiated_widget = django_forms.DateField(widget=django_forms.TextInput())
-        # keyed_subwidgets = django_forms.DateField(widget=django_forms.SelectDateWidget)
-        tuple_subwdigets = django_forms.DateTimeField(widget=django_forms.SplitDateTimeWidget)
+        # instantiated_widget = django_forms.DateField(widget=django_forms.TextInput())
+        keyed_subwidgets = django_forms.DateField(widget=django_forms.SelectDateWidget)
+        # tuple_subwdigets = django_forms.DateTimeField(widget=django_forms.SplitDateTimeWidget)
 
     schema = create_schema(Form, {})
     import pprint
-    pprint.pprint(schema.dereference()["properties"]["fields"]["properties"])
+    # pprint.pprint(schema.dereference()["properties"]["fields"]["properties"])
     instance = Form(initial={
         "tuple_subwdigets": timezone.now(),
     })
     serialized = serialize(instance, schema)
 
-    pprint.pprint(serialized._asdict())
+    #pprint.pprint(serialized._asdict())
     assert False
 
 

@@ -40,7 +40,11 @@ export interface FormLike<T extends FieldMap> {
     prefix: string;
 }
 
-type Initializers = {[K in Widget_GENERATEME["tag"]]: (widget: DiscriminateUnion<Widget_GENERATEME, "tag", K>) => DiscriminateUnion<Widget_GENERATEME, "tag", K>["value_from_datadict"]}
+type ValueFromDatadict<T extends Widget_GENERATEME> = (widget: T) => T["value_from_datadict"];
+
+type FilterMultiWidgets<T extends Widget_GENERATEME> = T extends {subwidgets: unknown} ? never : T extends {value: string | null, value_from_datadict: string | null} ? never : T extends {value_from_datadict: unknown} ? T["tag"] : never;
+
+type Initializers = {[K in Widget_GENERATEME["tag"] as FilterMultiWidgets<DiscriminateUnion<Widget_GENERATEME, "tag", K>>]: ValueFromDatadict<DiscriminateUnion<Widget_GENERATEME, "tag", K>>};
 
 const initializers: Initializers = {
     "django.forms.widgets.CheckboxInput": (widget) => {
@@ -52,27 +56,58 @@ const initializers: Initializers = {
     "django.forms.widgets.Select": (widget) => {
         return widget.value[0];
     },
-    "django.forms.widgets.SelectDateWidget": (widget) => {
-        return widget.value;
-    },
-    "django.forms.widgets.TextInput": (widget) => {
-        return widget.value;
-    },
 };
 
 export type FormValues<U extends FieldMap> = Simplify<{
     [K in keyof U]: U[K]["widget"]["value_from_datadict"]
 }>;
 
+const widgetToValue = (prefix: string, name: string, widget: Widget_GENERATEME) => {
+    if ("subwidgets" in widget) {
+        const subwidgetValue = Object.fromEntries(
+            widget.subwidgets.map(subwidget => {
+                const formPrefix = prefix == "" ? "" : `${prefix}-`;
+                const unprefixedName = subwidget.name.replace(`${formPrefix}${name}_`, "");
+                return widgetToValue(prefix, unprefixedName, subwidget);
+            })
+        ) as Record<string, any>;
+        return [name, subwidgetValue];
+    }
+    else if (widget.tag in initializers) {
+        return [name, (initializers as any)[widget.tag](widget)];
+    }
+    else {
+        return [name, widget.value];
+    }
+
+}
+
+const getInitialValue = (widget: Widget_GENERATEME) => {
+    if (widget.tag in initializers) {
+        return (initializers as any)[widget.tag](widget);
+    }
+    else {
+        return widget.value;
+    }
+}
+
 const useInitialState = <T extends FieldMap>(form: FormLike<T>) => {
     const initialValuesAsEntries = form.iterator.map((fieldName) => {
         // const field = fieldInterceptor(form, fieldName);
         const field = form.fields[fieldName];
         const widget = field.widget;
-        widget.tag
 
-        const value = initializers[widget.tag](widget as any);
-        return [fieldName, value];
+        if ("subwidgets" in widget) {
+            const subwidgetValue = Object.fromEntries(
+                widget.subwidgets.map(subwidget => {
+                    const formPrefix = form.prefix == "" ? "" : `${form.prefix}-`;
+                    const unprefixedName = subwidget.name.replace(`${formPrefix}${fieldName}_`, "");
+                    return [unprefixedName, getInitialValue(subwidget)];
+                })
+            )
+            return [fieldName, subwidgetValue];
+        }
+        return [fieldName, getInitialValue(widget)];
     });
 
     return Object.fromEntries(initialValuesAsEntries) as FormValues<

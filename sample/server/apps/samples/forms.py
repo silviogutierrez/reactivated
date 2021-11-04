@@ -35,6 +35,7 @@ class OperaForm(forms.ModelForm):
         (1, "One"),
         (2, "Two"),
     ))
+    #tuple_field = forms.SplitDateTimeField(widget=forms.SplitDateTimeWidget)
 
     class Meta:
         model = models.Opera

@@ -23,7 +23,7 @@ from django.db import models as django_models
 from reactivated.fields import EnumField
 from reactivated.models import ComputedRelation
 from reactivated.pick import build_nested_schema, get_field_descriptor
-from reactivated.serialization import ComputedField, create_schema
+from reactivated.serialization import ComputedField, create_schema, serialize
 from reactivated.serialization.context_processors import create_context_processor_type
 from sample.server.apps.samples import forms, models
 
@@ -200,6 +200,27 @@ def test_float():
 
 def test_int():
     assert create_schema(int, {}) == ({"type": "number"}, {})
+
+
+def test_rename_me():
+    from django.utils import timezone
+    class Form(django_forms.Form):
+        # first = django_forms.CharField()
+        # second = django_forms.ChoiceField(choices=((1, "First"), (2, "Second")))
+        #instantiated_widget = django_forms.DateField(widget=django_forms.TextInput())
+        # keyed_subwidgets = django_forms.DateField(widget=django_forms.SelectDateWidget)
+        tuple_subwdigets = django_forms.DateTimeField(widget=django_forms.SplitDateTimeWidget)
+
+    schema = create_schema(Form, {})
+    import pprint
+    pprint.pprint(schema.dereference()["properties"]["fields"]["properties"])
+    instance = Form(initial={
+        "tuple_subwdigets": timezone.now(),
+    })
+    serialized = serialize(instance, schema)
+
+    pprint.pprint(serialized._asdict())
+    assert False
 
 
 def test_form():

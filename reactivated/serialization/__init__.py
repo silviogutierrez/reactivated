@@ -73,6 +73,8 @@ FieldDescriptor = Union[
 ]
 
 
+PropertySchema = Dict[str, Any]
+
 class Thing(NamedTuple):
     schema: Schema
     definitions: Definitions
@@ -80,10 +82,34 @@ class Thing(NamedTuple):
     def dereference(self) -> Schema:
         ref = self.schema.get("$ref")
 
+        # Should probably error or Thing should be a subclass for cached
+        # schemas that has this property
         if not ref:
             return self.schema
 
         return self.definitions[ref.replace("#/definitions/", "")]
+
+    def add_property(self, name: str, property_schema: PropertySchema) -> "Thing":
+        ref: Optional[str] = self.schema.get("$ref")
+
+        if ref is None:
+            assert False, "Can only add properties to ref schemas"
+
+        definition_name = ref.replace("#/definitions/", "")
+        dereferenced = self.definitions[definition_name]
+
+        return Thing(schema=self.schema, definitions={
+            **self.definitions,
+            definition_name: {
+                **dereferenced,
+                "properties": {
+                    **dereferenced["properties"],
+                    name: property_schema,
+                },
+                "required": [*dereferenced["required"], name],
+                "additionalProperties": False,
+            },
+        })
 
 
 class ForeignKeyType:
@@ -514,12 +540,16 @@ def named_tuple_schema(
     definitions: Definitions,
     serializer_name: Optional[str] = None,
     tag: Optional[str] = None,
+    exclude: Optional[List[str]] = None,
 ) -> Thing:
     definition_name = f"{Type.__module__}.{Type.__qualname__}"
     if definition_name in definitions:
         return Thing(
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
         )
+
+    if exclude is None:
+        exclude = []
 
     required = []
     properties: Dict[str, Any] = {}
@@ -534,6 +564,9 @@ def named_tuple_schema(
     definitions = {**definitions}
 
     for field_name, Subtype in get_type_hints(Type).items():
+        if field_name in exclude:
+            continue
+
         field_schema = create_schema(Subtype, definitions)
         definitions = {**definitions, **field_schema.definitions}
 
@@ -544,7 +577,7 @@ def named_tuple_schema(
         properties[field_name] = field_schema.schema
 
     for field_name in dir(Type):
-        if field_name in properties:
+        if field_name in properties or field_name in exclude:
             continue
 
         possible_method_or_property = getattr(Type, field_name)
@@ -573,6 +606,29 @@ def named_tuple_schema(
     )
 
 
+def field_schema(instance: django_forms.Field, definitions: Definitions) -> Thing:
+    # Type = instance.__class__
+    # definition_name = f"{Type.__module__}.{Type.__qualname__}"
+    base_schema, definitions = create_schema(FieldType, definitions)
+    generated = widget_schema(instance.widget, definitions)  # type: ignore[arg-type]
+
+    return Thing(
+        schema={
+            "_reactivated_testing_merge": True,
+            "allOf": [
+                base_schema,
+                {
+                    "type": "object",
+                    "properties": {"widget": generated.schema,},
+                    "additionalProperties": False,
+                    "required": ["widget"],
+                },
+            ],
+        },
+        definitions=generated.definitions,
+    )
+
+
 def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> Thing:
     definition_name = f"{Type.__module__}.{Type.__qualname__}"
 
@@ -581,29 +637,15 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
         )
 
-    field_schema, definitions = create_schema(FieldType, definitions)
-    error_definition = create_schema(FormError, definitions).schema
+    error_definition, definitions = create_schema(FormError, definitions)
 
     required = []
     properties = {}
     error_properties = {}
 
     for field_name, SubType in Type.base_fields.items():  # type: ignore[attr-defined]
-        widget_schema, definitions = create_schema(SubType.widget, definitions)
         required.append(field_name)
-
-        properties[field_name] = {
-            "_reactivated_testing_merge": True,
-            "allOf": [
-                field_schema,
-                {
-                    "type": "object",
-                    "properties": {"widget": widget_schema,},
-                    "additionalProperties": False,
-                    "required": ["widget"],
-                },
-            ],
-        }
+        properties[field_name], definitions = field_schema(SubType, definitions)
 
         """
         ts_type = f"widgets.{SourceWidget.__name__}"
@@ -903,13 +945,19 @@ class SelectDateWidgetSubwidgets(NamedTuple):
 
 @register("django.forms.widgets.SelectDateWidget")
 class SelectDateWidget(BaseWidget):
-    value: SelectDateWidgetValue  # type: ignore[assignment]
+    subwidgets: SelectDateWidgetSubwidgets
+
+    # value: SelectDateWidgetValue  # type: ignore[assignment]
+    # value_from_datadict: SelectDateWidgetValue  # type: ignore[assignment]
+
+@register("django.forms.widgets.SplitDateTimeWidget")
+class SelectDateWidget(BaseWidget):
+    pass
     # subwidgets: SelectDateWidgetSubwidgets
-    subwidgets: Tuple[django_forms.Select, django_forms.Select, django_forms.Select]
-    value_from_datadict: SelectDateWidgetValue  # type: ignore[assignment]
 
 
-def widget_schema(Type: Type[django_forms.Widget], definitions: Definitions) -> Thing:
+def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Thing:
+    Type = instance.__class__
     definition_name = f"{Type.__module__}.{Type.__qualname__}"
 
     annotation = TYPE_HINTS.get(definition_name)
@@ -933,7 +981,42 @@ def widget_schema(Type: Type[django_forms.Widget], definitions: Definitions) -> 
         definitions,
         serializer_name="widget_serializer",
         tag=definition_name,
+        exclude=["subwidgets"]
     )
+
+    if subwidgets := get_type_hints(annotation).get("subwidgets", None):
+        subwidgets_schema = create_schema(subwidgets, definitions=schema.definitions)
+        dereferenced = subwidgets_schema.dereference()
+        schema = schema._replace(definitions=subwidgets_schema.definitions)
+
+        if dereferenced["type"] == "object":
+            tuple_schema = {
+                "type": "array",
+                "minItems": len(dereferenced["required"]),
+                "max_items": len(dereferenced["required"]),
+                "items": [
+                    subschema for subschema in dereferenced["properties"].values()
+                ],
+            }
+            """
+            ValueSchema = NamedTuple("ParentTuple", ((field_name, get_type_hints(Foo)["value"]) for field_name, Foo in get_type_hints(subwidgets).items()))
+
+            """
+            values_schema = {
+                "type": "object",
+                "required": list(dereferenced["properties"].keys()),
+                "properties": {
+                },
+                "additionalProperties": False,
+            }
+            for index, field_name in enumerate(dereferenced["properties"].keys()):
+                value_schema = create_schema(get_type_hints(subwidgets)[field_name], schema.definitions)
+                values_schema["properties"][field_name] = value_schema.dereference()["properties"]["value"]
+                schema = schema._replace(definitions=value_schema.definitions)
+
+            schema = schema.add_property("value_from_datadict", values_schema)
+            schema = schema.add_property("subwidgets", tuple_schema)
+
     return schema
 
 
@@ -946,18 +1029,16 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return generic_alias_schema(Type, definitions)
     elif isinstance(Type, models.Field):
         return field_descriptor_schema(Type, definitions)
-    elif isinstance(Type, django_forms.Widget):
-        return widget_schema(Type.__class__, definitions)
     elif Type == Any:
         return Thing(schema={}, definitions=definitions)
     elif callable(getattr(Type, "get_json_schema", None)):
         return Type.get_json_schema(definitions)  # type: ignore[no-any-return]
     elif issubclass(Type, tuple) and callable(getattr(Type, "_asdict", None)):
         return named_tuple_schema(Type, definitions)
-    elif issubclass(Type, django_forms.Widget):
-        return widget_schema(Type, definitions)
     elif type(Type) == stubs._TypedDictMeta:
         return named_tuple_schema(Type, definitions)
+    elif issubclass(Type, django_forms.Widget):
+        return widget_schema(Type(), definitions=definitions)
     elif issubclass(Type, datetime.datetime):
         return Thing(schema={"type": "string"}, definitions={})
     elif issubclass(Type, datetime.date):

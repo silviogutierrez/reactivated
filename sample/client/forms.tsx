@@ -80,18 +80,23 @@ const useInitialState = <T extends FieldMap>(form: FormLike<T>) => {
     >;
 }
 
+type Thing<T> = T extends {tag: string, name: string, subwidgets: infer U} ? {
+    tag: T["tag"];
+    name: string;
+    subwidgets: {[K in keyof U]: Thing<U[K]>};
+} : T extends Widget_GENERATEME ? {
+    tag: T["tag"];
+    name: string;
+    value: T["value_from_datadict"]; 
+    widget: T,
+    handler: (value: T["value_from_datadict"]) => void;
+} : never;
 
 type OuterTagged = {
-    [K in Widget_GENERATEME["tag"]]: {
-        name: string;
-        tag: K;
-        value: DiscriminateUnion<Widget_GENERATEME, "tag", K>["value_from_datadict"];
-        handler: (value: DiscriminateUnion<Widget_GENERATEME, "tag", K>["value_from_datadict"]) => void;
-        widget: DiscriminateUnion<Widget_GENERATEME, "tag", K>,
-    };
+    [K in Widget_GENERATEME["tag"]]: Thing<DiscriminateUnion<Widget_GENERATEME, "tag", K>>;
 }[Widget_GENERATEME["tag"]];
 
-const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}) => {
+export const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}) => {
     const initialState = useInitialState(form);
     const [values, setValues] = React.useState(initialState);
 
@@ -116,28 +121,58 @@ const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}) => {
         });
     }
 
-    type Tagged = {
-        [K in Widget_GENERATEME["tag"]]: {
-            name: Extract<keyof T, string>,
-            tag: K;
-            value: DiscriminateUnion<Widget_GENERATEME, "tag", K>["value_from_datadict"];
-            handler: (value: DiscriminateUnion<Widget_GENERATEME, "tag", K>["value_from_datadict"]) => void;
-            widget: DiscriminateUnion<Widget_GENERATEME, "tag", K>,
-        };
-    }[Widget_GENERATEME["tag"]];
+    const bindField = (value: any, setValue: any, widget: Widget_GENERATEME) => {
+        return {
+            name: widget.name,
+            tag: widget.tag,
+            value: value,
+            widget,
+            handler: setValue,
+        }
+    }
 
-    const iterate = (callback: (field: Tagged) => void) => {
+    const iterate = (callback: (field: OuterTagged) => void) => {
         return form.iterator.map((fieldName) => {
             const field = form.fields[fieldName];
             const handler: any = (handlers[(field.widget as any).tag as keyof typeof handlers] ?? defaultHandler)(fieldName);
 
-            return callback({
-                name: fieldName,
-                tag: (field.widget as any).tag,
-                value: values[fieldName],
-                handler,
-                widget: field.widget as any,
-            })
+            if ("subwidgets" in field.widget) {
+                return callback({
+                    name: fieldName,
+                    tag: field.widget.tag,
+                    subwidgets: field.widget.subwidgets.map((subwidget) => {
+                        const formPrefix = form.prefix == "" ? "" : `${form.prefix}-`;
+                        const unprefixedName = subwidget.name.replace(`${formPrefix}${fieldName}_`, "");
+
+                        const subwidgetValues = values[fieldName] as any;
+                        const subwidgetValue = subwidgetValues[unprefixedName];
+
+                        const setSubwidgetValue = (value: any) => {
+                            setValues({
+                                ...values,
+                                [fieldName]: {
+                                    ...subwidgetValues,
+                                    [unprefixedName]: value,
+                                },
+                            });
+                        }
+
+                        return bindField(subwidgetValue, setSubwidgetValue, {
+                            ...subwidget,
+                        });
+                    }) as any,
+                });
+            }
+
+            const value = values[fieldName];
+            const setValue = (value: any) => {
+                setValues({
+                    ...values,
+                    [fieldName]: value,
+                });
+            }
+
+            return callback(bindField(values[fieldName], setValue, field.widget) as any);
         });
     }
 
@@ -183,12 +218,11 @@ export const Widget = (props: {field: OuterTagged}) => {
     const {field} = props;
 
     if (field.tag === "django.forms.widgets.CheckboxInput") {
-        return <CheckboxInput key={field.name} name={field.name} value={field.value} onChange={field.handler} />
+        return <CheckboxInput name={field.name} value={field.value} onChange={field.handler} />
     }
     else if (field.tag === "django.forms.widgets.TextInput") {
         return (
             <TextInput
-                key={field.name}
                 name={field.name}
                 value={field.value}
                 onChange={field.handler}
@@ -198,39 +232,14 @@ export const Widget = (props: {field: OuterTagged}) => {
 
         return (
             <React.Fragment key={field.name}>
-                {field.widget.subwidgets.map((subwidget) => {
-                    const unprefixedName = subwidget.name.replace(`${field.name}_`, "") as keyof typeof field.value;
-
-                    return <Widget key={subwidget.name} field={{
-                        ...field,
-                        tag: "django.forms.widgets.Select",
-                        widget: subwidget,
-                    } as any} />
-                    /*
-                    return (
-                        <Select
-                            key={subwidget.name}
-                            name={subwidget.name}
-                            value={field.value[unprefixedName]}
-                            optgroups={subwidget.optgroups}
-                            onChange={(value) => {
-                                field.handler(
-                                    {
-                                        ...field.value,
-                                        [unprefixedName]: value,
-                                    }
-                                );
-                            }}
-                        />
-                    );
-                    */
+                {field.subwidgets.map((subwidget) => {
+                    return <Widget key={subwidget.name} field={subwidget} />;
                 })}
             </React.Fragment>
         );
     } else if (field.tag === "django.forms.widgets.Select") {
         return (
             <Select
-                key={field.name}
                 name={field.name}
                 value={field.value}
                 optgroups={field.widget.optgroups}
@@ -238,13 +247,13 @@ export const Widget = (props: {field: OuterTagged}) => {
             />
         );
     }
-    throw new Error("Exhaustive");
+    throw new Error(`Exhaustive`);
 }
 
 export const Form = <T extends FieldMap>(props: {form: FormLike<T>}) => {
     const form = useForm(props);
 
-    const rendered = form.iterate((field) => <Widget field={field} />);
+    const rendered = form.iterate((field) => <Widget key={field.name} field={field} />);
 
     return <div>
         {rendered}

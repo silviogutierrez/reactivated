@@ -200,7 +200,8 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
                 serialize(optgroup, optgroup_schema) for optgroup in optgroups
             ]
 
-    for subwidget_context in context.get("subwidgets", []):
+    for index, subwidget_context in enumerate(context.get("subwidgets", [])):
+        context["subwidgets"][index]["tag"] = "django.forms.widgets.Select"
         handle_optgroups(subwidget_context)
 
     handle_optgroups(context)
@@ -894,9 +895,16 @@ class SelectDateWidgetValue(NamedTuple):
     day: Optional[Union[str, int]]
 
 
+class SelectDateWidgetSubwidgets(NamedTuple):
+    year: django_forms.Select
+    month: django_forms.Select
+    day: django_forms.Select
+
+
 @register("django.forms.widgets.SelectDateWidget")
 class SelectDateWidget(BaseWidget):
     value: SelectDateWidgetValue  # type: ignore[assignment]
+    # subwidgets: SelectDateWidgetSubwidgets
     subwidgets: Tuple[django_forms.Select, django_forms.Select, django_forms.Select]
     value_from_datadict: SelectDateWidgetValue  # type: ignore[assignment]
 

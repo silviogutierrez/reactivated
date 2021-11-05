@@ -73,7 +73,7 @@ FieldDescriptor = Union[
 ]
 
 
-PropertySchema = Dict[str, Any]
+PropertySchema = Mapping[str, Any]
 
 
 class Thing(NamedTuple):
@@ -281,14 +281,14 @@ class FormType(NamedTuple):
             )
             widget = field.as_widget()
             field.field.widget._render = original_render  # type: ignore[attr-defined]
-            field.widget = widget["widget"]
+            field.widget = widget["widget"]  # type: ignore[attr-defined,index]
             generated = field_schema(field.field, schema.definitions)
             fields[field.name] = serialize(field, generated)
 
         return FormType(
             name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",
             errors=form.errors or None,
-            fields=fields,  # type: ignore
+            fields=fields,
             iterator=list(fields.keys()),
             prefix=form.prefix or "",
         )
@@ -625,8 +625,6 @@ def named_tuple_schema(
 
 
 def field_schema(instance: django_forms.Field, definitions: Definitions) -> Thing:
-    # Type = instance.__class__
-    # definition_name = f"{Type.__module__}.{Type.__qualname__}"
     base_schema, definitions = create_schema(FieldType, definitions)
     generated = widget_schema(instance.widget, definitions)  # type: ignore[arg-type]
 
@@ -825,7 +823,7 @@ TYPE_HINTS = {}
 
 def register(path: str) -> Callable[[Override], Override]:
     def inner(override: Override) -> Override:
-        override._reactivated_overriden_path = path
+        override._reactivated_overriden_path = path  # type: ignore[attr-defined]
         TYPE_HINTS[path] = override
         return override
 
@@ -854,25 +852,8 @@ class BaseWidget(NamedTuple):
         Type: Type["BaseWidget"], value: Any, schema: "Thing"
     ) -> JSON:
         serialized = serialize(value, schema, suppress_custom_serializer=True)
-        serialized["tag"] = Type._reactivated_overriden_path
+        serialized["tag"] = Type._reactivated_overriden_path  # type: ignore[attr-defined]
         return serialized
-        """
-        if schema.schema["properties"].get("subwidgets", None) is None:
-            breakpoint()
-        widget = django_forms.Widget
-        import pprint
-        # pprint.pprint(schema.schema)
-        serialized = serialize(value, schema, suppress_custom_serializer=True)
-
-        if subwidgets := serialized.get("subwidgets", None):
-            serialized["subwidgets"] = [
-                {**serialized_subwidget} for serialized_subwidget in sub
-            ]
-            pprint.pprint(serialized)
-            assert False
-
-        return serialized
-        """
 
 
 class MaxLengthAttrs(BaseWidgetAttrs):
@@ -967,11 +948,6 @@ class Textarea(BaseWidget):
     attrs: TextareaAttrs
 
 
-@register("django.forms.widgets.DateInput")
-class DateInput(BaseWidget):
-    type: Literal["date"]
-
-
 @register("django.forms.widgets.Select")
 class Select(BaseWidget):
     optgroups: List[Optgroup]
@@ -1051,7 +1027,7 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
         annotation, definitions, tag=definition_name, exclude=["subwidgets"]
     )
 
-    if subwidgets := get_type_hints(annotation).get("subwidgets", None):
+    if subwidgets := get_type_hints(annotation).get("subwidgets", None):  # type: ignore[arg-type]
         subwidgets_schema = create_schema(subwidgets, definitions=schema.definitions)
         dereferenced = subwidgets_schema.dereference()
         schema = schema._replace(definitions=subwidgets_schema.definitions)
@@ -1075,7 +1051,7 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
                 value_schema = create_schema(
                     get_type_hints(subwidgets)[field_name], schema.definitions
                 )
-                values_schema["properties"][field_name] = value_schema.dereference()[
+                values_schema["properties"][field_name] = value_schema.dereference()[  # type: ignore[index]
                     "properties"
                 ]["value"]
                 schema = schema._replace(definitions=value_schema.definitions)

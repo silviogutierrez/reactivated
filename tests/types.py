@@ -204,6 +204,7 @@ def test_int():
 
 def test_rename_me():
     from django.utils import timezone
+
     class Form(django_forms.Form):
         # first = django_forms.CharField()
         # second = django_forms.ChoiceField(choices=((1, "First"), (2, "Second")))
@@ -212,14 +213,11 @@ def test_rename_me():
         # tuple_subwdigets = django_forms.DateTimeField(widget=django_forms.SplitDateTimeWidget)
 
     schema = create_schema(Form, {})
-    import pprint
     # pprint.pprint(schema.dereference()["properties"]["fields"]["properties"])
-    instance = Form(initial={
-        "tuple_subwdigets": timezone.now(),
-    })
+    instance = Form(initial={"tuple_subwdigets": timezone.now(),})
     serialized = serialize(instance, schema)
 
-    #pprint.pprint(serialized._asdict())
+    # pprint.pprint(serialized._asdict())
     assert False
 
 

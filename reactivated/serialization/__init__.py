@@ -75,6 +75,7 @@ FieldDescriptor = Union[
 
 PropertySchema = Dict[str, Any]
 
+
 class Thing(NamedTuple):
     schema: Schema
     definitions: Definitions
@@ -98,18 +99,21 @@ class Thing(NamedTuple):
         definition_name = ref.replace("#/definitions/", "")
         dereferenced = self.definitions[definition_name]
 
-        return Thing(schema=self.schema, definitions={
-            **self.definitions,
-            definition_name: {
-                **dereferenced,
-                "properties": {
-                    **dereferenced["properties"],
-                    name: property_schema,
+        return Thing(
+            schema=self.schema,
+            definitions={
+                **self.definitions,
+                definition_name: {
+                    **dereferenced,
+                    "properties": {
+                        **dereferenced["properties"],
+                        name: property_schema,
+                    },
+                    "required": [*dereferenced["required"], name],
+                    "additionalProperties": False,
                 },
-                "required": [*dereferenced["required"], name],
-                "additionalProperties": False,
             },
-        })
+        )
 
 
 class ForeignKeyType:
@@ -1044,10 +1048,7 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
 
 """
     schema = named_tuple_schema(
-        annotation,
-        definitions,
-        tag=definition_name,
-        exclude=["subwidgets"]
+        annotation, definitions, tag=definition_name, exclude=["subwidgets"]
     )
 
     if subwidgets := get_type_hints(annotation).get("subwidgets", None):
@@ -1067,13 +1068,16 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
             values_schema = {
                 "type": "object",
                 "required": list(dereferenced["properties"].keys()),
-                "properties": {
-                },
+                "properties": {},
                 "additionalProperties": False,
             }
             for index, field_name in enumerate(dereferenced["properties"].keys()):
-                value_schema = create_schema(get_type_hints(subwidgets)[field_name], schema.definitions)
-                values_schema["properties"][field_name] = value_schema.dereference()["properties"]["value"]
+                value_schema = create_schema(
+                    get_type_hints(subwidgets)[field_name], schema.definitions
+                )
+                values_schema["properties"][field_name] = value_schema.dereference()[
+                    "properties"
+                ]["value"]
                 schema = schema._replace(definitions=value_schema.definitions)
 
             schema = schema.add_property("value_from_datadict", values_schema)
@@ -1082,8 +1086,12 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
             values_properties = {}
 
             for index, _ in enumerate(dereferenced["items"]):
-                value_schema = create_schema(subwidgets.__args__[index], schema.definitions)
-                values_properties[str(index)] = value_schema.dereference()["properties"]["value"]
+                value_schema = create_schema(
+                    subwidgets.__args__[index], schema.definitions
+                )
+                values_properties[str(index)] = value_schema.dereference()[
+                    "properties"
+                ]["value"]
                 schema = schema._replace(definitions=value_schema.definitions)
 
             values_schema = {
@@ -1216,7 +1224,9 @@ SERIALIZERS: Dict[str, Serializer] = {
 }
 
 
-def serialize(value: Any, schema: Thing, suppress_custom_serializer: bool = False) -> JSON:
+def serialize(
+    value: Any, schema: Thing, suppress_custom_serializer: bool = False
+) -> JSON:
     if value is None:
         return None
 

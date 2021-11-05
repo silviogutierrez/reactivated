@@ -52,7 +52,7 @@ const FormSet = ({formSet}: {formSet: FormSetLike<FieldMap>}) => (
 
 export default (props: Types["DataBrowserProps"]) => (
     <Layout title="Data browser">
-    {/*
+        {/*
         <form method="POST">
             <CSRFToken />
             <h1 className={styles.header}>Composers</h1>

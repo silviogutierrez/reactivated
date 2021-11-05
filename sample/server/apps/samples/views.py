@@ -43,7 +43,9 @@ def composer_list(request: HttpRequest) -> TemplateResponse:
 @autocomplete
 def create_opera(
     request: HttpRequest,
-) -> Union[HttpResponse, TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect]:
+) -> Union[
+    HttpResponse, TemplateResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
+]:
     """
     if request.method == "POST":
         form = forms.OperaForm(request.POST)
@@ -57,8 +59,11 @@ def create_opera(
         form = forms.OperaForm()
     """
     form = forms.OperaForm(request.POST or None)
-    posted = forms.OperaForm({"name": "test", "style": "VERISMO", "choice_field": 2}, prefix="posted")
-    pre_filled = forms.OperaForm(request.POST or None,
+    posted = forms.OperaForm(
+        {"name": "test", "style": "VERISMO", "choice_field": 2}, prefix="posted"
+    )
+    pre_filled = forms.OperaForm(
+        request.POST or None,
         initial={
             "name": "test",
             "date_written": datetime.date.today(),
@@ -70,11 +75,11 @@ def create_opera(
     )
 
     if "django" in request.GET:
-        return render(request, "create_opera.html", {
-            "form": form,
-            "pre_filled": pre_filled,
-            "posted": posted,
-        })
+        return render(
+            request,
+            "create_opera.html",
+            {"form": form, "pre_filled": pre_filled, "posted": posted,},
+        )
 
     return templates.CreateOpera(
         form=form, posted=posted, pre_filled=pre_filled,

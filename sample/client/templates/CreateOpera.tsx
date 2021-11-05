@@ -1,9 +1,9 @@
-import React, { useDebugValue } from "react";
+import React, {useDebugValue} from "react";
 
 import {Layout} from "@client/components/Layout";
 import {CSRFToken, Types} from "@client/generated";
 // import {useForm, FormLike, FormHandler, FieldMap} from "reactivated/forms";
-import {useForm, Form} from "@client/forms"
+import {useForm, Form} from "@client/forms";
 
 export default (props: Types["CreateOperaProps"]) => {
     const form = useForm({form: props.form});

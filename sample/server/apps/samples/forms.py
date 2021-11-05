@@ -35,11 +35,11 @@ class OperaForm(forms.ModelForm):
         (1, "One"),
         (2, "Two"),
     ))
-    #tuple_field = forms.SplitDateTimeField(widget=forms.SplitDateTimeWidget)
+    tuple_field = forms.SplitDateTimeField(widget=forms.SplitDateTimeWidget)
 
     class Meta:
         model = models.Opera
-        fields = ["name", "has_piano_transcription", "date_written", "choice_field"]
+        fields = ["name", "has_piano_transcription", "date_written", "choice_field", "tuple_field"]
         widgets = {
             "composer": Autocomplete(),
             "date_written": forms.SelectDateWidget,

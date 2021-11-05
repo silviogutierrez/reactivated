@@ -4,6 +4,9 @@ import {
     ReactivatedSerializationSelectDateWidget,
     ReactivatedSerializationSelect,
     ReactivatedSerializationTextInput,
+    ReactivatedSerializationDateInput,
+    ReactivatedSerializationTimeInput,
+    ReactivatedSerializationSplitDateTimeWidget,
 } from "@client/generated";
 import { Formatters } from "tslint";
 
@@ -18,6 +21,9 @@ type Widget_GENERATEME =
     | ReactivatedSerializationCheckboxInput
     | ReactivatedSerializationSelectDateWidget
     | ReactivatedSerializationSelect
+    | ReactivatedSerializationSplitDateTimeWidget
+    | ReactivatedSerializationDateInput
+    | ReactivatedSerializationTimeInput
     | ReactivatedSerializationTextInput;
 
 
@@ -135,27 +141,6 @@ export const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}) => {
     const initialState = useInitialState(form);
     const [values, setValues] = React.useState(initialState);
 
-    const handlers = {
-        "django.forms.widgets.CheckboxInput": (name: keyof T) => (value: boolean) => {
-            setValues({
-                ...values,
-                [name]: value,
-            });
-        },
-        "django.forms.widgets.TextInput": (name: keyof T) => (value: string) => {
-            setValues({
-                ...values,
-                [name]: value,
-            });
-        },
-    };
-    const defaultHandler = (name: keyof T) => (value: string) => {
-        setValues({
-            ...values,
-            [name]: value,
-        });
-    }
-
     const bindField = (value: any, setValue: any, widget: Widget_GENERATEME) => {
         return {
             name: widget.name,
@@ -169,7 +154,6 @@ export const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}) => {
     const iterate = (callback: (field: OuterTagged) => void) => {
         return form.iterator.map((fieldName) => {
             const field = form.fields[fieldName];
-            const handler: any = (handlers[(field.widget as any).tag as keyof typeof handlers] ?? defaultHandler)(fieldName);
 
             if ("subwidgets" in field.widget) {
                 return callback({
@@ -252,25 +236,26 @@ const Select = (props: {name: string, value: string | number | null, optgroups: 
 export const Widget = (props: {field: OuterTagged}) => {
     const {field} = props;
 
-    if (field.tag === "django.forms.widgets.CheckboxInput") {
-        return <CheckboxInput name={field.name} value={field.value} onChange={field.handler} />
-    }
-    else if (field.tag === "django.forms.widgets.TextInput") {
-        return (
-            <TextInput
-                name={field.name}
-                value={field.value}
-                onChange={field.handler}
-            />
-        );
-    } else if (field.tag === "django.forms.widgets.SelectDateWidget") {
-
+    if ("subwidgets" in field) {
         return (
             <React.Fragment key={field.name}>
                 {field.subwidgets.map((subwidget) => {
                     return <Widget key={subwidget.name} field={subwidget} />;
                 })}
             </React.Fragment>
+        );
+    }
+
+    if (field.tag === "django.forms.widgets.CheckboxInput") {
+        return <CheckboxInput name={field.name} value={field.value} onChange={field.handler} />
+    }
+    else if (field.tag === "django.forms.widgets.TextInput" || field.tag == "django.forms.widgets.DateInput" || field.tag == "django.forms.widgets.TimeInput") {
+        return (
+            <TextInput
+                name={field.name}
+                value={field.value}
+                onChange={field.handler}
+            />
         );
     } else if (field.tag === "django.forms.widgets.Select") {
         return (
@@ -282,6 +267,8 @@ export const Widget = (props: {field: OuterTagged}) => {
             />
         );
     }
+
+    const exhastive: never = field;
     throw new Error(`Exhaustive`);
 }
 

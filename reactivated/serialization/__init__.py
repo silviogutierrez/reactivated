@@ -902,6 +902,36 @@ class NumberInput(BaseWidget):
     attrs: StepAttrs
 
 
+class TimeAttrs(BaseWidgetAttrs):
+    format: str
+
+
+@register("django.forms.widgets.TimeInput")
+class TimeInput(BaseWidget):
+    type: Literal["text"]
+    attrs: TimeAttrs
+
+
+class DateAttrs(BaseWidgetAttrs):
+    format: str
+
+
+@register("django.forms.widgets.DateInput")
+class DateInput(BaseWidget):
+    type: Literal["text"]
+    attrs: DateAttrs
+
+
+class DateTimeAttrs(BaseWidgetAttrs):
+    format: str
+
+
+@register("django.forms.widgets.DateTimeInput")
+class DateTimeInput(BaseWidget):
+    type: Literal["text"]
+    attrs: DateTimeAttrs
+
+
 class CheckAttrs(BaseWidgetAttrs):
     checked: stubs.Undefined[bool]
 
@@ -987,13 +1017,10 @@ class SelectDateWidgetSubwidgets(NamedTuple):
 class SelectDateWidget(BaseWidget):
     subwidgets: SelectDateWidgetSubwidgets
 
-    # value: SelectDateWidgetValue  # type: ignore[assignment]
-    # value_from_datadict: SelectDateWidgetValue  # type: ignore[assignment]
 
 @register("django.forms.widgets.SplitDateTimeWidget")
 class SplitDateTimeWidget(BaseWidget):
-    pass
-    # subwidgets: SelectDateWidgetSubwidgets
+    subwidgets: Tuple[django_forms.DateInput, django_forms.TimeInput]
 
 
 def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Thing:
@@ -1037,10 +1064,6 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
                     subschema for subschema in dereferenced["properties"].values()
                 ],
             }
-            """
-            ValueSchema = NamedTuple("ParentTuple", ((field_name, get_type_hints(Foo)["value"]) for field_name, Foo in get_type_hints(subwidgets).items()))
-
-            """
             values_schema = {
                 "type": "object",
                 "required": list(dereferenced["properties"].keys()),
@@ -1055,6 +1078,20 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
 
             schema = schema.add_property("value_from_datadict", values_schema)
             schema = schema.add_property("subwidgets", tuple_schema)
+        elif dereferenced["type"] == "array":
+            values_schema = {
+                "type": "array",
+                "minItems": len(dereferenced["items"]),
+                "maxItems": len(dereferenced["items"]),
+                "items": [],
+            }
+
+            for index, _ in enumerate(dereferenced["items"]):
+                value_schema = create_schema(subwidgets.__args__[index], schema.definitions)
+                values_schema["items"].append(value_schema.dereference()["properties"]["value"])
+                schema = schema._replace(definitions=value_schema.definitions)
+            schema = schema.add_property("value_from_datadict", values_schema)
+            schema = schema.add_property("subwidgets", subwidgets_schema.schema)
 
     return schema
 

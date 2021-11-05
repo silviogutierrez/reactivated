@@ -1079,17 +1079,20 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
             schema = schema.add_property("value_from_datadict", values_schema)
             schema = schema.add_property("subwidgets", tuple_schema)
         elif dereferenced["type"] == "array":
-            values_schema = {
-                "type": "array",
-                "minItems": len(dereferenced["items"]),
-                "maxItems": len(dereferenced["items"]),
-                "items": [],
-            }
+            values_properties = {}
 
             for index, _ in enumerate(dereferenced["items"]):
                 value_schema = create_schema(subwidgets.__args__[index], schema.definitions)
-                values_schema["items"].append(value_schema.dereference()["properties"]["value"])
+                values_properties[str(index)] = value_schema.dereference()["properties"]["value"]
                 schema = schema._replace(definitions=value_schema.definitions)
+
+            values_schema = {
+                "type": "object",
+                "required": list(values_properties.keys()),
+                "properties": values_properties,
+                "additionalProperties": False,
+            }
+
             schema = schema.add_property("value_from_datadict", values_schema)
             schema = schema.add_property("subwidgets", subwidgets_schema.schema)
 

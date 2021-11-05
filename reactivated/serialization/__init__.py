@@ -963,6 +963,7 @@ class SelectMultiple(BaseWidget):
     attrs: SelectMultipleAttrs
     optgroups: List[Optgroup]
     value: List[str]  # type: ignore[assignment]
+    value_from_datadict: List[str]
 
 
 @register("taggit.forms.TagWidget")
@@ -1007,6 +1008,8 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
     Type = instance.__class__
     definition_name = f"{Type.__module__}.{Type.__qualname__}"
 
+    # TODO: this should be abstracted away entirely and done by get_type_hints
+    # or a wrapper.
     annotation = TYPE_HINTS.get(definition_name)
 
     if annotation is None:
@@ -1023,6 +1026,16 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
         ), f"Only core widgets and depth-1 inheritance widgets are currently supported. Check {SubType.widget.__class__}"
 
 """
+    # Once we abstract finding annotations, this can just work with the regular
+    # definition name. The schema generator need not know this is an overlaid
+    # annotation.
+    annotation_name = f"{annotation.__module__}.{annotation.__qualname__}"
+
+    if annotation_name in definitions:
+        return Thing(
+            schema={"$ref": f"#/definitions/{annotation_name}"}, definitions=definitions
+        )
+
     schema = named_tuple_schema(
         annotation, definitions, tag=definition_name, exclude=["subwidgets"]
     )
@@ -1053,7 +1066,9 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
                 )
                 values_schema["properties"][field_name] = value_schema.dereference()[  # type: ignore[index]
                     "properties"
-                ]["value"]
+                ][
+                    "value"
+                ]
                 schema = schema._replace(definitions=value_schema.definitions)
 
             schema = schema.add_property("value_from_datadict", values_schema)
@@ -1080,6 +1095,16 @@ def widget_schema(instance: django_forms.Widget, definitions: Definitions) -> Th
             schema = schema.add_property("value_from_datadict", values_schema)
             schema = schema.add_property("subwidgets", subwidgets_schema.schema)
 
+    from reactivated import global_types
+
+    GlobalWidget = global_types.get("Widget", {"anyOf": [],})
+
+    GlobalWidget = {
+        **GlobalWidget,
+        "anyOf": [*GlobalWidget["anyOf"], schema.schema,],
+    }
+    global_types["Widget"] = GlobalWidget
+
     return schema
 
 
@@ -1099,19 +1124,19 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     elif issubclass(Type, django_forms.Widget):
         return widget_schema(Type(), definitions=definitions)
     elif issubclass(Type, datetime.datetime):
-        return Thing(schema={"type": "string"}, definitions={})
+        return Thing(schema={"type": "string"}, definitions=definitions)
     elif issubclass(Type, datetime.date):
-        return Thing(schema={"type": "string"}, definitions={})
+        return Thing(schema={"type": "string"}, definitions=definitions)
     elif issubclass(Type, bool):
-        return Thing(schema={"type": "boolean"}, definitions={})
+        return Thing(schema={"type": "boolean"}, definitions=definitions)
     elif issubclass(Type, int):
-        return Thing(schema={"type": "number"}, definitions={})
+        return Thing(schema={"type": "number"}, definitions=definitions)
     elif issubclass(Type, float):
-        return Thing(schema={"type": "number"}, definitions={})
+        return Thing(schema={"type": "number"}, definitions=definitions)
     elif issubclass(Type, str):
-        return Thing(schema={"type": "string"}, definitions={})
+        return Thing(schema={"type": "string"}, definitions=definitions)
     elif Type is type(None):  # noqa: E721
-        return Thing(schema={"type": "null"}, definitions={})
+        return Thing(schema={"type": "null"}, definitions=definitions)
     elif issubclass(Type, django_forms.BaseForm):
         return form_schema(Type, definitions)
     elif issubclass(Type, stubs.BaseFormSet):

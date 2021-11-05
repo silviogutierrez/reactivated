@@ -1,13 +1,8 @@
 import React from "react";
-import {
-    ReactivatedSerializationCheckboxInput,
-    ReactivatedSerializationSelectDateWidget,
-    ReactivatedSerializationSelect,
-    ReactivatedSerializationTextInput,
-    ReactivatedSerializationDateInput,
-    ReactivatedSerializationTimeInput,
-    ReactivatedSerializationSplitDateTimeWidget,
-} from "@client/generated";
+import {Types, ReactivatedSerializationOptgroupMember} from "@client/generated";
+
+type Widget_GENERATEME = Types["globals"]["Widget"];
+
 import {Formatters} from "tslint";
 
 // Move to utilities?
@@ -16,15 +11,6 @@ type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<
     : never;
 
 type Simplify<T> = {[KeyType in keyof T]: T[KeyType]};
-
-type Widget_GENERATEME =
-    | ReactivatedSerializationCheckboxInput
-    | ReactivatedSerializationSelectDateWidget
-    | ReactivatedSerializationSelect
-    | ReactivatedSerializationSplitDateTimeWidget
-    | ReactivatedSerializationDateInput
-    | ReactivatedSerializationTimeInput
-    | ReactivatedSerializationTextInput;
 
 interface Field {
     name: string;
@@ -72,6 +58,9 @@ const initializers: Initializers = {
     },
     "django.forms.widgets.Select": (widget) => {
         return widget.value[0];
+    },
+    "django.forms.widgets.SelectMultiple": (widget) => {
+        return widget.value;
     },
 };
 
@@ -253,7 +242,7 @@ const TextInput = (props: {
 const Select = (props: {
     name: string;
     value: string | number | null;
-    optgroups: ReactivatedSerializationSelect["optgroups"];
+    optgroups: [null, [ReactivatedSerializationOptgroupMember], number][];
     onChange: (value: string) => void;
 }) => {
     const {name, optgroups, value} = props;
@@ -290,7 +279,9 @@ export const Widget = (props: {field: OuterTagged}) => {
         );
     }
 
-    if (field.tag === "django.forms.widgets.CheckboxInput") {
+    if (field.tag === "django.forms.widgets.HiddenInput") {
+        return <input type="hidden" name={field.name} value={field.value ?? ""} />;
+    } else if (field.tag === "django.forms.widgets.CheckboxInput") {
         return (
             <CheckboxInput
                 name={field.name}
@@ -315,6 +306,8 @@ export const Widget = (props: {field: OuterTagged}) => {
                 onChange={field.handler}
             />
         );
+    } else if (field.tag === "django.forms.widgets.SelectMultiple") {
+        return <div>Select MULTIPLE TODO</div>;
     }
 
     const exhastive: never = field;

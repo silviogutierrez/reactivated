@@ -307,7 +307,29 @@ export const Widget = (props: {field: OuterTagged}) => {
             />
         );
     } else if (field.tag === "django.forms.widgets.SelectMultiple") {
-        return <div>Select MULTIPLE TODO</div>;
+        return (
+            <select
+                name={field.name}
+                multiple
+                value={field.value}
+                onChange={(event) => {
+                    const value = Array.from(
+                        event.target.selectedOptions,
+                        (option) => option.value,
+                    );
+                    field.handler(value);
+                }}
+            >
+                {field.widget.optgroups.map((optgroup) => {
+                    const value = (optgroup[1][0].value ?? "").toString();
+                    return (
+                        <option key={value} value={value}>
+                            {optgroup[1][0].label}
+                        </option>
+                    );
+                })}
+            </select>
+        );
     }
 
     const exhastive: never = field;

@@ -15,7 +15,7 @@ def pytest_configure(config: Any) -> None:
                 line_number = index + 1
                 if line_number in line_numbers and "ignore" not in line:
                     file_lines.append(
-                        f"{line.rstrip()}  # type: ignore[var-annotated]\n"
+                        f"{line.rstrip()}  # type: ignore[var-annotated,import]\n"
                     )
                 else:
                     file_lines.append(line)
@@ -24,10 +24,41 @@ def pytest_configure(config: Any) -> None:
 
 
 FILES = [
-    ("django-stubs/contrib/auth/base_user", (18, 19)),
+    ("django-stubs/contrib/auth/base_user", (18, 19, 25, 26)),
     (
         "django-stubs/contrib/auth/models",
-        (23, 24, 25, 34, 35, 57, 58, 59, 70, 71, 72, 73, 74, 75, 76),
+        (
+            23,
+            24,
+            25,
+            29,
+            30,
+            31,
+            34,
+            5,
+            40,
+            41,
+            57,
+            58,
+            59,
+            63,
+            64,
+            65,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+        ),
     ),
-    ("django-stubs/contrib/sites/models", (17, 18)),
+    ("django-stubs/contrib/postgres/fields/ranges", (4,)),
+    ("django-stubs/contrib/sites/models", (16, 17, 18)),
 ]

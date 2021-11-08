@@ -201,8 +201,8 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     So we monkeypatch the widget's internal renderer to return JSON directly
     without being wrapped by `mark_safe`.
     """
-    original_render = field.field.widget._render  # type: ignore[attr-defined]
-    field.field.widget._render = (  # type: ignore[attr-defined]
+    original_render = field.field.widget._render  # type: ignore[union-attr]
+    field.field.widget._render = (  # type: ignore[union-attr]
         lambda template_name, context, renderer: context
     )
     widget = field.as_widget()
@@ -225,7 +225,7 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     def handle_optgroups(widget_context: Any) -> None:
         optgroups = widget_context.get("optgroups", None)
         if optgroups is not None:
-            optgroup_schema = create_schema(Optgroup, {})  # type: ignore[misc]
+            optgroup_schema = create_schema(Optgroup, {})
             widget_context["optgroups"] = [
                 serialize(optgroup, optgroup_schema) for optgroup in optgroups
             ]
@@ -236,7 +236,7 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
 
     handle_optgroups(context)
 
-    field.field.widget._render = original_render  # type: ignore[attr-defined]
+    field.field.widget._render = original_render  # type: ignore[union-attr]
 
     return context  # type: ignore[no-any-return]
 

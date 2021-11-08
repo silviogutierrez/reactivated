@@ -6,13 +6,6 @@ from django.db import models
 from reactivated import computed_foreign_key, computed_relation
 from reactivated.fields import EnumField
 
-models.QuerySet.__class_getitem__ = classmethod(  # type: ignore[assignment]
-    lambda cls, key: cls
-)
-models.Manager.__class_getitem__ = classmethod(  # type: ignore[assignment]
-    lambda cls, key: cls
-)
-
 
 class Continent(models.Model):
     class Hemisphere(enum.Enum):

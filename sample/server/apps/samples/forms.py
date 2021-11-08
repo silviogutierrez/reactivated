@@ -19,7 +19,7 @@ class PlaygroundForm(forms.Form):
         pass
 
 
-class ComposerForm(forms.ModelForm):
+class ComposerForm(forms.ModelForm[models.Composer]):
     class Meta:
         model = models.Composer
         fields = "__all__"
@@ -30,7 +30,7 @@ ComposerFormSet = forms.modelformset_factory(
 )
 
 
-class OperaForm(forms.ModelForm):
+class OperaForm(forms.ModelForm[models.Opera]):
     choice_field = forms.ChoiceField(choices=((1, "One"), (2, "Two"),))
     multiple_choice = forms.MultipleChoiceField(
         choices=((3, "Three"), (4, "Four"), (5, "Five"))

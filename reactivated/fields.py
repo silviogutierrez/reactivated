@@ -18,6 +18,11 @@ from typing import (
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, models
 from django.db.models.fields import BLANK_CHOICE_DASH, NOT_PROVIDED
+from psycopg2.extras import (  # type: ignore[import]
+    DateRange,
+    DateTimeTZRange,
+    NumericRange,
+)
 
 from .constraints import EnumConstraint
 

@@ -18,5 +18,5 @@
               return Foreign()
 
       instance = MyModel()
-      reveal_type(instance.foreign)  # N: Revealed type is 'main.Foreign*'
-      reveal_type(instance.null_foreign)  # N: Revealed type is 'Union[main.Foreign, None]'
+      reveal_type(instance.foreign)  # N: Revealed type is "main.Foreign*"
+      reveal_type(instance.null_foreign)  # N: Revealed type is "Union[main.Foreign, None]"

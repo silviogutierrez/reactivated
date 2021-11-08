@@ -1,8 +1,8 @@
 let
   stableTarball = fetchTarball
-    "https://github.com/NixOS/nixpkgs-channels/archive/0a146054bdf6f70f66de4426f84c9358521be31e.tar.gz";
+    "https://github.com/NixOS/nixpkgs/archive/f112b512e1710da6c8beb8e541a8ad9fcd81e6e6.tar.gz";
   unstableTarball = fetchTarball
-    "https://github.com/NixOS/nixpkgs-channels/archive/0a146054bdf6f70f66de4426f84c9358521be31e.tar.gz";
+    "https://github.com/NixOS/nixpkgs/archive/f112b512e1710da6c8beb8e541a8ad9fcd81e6e6.tar.gz";
   pkgs = import stableTarball { };
   unstable = import unstableTarball { };
 in with pkgs;
@@ -12,13 +12,12 @@ mkShell {
     gitAndTools.gh
     jq
 
-    python38
-    python38Packages.virtualenv
-    nodejs-13_x
-    (yarn.override { nodejs = nodejs-13_x; })
+    python39
+    python39Packages.virtualenv
+    nodejs-14_x
+    (yarn.override { nodejs = nodejs-14_x; })
 
-    # Otherwise AWS gets some weird conflicts with python 2.7
-    (tmuxp.override { python = python38; })
+    tmuxp
 
     ripgrep
     shellcheck
@@ -26,9 +25,6 @@ mkShell {
     nixfmt
 
     postgresql
-
-    # For psycopg2 to build
-    openssl
 
     # Purely for formatting right now.
     terraform

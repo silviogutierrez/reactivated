@@ -280,7 +280,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
         field_schema = create_schema(FieldType, definitions)
 
         # We manually build errors using type augmentation.
-        error_schema = create_schema(FormError, definitions)  # type: ignore[misc]
+        error_schema = create_schema(FormError, definitions)
 
         for field_name, SubType in Type.base_fields.items():
             required.append(field_name)

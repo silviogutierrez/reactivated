@@ -209,9 +209,9 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
 
         return str(member.name)
 
-    def value_to_string(self, obj: Any) -> Optional[str]:
+    def value_to_string(self, obj: Any) -> str:
         value = self.value_from_object(obj)
-        return self.get_prep_value(value)
+        return self.get_prep_value(value)  # type: ignore[return-value]
 
     def formfield(self, **kwargs: Any) -> Any:
         from .forms import EnumChoiceField

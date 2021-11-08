@@ -18,5 +18,8 @@ requests==2.22.0
 simplejson==3.16.0
 twine==2.0.0
 
+types-requests==2.25.11
+types-simplejson==3.17.1
+
 # Install reactivated package locally
 -e .

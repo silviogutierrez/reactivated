@@ -1,7 +1,15 @@
 import React from "react";
-import {Types, ReactivatedSerializationOptgroupMember} from "@client/generated";
 
-type Widget_GENERATEME = Types["globals"]["Widget"];
+export interface OptgroupMember {
+  name: string;
+  value: string | number | boolean | null;
+  label: string;
+  selected: boolean;
+}
+
+export type Optgroup = [null, [OptgroupMember], number];
+
+export type WidgetLike = {name: string, tag: string, value_from_datadict: unknown, subwidgets?: WidgetLike[], value: unknown};
 
 import {Formatters} from "tslint";
 
@@ -14,7 +22,7 @@ type Simplify<T> = {[KeyType in keyof T]: T[KeyType]};
 
 interface Field {
     name: string;
-    widget: Widget_GENERATEME;
+    widget: WidgetLike;
     label: string;
     help_text: string;
 }
@@ -31,11 +39,11 @@ export interface FormLike<T extends FieldMap> {
     prefix: string;
 }
 
-type ValueFromDatadict<T extends Widget_GENERATEME> = (
+type ValueFromDatadict<T extends WidgetLike> = (
     widget: T,
 ) => T["value_from_datadict"];
 
-type FilterMultiWidgets<T extends Widget_GENERATEME> = T extends {subwidgets: unknown}
+type FilterMultiWidgets<T extends WidgetLike> = T extends {subwidgets: unknown}
     ? never
     : T extends {value: string | null; value_from_datadict: string | null}
     ? never
@@ -44,12 +52,13 @@ type FilterMultiWidgets<T extends Widget_GENERATEME> = T extends {subwidgets: un
     : never;
 
 type Initializers = {
-    [K in Widget_GENERATEME["tag"] as FilterMultiWidgets<
-        DiscriminateUnion<Widget_GENERATEME, "tag", K>
-    >]: ValueFromDatadict<DiscriminateUnion<Widget_GENERATEME, "tag", K>>;
+    [K in WidgetLike["tag"] as FilterMultiWidgets<
+        DiscriminateUnion<WidgetLike, "tag", K>
+    >]: ValueFromDatadict<DiscriminateUnion<WidgetLike, "tag", K>>;
 };
 
 const initializers: Initializers = {
+    /*
     "django.forms.widgets.CheckboxInput": (widget) => {
         if (widget.attrs.checked === true) {
             return true;
@@ -62,14 +71,15 @@ const initializers: Initializers = {
     "django.forms.widgets.SelectMultiple": (widget) => {
         return widget.value;
     },
+    */
 };
 
 export type FormValues<U extends FieldMap> = Simplify<{
     [K in keyof U]: U[K] extends {enum: unknown} ? (U[K]["enum"] | null): U[K]["widget"]["value_from_datadict"];
 }>;
 
-const widgetToValue = (prefix: string, name: string, widget: Widget_GENERATEME) => {
-    if ("subwidgets" in widget) {
+const widgetToValue = <T extends WidgetLike>(prefix: string, name: string, widget: T) => {
+    if (widget.subwidgets != null) {
         const subwidgetValue = Object.fromEntries(
             widget.subwidgets.map((subwidget) => {
                 const formPrefix = prefix == "" ? "" : `${prefix}-`;
@@ -88,7 +98,7 @@ const widgetToValue = (prefix: string, name: string, widget: Widget_GENERATEME) 
     }
 };
 
-const getInitialValue = (widget: Widget_GENERATEME) => {
+const getInitialValue = (widget: WidgetLike) => {
     if (widget.tag in initializers) {
         return (initializers as any)[widget.tag](widget);
     } else {
@@ -102,7 +112,7 @@ const useInitialState = <T extends FieldMap>(form: FormLike<T>) => {
         const field = form.fields[fieldName];
         const widget = field.widget;
 
-        if ("subwidgets" in widget) {
+        if (widget.subwidgets != null) {
             const subwidgetValue = Object.fromEntries(
                 widget.subwidgets.map((subwidget) => {
                     const formPrefix = form.prefix == "" ? "" : `${form.prefix}-`;
@@ -120,6 +130,166 @@ const useInitialState = <T extends FieldMap>(form: FormLike<T>) => {
 
     return Object.fromEntries(initialValuesAsEntries) as FormValues<T>;
 };
+
+const bindField = (value: any, setValue: any, widget: WidgetLike) => {
+    return {
+        name: widget.name,
+        tag: widget.tag,
+        value: value,
+        widget,
+        handler: setValue,
+    };
+};
+
+
+export const bindUseForm = <TWidget extends WidgetLike>() => {
+    type CreateFieldHandler<T> = T extends {tag: string; name: string; subwidgets: infer U}
+        ? {
+            tag: T["tag"];
+            name: string;
+            subwidgets: {[K in keyof U]: CreateFieldHandler<U[K]>};
+        }
+        : T extends TWidget
+        ? {
+            tag: T["tag"];
+            name: string;
+            value: T["value_from_datadict"];
+            widget: T;
+            handler: (value: T["value_from_datadict"]) => void;
+        }
+        : never;
+
+    type FieldHandler = {
+        [K in TWidget["tag"]]: CreateFieldHandler<
+            DiscriminateUnion<TWidget, "tag", K>
+        >;
+    }[TWidget["tag"]];
+
+    const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}) => {
+        const initialState = useInitialState(form);
+        const [values, setValues] = React.useState(initialState);
+
+
+        return {
+            values,
+            setValues,
+        }
+
+        const iterate = (callback: (field: FieldHandler) => void) => {
+            return form.iterator.map((fieldName) => {
+                const field = form.fields[fieldName];
+
+                if (field.widget.subwidgets != null) {
+
+                    const subwidgets = field.widget.subwidgets.map((subwidget) => {
+                        const formPrefix = form.prefix == "" ? "" : `${form.prefix}-`;
+                        const unprefixedName = subwidget.name.replace(
+                            `${formPrefix}${fieldName}_`,
+                            "",
+                        );
+
+                        const subwidgetValues = values[fieldName] as any;
+                        const subwidgetValue = subwidgetValues[unprefixedName];
+
+                        const setSubwidgetValue = (value: any) => {
+                            setValues({
+                                ...values,
+                                [fieldName]: {
+                                    ...subwidgetValues,
+                                    [unprefixedName]: value,
+                                },
+                            });
+                        };
+
+                        return bindField(subwidgetValue, setSubwidgetValue, {
+                            ...subwidget,
+                        });
+                    });
+
+                    return callback({
+                        name: fieldName,
+                        tag: field.widget.tag,
+                        subwidgets,
+                    } as any);
+                }
+
+                const value = values[fieldName];
+                const setValue = (value: any) => {
+                    setValues({
+                        ...values,
+                        [fieldName]: value,
+                    });
+                };
+
+                return callback(
+                    bindField(values[fieldName], setValue, field.widget) as any,
+                );
+            });
+        };
+    }
+
+    return useForm;
+}
+
+
+const CheckboxInput = (props: {
+    name: string;
+    value: true | false;
+    onChange: (value: boolean) => void;
+}) => {
+    return (
+        <input
+            type="checkbox"
+            name={props.name}
+            checked={props.value}
+            onChange={(event) => props.onChange(event.target.checked)}
+        />
+    );
+};
+
+const TextInput = (props: {
+    name: string;
+    value: string | null;
+    onChange: (value: string) => void;
+}) => {
+    return (
+        <input
+            type="text"
+            name={props.name}
+            value={props.value ?? ""}
+            onChange={(event) => props.onChange(event.target.value)}
+        />
+    );
+};
+
+const Select = (props: {
+    name: string;
+    value: string | number | null;
+    optgroups: Optgroup[];
+    onChange: (value: string) => void;
+}) => {
+    const {name, optgroups, value} = props;
+
+    return (
+        <select
+            key={name}
+            name={name}
+            value={value ?? ""}
+            onChange={(event) => props.onChange(event.target.value)}
+        >
+            {optgroups.map((optgroup) => {
+                const value = (optgroup[1][0].value ?? "").toString();
+                return (
+                    <option key={value} value={value}>
+                        {optgroup[1][0].label}
+                    </option>
+                );
+            })}
+        </select>
+    );
+};
+
+/*
 
 type Thing<T> = T extends {tag: string; name: string; subwidgets: infer U}
     ? {
@@ -144,8 +314,8 @@ type OuterTagged = {
 }[Widget_GENERATEME["tag"]];
 
 export const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}) => {
-    const initialState = useInitialState(form);
-    const [values, setValues] = React.useState(initialState);
+    const initialstate = useinitialstate(form);
+    const [values, setvalues] = react.usestate(initialstate);
 
     const bindField = (value: any, setValue: any, widget: Widget_GENERATEME) => {
         return {
@@ -161,7 +331,7 @@ export const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}) => {
         return form.iterator.map((fieldName) => {
             const field = form.fields[fieldName];
 
-            if ("subwidgets" in field.widget) {
+            if (field.widget.subwidgets != null) {
                 return callback({
                     name: fieldName,
                     tag: field.widget.tag,
@@ -207,63 +377,6 @@ export const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}) => {
     };
 
     return {values, initialState, setValues, iterate};
-};
-
-const CheckboxInput = (props: {
-    name: string;
-    value: true | false;
-    onChange: (value: boolean) => void;
-}) => {
-    return (
-        <input
-            type="checkbox"
-            name={props.name}
-            checked={props.value}
-            onChange={(event) => props.onChange(event.target.checked)}
-        />
-    );
-};
-
-const TextInput = (props: {
-    name: string;
-    value: string | null;
-    onChange: (value: string) => void;
-}) => {
-    return (
-        <input
-            type="text"
-            name={props.name}
-            value={props.value ?? ""}
-            onChange={(event) => props.onChange(event.target.value)}
-        />
-    );
-};
-
-const Select = (props: {
-    name: string;
-    value: string | number | null;
-    optgroups: [null, [ReactivatedSerializationOptgroupMember], number][];
-    onChange: (value: string) => void;
-}) => {
-    const {name, optgroups, value} = props;
-
-    return (
-        <select
-            key={name}
-            name={name}
-            value={value ?? ""}
-            onChange={(event) => props.onChange(event.target.value)}
-        >
-            {optgroups.map((optgroup) => {
-                const value = (optgroup[1][0].value ?? "").toString();
-                return (
-                    <option key={value} value={value}>
-                        {optgroup[1][0].label}
-                    </option>
-                );
-            })}
-        </select>
-    );
 };
 
 export const Widget = (props: {field: OuterTagged}) => {
@@ -357,3 +470,5 @@ const MyThing = <F extends string, T extends Array<{value: F, label: string}>>(f
 }
 
 const Nowai = MyThing([{value: "thing", label: "Thing"}, {value: "bar", label: "Bar"}]);
+
+*/

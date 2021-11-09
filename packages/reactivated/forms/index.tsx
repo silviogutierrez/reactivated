@@ -3,11 +3,12 @@ import React from "react";
 export {FormLike, FormSetLike, FieldMap, ManagementForm} from "../components/Form";
 
 import {FieldMap, FormLike} from "../components/Form";
-import {SelectDateWidget, WidgetType} from "../components/Widget";
+import {SelectDateWidget} from "../components/Widget";
+import { bindUseForm, WidgetLike } from "./genesis";
 
 export default <TContext extends {csrf_token: string}>(
     Context: React.Context<TContext>,
-) => ({
+) => <TWidget extends WidgetLike>() => ({
     CSRFToken: (props: {}) => {
         const context = React.useContext(Context);
 
@@ -19,6 +20,7 @@ export default <TContext extends {csrf_token: string}>(
             />
         );
     },
+    useForm: bindUseForm<TWidget>(),
 });
 
 type FormValue<U extends {value: unknown}> = U extends SelectDateWidget

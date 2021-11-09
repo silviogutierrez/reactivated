@@ -115,7 +115,6 @@ class Thing(NamedTuple):
             },
         )
 
-
 class ForeignKeyType:
     @classmethod
     def get_serialized_value(
@@ -626,7 +625,28 @@ def named_tuple_schema(
 
 def field_schema(instance: django_forms.Field, definitions: Definitions) -> Thing:
     base_schema, definitions = create_schema(FieldType, definitions)
-    generated = widget_schema(instance.widget, definitions)  # type: ignore[arg-type]
+    generated, definitions = widget_schema(instance.widget, definitions)  # type: ignore[arg-type]
+
+    from reactivated.forms import EnumChoiceField
+
+    extra = {
+        "type": "object",
+        "properties": {
+        },
+        "required": [],
+        "additionalProperties": False,
+    }
+
+    if isinstance(instance, EnumChoiceField):
+        choice_schema, definitions = create_schema(instance.enum, definitions)
+        extra = {
+            "type": "object",
+            "properties": {
+                "enum": choice_schema,
+            },
+            "required": ["enum"],
+            "additionalProperties": False,
+        }
 
     return Thing(
         schema={
@@ -635,13 +655,14 @@ def field_schema(instance: django_forms.Field, definitions: Definitions) -> Thin
                 base_schema,
                 {
                     "type": "object",
-                    "properties": {"widget": generated.schema,},
+                    "properties": {"widget": generated,},
                     "additionalProperties": False,
                     "required": ["widget"],
                 },
+                extra,
             ],
         },
-        definitions=generated.definitions,
+        definitions=definitions,
     )
 
 

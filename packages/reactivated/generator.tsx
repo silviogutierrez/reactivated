@@ -116,9 +116,9 @@ export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentCl
 
 export const {Context, Provider, getServerData} = createContext<Types["Context"]>();
 
-const forms = createForms(Context);
+const forms = createForms(Context)<Types["globals"]["Widget"]>();
 
-export const CSRFToken = forms.CSRFToken;
+export const {CSRFToken, useForm} = forms;
 `);
 
 // tslint:disable-next-line

@@ -12,6 +12,8 @@ build/
 lib/
 *.egg-info
 
+packages/reactivated/generated.tsx
+
 
 website/translated_docs
 website/build/

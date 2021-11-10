@@ -7,6 +7,7 @@ from django import forms
 from reactivated.serialization import create_schema, Optgroup
 
 Widget = Union[
+    forms.HiddenInput,
     forms.TextInput,
     forms.URLInput,
     forms.TimeInput,
@@ -15,6 +16,7 @@ Widget = Union[
     forms.PasswordInput,
     forms.EmailInput,
     forms.Textarea,
+    forms.Select,
     forms.SelectMultiple,
     forms.ClearableFileInput,
     forms.SelectDateWidget,

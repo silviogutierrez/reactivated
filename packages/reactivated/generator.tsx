@@ -109,16 +109,14 @@ interfaces.addStatements(`
 import React from "react"
 // import * as types from "reactivated/types";
 import createContext from "reactivated/context";
-import createForms from "reactivated/forms";
+
+import {bindForms} from "reactivated/forms/genesis";
 
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
 
 export const {Context, Provider, getServerData} = createContext<Types["Context"]>();
-
-const forms = createForms(Context)<Types["globals"]["Widget"]>();
-
-export const {CSRFToken, useForm} = forms;
+export const forms = bindForms(Context);
 `);
 
 // tslint:disable-next-line

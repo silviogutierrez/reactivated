@@ -42,6 +42,24 @@ export interface FormLike<T extends FieldMap> {
     prefix: string;
 }
 
+export interface FormSetLike<T extends FieldMap> {
+    initial: number;
+    total: number;
+    max_num: number;
+    min_num: number;
+    can_delete: boolean;
+    can_order: boolean;
+    non_form_errors: string[];
+
+    // Technically we don't need management form.
+    // Since we have ManagementForm as a component that uses initial and total.
+    management_form: unknown;
+    prefix: string;
+
+    forms: Array<FormLike<T>>;
+    empty_form: FormLike<T>;
+}
+
 type ValueFromDatadict<T extends WidgetLike> = (
     widget: T,
 ) => T["value_from_datadict"];
@@ -143,7 +161,7 @@ const bindField = (value: any, setValue: any, widget: WidgetLike) => {
     };
 };
 
-type CreateFieldHandler<T> = T extends {tag: string; name: string; subwidgets: infer U}
+export type CreateFieldHandler<T> = T extends {tag: string; name: string; subwidgets: infer U}
     ? {
         tag: T["tag"];
         name: string;
@@ -159,7 +177,7 @@ type CreateFieldHandler<T> = T extends {tag: string; name: string; subwidgets: i
     }
     : never;
 
-type FieldHandler<TWidget extends WidgetLike> = {
+export type FieldHandler<TWidget extends WidgetLike> = {
     [K in TWidget["tag"]]: CreateFieldHandler<
         DiscriminateUnion<TWidget, "tag", K>
     >;
@@ -174,7 +192,7 @@ interface BaseFieldsProps<U extends FieldMap> {
     ) => FormValues<U>;
     form: FormLike<U> | FormHandler<U>;
     children: (
-        props: FormHandler<U> & {error: string[] | null; field: U[keyof U]},
+        props: FieldHandler<U[keyof U]["widget"]>,
     ) => React.ReactNode;
 }
 
@@ -188,9 +206,9 @@ interface ExcludeFieldProps<U extends FieldMap> extends BaseFieldsProps<U> {
     exclude: Array<keyof U>;
 }
 
-type FieldsProps<U extends FieldMap> = IncludeFieldsProps<U> | ExcludeFieldProps<U>;
+export type FieldsProps<U extends FieldMap> = IncludeFieldsProps<U> | ExcludeFieldProps<U>;
 
-const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
+export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
     const getField =
         props.fieldInterceptor ?? ((form, fieldName) => form.fields[fieldName]);
     const defaultHandler = "setValues" in props.form ? props.form : useForm({form: props.form});
@@ -212,6 +230,82 @@ const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
 
     const iterator = getIterator();
     const handler = "setValues" in props.form ? props.form : defaultHandler;
+
+    return (
+        <>
+            {iterator
+                .map(
+                    (fieldName) =>
+                        [
+                            fieldName,
+                            // handler.fieldInterceptor(props.form, fieldName),
+                            form.fields[fieldName]
+                        ] as const,
+                )
+                .map(([fieldName, field]) => {
+                    const {widget} = field;
+                    const error = null; 
+                    /*
+                        handler.errors != null
+                            ? handler.errors[fieldName] ?? null
+                            : null;
+                    */
+
+                    return (
+                        <React.Fragment key={fieldName.toString()}>
+                            {props.children(fieldToHandler(handler, field))}
+                        </React.Fragment>
+                    );
+                })}
+        </>
+    );
+}
+
+const fieldToHandler = <T extends FieldMap, TField extends T[keyof T]>(handler: FormHandler<T>, field: TField): FieldHandler<TField["widget"]> => {
+    const fieldName = field.name;
+
+    if (field.widget.subwidgets != null) {
+        const subwidgets = field.widget.subwidgets.map((subwidget) => {
+            const formPrefix = handler.form.prefix == "" ? "" : `${handler.form.prefix}-`;
+            const unprefixedName = subwidget.name.replace(
+                `${formPrefix}${fieldName}_`,
+                "",
+            );
+
+            const subwidgetValues = handler.values[fieldName] as any;
+            const subwidgetValue = subwidgetValues[unprefixedName];
+
+            const setSubwidgetValue = (value: any) => {
+                handler.setValues({
+                    ...handler.values,
+                    [fieldName]: {
+                        ...subwidgetValues,
+                        [unprefixedName]: value,
+                    },
+                });
+            };
+
+            return bindField(subwidgetValue, setSubwidgetValue, {
+                ...subwidget,
+            });
+        });
+
+        return {
+            name: fieldName,
+            tag: field.widget.tag,
+            subwidgets,
+        } as any;
+    }
+
+    const value = handler.values[fieldName];
+    const setValue = (value: any) => {
+        handler.setValues({
+            ...handler.values,
+            [fieldName]: value,
+        });
+    };
+
+    return bindField(handler.values[fieldName], setValue, field.widget) as any;
 }
 
 export interface FormHandler<T extends FieldMap> {
@@ -284,74 +378,8 @@ export const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}): FormHa
         iterate,
     }
 }
-
-export const bindUseForm = <TWidget extends WidgetLike>() => {
-    /*
-
-    const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}): FormHandler<T> => {
-        const initialState = useInitialState(form);
-        const [values, setValues] = React.useState(initialState);
-
-        return {
-            values,
-            setValues,
-        }
-
-        const iterate = (callback: (field: FieldHandler<TWidget>) => void) => {
-            return form.iterator.map((fieldName) => {
-                const field = form.fields[fieldName];
-
-                if (field.widget.subwidgets != null) {
-
-                    const subwidgets = field.widget.subwidgets.map((subwidget) => {
-                        const formPrefix = form.prefix == "" ? "" : `${form.prefix}-`;
-                        const unprefixedName = subwidget.name.replace(
-                            `${formPrefix}${fieldName}_`,
-                            "",
-                        );
-
-                        const subwidgetValues = values[fieldName] as any;
-                        const subwidgetValue = subwidgetValues[unprefixedName];
-
-                        const setSubwidgetValue = (value: any) => {
-                            setValues({
-                                ...values,
-                                [fieldName]: {
-                                    ...subwidgetValues,
-                                    [unprefixedName]: value,
-                                },
-                            });
-                        };
-
-                        return bindField(subwidgetValue, setSubwidgetValue, {
-                            ...subwidget,
-                        });
-                    });
-
-                    return callback({
-                        name: fieldName,
-                        tag: field.widget.tag,
-                        subwidgets,
-                    } as any);
-                }
-
-                const value = values[fieldName];
-                const setValue = (value: any) => {
-                    setValues({
-                        ...values,
-                        [fieldName]: value,
-                    });
-                };
-
-                return callback(
-                    bindField(values[fieldName], setValue, field.widget) as any,
-                );
-            });
-        };
-    }
-
-    return useForm;
-    */
+export const Bar = (props: {widget: Types["Widget"]}) => {
+    return <div>Ok</div>;
 }
 
 export const Widget = (props: {field: FieldHandler<Types["Widget"]>}) => {
@@ -428,4 +456,57 @@ export const Widget = (props: {field: FieldHandler<Types["Widget"]>}) => {
 
     const exhastive: never = field;
     throw new Error(`Exhaustive`);
+};
+
+export const ManagementForm = <T extends FieldMap>({
+    formSet,
+}: {
+    formSet: FormSetLike<T>;
+}) => {
+    return (
+        <>
+            <input
+                type="hidden"
+                name={`${formSet.prefix}-INITIAL_FORMS`}
+                value={formSet.initial}
+            />
+            <input
+                type="hidden"
+                name={`${formSet.prefix}-TOTAL_FORMS`}
+                value={formSet.total}
+            />
+        </>
+    );
+};
+
+export const bindForms = <TContext extends {csrf_token: string}>(
+    Context: React.Context<TContext>,
+) => {
+    const CSRFToken = (props: {}) => {
+        const context = React.useContext(Context);
+
+        return (
+            <input
+                type="hidden"
+                name="csrfmiddlewaretoken"
+                value={context.csrf_token}
+            />
+        );
+    };
+
+    const Form = <T extends FieldMap>(props: {form: FormLike<T>}) => {
+        const form = useForm({form: props.form});
+
+        return <>{form.iterate(field => <div key={field.name}><Widget field={field} /></div>)}</>;
+    }
+
+    return {
+        ...widgets,
+        Widget,
+        CSRFToken,
+        Form,
+        useForm,
+        ManagementForm,
+        Fields,
+    }
 };

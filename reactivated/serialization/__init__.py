@@ -868,12 +868,17 @@ class BaseWidget(NamedTuple):
     attrs: BaseWidgetAttrs
     value_from_datadict: Optional[str]
 
+    @staticmethod
+    def get_value(context: Any) -> Any:
+        return context["value"]
+
     @classmethod
     def get_serialized_value(
         Type: Type["BaseWidget"], value: Any, schema: "Thing"
     ) -> JSON:
         serialized = serialize(value, schema, suppress_custom_serializer=True)
         serialized["tag"] = Type._reactivated_overriden_path  # type: ignore[attr-defined]
+        serialized["value"] = Type.get_value(serialized)
         return serialized
 
 
@@ -947,6 +952,10 @@ class CheckboxInput(BaseWidget):
     type: Literal["checkbox"]
     attrs: CheckAttrs
     value_from_datadict: bool  # type: ignore[assignment]
+
+    @staticmethod
+    def get_value(context: Any) -> bool:
+        return context["attrs"].get("checked", False) is True
 
 
 @register("django.forms.widgets.PasswordInput")

@@ -151,11 +151,13 @@ const useInitialState = <T extends FieldMap>(form: FormLike<T>) => {
     return Object.fromEntries(initialValuesAsEntries) as FormValues<T>;
 };
 
-const bindField = (value: any, setValue: any, widget: WidgetLike) => {
+const bindField = (field: {label: string, error: string|null, value: any}, setValue: any, widget: WidgetLike) => {
     return {
         name: widget.name,
         tag: widget.tag,
-        value: value,
+        value: field.value,
+        label: field.label,
+        error: field.error,
         widget,
         handler: setValue,
     };
@@ -165,6 +167,8 @@ export type CreateFieldHandler<T> = T extends {tag: string; name: string; subwid
     ? {
         tag: T["tag"];
         name: string;
+        label: string;
+        error: string | null;
         subwidgets: {[K in keyof U]: CreateFieldHandler<U[K]>};
     }
     : T extends WidgetLike
@@ -172,6 +176,8 @@ export type CreateFieldHandler<T> = T extends {tag: string; name: string; subwid
         tag: T["tag"];
         name: string;
         value: T["value_from_datadict"];
+        label: string;
+        error: string | null;
         widget: T;
         handler: (value: T["value_from_datadict"]) => void;
     }
@@ -285,13 +291,15 @@ const fieldToHandler = <T extends FieldMap, TField extends T[keyof T]>(handler: 
                 });
             };
 
-            return bindField(subwidgetValue, setSubwidgetValue, {
+            return bindField({label: field.label, error: null, value: subwidgetValue}, setSubwidgetValue, {
                 ...subwidget,
             });
         });
 
         return {
             name: fieldName,
+            error: null,
+            label: field.label,
             tag: field.widget.tag,
             subwidgets,
         } as any;
@@ -305,7 +313,7 @@ const fieldToHandler = <T extends FieldMap, TField extends T[keyof T]>(handler: 
         });
     };
 
-    return bindField(handler.values[fieldName], setValue, field.widget) as any;
+    return bindField({label: field.label, error: null, value: handler.values[fieldName]}, setValue, field.widget) as any;
 }
 
 export interface FormHandler<T extends FieldMap> {
@@ -345,7 +353,7 @@ export const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}): FormHa
                         });
                     };
 
-                    return bindField(subwidgetValue, setSubwidgetValue, {
+                    return bindField({label: field.label, error: null, value: subwidgetValue}, setSubwidgetValue, {
                         ...subwidget,
                     });
                 });
@@ -366,7 +374,7 @@ export const useForm = <T extends FieldMap>({form}: {form: FormLike<T>}): FormHa
             };
 
             return callback(
-                bindField(values[fieldName], setValue, field.widget) as any,
+                bindField({label: field.label, error: null, value: values[fieldName]}, setValue, field.widget) as any,
             );
         });
     };

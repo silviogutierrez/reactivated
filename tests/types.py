@@ -23,7 +23,7 @@ from django.db import models as django_models
 from reactivated.fields import EnumField
 from reactivated.models import ComputedRelation
 from reactivated.pick import build_nested_schema, get_field_descriptor
-from reactivated.serialization import ComputedField, create_schema
+from reactivated.serialization import ComputedField, create_schema, serialize
 from reactivated.serialization.context_processors import create_context_processor_type
 from sample.server.apps.samples import forms, models
 
@@ -599,3 +599,19 @@ def test_context_processor_type():
             "required": ["number"],
         },
     }
+
+
+def test_rename_me():
+    class Form(django_forms.Form):
+        charfield = django_forms.CharField()
+
+    instance = Form()
+
+    schema = create_schema(Form, {})
+    serialized = serialize(instance, schema)
+
+    import pprint
+
+    pprint.pprint(simplejson.loads(simplejson.dumps(serialized._asdict())))
+
+    assert False

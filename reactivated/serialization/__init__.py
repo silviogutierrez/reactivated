@@ -1,5 +1,6 @@
 import datetime
 import enum
+from types import MethodType
 from typing import (
     Any,
     Callable,
@@ -392,8 +393,8 @@ PROXIES[django_forms.BaseForm] = FormType
 
 
 class FormSetType(NamedTuple):
-    initial: int
-    total: int
+    initial_form_count: int
+    total_form_count: int
     max_num: int
     min_num: int
     can_delete: bool
@@ -402,7 +403,7 @@ class FormSetType(NamedTuple):
 
     forms: List[django_forms.BaseForm]
     empty_form: django_forms.BaseForm
-    management_form: django_forms.BaseForm
+    management_form: django_forms.formsets.ManagementForm
     prefix: str
 
     @classmethod
@@ -477,7 +478,6 @@ class FormSetType(NamedTuple):
             **definitions,
             definition_name: {
                 **form_set_type_definition,
-                "serializer": "reactivated.serialization.FormSetType",
                 "properties": {
                     **form_set_type_definition["properties"],
                     "empty_form": form_type_definition,
@@ -489,27 +489,6 @@ class FormSetType(NamedTuple):
 
         return Thing(
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
-        )
-
-    @classmethod
-    def get_serialized_value(
-        Type: Type["FormSetType"], value: stubs.BaseFormSet, schema: Thing
-    ) -> JSON:
-        form_set = value
-        form_schema = create_schema(form_set.form, schema.definitions)
-
-        return FormSetType(
-            initial=form_set.initial_form_count(),
-            total=form_set.total_form_count(),
-            max_num=form_set.max_num,
-            min_num=form_set.min_num,
-            can_delete=form_set.can_delete,
-            can_order=form_set.can_order,
-            non_form_errors=form_set.non_form_errors(),
-            forms=[serialize(form, form_schema) for form in form_set],
-            empty_form=serialize(form_set.empty_form, form_schema),
-            management_form=serialize(form_set.management_form, form_schema),
-            prefix=form_set.prefix,
         )
 
 
@@ -848,6 +827,9 @@ def object_serializer(value: object, schema: Thing) -> JSON:
             else getattr(value, field_name, None)
         )
 
+        if isinstance(attribute, MethodType) is True:
+            attribute = attribute()
+
         representation[field_name] = serialize(
             attribute, Thing(schema=field_schema, definitions=schema.definitions)
         )
@@ -903,7 +885,9 @@ SERIALIZERS: Dict[str, Serializer] = {
 }
 
 
-def serialize(value: Any, schema: Thing) -> JSON:
+def serialize(
+    value: Any, schema: Thing, suppress_custom_serializer: bool = False
+) -> JSON:
     if value is None:
         return None
 
@@ -915,7 +899,7 @@ def serialize(value: Any, schema: Thing) -> JSON:
     # callables need both a serializer to call the value and then a serializer
     # to loop over the anyOf. Not sure how to abstract this out. So anyOf
     # remains a higher-order construct. Same for $ref.
-    if serializer_path is not None:
+    if serializer_path is not None and suppress_custom_serializer is False:
         serializer = import_string(serializer_path).get_serialized_value
         return serializer(value, schema,)
     elif "$ref" in schema.schema:

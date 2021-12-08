@@ -285,7 +285,7 @@ def test_form_set():
     )
     form_set_with_errors.is_valid()
     serialized_form_set = serialize(form_set_with_errors, generated_schema)
-    assert "name" in serialized_form_set.forms[0].errors
+    assert "name" in serialized_form_set["forms"][0].errors
     convert_to_json_and_validate(serialized_form_set, generated_schema)
 
 

@@ -1,5 +1,6 @@
 import datetime
 import enum
+from types import MethodType
 from typing import (
     Any,
     Callable,
@@ -229,12 +230,135 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     return context  # type: ignore[no-any-return]
 
 
+PROXIES = {}
+
+
 class FormType(NamedTuple):
     name: str
     errors: Optional[FormErrors]
     fields: Dict[str, FieldType]
     iterator: List[str]
     prefix: str
+
+    @classmethod
+    def get_json_schema(
+        Proxy: Type["FormType"],
+        Type: Type[django_forms.BaseForm],
+        definitions: Definitions,
+    ) -> "Thing":
+        definition_name = f"{Type.__module__}.{Type.__qualname__}"
+
+        if definition_name in definitions:
+            return Thing(
+                schema={"$ref": f"#/definitions/{definition_name}"},
+                definitions=definitions,
+            )
+
+        schema = named_tuple_schema(FormType, definitions)
+        """
+        form_type_definition = schema.definitions[
+            f"{FormType.__module__}.{FormType.__qualname__}"
+        ]
+        """
+        field_type_definition = schema.definitions[
+            f"{FieldType.__module__}.{FieldType.__qualname__}"
+        ]
+
+        error_definition = create_schema(FormError, definitions).schema
+
+        required = []
+        properties = {}
+        error_properties = {}
+
+        for field_name, SubType in Type.base_fields.items():  # type: ignore[attr-defined]
+            required.append(field_name)
+
+            SourceWidget = SubType.widget.__class__
+
+            if SourceWidget.__module__ != "django.forms.widgets":
+                for base_class in SubType.widget.__class__.__bases__:
+                    if issubclass(base_class, django_forms.widgets.Widget):
+                        SourceWidget = base_class
+
+            assert (
+                SourceWidget.__module__ == "django.forms.widgets"
+            ), f"Only core widgets and depth-1 inheritance widgets are currently supported. Check {SubType.widget.__class__}"
+
+            ts_type = f"widgets.{SourceWidget.__name__}"
+
+            # Special treatment to register global Enum types and reference them
+            # through `tsType`
+
+            # Tightly coupled, for now. Can likely be improved once we have proper
+            # widget schema generation.
+            #
+            # Note we need issubclass here and not isinstance because consumer apps
+            # like Joy crash when running mypy. Oddly enough, mypy does not crash
+            # when run directly on reactivated.
+            if issubclass(SubType.__class__, forms.EnumChoiceField):
+                choice_schema, definitions = create_schema(SubType.enum, definitions)
+
+                if (ref := choice_schema.get("$ref", None)) :
+                    generic_name = "".join(
+                        part.capitalize()
+                        for part in ref.replace("#/definitions/", "").split(".")
+                    )
+
+                    from reactivated import global_types
+
+                    global_types[generic_name] = choice_schema  # type: ignore[assignment]
+
+                    ts_type = f'widgets.{SourceWidget.__name__}<Types["globals"]["{generic_name}"]>'
+
+            properties[field_name] = {
+                **field_type_definition,
+                "properties": {
+                    **field_type_definition["properties"],
+                    "widget": {"tsType": ts_type},
+                },
+            }
+            error_properties[field_name] = error_definition
+
+        iterator = (
+            {"type": "array", "items": {"enum": required, "type": "string"},}
+            if len(required) > 0
+            else {"type": "array", "items": []}
+        )
+
+        definitions = {
+            **definitions,
+            definition_name: {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "enum": [definition_name]},
+                    "errors": {
+                        "anyOf": [
+                            {
+                                "type": "object",
+                                "properties": error_properties,
+                                "additionalProperties": False,
+                            },
+                            {"type": "null"},
+                        ]
+                    },
+                    "fields": {
+                        "type": "object",
+                        "properties": properties,
+                        "required": required,
+                        "additionalProperties": False,
+                    },
+                    "prefix": {"type": "string"},
+                    "iterator": iterator,
+                },
+                "serializer": "reactivated.serialization.FormType",
+                "additionalProperties": False,
+                "required": ["name", "prefix", "fields", "iterator", "errors"],
+            },
+        }
+
+        return Thing(
+            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+        )
 
     @classmethod
     def get_serialized_value(
@@ -265,40 +389,110 @@ class FormType(NamedTuple):
         )
 
 
+PROXIES[django_forms.BaseForm] = FormType
+
+
 class FormSetType(NamedTuple):
-    initial: int
-    total: int
+    initial_form_count: int
+    total_form_count: int
     max_num: int
     min_num: int
     can_delete: bool
     can_order: bool
     non_form_errors: List[str]
 
-    forms: List[FormType]
-    empty_form: FormType
-    management_form: FormType
+    forms: List[django_forms.BaseForm]
+    empty_form: django_forms.BaseForm
+    management_form: django_forms.formsets.ManagementForm
     prefix: str
 
     @classmethod
-    def get_serialized_value(
-        Type: Type["FormSetType"], value: stubs.BaseFormSet, schema: Thing
-    ) -> JSON:
-        form_set = value
-        form_schema = create_schema(form_set.form, schema.definitions)
+    def get_json_schema(
+        Proxy: Type["FormSetType"],
+        Type: Type[stubs.BaseFormSet],
+        definitions: Definitions,
+    ) -> "Thing":
+        definition_name = f"{Type.__module__}.{Type.__qualname__}"
 
-        return FormSetType(
-            initial=form_set.initial_form_count(),
-            total=form_set.total_form_count(),
-            max_num=form_set.max_num,
-            min_num=form_set.min_num,
-            can_delete=form_set.can_delete,
-            can_order=form_set.can_order,
-            non_form_errors=form_set.non_form_errors(),
-            forms=[serialize(form, form_schema) for form in form_set],
-            empty_form=serialize(form_set.empty_form, form_schema),
-            management_form=serialize(form_set.management_form, form_schema),
-            prefix=form_set.prefix,
+        if definition_name in definitions:
+            return Thing(
+                schema={"$ref": f"#/definitions/{definition_name}"},
+                definitions=definitions,
+            )
+
+        form_set_type_schema = named_tuple_schema(
+            FormSetType, definitions, exclude=["forms", "empty_form", "management_form"]
         )
+
+        # This is gross. But Django model formsets have a special form that injects
+        # the primary key after the fact, so it cannot be picked up by looping over fields
+        # so we create a new form that has the primary key field at "compile" time.
+        # Because we inject form names into our forms at runtime, we set the __module__
+        # and __qualname__ so that the form name is still the original form's name.
+        if issubclass(Type, django_forms.BaseModelFormSet):
+            pk_field_name = Type.model._meta.pk.name
+            FormSetForm = type(
+                "FormSetForm",
+                (Type.form,),
+                {pk_field_name: django_forms.Field(widget=django_forms.HiddenInput)},
+            )
+            FormSetForm.__module__ = Type.form.__module__
+            FormSetForm.__qualname__ = Type.form.__qualname__
+        else:
+            FormSetForm = Type.form
+
+        form_type_schema = create_schema(FormSetForm, form_set_type_schema.definitions)
+
+        # Everything the child form added needs to be part of our global definitions
+        # now.
+        definitions = form_type_schema.definitions
+
+        # We use our own management form because base_fields is set dynamically
+        # by Django in django.forms.formsets.
+        # Because we inject form names into our forms at runtime, we set the __module__
+        # and __qualname__ so that the form name is still the original form's name.
+        class ManagementForm(django_forms.formsets.ManagementForm):
+            base_fields: Any
+
+        ManagementForm.base_fields = ManagementForm().base_fields
+        ManagementForm.__module__ = django_forms.formsets.ManagementForm.__module__
+        ManagementForm.__qualname__ = django_forms.formsets.ManagementForm.__qualname__
+
+        management_form_schema = create_schema(
+            ManagementForm, form_type_schema.definitions
+        )
+
+        form_set_type_definition = form_set_type_schema.definitions[
+            f"{FormSetType.__module__}.{FormSetType.__qualname__}"
+        ]
+
+        form_type_definition = form_type_schema.definitions[
+            f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"
+        ]
+
+        management_form_definition = management_form_schema.definitions[
+            f"{ManagementForm.__module__}.{ManagementForm.__qualname__}"
+        ]
+
+        definitions = {
+            **definitions,
+            definition_name: {
+                **form_set_type_definition,
+                "properties": {
+                    **form_set_type_definition["properties"],
+                    "empty_form": form_type_definition,
+                    "forms": {"type": "array", "items": form_type_definition},
+                    "management_form": management_form_definition,
+                },
+            },
+        }
+
+        return Thing(
+            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+        )
+
+
+PROXIES[django_forms.BaseFormSet] = FormSetType  # type: ignore[index, assignment]
 
 
 class QuerySetType:
@@ -517,7 +711,12 @@ def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
     )
 
 
-def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
+def named_tuple_schema(
+    Type: Any, definitions: Definitions, *, exclude: Optional[List[str]] = None,
+) -> Thing:
+    if exclude is None:
+        exclude = []
+
     definition_name = f"{Type.__module__}.{Type.__qualname__}"
     if definition_name in definitions:
         return Thing(
@@ -529,6 +728,9 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
     definitions = {**definitions}
 
     for field_name, Subtype in get_type_hints(Type).items():
+        if field_name in exclude:
+            continue
+
         field_schema = create_schema(Subtype, definitions)
         definitions = {**definitions, **field_schema.definitions}
 
@@ -536,7 +738,7 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
         properties[field_name] = field_schema.schema
 
     for field_name in dir(Type):
-        if field_name in properties:
+        if field_name in properties or field_name in exclude:
             continue
 
         possible_method_or_property = getattr(Type, field_name)
@@ -565,199 +767,11 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
     )
 
 
-def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> Thing:
-    definition_name = f"{Type.__module__}.{Type.__qualname__}"
-
-    if definition_name in definitions:
-        return Thing(
-            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
-        )
-
-    schema = named_tuple_schema(FormType, definitions)
-    """
-    form_type_definition = schema.definitions[
-        f"{FormType.__module__}.{FormType.__qualname__}"
-    ]
-    """
-    field_type_definition = schema.definitions[
-        f"{FieldType.__module__}.{FieldType.__qualname__}"
-    ]
-
-    error_definition = create_schema(FormError, definitions).schema
-
-    required = []
-    properties = {}
-    error_properties = {}
-
-    for field_name, SubType in Type.base_fields.items():  # type: ignore[attr-defined]
-        required.append(field_name)
-
-        SourceWidget = SubType.widget.__class__
-
-        if SourceWidget.__module__ != "django.forms.widgets":
-            for base_class in SubType.widget.__class__.__bases__:
-                if issubclass(base_class, django_forms.widgets.Widget):
-                    SourceWidget = base_class
-
-        assert (
-            SourceWidget.__module__ == "django.forms.widgets"
-        ), f"Only core widgets and depth-1 inheritance widgets are currently supported. Check {SubType.widget.__class__}"
-
-        ts_type = f"widgets.{SourceWidget.__name__}"
-
-        # Special treatment to register global Enum types and reference them
-        # through `tsType`
-
-        # Tightly coupled, for now. Can likely be improved once we have proper
-        # widget schema generation.
-        #
-        # Note we need issubclass here and not isinstance because consumer apps
-        # like Joy crash when running mypy. Oddly enough, mypy does not crash
-        # when run directly on reactivated.
-        if issubclass(SubType.__class__, forms.EnumChoiceField):
-            choice_schema, definitions = create_schema(SubType.enum, definitions)
-
-            if (ref := choice_schema.get("$ref", None)) :
-                generic_name = "".join(
-                    part.capitalize()
-                    for part in ref.replace("#/definitions/", "").split(".")
-                )
-
-                from reactivated import global_types
-
-                global_types[generic_name] = choice_schema  # type: ignore[assignment]
-
-                ts_type = f'widgets.{SourceWidget.__name__}<Types["globals"]["{generic_name}"]>'
-
-        properties[field_name] = {
-            **field_type_definition,
-            "properties": {
-                **field_type_definition["properties"],
-                "widget": {"tsType": ts_type},
-            },
-        }
-        error_properties[field_name] = error_definition
-
-    iterator = (
-        {"type": "array", "items": {"enum": required, "type": "string"},}
-        if len(required) > 0
-        else {"type": "array", "items": []}
-    )
-
-    definitions = {
-        **definitions,
-        definition_name: {
-            "type": "object",
-            "properties": {
-                "name": {"type": "string", "enum": [definition_name]},
-                "errors": {
-                    "anyOf": [
-                        {
-                            "type": "object",
-                            "properties": error_properties,
-                            "additionalProperties": False,
-                        },
-                        {"type": "null"},
-                    ]
-                },
-                "fields": {
-                    "type": "object",
-                    "properties": properties,
-                    "required": required,
-                    "additionalProperties": False,
-                },
-                "prefix": {"type": "string"},
-                "iterator": iterator,
-            },
-            "serializer": "reactivated.serialization.FormType",
-            "additionalProperties": False,
-            "required": ["name", "prefix", "fields", "iterator", "errors"],
-        },
-    }
-
-    return Thing(
-        schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
-    )
-
-
-def form_set_schema(Type: Type[stubs.BaseFormSet], definitions: Definitions) -> Thing:
-    definition_name = f"{Type.__module__}.{Type.__qualname__}"
-
-    if definition_name in definitions:
-        return Thing(
-            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
-        )
-
-    form_set_type_schema = create_schema(FormSetType, definitions)
-
-    # This is gross. But Django model formsets have a special form that injects
-    # the primary key after the fact, so it cannot be picked up by looping over fields
-    # so we create a new form that has the primary key field at "compile" time.
-    # Because we inject form names into our forms at runtime, we set the __module__
-    # and __qualname__ so that the form name is still the original form's name.
-    if issubclass(Type, django_forms.BaseModelFormSet):
-        pk_field_name = Type.model._meta.pk.name
-        FormSetForm = type(
-            "FormSetForm",
-            (Type.form,),
-            {pk_field_name: django_forms.Field(widget=django_forms.HiddenInput)},
-        )
-        FormSetForm.__module__ = Type.form.__module__
-        FormSetForm.__qualname__ = Type.form.__qualname__
-    else:
-        FormSetForm = Type.form
-
-    form_type_schema = create_schema(FormSetForm, form_set_type_schema.definitions)
-
-    # Everything the child form added needs to be part of our global definitions
-    # now.
-    definitions = form_type_schema.definitions
-
-    # We use our own management form because base_fields is set dynamically
-    # by Django in django.forms.formsets.
-    # Because we inject form names into our forms at runtime, we set the __module__
-    # and __qualname__ so that the form name is still the original form's name.
-    class ManagementForm(django_forms.formsets.ManagementForm):
-        base_fields: Any
-
-    ManagementForm.base_fields = ManagementForm().base_fields
-    ManagementForm.__module__ = django_forms.formsets.ManagementForm.__module__
-    ManagementForm.__qualname__ = django_forms.formsets.ManagementForm.__qualname__
-
-    management_form_schema = create_schema(ManagementForm, form_type_schema.definitions)
-
-    form_set_type_definition = form_set_type_schema.definitions[
-        f"{FormSetType.__module__}.{FormSetType.__qualname__}"
-    ]
-
-    form_type_definition = form_type_schema.definitions[
-        f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"
-    ]
-
-    management_form_definition = management_form_schema.definitions[
-        f"{ManagementForm.__module__}.{ManagementForm.__qualname__}"
-    ]
-
-    definitions = {
-        **definitions,
-        definition_name: {
-            **form_set_type_definition,
-            "serializer": "reactivated.serialization.FormSetType",
-            "properties": {
-                **form_set_type_definition["properties"],
-                "empty_form": form_type_definition,
-                "forms": {"type": "array", "items": form_type_definition},
-                "management_form": management_form_definition,
-            },
-        },
-    }
-
-    return Thing(
-        schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
-    )
-
-
 def create_schema(Type: Any, definitions: Definitions) -> Thing:
+    for base_class, Proxy in PROXIES.items():
+        if isinstance(Type, type) and issubclass(Type, base_class):
+            return Proxy.get_json_schema(Type, definitions)
+
     if isinstance(Type, stubs._GenericAlias):
         return generic_alias_schema(Type, definitions)
     elif isinstance(Type, models.Field):
@@ -784,10 +798,6 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return Thing(schema={"type": "string"}, definitions={})
     elif Type is type(None):  # noqa: E721
         return Thing(schema={"type": "null"}, definitions={})
-    elif issubclass(Type, django_forms.BaseForm):
-        return form_schema(Type, definitions)
-    elif issubclass(Type, stubs.BaseFormSet):
-        return form_set_schema(Type, definitions)
     elif issubclass(Type, enum.Enum):
         return enum_schema(Type, definitions)
 
@@ -816,6 +826,9 @@ def object_serializer(value: object, schema: Thing) -> JSON:
             if isinstance(value, Mapping)
             else getattr(value, field_name, None)
         )
+
+        if isinstance(attribute, MethodType) is True:
+            attribute = attribute()
 
         representation[field_name] = serialize(
             attribute, Thing(schema=field_schema, definitions=schema.definitions)
@@ -872,7 +885,9 @@ SERIALIZERS: Dict[str, Serializer] = {
 }
 
 
-def serialize(value: Any, schema: Thing) -> JSON:
+def serialize(
+    value: Any, schema: Thing, suppress_custom_serializer: bool = False
+) -> JSON:
     if value is None:
         return None
 
@@ -884,7 +899,7 @@ def serialize(value: Any, schema: Thing) -> JSON:
     # callables need both a serializer to call the value and then a serializer
     # to loop over the anyOf. Not sure how to abstract this out. So anyOf
     # remains a higher-order construct. Same for $ref.
-    if serializer_path is not None:
+    if serializer_path is not None and suppress_custom_serializer is False:
         serializer = import_string(serializer_path).get_serialized_value
         return serializer(value, schema,)
     elif "$ref" in schema.schema:

@@ -1,81 +1,42 @@
-'favorite_book.authors.name',
-'favorite_book.authors.age','
-'favorite_book.name','
-'name','
+## Proxy types
+This is currently used only for form and form sets, but could be used for
+everything and get rid of the registration system.
 
-{
-   name: string;
-   favorite_book: {
-      name: string;
-      authors: Array<{name: string; age: number}>;
-   }
-}
+So:
 
+```
+@proxy(models.Field)
+class ModelFieldType:
+    @classmethod
+    def get_json_schema(
+        Proxy: Type["ModelFieldType"],
+        Type: Type[models.Field],
+        definitions: Definitions,
+    ) -> "Thing":
+        ...
+```
 
-type: object,
-properties: {
-    'name': {type: string},
-    'authors': {type: array
-}
-
-
-# descriptor, path = get_field_descriptor
-CharFieldInstance, [('favorite_book', False), ('authors', True)]
+This can handle the built-in fields. Custom fields can then just use:
 
 
-def Spam:
-    thing: Iterable[str]
-    again: str
+```
+@proxy(CustomField)
+class CustomFieldType:
+    ...
+```
 
+To specify how to create the schema and serialize.
 
-def Bar:
-    a: str
-    b: bool
+Since we want to use DRF's ClassLookupDict, you can actually even override
+serialization for built-in types. So the ModelFieldType handles the default for
+say, `DecimalField`. But you can do a custom one by registering a more specific
+type:
 
+```
+@proxy(DecimalField)
+class CustomDecimalFieldType
+    ...
 
-def Foo:
-    bar: Bar
-    spam: Spam
+```
 
-
-interface Foo {
-    bar: {
-        a: string
-        b: boolean
-    }
-    spam: {
-        thing: Array<str>
-        again: string
-    }
-}
-
-{
-    "type": "object",
-    "properties": {
-        "bar": {
-            "type": "object",
-            "properties": {
-                "a": {
-                    "type": "string",
-                },
-                "b": {
-                    "type": "boolean",
-                },
-            },
-        },
-        "spam": {
-            "type": "object":,
-            "properties": {
-                "thing": {
-                    type: "array",
-                    "items": {
-                        "type": "string",
-                    },
-                },
-                "again": {
-                    "type": "string"
-                },
-            },
-        },
-    },
-}
+This will get picked up before the basic handler.

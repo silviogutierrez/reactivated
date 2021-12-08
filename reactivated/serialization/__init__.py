@@ -76,6 +76,15 @@ class Thing(NamedTuple):
     schema: Schema
     definitions: Definitions
 
+    def dereference(self) -> Schema:
+        ref = self.schema.get("$ref")
+
+        # Should probably error or Thing should be a subclass for cached
+        # schemas that has this property
+        if not ref:
+            return self.schema
+
+        return self.definitions[ref.replace("#/definitions/", "")]
 
 class ForeignKeyType:
     @classmethod
@@ -148,6 +157,10 @@ class Intersection:
         return IntersectionHolder
 
 
+class WidgetType(NamedTuple):
+    delete_me: str
+
+
 class FieldType(NamedTuple):
     name: str
     label: str
@@ -161,27 +174,32 @@ class FieldType(NamedTuple):
     widget: Any
 
     @classmethod
-    def get_json_schema(Type: Type["FieldType"], definitions: Definitions) -> "Thing":
-        definition_name = f"{Type.__module__}.{Type.__qualname__}"
+    def get_serialized_value(
+        Type: Type["FieldType"], value: django_forms.Field, schema: "Thing"
+    ) -> JSON:
+        return {}
 
-        if definition_name in definitions:
-            return Thing(
-                schema={"$ref": f"#/definitions/{definition_name}"},
-                definitions=definitions,
-            )
-
-        schema = named_tuple_schema(Type, definitions)
-
-        definitions = {
-            **definitions,
-            definition_name: {
-                **schema.definitions[definition_name],
-                "serializer": "field_serializer",
-            },
-        }
+    @classmethod
+    def get_json_schema(Type: Type["FieldType"], value: django_forms.Field, definitions: Definitions) -> "Thing":
+        base_schema, definitions = named_tuple_schema(Type, definitions)
+        widget_schema, definitions = named_tuple_schema(WidgetType, definitions)
+        extra = {}
 
         return Thing(
-            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+            schema={
+                "_reactivated_testing_merge": True,
+                "allOf": [
+                    base_schema,
+                    {
+                        "type": "object",
+                        "properties": {"widget": widget_schema,},
+                        "additionalProperties": False,
+                        "required": ["widget"],
+                    },
+                    extra,
+                ],
+            },
+            definitions=definitions,
         )
 
 
@@ -242,19 +260,22 @@ class FormType(NamedTuple):
     ) -> JSON:
         form = value
 
-        fields = {
-            field.name: FieldType(
-                widget=extract_widget_context(field),
-                name=field.name,
-                label=str(
-                    field.label
-                ),  # This can be a lazy proxy, so we must call str on it.
-                help_text=str(
-                    field.help_text
-                ),  # This can be a lazy proxy, so we must call str on it.
+        fields = {}
+        for field in form:
+            """
+            original_render = field.field.widget._render  # type: ignore[attr-defined]
+            field.field.widget._render = (  # type: ignore[attr-defined]
+                lambda template_name, context, renderer: context
             )
-            for field in form
-        }
+            widget = field.as_widget()
+            field.field.widget._render = original_render  # type: ignore[attr-defined]
+            field.widget = widget["widget"]  # type: ignore[attr-defined,index]
+            """
+            generated = FieldType.get_json_schema(field, schema.definitions)
+            # import pprint
+            # pprint.pprint(generated.schema)
+            # pprint.pprint(generated.definitions)
+            # fields[field.name] = serialize(field, generated)
 
         return FormType(
             name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",
@@ -274,9 +295,9 @@ class FormSetType(NamedTuple):
     can_order: bool
     non_form_errors: List[str]
 
-    forms: List[FormType]
-    empty_form: FormType
-    management_form: FormType
+    forms: List[django_forms.BaseForm]
+    empty_form: django_forms.BaseForm
+    management_form: django_forms.BaseForm
     prefix: str
 
     @classmethod
@@ -517,18 +538,24 @@ def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
     )
 
 
-def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
+def named_tuple_schema(Type: Any, definitions: Definitions, exclude: Optional[List[str]] = None,) -> Thing:
     definition_name = f"{Type.__module__}.{Type.__qualname__}"
     if definition_name in definitions:
         return Thing(
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
         )
 
+    if exclude is None:
+        exclude = []
+
     required = []
     properties = {}
     definitions = {**definitions}
 
     for field_name, Subtype in get_type_hints(Type).items():
+        if field_name in exclude:
+            continue
+
         field_schema = create_schema(Subtype, definitions)
         definitions = {**definitions, **field_schema.definitions}
 
@@ -536,7 +563,7 @@ def named_tuple_schema(Type: Any, definitions: Definitions) -> Thing:
         properties[field_name] = field_schema.schema
 
     for field_name in dir(Type):
-        if field_name in properties:
+        if field_name in properties or field_name in exclude:
             continue
 
         possible_method_or_property = getattr(Type, field_name)
@@ -573,15 +600,15 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
         )
 
-    schema = named_tuple_schema(FormType, definitions)
+    schema = named_tuple_schema(FormType, definitions, exclude=["fields"])
     """
     form_type_definition = schema.definitions[
         f"{FormType.__module__}.{FormType.__qualname__}"
     ]
-    """
     field_type_definition = schema.definitions[
         f"{FieldType.__module__}.{FieldType.__qualname__}"
     ]
+    """
 
     error_definition = create_schema(FormError, definitions).schema
 
@@ -591,51 +618,7 @@ def form_schema(Type: Type[django_forms.BaseForm], definitions: Definitions) -> 
 
     for field_name, SubType in Type.base_fields.items():  # type: ignore[attr-defined]
         required.append(field_name)
-
-        SourceWidget = SubType.widget.__class__
-
-        if SourceWidget.__module__ != "django.forms.widgets":
-            for base_class in SubType.widget.__class__.__bases__:
-                if issubclass(base_class, django_forms.widgets.Widget):
-                    SourceWidget = base_class
-
-        assert (
-            SourceWidget.__module__ == "django.forms.widgets"
-        ), f"Only core widgets and depth-1 inheritance widgets are currently supported. Check {SubType.widget.__class__}"
-
-        ts_type = f"widgets.{SourceWidget.__name__}"
-
-        # Special treatment to register global Enum types and reference them
-        # through `tsType`
-
-        # Tightly coupled, for now. Can likely be improved once we have proper
-        # widget schema generation.
-        #
-        # Note we need issubclass here and not isinstance because consumer apps
-        # like Joy crash when running mypy. Oddly enough, mypy does not crash
-        # when run directly on reactivated.
-        if issubclass(SubType.__class__, forms.EnumChoiceField):
-            choice_schema, definitions = create_schema(SubType.enum, definitions)
-
-            if (ref := choice_schema.get("$ref", None)) :
-                generic_name = "".join(
-                    part.capitalize()
-                    for part in ref.replace("#/definitions/", "").split(".")
-                )
-
-                from reactivated import global_types
-
-                global_types[generic_name] = choice_schema  # type: ignore[assignment]
-
-                ts_type = f'widgets.{SourceWidget.__name__}<Types["globals"]["{generic_name}"]>'
-
-        properties[field_name] = {
-            **field_type_definition,
-            "properties": {
-                **field_type_definition["properties"],
-                "widget": {"tsType": ts_type},
-            },
-        }
+        properties[field_name], definitions = FieldType.get_json_schema(SubType, definitions)
         error_properties[field_name] = error_definition
 
     iterator = (

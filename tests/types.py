@@ -603,7 +603,8 @@ def test_context_processor_type():
 
 def test_rename_me():
     class Form(django_forms.Form):
-        charfield = django_forms.CharField()
+        char_field = django_forms.CharField()
+        integer_field = django_forms.IntegerField()
 
     instance = Form()
 
@@ -611,6 +612,9 @@ def test_rename_me():
     serialized = serialize(instance, schema)
 
     import pprint
+
+    pprint.pprint(schema.dereference()["properties"]["fields"]["properties"]["char_field"])
+    pprint.pprint(schema.dereference()["properties"]["fields"]["properties"]["integer_field"])
 
     pprint.pprint(simplejson.loads(simplejson.dumps(serialized._asdict())))
 

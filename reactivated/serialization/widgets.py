@@ -71,8 +71,12 @@ class BaseWidget(NamedTuple):
         base = named_tuple_schema(Proxy, definitions, exclude=["subwidgets"])
 
         if subwidgets := get_type_hints(Proxy).get("subwidgets", None):
-            subwidgets_tuple = Tuple[Any]
-            subwidgets_tuple.__args__ = list(subwidgets.__annotations__.values())
+            if hasattr(subwidgets, "__annotations__"):
+                subwidgets_tuple = Tuple[Any]
+                subwidgets_tuple.__args__ = list(subwidgets.__annotations__.values())
+            else:
+                subwidgets_tuple = subwidgets
+
             subwidgets_schema, definitions = create_schema(subwidgets_tuple, base.definitions)
             base = base._replace(definitions=definitions)
             base = base.add_property("subwidgets", subwidgets_schema)
@@ -89,7 +93,7 @@ class BaseWidget(NamedTuple):
         serialized = serialize(context, schema, suppress_custom_serializer=True)
         serialized["tag"] = f"{widget_class.__module__}.{widget_class.__qualname__}"
 
-        if subwidgets := get_type_hints(Proxy).get("subwidgets", None):
+        if (subwidgets := get_type_hints(Proxy).get("subwidgets", None)) and hasattr(subwidgets, "__annotations__"):
             for index, subwidget_class in enumerate(subwidgets.__annotations__.values()):
                 serialized["subwidgets"][index]["tag"] = f"{subwidget_class.__module__}.{subwidget_class.__qualname__}"
 
@@ -154,6 +158,9 @@ class DateAttrs(BaseWidgetAttrs):
 class DateInput(BaseWidget):
     type: Literal["text"]
     attrs: DateAttrs
+
+
+PROXIES[forms.DateInput] = DateInput
 
 
 class DateTimeAttrs(BaseWidgetAttrs):
@@ -263,4 +270,6 @@ PROXIES[forms.SelectDateWidget] = SelectDateWidget
 
 @register("django.forms.widgets.SplitDateTimeWidget")
 class SplitDateTimeWidget(BaseWidget):
-    subwidgets: Tuple[DateInput, TimeInput]
+    subwidgets: Tuple[forms.DateInput, forms.TimeInput]
+
+PROXIES[forms.SplitDateTimeWidget] = SplitDateTimeWidget

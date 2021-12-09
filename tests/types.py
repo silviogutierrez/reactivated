@@ -608,6 +608,9 @@ def test_rename_me():
         date_field = django_forms.DateField(
             widget=django_forms.widgets.SelectDateWidget
         )
+        date_time_field = django_forms.DateTimeField(
+            widget=django_forms.widgets.SplitDateTimeWidget,
+        )
 
     instance = Form()
 
@@ -660,7 +663,7 @@ def test_rename_me():
         },
     }
     import pprint
-    pprint.pprint(serialized["fields"]["date_field"])
+    pprint.pprint(serialized["fields"]["date_time_field"])
     assert False
 
     assert serialized["fields"]["date_field"] == {

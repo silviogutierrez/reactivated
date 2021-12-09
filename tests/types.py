@@ -659,6 +659,9 @@ def test_rename_me():
             "value_from_datadict": None,
         },
     }
+    import pprint
+    pprint.pprint(serialized["fields"]["date_field"])
+    assert False
 
     assert serialized["fields"]["date_field"] == {
         "help_text": "",
@@ -681,8 +684,6 @@ def test_rename_me():
             "value_from_datadict": None,
         },
     }
-
-    # import pprint
 
     # pprint.pprint(
     #     schema.dereference()["properties"]["fields"]["properties"]["char_field"]

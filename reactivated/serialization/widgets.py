@@ -5,6 +5,7 @@ from typing import (
     Literal,
     NamedTuple,
     Optional,
+    get_type_hints,
     Tuple,
     Type,
     TypeVar,
@@ -15,7 +16,7 @@ from django import forms
 
 from reactivated import stubs
 
-from . import PROXIES, Definitions, Thing, named_tuple_schema, serialize
+from . import PROXIES, Definitions, Thing, named_tuple_schema, serialize, create_schema
 
 JSON = Any
 
@@ -67,26 +68,31 @@ class BaseWidget(NamedTuple):
     def get_json_schema(
         Proxy: Type["BaseWidget"], instance: forms.Widget, definitions: Definitions,
     ) -> "Thing":
-        return named_tuple_schema(Proxy, definitions, exclude=["subwidgets"])
+        base = named_tuple_schema(Proxy, definitions, exclude=["subwidgets"])
+
+        if subwidgets := get_type_hints(Proxy).get("subwidgets", None):
+            subwidgets_tuple = Tuple[Any]
+            subwidgets_tuple.__args__ = list(subwidgets.__annotations__.values())
+            subwidgets_schema, definitions = create_schema(subwidgets_tuple, base.definitions)
+            base = base._replace(definitions=definitions)
+            base = base.add_property("subwidgets", subwidgets_schema)
+
+        return base
 
     @classmethod
     def get_serialized_value(
         Proxy: Type["BaseWidget"], value: Any, schema: "Thing"
     ) -> JSON:
         widget_class = value.__class__
-        context = value._reactivated_get_context()
-        # print(context)
+        context = value if isinstance(value, dict) else value._reactivated_get_context()
 
         serialized = serialize(context, schema, suppress_custom_serializer=True)
         serialized["tag"] = f"{widget_class.__module__}.{widget_class.__qualname__}"
 
-        if serialized["tag"] == "django.forms.widgets.selectdatewidget":
-            pass
-            # breakpoint()
-        # serialized["tag"] jkkkkkjk
-        # assert False, value
-        # serialized["tag"] = Type._reactivated_overriden_path  # type: ignore[attr-defined]
-        # serialized["value"] = Type.get_value(serialized)
+        if subwidgets := get_type_hints(Proxy).get("subwidgets", None):
+            for index, subwidget_class in enumerate(subwidgets.__annotations__.values()):
+                serialized["subwidgets"][index]["tag"] = f"{subwidget_class.__module__}.{subwidget_class.__qualname__}"
+
         return serialized
 
 

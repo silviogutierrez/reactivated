@@ -76,6 +76,10 @@ FieldDescriptor = Union[
 ]
 
 
+
+PropertySchema = Mapping[str, Any]
+
+
 class Thing(NamedTuple):
     schema: Schema
     definitions: Definitions
@@ -89,6 +93,31 @@ class Thing(NamedTuple):
             return self.schema
 
         return self.definitions[ref.replace("#/definitions/", "")]
+
+    def add_property(self, name: str, property_schema: PropertySchema) -> "Thing":
+        ref: Optional[str] = self.schema.get("$ref")
+
+        if ref is None:
+            assert False, "Can only add properties to ref schemas"
+
+        definition_name = ref.replace("#/definitions/", "")
+        dereferenced = self.definitions[definition_name]
+
+        return Thing(
+            schema=self.schema,
+            definitions={
+                **self.definitions,
+                definition_name: {
+                    **dereferenced,
+                    "properties": {
+                        **dereferenced["properties"],
+                        name: property_schema,
+                    },
+                    "required": [*dereferenced["required"], name],
+                    "additionalProperties": False,
+                },
+            },
+        )
 
 
 class ForeignKeyType:

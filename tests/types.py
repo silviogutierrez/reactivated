@@ -665,7 +665,7 @@ def test_rename_me():
         "label": "Date field",
         "name": "date_field",
         "widget": {
-            "tag": "django.forms.widgets.NumberInput",
+            "tag": "django.forms.widgets.SelectDateWidget",
             "attrs": {
                 "disabled": None,
                 "id": "id_date_field",
@@ -682,15 +682,15 @@ def test_rename_me():
         },
     }
 
-    import pprint
+    # import pprint
 
-    pprint.pprint(
-        schema.dereference()["properties"]["fields"]["properties"]["char_field"]
-    )
-    pprint.pprint(
-        schema.dereference()["properties"]["fields"]["properties"]["integer_field"]
-    )
+    # pprint.pprint(
+    #     schema.dereference()["properties"]["fields"]["properties"]["char_field"]
+    # )
+    # pprint.pprint(
+    #     schema.dereference()["properties"]["fields"]["properties"]["integer_field"]
+    # )
 
-    pprint.pprint(simplejson.loads(simplejson.dumps(serialized)))
+    # pprint.pprint(simplejson.loads(simplejson.dumps(serialized)))
 
-    assert False
+    # assert False

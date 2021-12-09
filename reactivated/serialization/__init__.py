@@ -225,15 +225,23 @@ class FieldType(NamedTuple):
         Type: Type["FieldType"], value: django_forms.BoundField, schema: Thing
     ) -> JSON:
         field = value
-        original_render = field.field.widget._render  # type: ignore[attr-defined]
         field.field.widget._render = (  # type: ignore[attr-defined]
-            lambda template_name, context, renderer: context
+            lambda template_name, context, renderer: context["widget"]
         )
-        widget = field.as_widget()
-        field.field.widget._render = original_render  # type: ignore[attr-defined]
-        field.widget = widget["widget"]  # type: ignore[attr-defined,index]
 
-        serialized = serialize(value, schema, suppress_custom_serializer=True)# {"a": "b"}
+        field.field.widget._reactivated_get_context = field.as_widget
+        field.widget = field.field.widget
+        # original_render = field.field.widget._render  # type: ignore[attr-defined]
+
+        # original_render = field.field.widget._render  # type: ignore[attr-defined]
+        # field.field.widget._render = (  # type: ignore[attr-defined]
+        #     lambda template_name, context, renderer: context
+        # )
+        # widget = field.as_widget()
+        # field.field.widget._render = original_render  # type: ignore[attr-defined]
+        # field.widget = widget["widget"]  # type: ignore[attr-defined,index]
+
+        serialized = serialize(value, schema, suppress_custom_serializer=True)
         return serialized
 
 

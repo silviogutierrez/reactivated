@@ -71,9 +71,14 @@ class BaseWidget(NamedTuple):
 
     @classmethod
     def get_serialized_value(
-        Type: Type["BaseWidget"], value: Any, schema: "Thing"
+        Proxy: Type["BaseWidget"], value: Any, schema: "Thing"
     ) -> JSON:
-        serialized = serialize(value, schema, suppress_custom_serializer=True)
+        widget_class = value.__class__
+        context = value._reactivated_get_context()
+        # print(context)
+
+        serialized = serialize(context, schema, suppress_custom_serializer=True)
+        serialized["tag"] = f"{widget_class.__module__}.{widget_class.__qualname__}"
         # serialized["tag"] jkkkkkjk
         # assert False, value
         # serialized["tag"] = Type._reactivated_overriden_path  # type: ignore[attr-defined]

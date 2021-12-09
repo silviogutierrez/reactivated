@@ -605,17 +605,92 @@ def test_rename_me():
     class Form(django_forms.Form):
         char_field = django_forms.CharField()
         integer_field = django_forms.IntegerField()
+        date_field = django_forms.DateField(
+            widget=django_forms.widgets.SelectDateWidget
+        )
 
     instance = Form()
 
     schema = create_schema(Form, {})
     serialized = serialize(instance, schema)
 
+    assert serialized["fields"]["char_field"] == {
+        "help_text": "",
+        "label": "Char field",
+        "name": "char_field",
+        "widget": {
+            "tag": "django.forms.widgets.TextInput",
+            "attrs": {
+                "disabled": None,
+                "id": "id_char_field",
+                "maxlength": None,
+                "placeholder": None,
+                "required": True,
+            },
+            "is_hidden": False,
+            "name": "char_field",
+            "required": True,
+            "template_name": "django/forms/widgets/text.html",
+            "type": "text",
+            "value": None,
+            "value_from_datadict": None,
+        },
+    }
+
+    assert serialized["fields"]["integer_field"] == {
+        "help_text": "",
+        "label": "Integer field",
+        "name": "integer_field",
+        "widget": {
+            "tag": "django.forms.widgets.NumberInput",
+            "attrs": {
+                "disabled": None,
+                "id": "id_integer_field",
+                "placeholder": None,
+                "required": True,
+                "step": None,
+            },
+            "is_hidden": False,
+            "name": "integer_field",
+            "required": True,
+            "template_name": "django/forms/widgets/number.html",
+            "type": "number",
+            "value": None,
+            "value_from_datadict": None,
+        },
+    }
+
+    assert serialized["fields"]["date_field"] == {
+        "help_text": "",
+        "label": "Date field",
+        "name": "date_field",
+        "widget": {
+            "tag": "django.forms.widgets.NumberInput",
+            "attrs": {
+                "disabled": None,
+                "id": "id_date_field",
+                "placeholder": None,
+                "required": True,
+            },
+            "is_hidden": False,
+            "name": "date_field",
+            "required": True,
+            "subwidgets": {"day": None, "month": None, "year": None},
+            "template_name": "django/forms/widgets/select_date.html",
+            "value": "{'year': None, 'month': None, " "'day': None}",
+            "value_from_datadict": None,
+        },
+    }
+
     import pprint
 
-    pprint.pprint(schema.dereference()["properties"]["fields"]["properties"]["char_field"])
-    pprint.pprint(schema.dereference()["properties"]["fields"]["properties"]["integer_field"])
+    pprint.pprint(
+        schema.dereference()["properties"]["fields"]["properties"]["char_field"]
+    )
+    pprint.pprint(
+        schema.dereference()["properties"]["fields"]["properties"]["integer_field"]
+    )
 
-    pprint.pprint(simplejson.loads(simplejson.dumps(serialized._asdict())))
+    pprint.pprint(simplejson.loads(simplejson.dumps(serialized)))
 
     assert False

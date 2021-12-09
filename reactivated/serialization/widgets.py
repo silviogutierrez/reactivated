@@ -11,9 +11,11 @@ from typing import (
     Union,
 )
 
+from django import forms
+
 from reactivated import stubs
 
-from . import Thing, serialize
+from . import PROXIES, Definitions, Thing, named_tuple_schema, serialize
 
 JSON = Any
 
@@ -62,12 +64,20 @@ class BaseWidget(NamedTuple):
         return context["value"]
 
     @classmethod
+    def get_json_schema(
+        Proxy: Type["BaseWidget"], instance: forms.Widget, definitions: Definitions,
+    ) -> "Thing":
+        return named_tuple_schema(Proxy, definitions)
+
+    @classmethod
     def get_serialized_value(
         Type: Type["BaseWidget"], value: Any, schema: "Thing"
     ) -> JSON:
-        serialized = serialize(value, schema)  # ,suppress_custom_serializer=True)
-        serialized["tag"] = Type._reactivated_overriden_path  # type: ignore[attr-defined]
-        serialized["value"] = Type.get_value(serialized)
+        serialized = serialize(value, schema, suppress_custom_serializer=True)
+        # serialized["tag"] jkkkkkjk
+        # assert False, value
+        # serialized["tag"] = Type._reactivated_overriden_path  # type: ignore[attr-defined]
+        # serialized["value"] = Type.get_value(serialized)
         return serialized
 
 
@@ -80,10 +90,16 @@ class HiddenInput(BaseWidget):
     type: Literal["hidden"]
 
 
+PROXIES[forms.HiddenInput] = HiddenInput
+
+
 @register("django.forms.widgets.TextInput")
 class TextInput(BaseWidget):
     type: Literal["text"]
     attrs: MaxLengthAttrs
+
+
+PROXIES[forms.TextInput] = TextInput
 
 
 @register("django.forms.widgets.URLInput")
@@ -100,6 +116,9 @@ class StepAttrs(BaseWidgetAttrs):
 class NumberInput(BaseWidget):
     type: Literal["number"]
     attrs: StepAttrs
+
+
+PROXIES[forms.NumberInput] = NumberInput
 
 
 class TimeAttrs(BaseWidgetAttrs):
@@ -173,6 +192,9 @@ class Select(BaseWidget):
     value: List[str]  # type: ignore[assignment]
 
 
+PROXIES[forms.Select] = Select
+
+
 class SelectMultipleAttrs(BaseWidgetAttrs):
     multiple: bool
 
@@ -183,6 +205,9 @@ class SelectMultiple(BaseWidget):
     optgroups: List[Optgroup]
     value: List[str]  # type: ignore[assignment]
     value_from_datadict: List[str]  # type: ignore[assignment]
+
+
+PROXIES[forms.SelectMultiple] = SelectMultiple
 
 
 @register("taggit.forms.TagWidget")
@@ -208,14 +233,17 @@ class SelectDateWidgetValue(NamedTuple):
 
 
 class SelectDateWidgetSubwidgets(NamedTuple):
-    year: Select
-    month: Select
-    day: Select
+    year: forms.Select
+    month: forms.Select
+    day: forms.Select
 
 
 @register("django.forms.widgets.SelectDateWidget")
 class SelectDateWidget(BaseWidget):
     subwidgets: SelectDateWidgetSubwidgets
+
+
+PROXIES[forms.SelectDateWidget] = SelectDateWidget
 
 
 @register("django.forms.widgets.SplitDateTimeWidget")

@@ -675,7 +675,7 @@ def test_rename_me():
             "is_hidden": False,
             "name": "date_field",
             "required": True,
-            "subwidgets": {"day": None, "month": None, "year": None},
+            # "subwidgets": {"day": None, "month": None, "year": None},
             "template_name": "django/forms/widgets/select_date.html",
             "value": "{'year': None, 'month': None, " "'day': None}",
             "value_from_datadict": None,

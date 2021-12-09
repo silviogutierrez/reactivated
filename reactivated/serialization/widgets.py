@@ -67,7 +67,7 @@ class BaseWidget(NamedTuple):
     def get_json_schema(
         Proxy: Type["BaseWidget"], instance: forms.Widget, definitions: Definitions,
     ) -> "Thing":
-        return named_tuple_schema(Proxy, definitions)
+        return named_tuple_schema(Proxy, definitions, exclude=["subwidgets"])
 
     @classmethod
     def get_serialized_value(
@@ -79,6 +79,10 @@ class BaseWidget(NamedTuple):
 
         serialized = serialize(context, schema, suppress_custom_serializer=True)
         serialized["tag"] = f"{widget_class.__module__}.{widget_class.__qualname__}"
+
+        if serialized["tag"] == "django.forms.widgets.selectdatewidget":
+            pass
+            # breakpoint()
         # serialized["tag"] jkkkkkjk
         # assert False, value
         # serialized["tag"] = Type._reactivated_overriden_path  # type: ignore[attr-defined]

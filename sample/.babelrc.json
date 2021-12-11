@@ -7,7 +7,7 @@
     "presets": [
         ["@babel/preset-env", {"targets": {"node": "v12.13.0"}}],
         ["@babel/preset-typescript", {"allowNamespaces": true}],
-        "@babel/preset-react",
+        "@babel/preset-react"
         // "linaria/babel"
     ],
     "plugins": [

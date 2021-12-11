@@ -60,12 +60,14 @@ ROOT_URLCONF = "sample.server.urls"
 
 TEMPLATES = [
     {
-        "BACKEND": "reactivated.JSX",
+        "BACKEND": "reactivated.backend.JSX",
         "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
-                "django.contrib.messages.context_processors.messages"
+                "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.request",
+                "django.template.context_processors.csrf",
             ]
         },
     },

@@ -4,7 +4,6 @@
     "repository": "github:silviogutierrez/reactivated",
     "license": "MIT",
     "description": "",
-    "type": "module",
     "dependencies": {
         "json-schema-to-typescript": "^10.1.5",
         "module-alias": "^2.2.1",

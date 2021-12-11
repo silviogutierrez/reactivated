@@ -23,7 +23,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
 
-from reactivated import fields, stubs
+from reactivated import fields, stubs, utils
 from reactivated.forms import EnumChoiceField
 from reactivated.models import ComputedRelation
 
@@ -38,7 +38,7 @@ FormError = List[str]
 
 FormErrors = Dict[str, FormError]
 
-PROXIES: Dict[Any, Any] = {}
+PROXIES = utils.ClassLookupDict({})
 
 
 class ComputedField(NamedTuple):
@@ -74,7 +74,6 @@ class ComputedField(NamedTuple):
 FieldDescriptor = Union[
     "models.Field[Any, Any]", ComputedField, ComputedRelation[Any, Any, Any]
 ]
-
 
 
 PropertySchema = Mapping[str, Any]
@@ -254,9 +253,9 @@ class FieldType(NamedTuple):
         Type: Type["FieldType"], value: django_forms.BoundField, schema: Thing
     ) -> JSON:
         field = value
-        field.field.widget._render = (  # type: ignore[attr-defined]
-            lambda template_name, context, renderer: context["widget"]
-        )
+        field.field.widget._render = lambda template_name, context, renderer: context[  # type: ignore[attr-defined]
+            "widget"
+        ]
 
         field.field.widget._reactivated_get_context = field.as_widget
         field.widget = field.field.widget
@@ -407,7 +406,9 @@ class FormType(NamedTuple):
         form = value
 
         # TODO: hackey way to make bound fields work.
-        value.fields = {field_name: form[field_name] for field_name in form.fields.keys()}
+        value.fields = {
+            field_name: form[field_name] for field_name in form.fields.keys()
+        }
 
         return serialize(value, schema, suppress_custom_serializer=True)
 
@@ -804,15 +805,21 @@ def named_tuple_schema(
 
 def create_schema(Type: Any, definitions: Definitions) -> Thing:
     # TODO: move this somewhere centralized.
-    from . import widgets
+    from . import widgets  # noqa
 
-    for base_class, Proxy in PROXIES.items():
-        if (
-            isinstance(Type, base_class)
-            or isinstance(Type, type)
-            and issubclass(Type, base_class)
-        ):
-            return Proxy.get_json_schema(Type, definitions)
+    type_class = Type if isinstance(Type, type) else Type.__class__
+
+    try:
+        return PROXIES[type_class].get_json_schema(Type, definitions)
+    except KeyError:
+        pass
+    # for base_class, Proxy in PROXIES.items():
+    #     if (
+    #         isinstance(Type, base_class)
+    #         or isinstance(Type, type)
+    #         and issubclass(Type, base_class)
+    #     ):
+    #         return Proxy.get_json_schema(Type, definitions)
 
     if isinstance(Type, stubs._GenericAlias):
         return generic_alias_schema(Type, definitions)

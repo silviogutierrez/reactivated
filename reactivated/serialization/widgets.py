@@ -5,18 +5,18 @@ from typing import (
     Literal,
     NamedTuple,
     Optional,
-    get_type_hints,
     Tuple,
     Type,
     TypeVar,
     Union,
+    get_type_hints,
 )
 
 from django import forms
 
 from reactivated import stubs
 
-from . import PROXIES, Definitions, Thing, named_tuple_schema, serialize, create_schema
+from . import PROXIES, Definitions, Thing, create_schema, named_tuple_schema, serialize
 
 JSON = Any
 
@@ -77,7 +77,9 @@ class BaseWidget(NamedTuple):
             else:
                 subwidgets_tuple = subwidgets
 
-            subwidgets_schema, definitions = create_schema(subwidgets_tuple, base.definitions)
+            subwidgets_schema, definitions = create_schema(
+                subwidgets_tuple, base.definitions
+            )
             base = base._replace(definitions=definitions)
             base = base.add_property("subwidgets", subwidgets_schema)
 
@@ -93,9 +95,17 @@ class BaseWidget(NamedTuple):
         serialized = serialize(context, schema, suppress_custom_serializer=True)
         serialized["tag"] = f"{widget_class.__module__}.{widget_class.__qualname__}"
 
-        if (subwidgets := get_type_hints(Proxy).get("subwidgets", None)) and hasattr(subwidgets, "__annotations__"):
-            for index, subwidget_class in enumerate(subwidgets.__annotations__.values()):
-                serialized["subwidgets"][index]["tag"] = f"{subwidget_class.__module__}.{subwidget_class.__qualname__}"
+        if (subwidgets := get_type_hints(Proxy).get("subwidgets", None)) :
+            subwidgets_to_enumerate = (
+                subwidgets.__annotations__.values()
+                if hasattr(subwidgets, "__annotations__")
+                else subwidgets.__args__
+            )
+
+            for index, subwidget_class in enumerate(subwidgets_to_enumerate):
+                serialized["subwidgets"][index][
+                    "tag"
+                ] = f"{subwidget_class.__module__}.{subwidget_class.__qualname__}"
 
         return serialized
 
@@ -271,5 +281,6 @@ PROXIES[forms.SelectDateWidget] = SelectDateWidget
 @register("django.forms.widgets.SplitDateTimeWidget")
 class SplitDateTimeWidget(BaseWidget):
     subwidgets: Tuple[forms.DateInput, forms.TimeInput]
+
 
 PROXIES[forms.SplitDateTimeWidget] = SplitDateTimeWidget

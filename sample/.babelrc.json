@@ -1,0 +1,25 @@
+{
+    // We use v12 as the target so that async does get transformed, so we don't
+    // need regenerator-runtime/runtime/. But if we use current (14), then
+    // nullish also won't be transformed, which webpack acorn does not support
+    // yet. See https://github.com/webpack/webpack/issues/10227
+    // Webpack 5 eliminates this issue.
+    "presets": [
+        ["@babel/preset-env", {"targets": {"node": "v12.13.0"}}],
+        ["@babel/preset-typescript", {"allowNamespaces": true}],
+        "@babel/preset-react",
+        // "linaria/babel"
+    ],
+    "plugins": [
+        "@babel/plugin-proposal-class-properties",
+        [
+            "module-resolver",
+            {
+                "root": ["./"],
+                "alias": {
+                    "@client": "./client"
+                }
+            }
+        ]
+    ]
+}

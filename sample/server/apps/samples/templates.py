@@ -7,4 +7,4 @@ from . import models
 
 @template
 class HelloWorld(NamedTuple):
-    opera: Pick[models.Opera, "name", "composer.name"]
+    opera: Pick[models.Opera, "name", "composer.name", "style"]

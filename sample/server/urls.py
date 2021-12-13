@@ -23,4 +23,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("schema/", schema),
     path("", views.hello_world, name="home_page"),
+    path("storyboard/", views.storyboard, name="storyboard"),
 ]

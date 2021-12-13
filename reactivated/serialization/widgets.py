@@ -68,6 +68,18 @@ class BaseWidget(NamedTuple):
     def get_json_schema(
         Proxy: Type["BaseWidget"], instance: forms.Widget, definitions: Definitions,
     ) -> "Thing":
+        widget_class = instance.__class__
+        tag = f"{widget_class.__module__}.{widget_class.__qualname__}"
+
+        # TODO: this should really be done automatically for the instance we're wrapping.
+        definition_name = f"{Proxy.__module__}.{Proxy.__qualname__}"
+
+        if definition_name in definitions:
+            return Thing(
+                schema={"$ref": f"#/definitions/{definition_name}"},
+                definitions=definitions,
+            )
+
         base = named_tuple_schema(Proxy, definitions, exclude=["subwidgets"])
 
         if subwidgets := get_type_hints(Proxy).get("subwidgets", None):
@@ -82,6 +94,10 @@ class BaseWidget(NamedTuple):
             )
             base = base._replace(definitions=definitions)
             base = base.add_property("subwidgets", subwidgets_schema)
+
+        base = base.add_property(
+            "tag", create_schema(Literal[tag], base.definitions).schema
+        )
 
         return base
 

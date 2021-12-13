@@ -40,3 +40,10 @@ class OperaForm(forms.ModelForm[models.Opera]):
 OperaFormSet = forms.modelformset_factory(
     model=models.Opera, form=OperaForm, extra=0, min_num=1, validate_min=True
 )
+
+
+class StoryboardForm(forms.Form):
+    char_field = forms.CharField()
+    integer_field = forms.IntegerField()
+    date_field = forms.DateField(widget=forms.SelectDateWidget)
+    date_time_field = forms.DateTimeField(widget=forms.SplitDateTimeWidget,)

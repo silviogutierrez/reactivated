@@ -623,7 +623,13 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
             definitions = {**definitions, **subschema.definitions}
 
         return Thing(
-            schema={"type": "array", "items": subschemas}, definitions=definitions
+            schema={
+                "type": "array",
+                "minItems": len(subschemas),
+                "maxItems": len(subschemas),
+                "items": subschemas,
+            },
+            definitions=definitions,
         )
     elif Type.__origin__ == Union:
         subschemas = ()
@@ -656,7 +662,8 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
         # Mixed types would have to be a Union of enums.
 
         return Thing(
-            schema={"type": "string", "enum": Type.__args__}, definitions=definitions
+            schema={"type": "string", "enum": list(Type.__args__)},
+            definitions=definitions,
         )
     elif Type.__origin__ == type and issubclass(
         (enum_type := Type.__args__[0]), enum.Enum

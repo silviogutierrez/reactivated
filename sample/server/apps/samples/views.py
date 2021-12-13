@@ -1,6 +1,6 @@
 from django.http import HttpRequest, HttpResponse
 
-from . import models, templates
+from . import forms, models, templates
 
 
 def hello_world(request: HttpRequest) -> HttpResponse:
@@ -9,3 +9,8 @@ def hello_world(request: HttpRequest) -> HttpResponse:
         name="Mefistofele", composer=composer, style=models.Opera.Style.GRAND
     )
     return templates.HelloWorld(opera=opera).render(request)
+
+
+def storyboard(request: HttpRequest) -> HttpResponse:
+    form = forms.StoryboardForm()
+    return templates.Storyboard(form=form,).render(request)

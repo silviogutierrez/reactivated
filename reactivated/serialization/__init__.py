@@ -484,6 +484,7 @@ class FormSetType(NamedTuple):
                     "forms": {"type": "array", "items": form_type_definition},
                     "management_form": management_form_definition,
                 },
+                "required": [*form_set_type_definition["required"], "empty_form", "forms", "management_form"],
             },
         }
 

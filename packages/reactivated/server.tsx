@@ -22,17 +22,20 @@ import {Settings} from "./models";
 // TODO: WHAT DOES THIS NEED TO BE? Even 100k was super fragile and a 10 choice field broke it.
 export const BODY_SIZE_LIMIT = "100000000k";
 
-export const bindRenderPage = (settings: Settings) => ({
-    html,
-    helmet,
-    context,
-    props,
-}: {
-    html: string;
-    helmet: HelmetData;
-    context: any;
-    props: any;
-}) => `
+export const bindRenderPage =
+    (settings: Settings) =>
+    ({
+        html,
+        helmet,
+        context,
+        props,
+    }: {
+        html: string;
+        helmet: HelmetData;
+        context: any;
+        props: any;
+    }) =>
+        `
 <!DOCTYPE html>
 <html>
     <head ${helmet.htmlAttributes.toString()}>

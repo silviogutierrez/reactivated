@@ -1,4 +1,9 @@
 import fs from "fs";
+
+// Must be above the compile import as get-stdin used by
+// json-schema-to-typescript messes up the descriptor even if unused.
+const stdinBuffer = fs.readFileSync(0);
+
 import {compile} from "json-schema-to-typescript";
 import {
     Project,
@@ -9,8 +14,6 @@ import {
     WriterFunction,
     Writers,
 } from "ts-morph";
-
-const stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
 const {urls, templates, types, values} = schema;

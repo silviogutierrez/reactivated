@@ -134,6 +134,8 @@ class ReactivatedConfig(AppConfig):
         the first start. TODO: handle noreload.
         """
 
+        from .checks import check_installed_app_order  # NOQA
+
         if (
             os.environ.get("WERKZEUG_RUN_MAIN") == "true"
             or os.environ.get("RUN_MAIN") == "true"

@@ -133,7 +133,8 @@ class ReactivatedConfig(AppConfig):
         Django's dev server actually starts twice. So we prevent generation on
         the first start. TODO: handle noreload.
         """
-        schema = get_schema()
+
+        from .checks import check_installed_app_order  # NOQA
 
         if (
             os.environ.get("WERKZEUG_RUN_MAIN") == "true"
@@ -148,6 +149,7 @@ class ReactivatedConfig(AppConfig):
             os.environ["DJANGO_SEVER_STARTING"] = "true"
             return
 
+        schema = get_schema()
         generate_schema(schema)
 
 

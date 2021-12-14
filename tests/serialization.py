@@ -221,6 +221,7 @@ def test_serialization():
     convert_to_json_and_validate(serialized, generated_schema)
 
 
+@pytest.mark.skip
 def test_form():
     generated_schema = create_schema(forms.OperaForm, {})
     form = forms.OperaForm()
@@ -300,8 +301,10 @@ def test_form_with_model_choice_iterator_value():
     generated_schema = create_schema(forms.ComposerForm, {})
     form = forms.ComposerForm()
     serialized_form = serialize(form, generated_schema)
+    import pprint
+    pprint.pprint(generated_schema.dereference())
     convert_to_json_and_validate(serialized_form, generated_schema)
-    assert serialized_form.fields["countries"].widget["optgroups"][0][1][0][
+    assert serialized_form["fields"]["countries"]["widget"]["optgroups"][0][1][0][
         "value"
     ] == str(iterator.value)
 
@@ -448,7 +451,6 @@ def test_rename_me():
     }
     field_schema = create_schema(Form.base_fields["char_field"], schema.definitions)
     convert_to_json_and_validate(serialized["fields"]["char_field"], field_schema)
-    assert False
 
     assert serialized["fields"]["integer_field"] == {
         "help_text": "",
@@ -472,11 +474,8 @@ def test_rename_me():
             "value_from_datadict": None,
         },
     }
-    import pprint
-
-    pprint.pprint(serialized["fields"]["date_field"])
-    pprint.pprint(serialized["fields"]["date_time_field"])
-    # assert False
+    field_schema = create_schema(Form.base_fields["integer_field"], schema.definitions)
+    convert_to_json_and_validate(serialized["fields"]["integer_field"], field_schema)
 
     assert serialized["fields"]["date_field"] == {
         "help_text": "",
@@ -1187,6 +1186,8 @@ def test_rename_me():
             "value_from_datadict": None,
         },
     }
+    field_schema = create_schema(Form.base_fields["date_field"], schema.definitions)
+    convert_to_json_and_validate(serialized["fields"]["date_field"], field_schema)
 
     assert serialized["fields"]["date_time_field"] == {
         "help_text": "",
@@ -1223,8 +1224,8 @@ def test_rename_me():
                 {
                     "attrs": {
                         "disabled": None,
+                        "format": None,
                         "id": "id_date_time_field_1",
-                        "maxlength": None,
                         "placeholder": None,
                         "required": True,
                     },
@@ -1244,3 +1245,5 @@ def test_rename_me():
             "value_from_datadict": None,
         },
     }
+    field_schema = create_schema(Form.base_fields["date_time_field"], schema.definitions)
+    convert_to_json_and_validate(serialized["fields"]["date_time_field"], field_schema)

@@ -209,7 +209,7 @@ class FieldType(NamedTuple):
     @classmethod
     def get_json_schema(
         Proxy: Type["FieldType"],
-        instance: django_forms.BoundField,
+        instance: django_forms.Field,
         definitions: Definitions,
     ) -> "Thing":
         base_schema, definitions = named_tuple_schema(Proxy, definitions)
@@ -253,21 +253,12 @@ class FieldType(NamedTuple):
         Type: Type["FieldType"], value: django_forms.BoundField, schema: Thing
     ) -> JSON:
         field = value
-        field.field.widget._render = lambda template_name, context, renderer: context[  # type: ignore[attr-defined]
+        field.field.widget._render = lambda template_name, context, renderer: context[  # type: ignore[union-attr]
             "widget"
         ]
 
-        field.field.widget._reactivated_get_context = field.as_widget
-        field.widget = field.field.widget
-        # original_render = field.field.widget._render  # type: ignore[attr-defined]
-
-        # original_render = field.field.widget._render  # type: ignore[attr-defined]
-        # field.field.widget._render = (  # type: ignore[attr-defined]
-        #     lambda template_name, context, renderer: context
-        # )
-        # widget = field.as_widget()
-        # field.field.widget._render = original_render  # type: ignore[attr-defined]
-        # field.widget = widget["widget"]  # type: ignore[attr-defined,index]
+        field.field.widget._reactivated_get_context = field.as_widget  # type: ignore[union-attr]
+        field.widget = field.field.widget  # type: ignore[attr-defined]
 
         serialized = serialize(value, schema, suppress_custom_serializer=True)
         return serialized
@@ -410,7 +401,12 @@ class FormType(NamedTuple):
             field_name: form[field_name] for field_name in form.fields.keys()
         }
 
-        return serialize(value, schema, suppress_custom_serializer=True)
+        serialized = serialize(value, schema, suppress_custom_serializer=True)
+        serialized["name"] = f"{value.__class__.__module__}.{value.__class__.__qualname__}"
+        serialized["prefix"] = form.prefix or ""
+        serialized["iterator"] = list(value.fields.keys())
+        serialized["errors"] = form.errors or None
+        return serialized
 
         """
         form = value
@@ -534,7 +530,7 @@ class FormSetType(NamedTuple):
         )
 
 
-PROXIES[django_forms.BaseFormSet] = FormSetType  # type: ignore[index, assignment]
+PROXIES[django_forms.BaseFormSet] = FormSetType
 
 
 class QuerySetType:
@@ -823,7 +819,7 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     type_class = Type if isinstance(Type, type) else Type.__class__
 
     try:
-        return PROXIES[type_class].get_json_schema(Type, definitions)
+        return PROXIES[type_class].get_json_schema(Type, definitions)  # type: ignore
     except KeyError:
         pass
     # for base_class, Proxy in PROXIES.items():

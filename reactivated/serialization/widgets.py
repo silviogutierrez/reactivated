@@ -68,8 +68,10 @@ class BaseWidget(NamedTuple):
     def get_json_schema(
         Proxy: Type["BaseWidget"], instance: forms.Widget, definitions: Definitions,
     ) -> "Thing":
-        widget_class = instance.__class__
-        tag = f"{widget_class.__module__}.{widget_class.__qualname__}"
+        # Subwidgets come to us as a class already.
+        widget_class = instance if isinstance(instance, type) else instance.__class__
+
+        tag = f"{widget_class.__module__}.{widget_class.__qualname__}"  # type: ignore[attr-defined]
 
         # TODO: this should really be done automatically for the instance we're wrapping.
         definition_name = f"{Proxy.__module__}.{Proxy.__qualname__}"
@@ -85,9 +87,9 @@ class BaseWidget(NamedTuple):
         if subwidgets := get_type_hints(Proxy).get("subwidgets", None):
             if hasattr(subwidgets, "__annotations__"):
                 subwidgets_tuple = Tuple[Any]
-                subwidgets_tuple.__args__ = list(subwidgets.__annotations__.values())
+                subwidgets_tuple.__args__ = list(subwidgets.__annotations__.values())  # type: ignore[attr-defined]
             else:
-                subwidgets_tuple = subwidgets
+                subwidgets_tuple = subwidgets  # type: ignore[misc]
 
             subwidgets_schema, definitions = create_schema(
                 subwidgets_tuple, base.definitions
@@ -126,6 +128,9 @@ class BaseWidget(NamedTuple):
         return serialized
 
 
+PROXIES[forms.Widget] = BaseWidget
+
+
 class MaxLengthAttrs(BaseWidgetAttrs):
     maxlength: stubs.Undefined[str]
 
@@ -154,7 +159,7 @@ class URLInput(BaseWidget):
 
 
 class StepAttrs(BaseWidgetAttrs):
-    step: str
+    step: Optional[str]
 
 
 @register("django.forms.widgets.NumberInput")
@@ -167,7 +172,7 @@ PROXIES[forms.NumberInput] = NumberInput
 
 
 class TimeAttrs(BaseWidgetAttrs):
-    format: str
+    format: Optional[str]
 
 
 @register("django.forms.widgets.TimeInput")
@@ -176,8 +181,11 @@ class TimeInput(BaseWidget):
     attrs: TimeAttrs
 
 
+PROXIES[forms.TimeInput] = TimeInput
+
+
 class DateAttrs(BaseWidgetAttrs):
-    format: str
+    format: Optional[str]
 
 
 @register("django.forms.widgets.DateInput")
@@ -252,7 +260,6 @@ class SelectMultiple(BaseWidget):
     attrs: SelectMultipleAttrs
     optgroups: List[Optgroup]
     value: List[str]  # type: ignore[assignment]
-    value_from_datadict: List[str]  # type: ignore[assignment]
 
 
 PROXIES[forms.SelectMultiple] = SelectMultiple

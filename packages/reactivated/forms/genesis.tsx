@@ -46,30 +46,93 @@ export interface FormHandler<T extends FieldMap> {
     ) => React.ReactNode[];
 }
 
+const useInitialState = <T extends FieldMap>(form: FormLike<T>) => {
+    const initialValuesAsEntries = form.iterator.map((fieldName) => {
+        const field = form.fields[fieldName];
+        const widget = field.widget;
+
+        if (widget.subwidgets != null) {
+            const subwidgetValue = Object.fromEntries(
+                widget.subwidgets.map((subwidget) => {
+                    const formPrefix = form.prefix == "" ? "" : `${form.prefix}-`;
+                    const unprefixedName = subwidget.name.replace(
+                        `${formPrefix}${fieldName}_`,
+                        "",
+                    );
+                    return [unprefixedName, subwidget.value];
+                }),
+            );
+            return [fieldName, subwidgetValue];
+        }
+        return [fieldName, widget.value];
+    });
+
+    return Object.fromEntries(initialValuesAsEntries) as FormValues<T>;
+};
+
 export const useForm = <T extends FieldMap>({
     form,
 }: {
     form: FormLike<T>;
 }): FormHandler<T> => {
-    const values = {} as any as FormValues<any>;
+    const initialState = useInitialState(form);
+    const [values, setValues] = React.useState(initialState);
+
     const iterate = (
         callback: (field: FieldHandler<T[keyof T]["widget"]>) => React.ReactNode,
     ) => {
         return form.iterator.map((fieldName) => {
             const field = form.fields[fieldName];
+            const error = null;
 
             if (field.widget.subwidgets != null) {
-                return callback({name: fieldName, subwidgets: []} as any);
+                const subwidgets = field.widget.subwidgets.map((subwidget) => {
+                    const formPrefix = form.prefix == "" ? "" : `${form.prefix}-`;
+                    const unprefixedName = subwidget.name.replace(
+                        `${formPrefix}${fieldName}_`,
+                        "",
+                    );
+                    const subwidgetValues = values[fieldName] as any;
+                    const subwidgetValue = subwidgetValues[unprefixedName];
+                    const setSubwidgetValue = (value: unknown) => {
+                        setValues({
+                            ...values,
+                            [fieldName]: {
+                                ...subwidgetValues,
+                                [unprefixedName]: value,
+                            },
+                        });
+                    };
+                    return {
+                        name: subwidget.name,
+                        error: null,
+                        label: null,
+                        tag: subwidget.tag,
+                        widget: subwidget,
+                        value: subwidgetValue,
+                        handler: setSubwidgetValue,
+                    };
+                });
+
+                return callback({
+                    name: fieldName,
+                    subwidgets,
+                } as any);
             }
 
             const fieldHandler: FieldHandler<any> = {
                 name: fieldName,
-                error: null,
+                error,
                 label: field.label,
                 tag: field.widget.tag,
                 widget: field.widget,
-                value: field.widget.value,
-                handler: () => {},
+                value: values[fieldName],
+                handler: (value) => {
+                    setValues({
+                        ...values,
+                        [fieldName]: value,
+                    });
+                },
             };
 
             return callback(fieldHandler as any);

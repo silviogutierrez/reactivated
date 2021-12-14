@@ -13,7 +13,16 @@ export default (props: Types["StoryboardProps"]) => {
     return (
         <Layout title="Storyboard">
             <h1>Storyboard</h1>
-            <Fields form={handler}>{(field) => <Widget field={field} />}</Fields>
+            <Fields form={handler}>
+                {(field) => (
+                    <>
+                        <h2>{field.name}</h2>
+                        <p>
+                            <Widget field={field} />
+                        </p>
+                    </>
+                )}
+            </Fields>
             <pre>{JSON.stringify(props.form, null, SPACING)}</pre>
         </Layout>
     );

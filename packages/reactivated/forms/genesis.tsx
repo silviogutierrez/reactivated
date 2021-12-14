@@ -1,9 +1,9 @@
-export type WidgetLike = {
+export interface WidgetLike {
     name: string;
     tag: string;
     subwidgets?: WidgetLike[];
     value: unknown;
-};
+}
 
 interface Field {
     name: string;

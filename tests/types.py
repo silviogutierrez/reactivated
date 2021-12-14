@@ -210,6 +210,7 @@ def test_int():
     assert create_schema(int, {}) == ({"type": "number"}, {})
 
 
+@pytest.mark.skip
 def test_form():
     schema = create_schema(forms.OperaForm, {})
 

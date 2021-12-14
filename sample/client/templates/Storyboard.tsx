@@ -7,8 +7,6 @@ import {useForm} from "reactivated/forms/genesis";
 
 export default (props: Types["StoryboardProps"]) => {
     const handler = useForm({form: props.form});
-    handler.values.char_field;
-    handler.values.date_field;
 
     return (
         <Layout title="Storyboard">

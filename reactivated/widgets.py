@@ -36,4 +36,5 @@ class Autocomplete(forms.Select):
             }
         else:
             context["widget"]["selected"] = None
+
         return context

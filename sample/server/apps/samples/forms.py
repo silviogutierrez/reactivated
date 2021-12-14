@@ -1,6 +1,6 @@
 from django import forms
 
-from reactivated.forms import Autocomplete
+from reactivated.forms import Autocomplete, EnumChoiceField
 from sample.server.apps.samples import models
 
 
@@ -47,3 +47,4 @@ class StoryboardForm(forms.Form):
     integer_field = forms.IntegerField()
     date_field = forms.DateField(widget=forms.SelectDateWidget)
     date_time_field = forms.DateTimeField(widget=forms.SplitDateTimeWidget,)
+    enum_field = EnumChoiceField(enum=models.Opera.Style)

@@ -223,7 +223,9 @@ class FieldType(NamedTuple):
         }
 
         if isinstance(instance, EnumChoiceField):
-            choice_schema, definitions = create_schema(instance.enum, definitions)
+            choice_schema, definitions = create_schema(
+                Optional[instance.enum], definitions
+            )
             extra = {
                 "type": "object",
                 "properties": {"enum": choice_schema,},
@@ -402,7 +404,9 @@ class FormType(NamedTuple):
         }
 
         serialized = serialize(value, schema, suppress_custom_serializer=True)
-        serialized["name"] = f"{value.__class__.__module__}.{value.__class__.__qualname__}"
+        serialized[
+            "name"
+        ] = f"{value.__class__.__module__}.{value.__class__.__qualname__}"
         serialized["prefix"] = form.prefix or ""
         serialized["iterator"] = list(value.fields.keys())
         serialized["errors"] = form.errors or None

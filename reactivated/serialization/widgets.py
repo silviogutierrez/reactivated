@@ -14,7 +14,7 @@ from typing import (
 
 from django import forms
 
-from reactivated import stubs
+from reactivated import stubs, widgets
 
 from . import PROXIES, Definitions, Thing, create_schema, named_tuple_schema, serialize
 
@@ -72,6 +72,9 @@ class BaseWidget(NamedTuple):
         widget_class = instance if isinstance(instance, type) else instance.__class__
 
         tag = f"{widget_class.__module__}.{widget_class.__qualname__}"  # type: ignore[attr-defined]
+
+        if Proxy is BaseWidget:
+            assert False, f"Unsupported widget {tag}"
 
         # TODO: this should really be done automatically for the instance we're wrapping.
         definition_name = f"{Proxy.__module__}.{Proxy.__qualname__}"
@@ -215,11 +218,14 @@ class CheckAttrs(BaseWidgetAttrs):
 class CheckboxInput(BaseWidget):
     type: Literal["checkbox"]
     attrs: CheckAttrs
-    value_from_datadict: bool  # type: ignore[assignment]
+    # value_from_datadict: bool  # type: ignore[assignment]
 
     @staticmethod
     def get_value(context: Any) -> bool:
         return context["attrs"].get("checked", False) is True
+
+
+PROXIES[forms.CheckboxInput] = CheckboxInput
 
 
 @register("django.forms.widgets.PasswordInput")
@@ -307,3 +313,15 @@ class SplitDateTimeWidget(BaseWidget):
 
 
 PROXIES[forms.SplitDateTimeWidget] = SplitDateTimeWidget
+
+
+class AutocompleteSelected(NamedTuple):
+    value: Union[str, int]
+    label: str
+
+
+class Autocomplete(BaseWidget):
+    selected: Optional[AutocompleteSelected]
+
+
+PROXIES[widgets.Autocomplete] = Autocomplete

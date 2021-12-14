@@ -161,6 +161,9 @@ class URLInput(BaseWidget):
     attrs: MaxLengthAttrs
 
 
+PROXIES[forms.URLInput] = URLInput
+
+
 class StepAttrs(BaseWidgetAttrs):
     step: Optional[str]
 
@@ -218,7 +221,7 @@ class CheckAttrs(BaseWidgetAttrs):
 class CheckboxInput(BaseWidget):
     type: Literal["checkbox"]
     attrs: CheckAttrs
-    # value_from_datadict: bool  # type: ignore[assignment]
+    value: bool  # type: ignore[assignment]
 
     @staticmethod
     def get_value(context: Any) -> bool:
@@ -233,9 +236,15 @@ class PasswordInput(BaseWidget):
     type: Literal["password"]
 
 
+PROXIES[forms.PasswordInput] = PasswordInput
+
+
 @register("django.forms.widgets.EmailInput")
 class EmailInput(BaseWidget):
     type: Literal["email"]
+
+
+PROXIES[forms.EmailInput] = EmailInput
 
 
 class TextareaAttrs(BaseWidgetAttrs):
@@ -246,6 +255,9 @@ class TextareaAttrs(BaseWidgetAttrs):
 @register("django.forms.widgets.Textarea")
 class Textarea(BaseWidget):
     attrs: TextareaAttrs
+
+
+PROXIES[forms.Textarea] = Textarea
 
 
 @register("django.forms.widgets.Select")
@@ -285,6 +297,9 @@ class ClearableFileInput(BaseWidget):
     input_text: str
     initial_text: str
     clear_checkbox_label: str
+
+
+PROXIES[forms.ClearableFileInput] = ClearableFileInput
 
 
 class SelectDateWidgetValue(NamedTuple):

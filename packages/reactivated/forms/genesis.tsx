@@ -1,3 +1,11 @@
+import React from "react";
+import * as widgets from "./widgets";
+
+// TODO: move to utilities.
+type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V>
+    ? T
+    : never;
+
 export interface WidgetLike {
     name: string;
     tag: string;
@@ -33,6 +41,9 @@ export type FormValues<U extends FieldMap> = {
 export interface FormHandler<T extends FieldMap> {
     form: FormLike<T>;
     values: FormValues<T>;
+    iterate: (
+        callback: (field: FieldHandler<T[keyof T]["widget"]>) => React.ReactNode,
+    ) => React.ReactNode[];
 }
 
 export const useForm = <T extends FieldMap>({
@@ -40,5 +51,180 @@ export const useForm = <T extends FieldMap>({
 }: {
     form: FormLike<T>;
 }): FormHandler<T> => {
-    return null as any;
+    const values = {} as any as FormValues<any>;
+    const iterate = (
+        callback: (field: FieldHandler<T[keyof T]["widget"]>) => React.ReactNode,
+    ) => {
+        return form.iterator.map((fieldName) => {
+            const field = form.fields[fieldName];
+
+            if (field.widget.subwidgets != null) {
+                return callback({name: fieldName, subwidgets: []} as any);
+            }
+
+            const fieldHandler: FieldHandler<any> = {
+                name: fieldName,
+                error: null,
+                label: field.label,
+                tag: field.widget.tag,
+                widget: field.widget,
+                value: field.widget.value,
+                handler: () => {},
+            };
+
+            return callback(fieldHandler as any);
+        });
+    };
+
+    return {form, values, iterate};
+};
+
+export type CreateFieldHandler<T> = T extends {
+    tag: string;
+    name: string;
+    subwidgets: infer U;
+}
+    ? {
+          tag: T["tag"];
+          name: string;
+          label: string;
+          error: string | null;
+          subwidgets: {[K in keyof U]: CreateFieldHandler<U[K]>};
+      }
+    : T extends WidgetLike
+    ? {
+          tag: T["tag"];
+          name: string;
+          value: T["value"];
+          label: string;
+          error: string | null;
+          widget: T;
+          handler: (value: T["value"]) => void;
+      }
+    : never;
+
+export type FieldHandler<TWidget extends WidgetLike> = {
+    [K in TWidget["tag"]]: CreateFieldHandler<DiscriminateUnion<TWidget, "tag", K>>;
+}[TWidget["tag"]];
+
+interface BaseFieldsProps<U extends FieldMap> {
+    fieldInterceptor?: (form: FormLike<U>, fieldName: keyof U) => U[keyof U];
+    changeInterceptor?: (
+        name: keyof U,
+        prevValues: FormValues<U>,
+        nextValues: FormValues<U>,
+    ) => FormValues<U>;
+    form: FormLike<U> | FormHandler<U>;
+    children: (props: FieldHandler<U[keyof U]["widget"]>) => React.ReactNode;
+}
+
+interface IncludeFieldsProps<U extends FieldMap> extends BaseFieldsProps<U> {
+    fields?: Array<keyof U>;
+    exclude?: never;
+}
+
+interface ExcludeFieldProps<U extends FieldMap> extends BaseFieldsProps<U> {
+    fields?: never;
+    exclude: Array<keyof U>;
+}
+
+export type FieldsProps<U extends FieldMap> =
+    | IncludeFieldsProps<U>
+    | ExcludeFieldProps<U>;
+
+export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
+    const defaultHandler =
+        "form" in props.form ? props.form : useForm({form: props.form});
+    const handler = "form" in props.form ? props.form : defaultHandler;
+
+    return (
+        <>
+            {handler.iterate((field) => (
+                <React.Fragment key={field.name}>
+                    {props.children(field)}
+                </React.Fragment>
+            ))}
+        </>
+    );
+};
+
+export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
+    const {field} = props;
+
+    if ("subwidgets" in field) {
+        return (
+            <>
+                {field.subwidgets.map((subwidget) => {
+                    return <Widget key={subwidget.name} field={subwidget} />;
+                })}
+            </>
+        );
+    }
+
+    if (field.tag === "django.forms.widgets.HiddenInput") {
+        return <input type="hidden" name={field.name} value={field.value ?? ""} />;
+    } else if (field.tag === "django.forms.widgets.CheckboxInput") {
+        return (
+            <widgets.CheckboxInput
+                name={field.name}
+                value={field.value}
+                onChange={field.handler}
+            />
+        );
+    } else if (
+        field.tag === "django.forms.widgets.TextInput" ||
+        field.tag == "django.forms.widgets.DateInput" ||
+        field.tag == "django.forms.widgets.URLInput" ||
+        field.tag == "django.forms.widgets.PasswordInput" ||
+        field.tag == "django.forms.widgets.EmailInput" ||
+        field.tag == "django.forms.widgets.TimeInput" ||
+        field.tag == "django.forms.widgets.NumberInput" ||
+        field.tag == "django.forms.widgets.Textarea"
+    ) {
+        return (
+            <widgets.TextInput
+                name={field.name}
+                value={field.value}
+                onChange={field.handler}
+            />
+        );
+    } else if (field.tag === "django.forms.widgets.Select") {
+        return (
+            <widgets.Select
+                name={field.name}
+                value={field.value[0].toString()}
+                optgroups={field.widget.optgroups}
+                onChange={(value) => field.handler([value])}
+            />
+        );
+    } else if (field.tag === "django.forms.widgets.ClearableFileInput") {
+        return <input type="file" name={field.name} value={field.value ?? ""} />;
+    } else if (field.tag === "django.forms.widgets.SelectMultiple") {
+        return (
+            <select
+                name={field.name}
+                multiple
+                value={field.value}
+                onChange={(event) => {
+                    const value = Array.from(
+                        event.target.selectedOptions,
+                        (option) => option.value,
+                    );
+                    field.handler(value);
+                }}
+            >
+                {field.widget.optgroups.map((optgroup) => {
+                    const value = (optgroup[1][0].value ?? "").toString();
+                    return (
+                        <option key={value} value={value}>
+                            {optgroup[1][0].label}
+                        </option>
+                    );
+                })}
+            </select>
+        );
+    }
+
+    const exhastive: never = field;
+    throw new Error(`Exhaustive {field.tag}`);
 };

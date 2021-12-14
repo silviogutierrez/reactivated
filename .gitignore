@@ -22,3 +22,5 @@ sample/client/generated
 
 # pytest
 .cache
+
+packages/reactivated/generated.tsx

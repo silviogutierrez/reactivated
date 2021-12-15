@@ -93,7 +93,9 @@ class Thing(NamedTuple):
 
         return self.definitions[ref.replace("#/definitions/", "")]
 
-    def add_property(self, name: str, property_schema: PropertySchema) -> "Thing":
+    def add_property(
+        self, name: str, property_schema: PropertySchema, *, optional: bool = False
+    ) -> "Thing":
         ref: Optional[str] = self.schema.get("$ref")
 
         if ref is None:
@@ -101,6 +103,13 @@ class Thing(NamedTuple):
 
         definition_name = ref.replace("#/definitions/", "")
         dereferenced = self.definitions[definition_name]
+
+        # In case we are replacing a property.
+        required = (
+            dereferenced["required"]
+            if (optional is True or name in dereferenced["required"])
+            else [*dereferenced["required"], name]
+        )
 
         return Thing(
             schema=self.schema,
@@ -112,7 +121,7 @@ class Thing(NamedTuple):
                         **dereferenced["properties"],
                         name: property_schema,
                     },
-                    "required": [*dereferenced["required"], name],
+                    "required": required,
                     "additionalProperties": False,
                 },
             },
@@ -369,6 +378,7 @@ class FormType(NamedTuple):
                                 "type": "object",
                                 "properties": error_properties,
                                 "additionalProperties": False,
+                                "required": [],
                             },
                             {"type": "null"},
                         ]
@@ -883,6 +893,13 @@ def object_serializer(value: object, schema: Thing) -> JSON:
     representation = {}
 
     for field_name, field_schema in schema.schema["properties"].items():
+        if (
+            isinstance(value, Mapping)
+            and field_name not in value
+            and field_name not in schema.schema["required"]
+        ):
+            continue
+
         attribute = (
             value.get(field_name, None)
             if isinstance(value, Mapping)

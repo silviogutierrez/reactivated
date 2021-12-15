@@ -35,6 +35,8 @@ export interface FormLike<T extends FieldMap> {
 export type FormValues<U extends FieldMap> = {
     [K in keyof U]: U[K] extends {enum: unknown}
         ? U[K]["enum"] | null
+        : U[K]["widget"] extends {_reactivated_value_do_not_use?: unknown}
+        ? NonNullable<U[K]["widget"]["_reactivated_value_do_not_use"]>
         : U[K]["widget"]["value"];
 };
 

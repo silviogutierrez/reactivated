@@ -91,13 +91,37 @@ class BaseWidget(NamedTuple):
             if hasattr(subwidgets, "__annotations__"):
                 subwidgets_tuple = Tuple[Any]
                 subwidgets_tuple.__args__ = list(subwidgets.__annotations__.values())  # type: ignore[attr-defined]
+                subwidget_keys = subwidgets.__annotations__.keys()
             else:
                 subwidgets_tuple = subwidgets  # type: ignore[misc]
+                subwidget_keys = [
+                    str(index) for index in range(len(subwidgets.__args__))
+                ]
 
             subwidgets_schema, definitions = create_schema(
                 subwidgets_tuple, base.definitions
             )
+
+            values_schema = {
+                "type": "object",
+                "required": [],
+                "properties": {},
+                "additionalProperties": False,
+            }
+
+            for subwidget_key, subwidget in zip(
+                subwidget_keys, subwidgets_tuple.__args__
+            ):
+                value_schema = create_schema(subwidget, base.definitions).dereference()[
+                    "properties"
+                ]["value"]
+                values_schema["properties"][subwidget_key] = value_schema
+                values_schema["required"].append(subwidget_key)
+
             base = base._replace(definitions=definitions)
+            base = base.add_property(
+                "_reactivated_value_do_not_use", values_schema, optional=True
+            )
             base = base.add_property("subwidgets", subwidgets_schema)
 
         base = base.add_property(

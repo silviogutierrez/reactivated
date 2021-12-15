@@ -9,6 +9,8 @@ const SPACING = 2;
 
 export default (props: Types["StoryboardProps"]) => {
     const handler = useForm({form: props.form});
+    handler.values.date_time_field;
+    handler.values.date_field;
 
     return (
         <Layout title="Storyboard">
@@ -23,6 +25,9 @@ export default (props: Types["StoryboardProps"]) => {
                     </>
                 )}
             </Fields>
+            <h1>Values</h1>
+            <pre>{JSON.stringify(handler.values, null, SPACING)}</pre>
+            <h1>Form</h1>
             <pre>{JSON.stringify(props.form, null, SPACING)}</pre>
         </Layout>
     );

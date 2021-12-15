@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import enum
 from typing import Any, List, Literal, NamedTuple, Optional, Tuple, Type
 
@@ -416,6 +417,8 @@ def test_deferred_evaluation_of_types(settings):
 
 
 def test_rename_me():
+    date = datetime.date(2015, 1, 1)
+
     class Form(django_forms.Form):
         char_field = django_forms.CharField()
         integer_field = django_forms.IntegerField()
@@ -426,7 +429,7 @@ def test_rename_me():
             widget=django_forms.widgets.SplitDateTimeWidget,
         )
 
-    instance = Form()
+    instance = Form(initial={"date_field": date})
 
     schema = create_schema(Form, {})
     serialized = serialize(instance, schema)
@@ -512,7 +515,7 @@ def test_rename_me():
                                 {
                                     "label": "January",
                                     "name": "date_field_month",
-                                    "selected": False,
+                                    "selected": True,
                                     "value": "1",
                                 }
                             ],
@@ -654,7 +657,7 @@ def test_rename_me():
                     "required": False,
                     "tag": "django.forms.widgets.Select",
                     "template_name": "django/forms/widgets/select.html",
-                    "value": [""],
+                    "value": ["1"],
                     "value_from_datadict": None,
                 },
                 {
@@ -673,7 +676,7 @@ def test_rename_me():
                                 {
                                     "label": "1",
                                     "name": "date_field_day",
-                                    "selected": False,
+                                    "selected": True,
                                     "value": "1",
                                 }
                             ],
@@ -1043,7 +1046,7 @@ def test_rename_me():
                     "required": False,
                     "tag": "django.forms.widgets.Select",
                     "template_name": "django/forms/widgets/select.html",
-                    "value": [""],
+                    "value": ["1"],
                     "value_from_datadict": None,
                 },
                 {
@@ -1180,13 +1183,13 @@ def test_rename_me():
                     "required": False,
                     "tag": "django.forms.widgets.Select",
                     "template_name": "django/forms/widgets/select.html",
-                    "value": [""],
+                    "value": ["2015"],
                     "value_from_datadict": None,
                 },
             ],
             "tag": "django.forms.widgets.SelectDateWidget",
             "template_name": "django/forms/widgets/select_date.html",
-            "value": "{'year': None, 'month': None, 'day': None}",
+            "value": "{'year': 2015, 'month': 1, 'day': 1}",
             "value_from_datadict": None,
         },
     }

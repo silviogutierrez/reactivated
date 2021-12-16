@@ -364,6 +364,7 @@ class AutocompleteSelected(NamedTuple):
 
 
 class Autocomplete(BaseWidget):
+    value: List[str]  # type: ignore[assignment]
     selected: Optional[AutocompleteSelected]
 
 

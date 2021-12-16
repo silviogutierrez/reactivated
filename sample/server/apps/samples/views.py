@@ -14,6 +14,7 @@ def hello_world(request: HttpRequest) -> HttpResponse:
 
 def storyboard(request: HttpRequest) -> HttpResponse:
     form = forms.StoryboardForm(
+        request.POST or None,
         initial={
             "char_field": "Ok",
             "integer_field": 7,

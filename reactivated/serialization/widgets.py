@@ -110,13 +110,13 @@ class BaseWidget(NamedTuple):
             }
 
             for subwidget_key, subwidget in zip(
-                subwidget_keys, subwidgets_tuple.__args__
+                subwidget_keys, subwidgets_tuple.__args__  # type: ignore[attr-defined]
             ):
                 value_schema = create_schema(subwidget, base.definitions).dereference()[
                     "properties"
                 ]["value"]
-                values_schema["properties"][subwidget_key] = value_schema
-                values_schema["required"].append(subwidget_key)
+                values_schema["properties"][subwidget_key] = value_schema  # type: ignore[index]
+                values_schema["required"].append(subwidget_key)  # type: ignore[attr-defined]
 
             base = base._replace(definitions=definitions)
             base = base.add_property(

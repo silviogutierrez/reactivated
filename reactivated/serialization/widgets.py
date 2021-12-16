@@ -58,10 +58,9 @@ class BaseWidget(NamedTuple):
     required: bool
     value: Optional[str]
     attrs: BaseWidgetAttrs
-    value_from_datadict: Optional[str]
 
     @staticmethod
-    def get_value(context: Any) -> Any:
+    def coerce_value(context: Any) -> Any:
         return context["value"]
 
     @classmethod
@@ -137,8 +136,11 @@ class BaseWidget(NamedTuple):
         widget_class = value.__class__
         context = value if isinstance(value, dict) else value._reactivated_get_context()
 
+        # TODO: exclude value, and do it manually by calling get_value()
+        # So call named_tuple serialized directly instead of serialize()
         serialized = serialize(context, schema, suppress_custom_serializer=True)
         serialized["tag"] = f"{widget_class.__module__}.{widget_class.__qualname__}"
+        serialized["value"] = Proxy.coerce_value(context)
 
         if (subwidgets := get_type_hints(Proxy).get("subwidgets", None)) :
             subwidgets_to_enumerate = (
@@ -248,7 +250,7 @@ class CheckboxInput(BaseWidget):
     value: bool  # type: ignore[assignment]
 
     @staticmethod
-    def get_value(context: Any) -> bool:
+    def coerce_value(context: Any) -> bool:
         return context["attrs"].get("checked", False) is True
 
 
@@ -341,6 +343,7 @@ class SelectDateWidgetSubwidgets(NamedTuple):
 @register("django.forms.widgets.SelectDateWidget")
 class SelectDateWidget(BaseWidget):
     subwidgets: SelectDateWidgetSubwidgets
+    value: Any
 
 
 PROXIES[forms.SelectDateWidget] = SelectDateWidget
@@ -349,6 +352,7 @@ PROXIES[forms.SelectDateWidget] = SelectDateWidget
 @register("django.forms.widgets.SplitDateTimeWidget")
 class SplitDateTimeWidget(BaseWidget):
     subwidgets: Tuple[forms.DateInput, forms.TimeInput]
+    value: Any
 
 
 PROXIES[forms.SplitDateTimeWidget] = SplitDateTimeWidget

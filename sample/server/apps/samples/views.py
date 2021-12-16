@@ -20,6 +20,7 @@ def storyboard(request: HttpRequest) -> HttpResponse:
             "date_field": timezone.localdate(),
             "date_time_field": timezone.now(),
             "enum_field": models.Opera.Style.VERISMO,
+            "boolean_field": True,
         },
     )
     return templates.Storyboard(form=form,).render(request)

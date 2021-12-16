@@ -418,18 +418,9 @@ def test_deferred_evaluation_of_types(settings):
 
 def test_rename_me():
     date = datetime.date(2015, 1, 1)
+    Form = forms.StoryboardForm
 
-    class Form(django_forms.Form):
-        char_field = django_forms.CharField()
-        integer_field = django_forms.IntegerField()
-        date_field = django_forms.DateField(
-            widget=django_forms.widgets.SelectDateWidget
-        )
-        date_time_field = django_forms.DateTimeField(
-            widget=django_forms.widgets.SplitDateTimeWidget,
-        )
-
-    instance = Form(initial={"date_field": date})
+    instance = Form(initial={"date_field": date, "boolean_field": True})
 
     schema = create_schema(Form, {})
     serialized = serialize(instance, schema)
@@ -453,7 +444,6 @@ def test_rename_me():
             "template_name": "django/forms/widgets/text.html",
             "type": "text",
             "value": None,
-            "value_from_datadict": None,
         },
     }
     field_schema = create_schema(Form.base_fields["char_field"], schema.definitions)
@@ -478,7 +468,6 @@ def test_rename_me():
             "template_name": "django/forms/widgets/number.html",
             "type": "number",
             "value": None,
-            "value_from_datadict": None,
         },
     }
     field_schema = create_schema(Form.base_fields["integer_field"], schema.definitions)
@@ -658,7 +647,6 @@ def test_rename_me():
                     "tag": "django.forms.widgets.Select",
                     "template_name": "django/forms/widgets/select.html",
                     "value": ["1"],
-                    "value_from_datadict": None,
                 },
                 {
                     "attrs": {
@@ -1047,7 +1035,6 @@ def test_rename_me():
                     "tag": "django.forms.widgets.Select",
                     "template_name": "django/forms/widgets/select.html",
                     "value": ["1"],
-                    "value_from_datadict": None,
                 },
                 {
                     "attrs": {
@@ -1184,13 +1171,11 @@ def test_rename_me():
                     "tag": "django.forms.widgets.Select",
                     "template_name": "django/forms/widgets/select.html",
                     "value": ["2015"],
-                    "value_from_datadict": None,
                 },
             ],
             "tag": "django.forms.widgets.SelectDateWidget",
             "template_name": "django/forms/widgets/select_date.html",
-            "value": "{'year': 2015, 'month': 1, 'day': 1}",
-            "value_from_datadict": None,
+            "value": {"year": 2015, "month": 1, "day": 1},
         },
     }
     field_schema = create_schema(Form.base_fields["date_field"], schema.definitions)
@@ -1226,7 +1211,6 @@ def test_rename_me():
                     "template_name": "django/forms/widgets/date.html",
                     "type": "text",
                     "value": None,
-                    "value_from_datadict": None,
                 },
                 {
                     "attrs": {
@@ -1243,16 +1227,38 @@ def test_rename_me():
                     "template_name": "django/forms/widgets/time.html",
                     "type": "text",
                     "value": None,
-                    "value_from_datadict": None,
                 },
             ],
             "tag": "django.forms.widgets.SplitDateTimeWidget",
             "template_name": "django/forms/widgets/splitdatetime.html",
             "value": None,
-            "value_from_datadict": None,
         },
     }
     field_schema = create_schema(
         Form.base_fields["date_time_field"], schema.definitions
     )
     convert_to_json_and_validate(serialized["fields"]["date_time_field"], field_schema)
+
+    assert serialized["fields"]["boolean_field"] == {
+        "name": "boolean_field",
+        "label": "Boolean field",
+        "help_text": "",
+        "widget": {
+            "template_name": "django/forms/widgets/checkbox.html",
+            "name": "boolean_field",
+            "is_hidden": False,
+            "required": True,
+            "value": True,
+            "attrs": {
+                "id": "id_boolean_field",
+                "disabled": None,
+                "required": True,
+                "placeholder": None,
+                "checked": True,
+            },
+            "type": "checkbox",
+            "tag": "django.forms.widgets.CheckboxInput",
+        },
+    }
+    field_schema = create_schema(Form.base_fields["boolean_field"], schema.definitions)
+    convert_to_json_and_validate(serialized["fields"]["boolean_field"], field_schema)

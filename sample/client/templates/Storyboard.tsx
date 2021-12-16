@@ -3,7 +3,7 @@ import React from "react";
 import {CSRFToken, Types} from "@client/generated";
 import {Layout} from "@client/Layout";
 
-import {useForm, Fields, Widget} from "reactivated/forms/genesis";
+import {Fields, useForm, Widget} from "reactivated/forms/genesis";
 
 const SPACING = 2;
 

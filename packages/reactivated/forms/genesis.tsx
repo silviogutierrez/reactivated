@@ -56,7 +56,7 @@ const useInitialState = <T extends FieldMap>(form: FormLike<T>) => {
         if (widget.subwidgets != null) {
             const subwidgetValue = Object.fromEntries(
                 widget.subwidgets.map((subwidget) => {
-                    const formPrefix = form.prefix == "" ? "" : `${form.prefix}-`;
+                    const formPrefix = form.prefix === "" ? "" : `${form.prefix}-`;
                     const unprefixedName = subwidget.name.replace(
                         `${formPrefix}${fieldName}_`,
                         "",
@@ -89,7 +89,7 @@ export const useForm = <T extends FieldMap>({
 
             if (field.widget.subwidgets != null) {
                 const subwidgets = field.widget.subwidgets.map((subwidget) => {
-                    const formPrefix = form.prefix == "" ? "" : `${form.prefix}-`;
+                    const formPrefix = form.prefix === "" ? "" : `${form.prefix}-`;
                     const unprefixedName = subwidget.name.replace(
                         `${formPrefix}${fieldName}_`,
                         "",
@@ -238,13 +238,13 @@ export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
         );
     } else if (
         field.tag === "django.forms.widgets.TextInput" ||
-        field.tag == "django.forms.widgets.DateInput" ||
-        field.tag == "django.forms.widgets.URLInput" ||
-        field.tag == "django.forms.widgets.PasswordInput" ||
-        field.tag == "django.forms.widgets.EmailInput" ||
-        field.tag == "django.forms.widgets.TimeInput" ||
-        field.tag == "django.forms.widgets.NumberInput" ||
-        field.tag == "django.forms.widgets.Textarea"
+        field.tag === "django.forms.widgets.DateInput" ||
+        field.tag === "django.forms.widgets.URLInput" ||
+        field.tag === "django.forms.widgets.PasswordInput" ||
+        field.tag === "django.forms.widgets.EmailInput" ||
+        field.tag === "django.forms.widgets.TimeInput" ||
+        field.tag === "django.forms.widgets.NumberInput" ||
+        field.tag === "django.forms.widgets.Textarea"
     ) {
         return (
             <widgets.TextInput

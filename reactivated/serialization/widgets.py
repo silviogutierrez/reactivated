@@ -70,14 +70,13 @@ class BaseWidget(NamedTuple):
     ) -> "Thing":
         # Subwidgets come to us as a class already.
         widget_class = instance if isinstance(instance, type) else instance.__class__
-
         tag = f"{widget_class.__module__}.{widget_class.__qualname__}"  # type: ignore[attr-defined]
 
         if Proxy is BaseWidget:
             assert False, f"Unsupported widget {tag}"
 
         # TODO: this should really be done automatically for the instance we're wrapping.
-        definition_name = f"{Proxy.__module__}.{Proxy.__qualname__}"
+        definition_name = tag  # f"{Proxy.__module__}.{Proxy.__qualname__}"
 
         if definition_name in definitions:
             return Thing(
@@ -85,7 +84,9 @@ class BaseWidget(NamedTuple):
                 definitions=definitions,
             )
 
-        base = named_tuple_schema(Proxy, definitions, exclude=["subwidgets"])
+        base = named_tuple_schema(
+            Proxy, definitions, definition_name=definition_name, exclude=["subwidgets"]
+        )
 
         if subwidgets := get_type_hints(Proxy).get("subwidgets", None):
             if hasattr(subwidgets, "__annotations__"):

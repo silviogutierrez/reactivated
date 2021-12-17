@@ -32,6 +32,24 @@ export interface FormLike<T extends FieldMap> {
     prefix: string;
 }
 
+export interface FormSetLike<T extends FieldMap> {
+    initial_form_count: number;
+    total_form_count: number;
+    max_num: number;
+    min_num: number;
+    can_delete: boolean;
+    can_order: boolean;
+    non_form_errors: string[];
+
+    // Technically we don't need management form.
+    // Since we have ManagementForm as a component that uses initial and total.
+    management_form: unknown;
+    prefix: string;
+
+    forms: Array<FormLike<T>>;
+    empty_form: FormLike<T>;
+}
+
 export type FormValues<U extends FieldMap> = {
     [K in keyof U]: U[K] extends {enum: unknown}
         ? U[K]["enum"] | null

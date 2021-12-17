@@ -771,12 +771,22 @@ def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
 
 
 def named_tuple_schema(
-    Type: Any, definitions: Definitions, *, exclude: Optional[List[str]] = None,
+    Type: Any,
+    definitions: Definitions,
+    *,
+    definition_name: Optional[str] = None,
+    exclude: Optional[List[str]] = None,
 ) -> Thing:
     if exclude is None:
         exclude = []
 
-    definition_name = f"{Type.__module__}.{Type.__qualname__}"
+    # Type name is the actual class that will handle serialization.
+    type_name = f"{Type.__module__}.{Type.__qualname__}"
+    # Definition name can be passed in by proxies to ensure we get the wrapped
+    # name as the name, not the proxy's name.
+    # See BaseWidget proxy as an example.
+    definition_name = definition_name or type_name
+
     if definition_name in definitions:
         return Thing(
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
@@ -814,7 +824,7 @@ def named_tuple_schema(
         definitions={
             **definitions,
             definition_name: {
-                "serializer": definition_name
+                "serializer": type_name
                 if callable(getattr(Type, "get_serialized_value", None))
                 else None,
                 "type": "object",

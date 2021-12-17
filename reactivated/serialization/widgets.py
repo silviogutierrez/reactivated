@@ -1,6 +1,7 @@
 from typing import (
     Any,
     Callable,
+    Dict,
     List,
     Literal,
     NamedTuple,
@@ -126,6 +127,15 @@ class BaseWidget(NamedTuple):
         base = base.add_property(
             "tag", create_schema(Literal[tag], base.definitions).schema
         )
+        from reactivated import global_types
+
+        GlobalWidget: Dict[str, Any] = global_types.get("Widget", {"anyOf": [],})  # type: ignore[assignment]
+
+        GlobalWidget = {
+            **GlobalWidget,
+            "anyOf": [*GlobalWidget["anyOf"], base.schema,],
+        }
+        global_types["Widget"] = GlobalWidget  # type: ignore[assignment]
 
         return base
 

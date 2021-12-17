@@ -69,8 +69,8 @@ class BaseWidget(NamedTuple):
         Proxy: Type["BaseWidget"], instance: forms.Widget, definitions: Definitions,
     ) -> "Thing":
         # Subwidgets come to us as a class already.
-        widget_class = instance if isinstance(instance, type) else instance.__class__
-        tag = f"{widget_class.__module__}.{widget_class.__qualname__}"  # type: ignore[attr-defined]
+        widget_class: Type[forms.Widget] = instance if isinstance(instance, type) else instance.__class__  # type: ignore[assignment]
+        tag = f"{widget_class.__module__}.{widget_class.__qualname__}"
 
         if Proxy is BaseWidget:
             assert False, f"Unsupported widget {tag}"
@@ -87,6 +87,7 @@ class BaseWidget(NamedTuple):
         base = named_tuple_schema(
             Proxy, definitions, definition_name=definition_name, exclude=["subwidgets"]
         )
+        base = base.add_property("template_name", create_schema(Literal[widget_class.template_name], {}).schema)  # type: ignore[attr-defined]
 
         if subwidgets := get_type_hints(Proxy).get("subwidgets", None):
             if hasattr(subwidgets, "__annotations__"):
@@ -177,6 +178,7 @@ class MaxLengthAttrs(BaseWidgetAttrs):
 
 @register("django.forms.widgets.HiddenInput")
 class HiddenInput(BaseWidget):
+    template_name: Literal["django/forms/widgets/hidden.html"]
     type: Literal["hidden"]
 
 
@@ -185,6 +187,7 @@ PROXIES[forms.HiddenInput] = HiddenInput
 
 @register("django.forms.widgets.TextInput")
 class TextInput(BaseWidget):
+    template_name: Literal["django/forms/widgets/text.html"]
     type: Literal["text"]
     attrs: MaxLengthAttrs
 
@@ -194,6 +197,7 @@ PROXIES[forms.TextInput] = TextInput
 
 @register("django.forms.widgets.URLInput")
 class URLInput(BaseWidget):
+    template_name: Literal["django/forms/widgets/url.html"]
     type: Literal["url"]
     attrs: MaxLengthAttrs
 
@@ -207,6 +211,7 @@ class StepAttrs(BaseWidgetAttrs):
 
 @register("django.forms.widgets.NumberInput")
 class NumberInput(BaseWidget):
+    template_name: Literal["django/forms/widgets/number.html"]
     type: Literal["number"]
     attrs: StepAttrs
 
@@ -220,6 +225,7 @@ class TimeAttrs(BaseWidgetAttrs):
 
 @register("django.forms.widgets.TimeInput")
 class TimeInput(BaseWidget):
+    template_name: Literal["django/forms/widgets/time.html"]
     type: Literal["text"]
     attrs: TimeAttrs
 
@@ -233,6 +239,7 @@ class DateAttrs(BaseWidgetAttrs):
 
 @register("django.forms.widgets.DateInput")
 class DateInput(BaseWidget):
+    template_name: Literal["django/forms/widgets/date.html"]
     type: Literal["text"]
     attrs: DateAttrs
 
@@ -246,6 +253,7 @@ class DateTimeAttrs(BaseWidgetAttrs):
 
 @register("django.forms.widgets.DateTimeInput")
 class DateTimeInput(BaseWidget):
+    template_name: Literal["django/forms/widgets/datetime.html"]
     type: Literal["text"]
     attrs: DateTimeAttrs
 
@@ -256,6 +264,7 @@ class CheckAttrs(BaseWidgetAttrs):
 
 @register("django.forms.widgets.CheckboxInput")
 class CheckboxInput(BaseWidget):
+    template_name: Literal["django/forms/widgets/checkbox.html"]
     type: Literal["checkbox"]
     attrs: CheckAttrs
     value: bool  # type: ignore[assignment]
@@ -270,6 +279,7 @@ PROXIES[forms.CheckboxInput] = CheckboxInput
 
 @register("django.forms.widgets.PasswordInput")
 class PasswordInput(BaseWidget):
+    template_name: Literal["django/forms/widgets/password.html"]
     type: Literal["password"]
 
 
@@ -278,6 +288,7 @@ PROXIES[forms.PasswordInput] = PasswordInput
 
 @register("django.forms.widgets.EmailInput")
 class EmailInput(BaseWidget):
+    template_name: Literal["django/forms/widgets/email.html"]
     type: Literal["email"]
 
 
@@ -291,6 +302,7 @@ class TextareaAttrs(BaseWidgetAttrs):
 
 @register("django.forms.widgets.Textarea")
 class Textarea(BaseWidget):
+    template_name: Literal["django/forms/widgets/textarea.html"]
     attrs: TextareaAttrs
 
 
@@ -299,6 +311,7 @@ PROXIES[forms.Textarea] = Textarea
 
 @register("django.forms.widgets.Select")
 class Select(BaseWidget):
+    template_name: Literal["django/forms/widgets/select.html"]
     optgroups: List[Optgroup]
     value: List[str]  # type: ignore[assignment]
 
@@ -327,6 +340,7 @@ class TagWidget(TextInput):
 
 @register("django.forms.widgets.ClearableFileInput")
 class ClearableFileInput(BaseWidget):
+    template_name: Literal["django/forms/widgets/clearable_file_input.html"]
     type: Literal["file"]
     checkbox_name: str
     checkbox_id: str
@@ -353,6 +367,7 @@ class SelectDateWidgetSubwidgets(NamedTuple):
 
 @register("django.forms.widgets.SelectDateWidget")
 class SelectDateWidget(BaseWidget):
+    template_name: Literal["django/forms/widgets/select_date.html"]
     subwidgets: SelectDateWidgetSubwidgets
     value: Any
 
@@ -362,6 +377,7 @@ PROXIES[forms.SelectDateWidget] = SelectDateWidget
 
 @register("django.forms.widgets.SplitDateTimeWidget")
 class SplitDateTimeWidget(BaseWidget):
+    template_name: Literal["django/forms/widgets/splitdatetime.html"]
     subwidgets: Tuple[forms.DateInput, forms.TimeInput]
     value: Any
 

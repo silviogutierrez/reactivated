@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, Literal, Optional, cast
 
 from django import forms
 from django.core.exceptions import ValidationError
@@ -6,7 +6,7 @@ from django.forms.models import ModelChoiceIterator
 
 
 class Autocomplete(forms.Select):
-    template_name = "reactivated/autocomplete"
+    template_name: Literal["reactivated/autocomplete"] = "reactivated/autocomplete"
 
     def get_context(
         self, name: str, value: Any, attrs: Optional[Dict[str, Any]]

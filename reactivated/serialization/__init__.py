@@ -803,7 +803,11 @@ def named_tuple_schema(
         field_schema = create_schema(Subtype, definitions)
         definitions = {**definitions, **field_schema.definitions}
 
-        required.append(field_name)
+        is_undefined = getattr(Subtype, "_reactivated_undefined", False)
+
+        if is_undefined is False:
+            required.append(field_name)
+
         properties[field_name] = field_schema.schema
 
     for field_name in dir(Type):

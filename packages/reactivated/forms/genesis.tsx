@@ -311,3 +311,24 @@ export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
     const exhastive: never = field;
     throw new Error(`Exhaustive {field.tag}`);
 };
+
+export const ManagementForm = <T extends FieldMap>({
+    formSet,
+}: {
+    formSet: FormSetLike<T>;
+}) => {
+    return (
+        <>
+            <input
+                type="hidden"
+                name={`${formSet.prefix}-INITIAL_FORMS`}
+                value={formSet.initial_form_count}
+            />
+            <input
+                type="hidden"
+                name={`${formSet.prefix}-TOTAL_FORMS`}
+                value={formSet.total_form_count}
+            />
+        </>
+    );
+};

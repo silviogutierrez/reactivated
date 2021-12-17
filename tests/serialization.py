@@ -432,10 +432,10 @@ def test_rename_me():
         "widget": {
             "tag": "django.forms.widgets.TextInput",
             "attrs": {
-                "disabled": None,
+                # "disabled": None,
                 "id": "id_char_field",
-                "maxlength": None,
-                "placeholder": None,
+                # "maxlength": None,
+                # "placeholder": None,
                 "required": True,
             },
             "is_hidden": False,
@@ -456,11 +456,11 @@ def test_rename_me():
         "widget": {
             "tag": "django.forms.widgets.NumberInput",
             "attrs": {
-                "disabled": None,
+                # "disabled": None,
                 "id": "id_integer_field",
-                "placeholder": None,
+                # "placeholder": None,
                 "required": True,
-                "step": None,
+                # "step": None,
             },
             "is_hidden": False,
             "name": "integer_field",
@@ -479,9 +479,9 @@ def test_rename_me():
         "name": "date_field",
         "widget": {
             "attrs": {
-                "disabled": None,
+                # "disabled": None,
                 "id": "id_date_field",
-                "placeholder": None,
+                # "placeholder": None,
                 "required": True,
             },
             "is_hidden": False,
@@ -490,9 +490,9 @@ def test_rename_me():
             "subwidgets": [
                 {
                     "attrs": {
-                        "disabled": None,
+                        # "disabled": None,
                         "id": "id_date_field_month",
-                        "placeholder": None,
+                        # "placeholder": None,
                         "required": True,
                     },
                     "is_hidden": False,
@@ -650,9 +650,9 @@ def test_rename_me():
                 },
                 {
                     "attrs": {
-                        "disabled": None,
+                        # "disabled": None,
                         "id": "id_date_field_day",
-                        "placeholder": None,
+                        # "placeholder": None,
                         "required": True,
                     },
                     "is_hidden": False,
@@ -1038,9 +1038,9 @@ def test_rename_me():
                 },
                 {
                     "attrs": {
-                        "disabled": None,
+                        # "disabled": None,
                         "id": "id_date_field_year",
-                        "placeholder": None,
+                        # "placeholder": None,
                         "required": True,
                     },
                     "is_hidden": False,
@@ -1187,9 +1187,9 @@ def test_rename_me():
         "name": "date_time_field",
         "widget": {
             "attrs": {
-                "disabled": None,
+                # "disabled": None,
                 "id": "id_date_time_field",
-                "placeholder": None,
+                # "placeholder": None,
                 "required": True,
             },
             "is_hidden": False,
@@ -1198,10 +1198,10 @@ def test_rename_me():
             "subwidgets": [
                 {
                     "attrs": {
-                        "disabled": None,
-                        "format": None,
+                        # "disabled": None,
+                        # "format": None,
                         "id": "id_date_time_field_0",
-                        "placeholder": None,
+                        # "placeholder": None,
                         "required": True,
                     },
                     "is_hidden": False,
@@ -1214,10 +1214,10 @@ def test_rename_me():
                 },
                 {
                     "attrs": {
-                        "disabled": None,
-                        "format": None,
+                        # "disabled": None,
+                        # "format": None,
                         "id": "id_date_time_field_1",
-                        "placeholder": None,
+                        # "placeholder": None,
                         "required": True,
                     },
                     "is_hidden": False,
@@ -1251,9 +1251,9 @@ def test_rename_me():
             "value": True,
             "attrs": {
                 "id": "id_boolean_field",
-                "disabled": None,
+                # "disabled": None,
                 "required": True,
-                "placeholder": None,
+                # "placeholder": None,
                 "checked": True,
             },
             "type": "checkbox",

@@ -202,7 +202,7 @@ PROXIES[forms.URLInput] = URLInput
 
 
 class StepAttrs(BaseWidgetAttrs):
-    step: Optional[str]
+    step: stubs.Undefined[str]
 
 
 @register("django.forms.widgets.NumberInput")
@@ -215,7 +215,7 @@ PROXIES[forms.NumberInput] = NumberInput
 
 
 class TimeAttrs(BaseWidgetAttrs):
-    format: Optional[str]
+    format: stubs.Undefined[str]
 
 
 @register("django.forms.widgets.TimeInput")
@@ -228,7 +228,7 @@ PROXIES[forms.TimeInput] = TimeInput
 
 
 class DateAttrs(BaseWidgetAttrs):
-    format: Optional[str]
+    format: stubs.Undefined[str]
 
 
 @register("django.forms.widgets.DateInput")

@@ -70,6 +70,6 @@ else:
 
         def __class_getitem__(cls: Type["Undefined"], item: Any) -> Any:
             class Undefined(BaseUndefinedHolder):
-                type = Optional[item]
+                type = item
 
             return Undefined

@@ -136,6 +136,7 @@ export const useForm = <T extends FieldMap>({
 
                 return callback({
                     name: fieldName,
+                    tag: field.widget.tag,
                     subwidgets,
                 } as any);
             }

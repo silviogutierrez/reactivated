@@ -646,7 +646,7 @@ def test_rename_me():
                     "required": False,
                     "tag": "django.forms.widgets.Select",
                     "template_name": "django/forms/widgets/select.html",
-                    "value": ["1"],
+                    "value": "1",
                 },
                 {
                     "attrs": {
@@ -1034,7 +1034,7 @@ def test_rename_me():
                     "required": False,
                     "tag": "django.forms.widgets.Select",
                     "template_name": "django/forms/widgets/select.html",
-                    "value": ["1"],
+                    "value": "1",
                 },
                 {
                     "attrs": {
@@ -1170,7 +1170,7 @@ def test_rename_me():
                     "required": False,
                     "tag": "django.forms.widgets.Select",
                     "template_name": "django/forms/widgets/select.html",
-                    "value": ["2015"],
+                    "value": "2015",
                 },
             ],
             "tag": "django.forms.widgets.SelectDateWidget",

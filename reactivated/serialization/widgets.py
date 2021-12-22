@@ -313,7 +313,10 @@ PROXIES[forms.Textarea] = Textarea
 class Select(BaseWidget):
     template_name: Literal["django/forms/widgets/select.html"]
     optgroups: List[Optgroup]
-    value: List[str]  # type: ignore[assignment]
+
+    @staticmethod
+    def coerce_value(context: Any) -> Any:
+        return context["value"][0]
 
 
 PROXIES[forms.Select] = Select

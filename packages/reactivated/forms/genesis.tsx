@@ -319,9 +319,9 @@ export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
         return (
             <widgets.Select
                 name={field.name}
-                value={field.value[0].toString()}
+                value={field.value}
                 optgroups={field.widget.optgroups}
-                onChange={(value) => field.handler([value])}
+                onChange={field.handler}
             />
         );
     } else if (field.tag === "django.forms.widgets.ClearableFileInput") {

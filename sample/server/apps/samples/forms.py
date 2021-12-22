@@ -47,5 +47,6 @@ class StoryboardForm(forms.Form):
     integer_field = forms.IntegerField()
     date_field = forms.DateField(widget=forms.SelectDateWidget)
     date_time_field = forms.DateTimeField(widget=forms.SplitDateTimeWidget,)
+    choice_field = forms.ChoiceField(choices=((1, "One"), (2, "Two"),))
     enum_field = EnumChoiceField(enum=models.Opera.Style)
     boolean_field = forms.BooleanField()

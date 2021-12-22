@@ -62,11 +62,12 @@ export interface FormHandler<T extends FieldMap> {
     form: FormLike<T>;
     values: FormValues<T>;
     iterate: (
+        iterator: Array<Extract<keyof T, string>>,
         callback: (field: FieldHandler<T[keyof T]["widget"]>) => React.ReactNode,
     ) => React.ReactNode[];
 }
 
-const useInitialState = <T extends FieldMap>(form: FormLike<T>) => {
+const getInitialFormState = <T extends FieldMap>(form: FormLike<T>) => {
     const initialValuesAsEntries = form.iterator.map((fieldName) => {
         const field = form.fields[fieldName];
         const widget = field.widget;
@@ -90,20 +91,43 @@ const useInitialState = <T extends FieldMap>(form: FormLike<T>) => {
     return Object.fromEntries(initialValuesAsEntries) as FormValues<T>;
 };
 
+export const getInitialFormSetState = <U extends FieldMap>(forms: FormLike<U>[]) => {
+    return Object.fromEntries(
+        forms.map((form) => [form.prefix, getInitialFormState(form)] as const),
+    );
+};
+
 export const useForm = <T extends FieldMap>({
     form,
+    ...options
 }: {
     form: FormLike<T>;
+    changeInterceptor?: (
+        name: keyof T,
+        prevValues: FormValues<T>,
+        nextValues: FormValues<T>,
+    ) => FormValues<T>;
 }): FormHandler<T> => {
-    const initialState = useInitialState(form);
+    const initialState = getInitialFormState(form);
     const [values, setValues] = React.useState(initialState);
 
+    const changeInterceptor =
+        options.changeInterceptor ?? ((_, prevValues, nextValues) => nextValues);
+
+    const changeValues = (fieldName: keyof T, incomingValues: any) => {
+        setValues((prevValues) => {
+            const nextValues = changeInterceptor(fieldName, prevValues, incomingValues);
+            return nextValues;
+        });
+    };
+
     const iterate = (
+        iterator: Array<Extract<keyof T, string>>,
         callback: (field: FieldHandler<T[keyof T]["widget"]>) => React.ReactNode,
     ) => {
-        return form.iterator.map((fieldName) => {
+        return iterator.map((fieldName) => {
             const field = form.fields[fieldName];
-            const error = null;
+            const error = form.errors?.[fieldName]?.[0] ?? null;
 
             if (field.widget.subwidgets != null) {
                 const subwidgets = field.widget.subwidgets.map((subwidget) => {
@@ -115,7 +139,7 @@ export const useForm = <T extends FieldMap>({
                     const subwidgetValues = values[fieldName] as any;
                     const subwidgetValue = subwidgetValues[unprefixedName];
                     const setSubwidgetValue = (value: unknown) => {
-                        setValues({
+                        changeValues(fieldName, {
                             ...values,
                             [fieldName]: {
                                 ...subwidgetValues,
@@ -123,33 +147,36 @@ export const useForm = <T extends FieldMap>({
                             },
                         });
                     };
-                    return {
+                    const fieldHandler: FieldHandler<any> = {
                         name: subwidget.name,
-                        error: null,
-                        label: null,
+                        error,
+                        label: field.label,
                         tag: subwidget.tag,
                         widget: subwidget,
                         value: subwidgetValue,
                         handler: setSubwidgetValue,
                     };
+                    return fieldHandler;
                 });
 
                 return callback({
-                    name: fieldName,
+                    name: field.widget.name,
+                    label: field.label,
+                    error,
                     tag: field.widget.tag,
                     subwidgets,
                 } as any);
             }
 
             const fieldHandler: FieldHandler<any> = {
-                name: fieldName,
+                name: field.widget.name,
                 error,
                 label: field.label,
                 tag: field.widget.tag,
                 widget: field.widget,
                 value: values[fieldName],
                 handler: (value) => {
-                    setValues({
+                    changeValues(fieldName, {
                         ...values,
                         [fieldName]: value,
                     });
@@ -203,13 +230,13 @@ interface BaseFieldsProps<U extends FieldMap> {
 }
 
 interface IncludeFieldsProps<U extends FieldMap> extends BaseFieldsProps<U> {
-    fields?: Array<keyof U>;
+    fields?: Array<Extract<keyof U, string>>;
     exclude?: never;
 }
 
 interface ExcludeFieldProps<U extends FieldMap> extends BaseFieldsProps<U> {
     fields?: never;
-    exclude: Array<keyof U>;
+    exclude: Array<Extract<keyof U, string>>;
 }
 
 export type FieldsProps<U extends FieldMap> =
@@ -218,12 +245,28 @@ export type FieldsProps<U extends FieldMap> =
 
 export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
     const defaultHandler =
-        "form" in props.form ? props.form : useForm({form: props.form});
+        "form" in props.form
+            ? props.form
+            : useForm({form: props.form, changeInterceptor: props.changeInterceptor});
     const handler = "form" in props.form ? props.form : defaultHandler;
+
+    const getIterator = () => {
+        if (props.fields != null) {
+            return props.fields;
+        }
+
+        if (props.exclude != null) {
+            return handler.form.iterator.filter(
+                (field) => !props.exclude.includes(field),
+            );
+        }
+
+        return handler.form.iterator;
+    };
 
     return (
         <>
-            {handler.iterate((field) => (
+            {handler.iterate(getIterator(), (field) => (
                 <React.Fragment key={field.name}>
                     {props.children(field)}
                 </React.Fragment>

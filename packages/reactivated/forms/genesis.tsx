@@ -9,6 +9,9 @@ type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<
 export interface WidgetLike {
     name: string;
     tag: string;
+    attrs: {
+        disabled?: boolean;
+    };
     subwidgets?: WidgetLike[];
     value: unknown;
 }
@@ -151,6 +154,7 @@ export const useForm = <T extends FieldMap>({
                         name: subwidget.name,
                         error,
                         label: field.label,
+                        disabled: false,
                         tag: subwidget.tag,
                         widget: subwidget,
                         value: subwidgetValue,
@@ -161,6 +165,7 @@ export const useForm = <T extends FieldMap>({
 
                 return callback({
                     name: field.widget.name,
+                    disabled: field.widget.attrs.disabled ?? false,
                     label: field.label,
                     error,
                     tag: field.widget.tag,
@@ -172,6 +177,7 @@ export const useForm = <T extends FieldMap>({
                 name: field.widget.name,
                 error,
                 label: field.label,
+                disabled: field.widget.attrs.disabled ?? false,
                 tag: field.widget.tag,
                 widget: field.widget,
                 value: values[fieldName],
@@ -200,6 +206,7 @@ export type CreateFieldHandler<T> = T extends {
           name: string;
           label: string;
           error: string | null;
+          disabled: boolean;
           subwidgets: {[K in keyof U]: CreateFieldHandler<U[K]>};
       }
     : T extends WidgetLike
@@ -209,6 +216,7 @@ export type CreateFieldHandler<T> = T extends {
           value: T["value"];
           label: string;
           error: string | null;
+          disabled: boolean;
           widget: T;
           handler: (value: T["value"]) => void;
       }
@@ -219,7 +227,7 @@ export type FieldHandler<TWidget extends WidgetLike> = {
 }[TWidget["tag"]];
 
 interface BaseFieldsProps<U extends FieldMap> {
-    fieldInterceptor?: (form: FormLike<U>, fieldName: keyof U) => U[keyof U];
+    fieldInterceptor?: (field: FieldHandler<U[keyof U]["widget"]>) => typeof field;
     changeInterceptor?: (
         name: keyof U,
         prevValues: FormValues<U>,

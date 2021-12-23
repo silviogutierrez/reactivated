@@ -11,6 +11,7 @@ export interface WidgetLike {
     tag: string;
     attrs: {
         disabled?: boolean;
+        id: string;
     };
     subwidgets?: WidgetLike[];
     value: unknown;
@@ -70,7 +71,7 @@ export interface FormHandler<T extends FieldMap> {
     ) => React.ReactNode[];
 }
 
-const getInitialFormState = <T extends FieldMap>(form: FormLike<T>) => {
+export const getInitialFormState = <T extends FieldMap>(form: FormLike<T>) => {
     const initialValuesAsEntries = form.iterator.map((fieldName) => {
         const field = form.fields[fieldName];
         const widget = field.widget;
@@ -100,20 +101,21 @@ export const getInitialFormSetState = <U extends FieldMap>(forms: FormLike<U>[])
     );
 };
 
-export const useForm = <T extends FieldMap>({
+export const getFormHandler = <T extends FieldMap>({
     form,
+    values,
+    setValues,
     ...options
 }: {
     form: FormLike<T>;
+    values: FormValues<T>;
+    setValues: React.Dispatch<React.SetStateAction<FormValues<T>>>;
     changeInterceptor?: (
         name: keyof T,
         prevValues: FormValues<T>,
         nextValues: FormValues<T>,
     ) => FormValues<T>;
 }): FormHandler<T> => {
-    const initialState = getInitialFormState(form);
-    const [values, setValues] = React.useState(initialState);
-
     const changeInterceptor =
         options.changeInterceptor ?? ((_, prevValues, nextValues) => nextValues);
 
@@ -196,6 +198,23 @@ export const useForm = <T extends FieldMap>({
     return {form, values, iterate};
 };
 
+export const useForm = <T extends FieldMap>({
+    form,
+    ...options
+}: {
+    form: FormLike<T>;
+    changeInterceptor?: (
+        name: keyof T,
+        prevValues: FormValues<T>,
+        nextValues: FormValues<T>,
+    ) => FormValues<T>;
+}): FormHandler<T> => {
+    const initialState = getInitialFormState(form);
+    const [values, setValues] = React.useState(initialState);
+
+    return getFormHandler({...options, form, values, setValues});
+};
+
 export type CreateFieldHandler<T> = T extends {
     tag: string;
     name: string;
@@ -257,6 +276,7 @@ export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
             ? props.form
             : useForm({form: props.form, changeInterceptor: props.changeInterceptor});
     const handler = "form" in props.form ? props.form : defaultHandler;
+    console.log(handler.form.name, handler);
 
     const getIterator = () => {
         if (props.fields != null) {

@@ -1,5 +1,9 @@
 import React from "react";
 import * as widgets from "./widgets";
+import produce, {castDraft} from "immer";
+import {Types} from "../generated";
+
+export type Optgroup = Types["Optgroup"];
 
 // TODO: move to utilities.
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V>
@@ -403,4 +407,56 @@ export const ManagementForm = <T extends FieldMap>({
             />
         </>
     );
+};
+
+export const useFormSet = <T extends FieldMap>(initialFormSet: FormSetLike<T>) => {
+    const [formSet, setFormSet] = React.useState(initialFormSet);
+
+    const initialFormSetState = getInitialFormSetState(initialFormSet.forms);
+    const [values, formSetSetValues] =
+        React.useState<Partial<typeof initialFormSetState>>(initialFormSetState);
+
+    const emptyFormValues = getInitialFormState(formSet.empty_form);
+
+    const handlers = formSet.forms.map((form) => {
+        return getFormHandler({
+            form,
+            values: values[form.prefix] ?? emptyFormValues,
+            setValues: (incomingValuesCallback) => {
+                formSetSetValues((prevValues) => {
+                    const nextValues = (incomingValuesCallback as any)(
+                        prevValues[form.prefix],
+                    );
+                    return {
+                        ...prevValues,
+                        [form.prefix]: nextValues,
+                    };
+                });
+            },
+        });
+    });
+
+    const addForm = () => {
+        const {total_form_count} = formSet;
+        type AdditionalForm = typeof formSet["forms"][number];
+
+        const extraForm = produce(formSet.empty_form, (draftState) => {
+            for (const fieldName of draftState.iterator) {
+                const prefix = `${formSet.prefix}-${formSet.total_form_count}`;
+                const field = draftState.fields[fieldName];
+                const html_name = `${prefix}-${field.name}`;
+                draftState.fields[fieldName].widget.name = html_name;
+                draftState.fields[fieldName].widget.attrs.id = `id_${html_name}`;
+                draftState.prefix = prefix;
+            }
+        });
+        const updated = produce(formSet, (draftState) => {
+            draftState.forms.push(castDraft(extraForm));
+            draftState.total_form_count += 1;
+        });
+
+        setFormSet(updated);
+    };
+
+    return {schema: formSet, values, handlers, addForm};
 };

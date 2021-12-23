@@ -114,6 +114,11 @@ export const getFormHandler = <T extends FieldMap>({
     form: FormLike<T>;
     values: FormValues<T>;
     setValues: React.Dispatch<React.SetStateAction<FormValues<T>>>;
+    fieldInterceptor?: (
+        fieldName: keyof T,
+        field: FieldHandler<T[keyof T]["widget"]>,
+        values: FormValues<T>,
+    ) => typeof field;
     changeInterceptor?: (
         name: keyof T,
         prevValues: FormValues<T>,
@@ -122,6 +127,7 @@ export const getFormHandler = <T extends FieldMap>({
 }): FormHandler<T> => {
     const changeInterceptor =
         options.changeInterceptor ?? ((_, prevValues, nextValues) => nextValues);
+    const fieldInterceptor = options.fieldInterceptor ?? ((fieldName, field) => field);
 
     const changeValues = (fieldName: keyof T, incomingValues: any) => {
         setValues((prevValues) => {
@@ -169,14 +175,20 @@ export const getFormHandler = <T extends FieldMap>({
                     return fieldHandler;
                 });
 
-                return callback({
-                    name: field.widget.name,
-                    disabled: field.widget.attrs.disabled ?? false,
-                    label: field.label,
-                    error,
-                    tag: field.widget.tag,
-                    subwidgets,
-                } as any);
+                return callback(
+                    fieldInterceptor(
+                        fieldName,
+                        {
+                            name: field.widget.name,
+                            disabled: field.widget.attrs.disabled ?? false,
+                            label: field.label,
+                            error,
+                            tag: field.widget.tag,
+                            subwidgets,
+                        } as any,
+                        values,
+                    ),
+                );
             }
 
             const fieldHandler: FieldHandler<any> = {
@@ -195,7 +207,7 @@ export const getFormHandler = <T extends FieldMap>({
                 },
             };
 
-            return callback(fieldHandler as any);
+            return callback(fieldInterceptor(fieldName, fieldHandler as any, values));
         });
     };
 
@@ -207,6 +219,11 @@ export const useForm = <T extends FieldMap>({
     ...options
 }: {
     form: FormLike<T>;
+    fieldInterceptor?: (
+        fieldName: keyof T,
+        field: FieldHandler<T[keyof T]["widget"]>,
+        values: FormValues<T>,
+    ) => typeof field;
     changeInterceptor?: (
         name: keyof T,
         prevValues: FormValues<T>,
@@ -249,30 +266,34 @@ export type FieldHandler<TWidget extends WidgetLike> = {
     [K in TWidget["tag"]]: CreateFieldHandler<DiscriminateUnion<TWidget, "tag", K>>;
 }[TWidget["tag"]];
 
-interface BaseFieldsProps<U extends FieldMap> {
-    fieldInterceptor?: (field: FieldHandler<U[keyof U]["widget"]>) => typeof field;
+interface BaseFieldsProps<T extends FieldMap> {
+    fieldInterceptor?: (
+        fieldName: keyof T,
+        field: FieldHandler<T[keyof T]["widget"]>,
+        values: FormValues<T>,
+    ) => typeof field;
     changeInterceptor?: (
-        name: keyof U,
-        prevValues: FormValues<U>,
-        nextValues: FormValues<U>,
-    ) => FormValues<U>;
-    form: FormLike<U> | FormHandler<U>;
-    children: (props: FieldHandler<U[keyof U]["widget"]>) => React.ReactNode;
+        name: keyof T,
+        prevValues: FormValues<T>,
+        nextValues: FormValues<T>,
+    ) => FormValues<T>;
+    form: FormLike<T> | FormHandler<T>;
+    children: (props: FieldHandler<T[keyof T]["widget"]>) => React.ReactNode;
 }
 
-interface IncludeFieldsProps<U extends FieldMap> extends BaseFieldsProps<U> {
-    fields?: Array<Extract<keyof U, string>>;
+interface IncludeFieldsProps<T extends FieldMap> extends BaseFieldsProps<T> {
+    fields?: Array<Extract<keyof T, string>>;
     exclude?: never;
 }
 
-interface ExcludeFieldProps<U extends FieldMap> extends BaseFieldsProps<U> {
+interface ExcludeFieldProps<T extends FieldMap> extends BaseFieldsProps<T> {
     fields?: never;
-    exclude: Array<Extract<keyof U, string>>;
+    exclude: Array<Extract<keyof T, string>>;
 }
 
-export type FieldsProps<U extends FieldMap> =
-    | IncludeFieldsProps<U>
-    | ExcludeFieldProps<U>;
+export type FieldsProps<T extends FieldMap> =
+    | IncludeFieldsProps<T>
+    | ExcludeFieldProps<T>;
 
 export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
     const defaultHandler =
@@ -280,7 +301,6 @@ export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
             ? props.form
             : useForm({form: props.form, changeInterceptor: props.changeInterceptor});
     const handler = "form" in props.form ? props.form : defaultHandler;
-    console.log(handler.form.name, handler);
 
     const getIterator = () => {
         if (props.fields != null) {
@@ -409,10 +429,22 @@ export const ManagementForm = <T extends FieldMap>({
     );
 };
 
-export const useFormSet = <T extends FieldMap>(initialFormSet: FormSetLike<T>) => {
-    const [formSet, setFormSet] = React.useState(initialFormSet);
+export const useFormSet = <T extends FieldMap>(options: {
+    formSet: FormSetLike<T>;
+    fieldInterceptor?: (
+        fieldName: keyof T,
+        field: FieldHandler<T[keyof T]["widget"]>,
+        values: FormValues<T>,
+    ) => typeof field;
+    changeInterceptor?: (
+        name: keyof T,
+        prevValues: FormValues<T>,
+        nextValues: FormValues<T>,
+    ) => FormValues<T>;
+}) => {
+    const [formSet, setFormSet] = React.useState(options.formSet);
 
-    const initialFormSetState = getInitialFormSetState(initialFormSet.forms);
+    const initialFormSetState = getInitialFormSetState(options.formSet.forms);
     const [values, formSetSetValues] =
         React.useState<Partial<typeof initialFormSetState>>(initialFormSetState);
 
@@ -421,6 +453,8 @@ export const useFormSet = <T extends FieldMap>(initialFormSet: FormSetLike<T>) =
     const handlers = formSet.forms.map((form) => {
         return getFormHandler({
             form,
+            changeInterceptor: options.changeInterceptor,
+            fieldInterceptor: options.fieldInterceptor,
             values: values[form.prefix] ?? emptyFormValues,
             setValues: (incomingValuesCallback) => {
                 formSetSetValues((prevValues) => {

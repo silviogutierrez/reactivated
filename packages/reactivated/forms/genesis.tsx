@@ -13,6 +13,7 @@ type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<
 export interface WidgetLike {
     name: string;
     tag: string;
+    is_hidden: boolean;
     attrs: {
         disabled?: boolean;
         id: string;
@@ -207,7 +208,13 @@ export const getFormHandler = <T extends FieldMap>({
                 },
             };
 
-            return callback(fieldInterceptor(fieldName, fieldHandler as any, values));
+            return callback(
+                fieldInterceptor(
+                    fieldName,
+                    fieldHandler as FieldHandler<T[keyof T]["widget"]>,
+                    values,
+                ),
+            );
         });
     };
 
@@ -431,6 +438,7 @@ export const ManagementForm = <T extends FieldMap>({
 
 export const useFormSet = <T extends FieldMap>(options: {
     formSet: FormSetLike<T>;
+    onAddForm?: (form: FormLike<T>) => void;
     fieldInterceptor?: (
         fieldName: keyof T,
         field: FieldHandler<T[keyof T]["widget"]>,
@@ -445,8 +453,9 @@ export const useFormSet = <T extends FieldMap>(options: {
     const [formSet, setFormSet] = React.useState(options.formSet);
 
     const initialFormSetState = getInitialFormSetState(options.formSet.forms);
-    const [values, formSetSetValues] =
-        React.useState<Partial<typeof initialFormSetState>>(initialFormSetState);
+    const [values, formSetSetValues] = React.useState<
+        Partial<typeof initialFormSetState>
+    >(initialFormSetState);
 
     const emptyFormValues = getInitialFormState(formSet.empty_form);
 
@@ -490,6 +499,7 @@ export const useFormSet = <T extends FieldMap>(options: {
         });
 
         setFormSet(updated);
+        options.onAddForm?.(extraForm);
     };
 
     return {schema: formSet, values, handlers, addForm};

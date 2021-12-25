@@ -70,6 +70,8 @@ export type FormValues<U extends FieldMap> = {
 export interface FormHandler<T extends FieldMap> {
     form: FormLike<T>;
     values: FormValues<T>;
+    initial: FormValues<T>;
+    setValue: <K extends keyof T>(name: K, value: FormValues<T>[K]) => void;
     iterate: (
         iterator: Array<Extract<keyof T, string>>,
         callback: (field: FieldHandler<T[keyof T]["widget"]>) => React.ReactNode,
@@ -109,11 +111,13 @@ export const getInitialFormSetState = <U extends FieldMap>(forms: FormLike<U>[])
 export const getFormHandler = <T extends FieldMap>({
     form,
     values,
+    initial,
     setValues,
     ...options
 }: {
     form: FormLike<T>;
     values: FormValues<T>;
+    initial: FormValues<T>;
     setValues: React.Dispatch<React.SetStateAction<FormValues<T>>>;
     fieldInterceptor?: (
         fieldName: keyof T,
@@ -223,7 +227,19 @@ export const getFormHandler = <T extends FieldMap>({
         });
     };
 
-    return {form, values, iterate};
+    return {
+        form,
+        values,
+        initial,
+        iterate,
+        setValue: (fieldName, value) => {
+            const incomingValues = {
+                ...values,
+                [fieldName]: value,
+            };
+            changeValues(fieldName, incomingValues);
+        },
+    };
 };
 
 export const useForm = <T extends FieldMap>({
@@ -245,7 +261,7 @@ export const useForm = <T extends FieldMap>({
     const initialState = getInitialFormState(form);
     const [values, setValues] = React.useState(initialState);
 
-    return getFormHandler({...options, form, values, setValues});
+    return getFormHandler({...options, form, initial: initialState, values, setValues});
 };
 
 export type CreateFieldHandler<T> = T extends {
@@ -469,12 +485,13 @@ export const useFormSet = <T extends FieldMap>(options: {
 
     const emptyFormValues = getInitialFormState(formSet.empty_form);
 
-    const handlers = formSet.forms.map((form) => {
+    const handlers = formSet.forms.map((form, index) => {
         return getFormHandler({
             form,
             changeInterceptor: options.changeInterceptor,
             fieldInterceptor: options.fieldInterceptor,
             values: values[form.prefix] ?? emptyFormValues,
+            initial: initialFormSetState[index] ?? emptyFormValues,
             setValues: (incomingValuesCallback) => {
                 formSetSetValues((prevValues) => {
                     const nextValues = (incomingValuesCallback as any)(

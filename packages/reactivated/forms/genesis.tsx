@@ -59,23 +59,31 @@ export interface FormSetLike<T extends FieldMap> {
     empty_form: FormLike<T>;
 }
 
-export type FormValues<U extends FieldMap> = {
-    [K in keyof U]: U[K] extends {enum: unknown}
-        ? U[K]["enum"] | null
-        : U[K]["widget"] extends {_reactivated_value_do_not_use?: unknown}
-        ? NonNullable<U[K]["widget"]["_reactivated_value_do_not_use"]>
-        : U[K]["widget"]["value"];
+export type FormErrors<T extends FieldMap> = {[P in keyof T]?: string[]} | null;
+
+export type FormValues<T extends FieldMap> = {
+    [K in keyof T]: T[K] extends {enum: unknown}
+        ? T[K]["enum"] | null
+        : T[K]["widget"] extends {_reactivated_value_do_not_use?: unknown}
+        ? NonNullable<T[K]["widget"]["_reactivated_value_do_not_use"]>
+        : T[K]["widget"]["value"];
 };
 
 export interface FormHandler<T extends FieldMap> {
     form: FormLike<T>;
     values: FormValues<T>;
     initial: FormValues<T>;
+    errors: FormErrors<T>;
     setValue: <K extends keyof T>(name: K, value: FormValues<T>[K]) => void;
+    setErrors: (errors: FormErrors<T>) => void;
     iterate: (
         iterator: Array<Extract<keyof T, string>>,
-        callback: (field: FieldHandler<T[keyof T]["widget"]>) => React.ReactNode,
+        callback: (
+            fieldName: keyof T,
+            field: FieldHandler<T[keyof T]["widget"]>,
+        ) => React.ReactNode,
     ) => React.ReactNode[];
+    reset: () => void;
 }
 
 export const getInitialFormState = <T extends FieldMap>(form: FormLike<T>) => {
@@ -102,22 +110,30 @@ export const getInitialFormState = <T extends FieldMap>(form: FormLike<T>) => {
     return Object.fromEntries(initialValuesAsEntries) as FormValues<T>;
 };
 
-export const getInitialFormSetState = <U extends FieldMap>(forms: FormLike<U>[]) => {
+export const getInitialFormSetState = <T extends FieldMap>(forms: FormLike<T>[]) => {
     return Object.fromEntries(
         forms.map((form) => [form.prefix, getInitialFormState(form)] as const),
     );
+};
+
+export const getInitialFormSetErrors = <T extends FieldMap>(forms: FormLike<T>[]) => {
+    return Object.fromEntries(forms.map((form) => [form.prefix, form.errors] as const));
 };
 
 export const getFormHandler = <T extends FieldMap>({
     form,
     values,
     initial,
+    errors,
     setValues,
+    setErrors,
     ...options
 }: {
     form: FormLike<T>;
     values: FormValues<T>;
     initial: FormValues<T>;
+    errors: FormErrors<T>;
+    setErrors: (errors: FormErrors<T>) => void;
     setValues: React.Dispatch<React.SetStateAction<FormValues<T>>>;
     fieldInterceptor?: (
         fieldName: keyof T,
@@ -141,13 +157,20 @@ export const getFormHandler = <T extends FieldMap>({
         });
     };
 
+    const reset = () => {
+        setValues(initial);
+    };
+
     const iterate = (
         iterator: Array<Extract<keyof T, string>>,
-        callback: (field: FieldHandler<T[keyof T]["widget"]>) => React.ReactNode,
+        callback: (
+            fieldName: keyof T,
+            field: FieldHandler<T[keyof T]["widget"]>,
+        ) => React.ReactNode,
     ) => {
         return iterator.map((fieldName) => {
             const field = form.fields[fieldName];
-            const error = form.errors?.[fieldName]?.[0] ?? null;
+            const error = errors?.[fieldName]?.[0] ?? null;
 
             if (field.widget.subwidgets != null) {
                 const subwidgets = field.widget.subwidgets.map((subwidget) => {
@@ -193,6 +216,7 @@ export const getFormHandler = <T extends FieldMap>({
                 };
 
                 return callback(
+                    fieldName,
                     fieldInterceptor(
                         fieldName,
                         subwidgetHandler as FieldHandler<T[keyof T]["widget"]>,
@@ -218,6 +242,7 @@ export const getFormHandler = <T extends FieldMap>({
             };
 
             return callback(
+                fieldName,
                 fieldInterceptor(
                     fieldName,
                     fieldHandler as FieldHandler<T[keyof T]["widget"]>,
@@ -231,7 +256,10 @@ export const getFormHandler = <T extends FieldMap>({
         form,
         values,
         initial,
+        errors,
         iterate,
+        reset,
+        setErrors,
         setValue: (fieldName, value) => {
             const incomingValues = {
                 ...values,
@@ -258,10 +286,19 @@ export const useForm = <T extends FieldMap>({
         nextValues: FormValues<T>,
     ) => FormValues<T>;
 }): FormHandler<T> => {
-    const initialState = getInitialFormState(form);
-    const [values, setValues] = React.useState(initialState);
+    const initial = getInitialFormState(form);
+    const [values, setValues] = React.useState(initial);
+    const [errors, setErrors] = React.useState(form.errors);
 
-    return getFormHandler({...options, form, initial: initialState, values, setValues});
+    return getFormHandler({
+        ...options,
+        form,
+        errors,
+        setErrors,
+        initial,
+        values,
+        setValues,
+    });
 };
 
 export type CreateFieldHandler<T> = T extends {
@@ -333,6 +370,8 @@ export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
             ? props.form
             : useForm({form: props.form, changeInterceptor: props.changeInterceptor});
     const handler = "form" in props.form ? props.form : defaultHandler;
+    const fieldInterceptor =
+        props.fieldInterceptor ?? ((fieldName, field, values) => field);
 
     const getIterator = () => {
         if (props.fields != null) {
@@ -350,9 +389,9 @@ export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
 
     return (
         <>
-            {handler.iterate(getIterator(), (field) => (
+            {handler.iterate(getIterator(), (fieldName, field) => (
                 <React.Fragment key={field.name}>
-                    {props.children(field)}
+                    {props.children(fieldInterceptor(fieldName, field, handler.values))}
                 </React.Fragment>
             ))}
         </>
@@ -480,8 +519,11 @@ export const useFormSet = <T extends FieldMap>(options: {
     const [formSet, setFormSet] = React.useState(options.formSet);
 
     const initialFormSetState = getInitialFormSetState(options.formSet.forms);
+    const initialFormSetErrors = getInitialFormSetErrors(options.formSet.forms);
     const [values, formSetSetValues] =
         React.useState<Partial<typeof initialFormSetState>>(initialFormSetState);
+    const [errors, formSetSetErrors] =
+        React.useState<Partial<typeof initialFormSetErrors>>(initialFormSetErrors);
 
     const emptyFormValues = getInitialFormState(formSet.empty_form);
 
@@ -491,6 +533,13 @@ export const useFormSet = <T extends FieldMap>(options: {
             changeInterceptor: options.changeInterceptor,
             fieldInterceptor: options.fieldInterceptor,
             values: values[form.prefix] ?? emptyFormValues,
+            errors: errors[form.prefix] ?? {},
+            setErrors: (nextErrors) => {
+                formSetSetErrors((errors) => ({
+                    ...errors,
+                    [form.prefix]: nextErrors,
+                }));
+            },
             initial: initialFormSetState[index] ?? emptyFormValues,
             setValues: (incomingValuesCallback) => {
                 formSetSetValues((prevValues) => {

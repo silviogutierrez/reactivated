@@ -163,7 +163,7 @@ export const getFormHandler = <T extends FieldMap>({
                             },
                         });
                     };
-                    const fieldHandler: FieldHandler<any> = {
+                    const fieldHandler: WidgetHandler<any> = {
                         name: subwidget.name,
                         error,
                         label: field.label,
@@ -175,6 +175,15 @@ export const getFormHandler = <T extends FieldMap>({
                     };
                     return fieldHandler;
                 });
+
+                const subwidgetHandler: SubwidgetHandler<any> = {
+                    name: field.widget.name,
+                    disabled: field.widget.attrs.disabled ?? false,
+                    label: field.label,
+                    error,
+                    tag: field.widget.tag,
+                    subwidgets: subwidgets as any,
+                }
 
                 return callback(
                     fieldInterceptor(
@@ -192,7 +201,7 @@ export const getFormHandler = <T extends FieldMap>({
                 );
             }
 
-            const fieldHandler: FieldHandler<any> = {
+            const fieldHandler: WidgetHandler<any> = {
                 name: field.widget.name,
                 error,
                 label: field.label,
@@ -246,28 +255,29 @@ export const useForm = <T extends FieldMap>({
 export type CreateFieldHandler<T> = T extends {
     tag: string;
     name: string;
-    subwidgets: infer U;
+    subwidgets: [...WidgetLike[]];
 }
-    ? {
-          tag: T["tag"];
-          name: string;
-          label: string;
-          error: string | null;
-          disabled: boolean;
-          subwidgets: {[K in keyof U]: CreateFieldHandler<U[K]>};
-      }
-    : T extends WidgetLike
-    ? {
-          tag: T["tag"];
-          name: string;
-          value: T["value"];
-          label: string;
-          error: string | null;
-          disabled: boolean;
-          widget: T;
-          handler: (value: T["value"]) => void;
-      }
-    : never;
+    ? SubwidgetHandler<T> : T extends WidgetLike ? WidgetHandler<T> : never;
+
+export type SubwidgetHandler<T extends {tag: string; name: string; subwidgets: [...WidgetLike[]]}> = {
+    tag: T["tag"];
+    name: string;
+    label: string;
+    error: string | null;
+    disabled: boolean;
+    subwidgets: {[K in Extract<keyof T["subwidgets"], number>]: WidgetHandler<T["subwidgets"][K]>};
+}
+
+export type WidgetHandler<T extends WidgetLike> = {
+    tag: T["tag"];
+    name: string;
+    value: T["value"];
+    label: string;
+    error: string | null;
+    disabled: boolean;
+    widget: T;
+    handler: (value: T["value"]) => void;
+};
 
 export type FieldHandler<TWidget extends WidgetLike> = {
     [K in TWidget["tag"]]: CreateFieldHandler<DiscriminateUnion<TWidget, "tag", K>>;
@@ -336,6 +346,10 @@ export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
 
 export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
     const {field} = props;
+
+    if (field.tag === "django.forms.widgets.SelectDateWidget") {
+        return null;
+    }
 
     if ("subwidgets" in field) {
         return (

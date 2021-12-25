@@ -176,32 +176,28 @@ export const getFormHandler = <T extends FieldMap>({
                     return fieldHandler;
                 });
 
-                const subwidgetHandler: SubwidgetHandler<any> = {
+                const subwidgetHandler: SubwidgetHandler<
+                    typeof field.widget,
+                    typeof field.widget.subwidgets
+                > = {
                     name: field.widget.name,
                     disabled: field.widget.attrs.disabled ?? false,
                     label: field.label,
                     error,
                     tag: field.widget.tag,
-                    subwidgets: subwidgets as any,
-                }
+                    subwidgets: subwidgets,
+                };
 
                 return callback(
                     fieldInterceptor(
                         fieldName,
-                        {
-                            name: field.widget.name,
-                            disabled: field.widget.attrs.disabled ?? false,
-                            label: field.label,
-                            error,
-                            tag: field.widget.tag,
-                            subwidgets,
-                        } as any,
+                        subwidgetHandler as FieldHandler<T[keyof T]["widget"]>,
                         values,
                     ),
                 );
             }
 
-            const fieldHandler: WidgetHandler<any> = {
+            const fieldHandler: WidgetHandler<typeof field.widget> = {
                 name: field.widget.name,
                 error,
                 label: field.label,
@@ -255,18 +251,21 @@ export const useForm = <T extends FieldMap>({
 export type CreateFieldHandler<T> = T extends {
     tag: string;
     name: string;
-    subwidgets: [...WidgetLike[]];
+    subwidgets: infer U;
 }
-    ? SubwidgetHandler<T> : T extends WidgetLike ? WidgetHandler<T> : never;
+    ? SubwidgetHandler<T, U>
+    : T extends WidgetLike
+    ? WidgetHandler<T>
+    : never;
 
-export type SubwidgetHandler<T extends {tag: string; name: string; subwidgets: [...WidgetLike[]]}> = {
+export type SubwidgetHandler<T extends {tag: string; name: string}, U> = {
     tag: T["tag"];
     name: string;
     label: string;
     error: string | null;
     disabled: boolean;
-    subwidgets: {[K in Extract<keyof T["subwidgets"], number>]: WidgetHandler<T["subwidgets"][K]>};
-}
+    subwidgets: {[K in keyof U]: U[K] extends WidgetLike ? WidgetHandler<U[K]> : never};
+};
 
 export type WidgetHandler<T extends WidgetLike> = {
     tag: T["tag"];
@@ -347,10 +346,6 @@ export const Fields = <U extends FieldMap>(props: FieldsProps<U>) => {
 export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
     const {field} = props;
 
-    if (field.tag === "django.forms.widgets.SelectDateWidget") {
-        return null;
-    }
-
     if ("subwidgets" in field) {
         return (
             <>
@@ -360,6 +355,8 @@ export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
             </>
         );
     }
+
+    field.tag;
 
     if (field.tag === "django.forms.widgets.HiddenInput") {
         return <input type="hidden" name={field.name} value={field.value ?? ""} />;
@@ -467,9 +464,8 @@ export const useFormSet = <T extends FieldMap>(options: {
     const [formSet, setFormSet] = React.useState(options.formSet);
 
     const initialFormSetState = getInitialFormSetState(options.formSet.forms);
-    const [values, formSetSetValues] = React.useState<
-        Partial<typeof initialFormSetState>
-    >(initialFormSetState);
+    const [values, formSetSetValues] =
+        React.useState<Partial<typeof initialFormSetState>>(initialFormSetState);
 
     const emptyFormValues = getInitialFormState(formSet.empty_form);
 

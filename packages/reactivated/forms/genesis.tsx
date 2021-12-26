@@ -509,7 +509,7 @@ export const useFormSet = <T extends FieldMap>(options: {
         fieldName: keyof T,
         field: FieldHandler<T[keyof T]["widget"]>,
         values: FormValues<T>,
-    ) => typeof field;
+    ) => FieldHandler<T[keyof T]["widget"]>;
     changeInterceptor?: (
         name: keyof T,
         prevValues: FormValues<T>,

@@ -134,7 +134,9 @@ export const getFormHandler = <T extends FieldMap>({
     initial: FormValues<T>;
     errors: FormErrors<T>;
     setErrors: (errors: FormErrors<T>) => void;
-    setValues: React.Dispatch<React.SetStateAction<FormValues<T>>>;
+    setValues: (
+        getValuesToSetFromPrevValues: (values: FormValues<T>) => FormValues<T>,
+    ) => void;
     fieldInterceptor?: (
         fieldName: keyof T,
         field: FieldHandler<T[keyof T]["widget"]>,
@@ -150,15 +152,19 @@ export const getFormHandler = <T extends FieldMap>({
         options.changeInterceptor ?? ((_, prevValues, nextValues) => nextValues);
     const fieldInterceptor = options.fieldInterceptor ?? ((fieldName, field) => field);
 
-    const changeValues = (fieldName: keyof T, incomingValues: any) => {
+    const changeValues = (
+        fieldName: keyof T,
+        getIncomingValues: (prevValues: FormValues<T>) => FormValues<T>,
+    ) => {
         setValues((prevValues) => {
+            const incomingValues = getIncomingValues(prevValues);
             const nextValues = changeInterceptor(fieldName, prevValues, incomingValues);
             return nextValues;
         });
     };
 
     const reset = () => {
-        setValues(initial);
+        setValues(() => initial);
     };
 
     const iterate = (
@@ -179,15 +185,19 @@ export const getFormHandler = <T extends FieldMap>({
                         `${formPrefix}${fieldName}_`,
                         "",
                     );
-                    const subwidgetValues = values[fieldName] as any;
-                    const subwidgetValue = subwidgetValues[unprefixedName];
+
                     const setSubwidgetValue = (value: unknown) => {
-                        changeValues(fieldName, {
-                            ...values,
-                            [fieldName]: {
-                                ...subwidgetValues,
-                                [unprefixedName]: value,
-                            },
+                        changeValues(fieldName, (prevValues) => {
+                            const subwidgetValues = prevValues[fieldName] as any;
+                            const subwidgetValue = subwidgetValues[unprefixedName];
+
+                            return {
+                                ...prevValues,
+                                [fieldName]: {
+                                    ...subwidgetValues,
+                                    [unprefixedName]: value,
+                                },
+                            };
                         });
                     };
                     const fieldHandler: WidgetHandler<any> = {
@@ -197,7 +207,7 @@ export const getFormHandler = <T extends FieldMap>({
                         disabled: false,
                         tag: subwidget.tag,
                         widget: subwidget,
-                        value: subwidgetValue,
+                        value: (values[fieldName] as any)[unprefixedName],
                         handler: setSubwidgetValue,
                     };
                     return fieldHandler;
@@ -234,10 +244,10 @@ export const getFormHandler = <T extends FieldMap>({
                 widget: field.widget,
                 value: values[fieldName],
                 handler: (value) => {
-                    changeValues(fieldName, {
-                        ...values,
+                    changeValues(fieldName, (prevValues) => ({
+                        ...prevValues,
                         [fieldName]: value,
-                    });
+                    }));
                 },
             };
 
@@ -261,11 +271,10 @@ export const getFormHandler = <T extends FieldMap>({
         reset,
         setErrors,
         setValue: (fieldName, value) => {
-            const incomingValues = {
-                ...values,
+            changeValues(fieldName, (prevValues) => ({
+                ...prevValues,
                 [fieldName]: value,
-            };
-            changeValues(fieldName, incomingValues);
+            }));
         },
     };
 };
@@ -287,7 +296,7 @@ export const useForm = <T extends FieldMap>({
     ) => FormValues<T>;
 }): FormHandler<T> => {
     const initial = getInitialFormState(form);
-    const [values, setValues] = React.useState(initial);
+    const [values, formSetValues] = React.useState(initial);
     const [errors, setErrors] = React.useState(form.errors);
 
     return getFormHandler({
@@ -297,7 +306,9 @@ export const useForm = <T extends FieldMap>({
         setErrors,
         initial,
         values,
-        setValues,
+        setValues: (getValuesToSetFromPrevValues) => {
+            formSetValues((prevValues) => getValuesToSetFromPrevValues(prevValues));
+        },
     });
 };
 
@@ -541,10 +552,10 @@ export const useFormSet = <T extends FieldMap>(options: {
                 }));
             },
             initial: initialFormSetState[index] ?? emptyFormValues,
-            setValues: (incomingValuesCallback) => {
+            setValues: (getValuesToSetFromPrevValues) => {
                 formSetSetValues((prevValues) => {
-                    const nextValues = (incomingValuesCallback as any)(
-                        prevValues[form.prefix],
+                    const nextValues = getValuesToSetFromPrevValues(
+                        prevValues[form.prefix] ?? emptyFormValues,
                     );
                     return {
                         ...prevValues,

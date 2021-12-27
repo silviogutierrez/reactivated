@@ -416,7 +416,7 @@ def test_deferred_evaluation_of_types(settings):
     }
 
 
-def test_rename_me():
+def test_form_and_fields():
     date = datetime.date(2015, 1, 1)
     Form = forms.StoryboardForm
 

@@ -9,8 +9,6 @@ const SPACING = 2;
 
 export default (props: Types["StoryboardProps"]) => {
     const handler = useForm({form: props.form});
-    // handler.values.date_time_field;
-    // handler.values.date_field;
 
     return (
         <Layout title="Storyboard">

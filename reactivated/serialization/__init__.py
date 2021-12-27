@@ -140,10 +140,6 @@ class Intersection:
         return IntersectionHolder
 
 
-class WidgetType(NamedTuple):
-    pass
-
-
 @register(django_forms.Field)
 class FieldType(NamedTuple):
     name: str
@@ -282,13 +278,6 @@ class FormType(NamedTuple):
                 schema={"$ref": f"#/definitions/{definition_name}"},
                 definitions=definitions,
             )
-
-        """
-        schema = named_tuple_schema(FormType, definitions)
-        form_type_definition = schema.definitions[
-            f"{FormType.__module__}.{FormType.__qualname__}"
-        ]
-        """
         error_definition = create_schema(FormError, definitions).schema
 
         required = []
@@ -349,6 +338,11 @@ class FormType(NamedTuple):
         form = value
 
         # TODO: hackey way to make bound fields work.
+        # This creates a property that is then accessible by our serializer
+        # directly, giving us bound fields instead of unbound fields. The
+        # proper way to do this is to make fields a mapped type of unbound
+        # fields, and then unbound field a type that has a .field property for
+        # the bound field.
         value.fields = {
             field_name: form[field_name] for field_name in form.fields.keys()
         }

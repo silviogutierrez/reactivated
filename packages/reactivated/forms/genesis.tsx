@@ -1,14 +1,11 @@
-import React from "react";
-import * as widgets from "./widgets";
 import produce, {castDraft} from "immer";
+import React from "react";
+
 import {Types} from "../generated";
+import {DiscriminateUnion} from "../types";
+import * as widgets from "./widgets";
 
 export type Optgroup = Types["Optgroup"];
-
-// TODO: move to utilities.
-type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V>
-    ? T
-    : never;
 
 export interface WidgetLike {
     name: string;
@@ -110,13 +107,17 @@ export const getInitialFormState = <T extends FieldMap>(form: FormLike<T>) => {
     return Object.fromEntries(initialValuesAsEntries) as FormValues<T>;
 };
 
-export const getInitialFormSetState = <T extends FieldMap>(forms: FormLike<T>[]) => {
+export const getInitialFormSetState = <T extends FieldMap>(
+    forms: Array<FormLike<T>>,
+) => {
     return Object.fromEntries(
         forms.map((form) => [form.prefix, getInitialFormState(form)] as const),
     );
 };
 
-export const getInitialFormSetErrors = <T extends FieldMap>(forms: FormLike<T>[]) => {
+export const getInitialFormSetErrors = <T extends FieldMap>(
+    forms: Array<FormLike<T>>,
+) => {
     return Object.fromEntries(forms.map((form) => [form.prefix, form.errors] as const));
 };
 
@@ -200,7 +201,7 @@ export const getFormHandler = <T extends FieldMap>({
                             };
                         });
                     };
-                    const fieldHandler: WidgetHandler<any> = {
+                    const subfieldHandler: WidgetHandler<any> = {
                         name: subwidget.name,
                         error,
                         label: field.label,
@@ -210,7 +211,7 @@ export const getFormHandler = <T extends FieldMap>({
                         value: (values[fieldName] as any)[unprefixedName],
                         handler: setSubwidgetValue,
                     };
-                    return fieldHandler;
+                    return subfieldHandler;
                 });
 
                 const subwidgetHandler: SubwidgetHandler<
@@ -222,7 +223,7 @@ export const getFormHandler = <T extends FieldMap>({
                     label: field.label,
                     error,
                     tag: field.widget.tag,
-                    subwidgets: subwidgets,
+                    subwidgets,
                 };
 
                 return callback(
@@ -322,16 +323,16 @@ export type CreateFieldHandler<T> = T extends {
     ? WidgetHandler<T>
     : never;
 
-export type SubwidgetHandler<T extends {tag: string; name: string}, U> = {
+export interface SubwidgetHandler<T extends {tag: string; name: string}, U> {
     tag: T["tag"];
     name: string;
     label: string;
     error: string | null;
     disabled: boolean;
     subwidgets: {[K in keyof U]: U[K] extends WidgetLike ? WidgetHandler<U[K]> : never};
-};
+}
 
-export type WidgetHandler<T extends WidgetLike> = {
+export interface WidgetHandler<T extends WidgetLike> {
     tag: T["tag"];
     name: string;
     value: T["value"];
@@ -340,7 +341,7 @@ export type WidgetHandler<T extends WidgetLike> = {
     disabled: boolean;
     widget: T;
     handler: (value: T["value"]) => void;
-};
+}
 
 export type FieldHandler<TWidget extends WidgetLike> = {
     [K in TWidget["tag"]]: CreateFieldHandler<DiscriminateUnion<TWidget, "tag", K>>;
@@ -421,8 +422,6 @@ export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
             </>
         );
     }
-
-    field.tag;
 
     if (field.tag === "django.forms.widgets.HiddenInput") {
         return <input type="hidden" name={field.name} value={field.value ?? ""} />;
@@ -546,8 +545,8 @@ export const useFormSet = <T extends FieldMap>(options: {
             values: values[form.prefix] ?? emptyFormValues,
             errors: errors[form.prefix] ?? {},
             setErrors: (nextErrors) => {
-                formSetSetErrors((errors) => ({
-                    ...errors,
+                formSetSetErrors((prevErrors) => ({
+                    ...prevErrors,
                     [form.prefix]: nextErrors,
                 }));
             },
@@ -574,9 +573,9 @@ export const useFormSet = <T extends FieldMap>(options: {
             for (const fieldName of draftState.iterator) {
                 const prefix = `${formSet.prefix}-${formSet.total_form_count}`;
                 const field = draftState.fields[fieldName];
-                const html_name = `${prefix}-${field.name}`;
-                draftState.fields[fieldName].widget.name = html_name;
-                draftState.fields[fieldName].widget.attrs.id = `id_${html_name}`;
+                const htmlName = `${prefix}-${field.name}`;
+                draftState.fields[fieldName].widget.name = htmlName;
+                draftState.fields[fieldName].widget.attrs.id = `id_${htmlName}`;
                 draftState.prefix = prefix;
             }
         });

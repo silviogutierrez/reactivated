@@ -359,7 +359,7 @@ interface BaseFieldsProps<T extends FieldMap> {
         nextValues: FormValues<T>,
     ) => FormValues<T>;
     form: FormLike<T> | FormHandler<T>;
-    children: (props: FieldHandler<T[keyof T]["widget"]>) => React.ReactNode;
+    children: (field: FieldHandler<T[keyof T]["widget"]>) => React.ReactNode;
 }
 
 interface IncludeFieldsProps<T extends FieldMap> extends BaseFieldsProps<T> {

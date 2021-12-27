@@ -28,6 +28,7 @@ from .models import computed_foreign_key as computed_foreign_key  # noqa: F401
 from .models import computed_relation as computed_relation  # noqa: F401
 from .pick import BasePickHolder
 from .pick import Pick as Pick  # noqa: F401
+from .serialization import registry
 from .stubs import _GenericAlias
 from .templates import Action as Action  # noqa: F401
 from .templates import interface as interface  # noqa: F401
@@ -35,19 +36,13 @@ from .templates import template as template  # noqa: F401
 
 default_app_config = "reactivated.apps.ReactivatedConfig"
 
-type_registry: Dict[str, Tuple[Any]] = {}
-global_types: Dict[str, Tuple[Any]] = {}
-template_registry: Dict[str, Tuple[Any]] = {}
-value_registry: Dict[str, Any] = {}
-definitions_registry: Dict[Any, Any] = {}
-
 
 def export(var: Any) -> None:
     """ See: https://stackoverflow.com/a/18425523 """
     callers_local_vars = inspect.currentframe().f_back.f_locals.items()  # type: ignore[union-attr]
     name = [var_name for var_name, var_val in callers_local_vars if var_val is var][0]
 
-    value_registry.update({name: var})
+    registry.value_registry.update({name: var})
 
 
 _SingleSerializable = Union[
@@ -134,6 +129,8 @@ def ssr(
         [View[K, P]], Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse]
     ],
 ]:
+    from .serialization.registry import type_registry
+
     type_registry[props.__name__] = props  # type: ignore[assignment]
 
     def no_args_wrap_with_jsx(

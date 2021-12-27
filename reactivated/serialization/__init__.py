@@ -23,22 +23,15 @@ from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
 
-from reactivated import fields, stubs, utils
+from reactivated import fields, stubs
 from reactivated.forms import EnumChoiceField
 from reactivated.models import ComputedRelation
 
-Schema = Mapping[Any, Any]
-
-Definitions = Mapping[str, Schema]
-
-JSON = Any
-
+from .registry import JSON, PROXIES, Definitions, Schema, Thing, register
 
 FormError = List[str]
 
 FormErrors = Dict[str, FormError]
-
-PROXIES = utils.ClassLookupDict({})
 
 
 class ComputedField(NamedTuple):
@@ -74,58 +67,6 @@ class ComputedField(NamedTuple):
 FieldDescriptor = Union[
     "models.Field[Any, Any]", ComputedField, ComputedRelation[Any, Any, Any]
 ]
-
-
-PropertySchema = Mapping[str, Any]
-
-
-class Thing(NamedTuple):
-    schema: Schema
-    definitions: Definitions
-
-    def dereference(self) -> Schema:
-        ref = self.schema.get("$ref")
-
-        # Should probably error or Thing should be a subclass for cached
-        # schemas that has this property
-        if not ref:
-            return self.schema
-
-        return self.definitions[ref.replace("#/definitions/", "")]
-
-    def add_property(
-        self, name: str, property_schema: PropertySchema, *, optional: bool = False
-    ) -> "Thing":
-        ref: Optional[str] = self.schema.get("$ref")
-
-        if ref is None:
-            assert False, "Can only add properties to ref schemas"
-
-        definition_name = ref.replace("#/definitions/", "")
-        dereferenced = self.definitions[definition_name]
-
-        # In case we are replacing a property.
-        required = (
-            dereferenced["required"]
-            if (optional is True or name in dereferenced["required"])
-            else [*dereferenced["required"], name]
-        )
-
-        return Thing(
-            schema=self.schema,
-            definitions={
-                **self.definitions,
-                definition_name: {
-                    **dereferenced,
-                    "properties": {
-                        **dereferenced["properties"],
-                        name: property_schema,
-                    },
-                    "required": required,
-                    "additionalProperties": False,
-                },
-            },
-        )
 
 
 class ForeignKeyType:
@@ -203,6 +144,7 @@ class WidgetType(NamedTuple):
     pass
 
 
+@register(django_forms.Field)
 class FieldType(NamedTuple):
     name: str
     label: str
@@ -275,9 +217,6 @@ class FieldType(NamedTuple):
         return serialized
 
 
-PROXIES[django_forms.Field] = FieldType
-
-
 def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     """
     Previously we used a custom FormRenderer but there is *no way* to avoid
@@ -322,6 +261,7 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     return context  # type: ignore[no-any-return]
 
 
+@register(django_forms.BaseForm)
 class FormType(NamedTuple):
     name: str
     errors: Optional[FormErrors]
@@ -435,9 +375,7 @@ class FormType(NamedTuple):
         """
 
 
-PROXIES[django_forms.BaseForm] = FormType
-
-
+@register(django_forms.BaseFormSet)
 class FormSetType(NamedTuple):
     initial_form_count: int
     total_form_count: int
@@ -542,9 +480,6 @@ class FormSetType(NamedTuple):
         return Thing(
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
         )
-
-
-PROXIES[django_forms.BaseFormSet] = FormSetType
 
 
 class QuerySetType:
@@ -841,22 +776,12 @@ def named_tuple_schema(
 
 
 def create_schema(Type: Any, definitions: Definitions) -> Thing:
-    # TODO: move this somewhere centralized.
-    from . import widgets  # noqa
-
     type_class = Type if isinstance(Type, type) else Type.__class__
 
     try:
         return PROXIES[type_class].get_json_schema(Type, definitions)  # type: ignore
     except KeyError:
         pass
-    # for base_class, Proxy in PROXIES.items():
-    #     if (
-    #         isinstance(Type, base_class)
-    #         or isinstance(Type, type)
-    #         and issubclass(Type, base_class)
-    #     ):
-    #         return Proxy.get_json_schema(Type, definitions)
 
     if isinstance(Type, stubs._GenericAlias):
         return generic_alias_schema(Type, definitions)

@@ -1,8 +1,11 @@
-from typing import Any, Dict, Literal, Optional, cast
+from typing import Any, Dict, List, Literal, NamedTuple, Optional, Union, cast
 
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.models import ModelChoiceIterator
+
+from .serialization.registry import register
+from .serialization.widgets import BaseWidget
 
 
 class Autocomplete(forms.Select):
@@ -38,3 +41,14 @@ class Autocomplete(forms.Select):
             context["widget"]["selected"] = None
 
         return context
+
+
+class AutocompleteSelected(NamedTuple):
+    value: Union[str, int]
+    label: str
+
+
+@register(Autocomplete)
+class AutocompleteType(BaseWidget):
+    value: List[str]  # type: ignore[assignment]
+    selected: Optional[AutocompleteSelected]

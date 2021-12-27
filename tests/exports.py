@@ -1,4 +1,5 @@
-from reactivated import export, value_registry
+from reactivated import export
+from reactivated.serialization.registry import value_registry
 
 
 def test_export_registry():

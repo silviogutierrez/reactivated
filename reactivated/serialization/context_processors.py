@@ -3,7 +3,8 @@ from typing import Any, List, Literal, NamedTuple, Type, get_type_hints
 from django.http import HttpRequest
 from django.utils.module_loading import import_string
 
-from . import JSON, Intersection, Thing
+from . import Intersection
+from .registry import JSON, Thing
 
 
 class Request(NamedTuple):

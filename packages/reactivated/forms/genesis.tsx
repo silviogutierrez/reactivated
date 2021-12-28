@@ -590,3 +590,20 @@ export const useFormSet = <T extends FieldMap>(options: {
 
     return {schema: formSet, values, handlers, addForm};
 };
+
+export function bindCreateIterator<W extends WidgetLike>() {
+    function createIterator<TProps>(
+        callback: (field: FieldHandler<W>, props: TProps) => React.ReactNode,
+    ) {
+        const Iterator = <T extends FieldMap>(props: TProps & FieldsProps<T>) => {
+            return (
+                <Fields {...props}>{(field) => callback(field as any, props)}</Fields>
+            );
+        };
+        Iterator.defaultProps = {
+            children: () => <div></div>,
+        };
+        return Iterator;
+    }
+    return createIterator;
+}

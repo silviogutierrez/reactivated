@@ -1,5 +1,5 @@
 import produce, {castDraft} from "immer";
-import { FileInfoResult } from "prettier";
+import {FileInfoResult} from "prettier";
 import React from "react";
 
 import {Types} from "../generated";
@@ -363,12 +363,14 @@ interface BaseRendererProps<T extends FieldMap, F extends WidgetLike> {
     children: (field: FieldHandler<F>) => React.ReactNode;
 }
 
-interface IncludeRendererProps<T extends FieldMap, F extends WidgetLike> extends BaseRendererProps<T, F> {
+interface IncludeRendererProps<T extends FieldMap, F extends WidgetLike>
+    extends BaseRendererProps<T, F> {
     fields?: Array<Extract<keyof T, string>>;
     exclude?: never;
 }
 
-interface ExcludeRendererProps<T extends FieldMap, F extends WidgetLike> extends BaseRendererProps<T, F> {
+interface ExcludeRendererProps<T extends FieldMap, F extends WidgetLike>
+    extends BaseRendererProps<T, F> {
     fields?: never;
     exclude: Array<Extract<keyof T, string>>;
 }
@@ -377,39 +379,46 @@ export type RendererProps<T extends FieldMap, F extends WidgetLike> =
     | IncludeRendererProps<T, F>
     | ExcludeRendererProps<T, F>;
 
-export const createIterator = <F extends WidgetLike>() => <U extends FieldMap>(props: RendererProps<U, F>) => {
-    const defaultHandler =
-        "form" in props.form
-            ? props.form
-            : useForm({form: props.form, changeInterceptor: props.changeInterceptor});
-    const handler = "form" in props.form ? props.form : defaultHandler;
-    const fieldInterceptor =
-        props.fieldInterceptor ?? ((fieldName, field, values) => field);
+export const createIterator =
+    <F extends WidgetLike>() =>
+    <U extends FieldMap>(props: RendererProps<U, F>) => {
+        const defaultHandler =
+            "form" in props.form
+                ? props.form
+                : useForm({
+                      form: props.form,
+                      changeInterceptor: props.changeInterceptor,
+                  });
+        const handler = "form" in props.form ? props.form : defaultHandler;
+        const fieldInterceptor =
+            props.fieldInterceptor ?? ((fieldName, field, values) => field);
 
-    const getIterator = () => {
-        if (props.fields != null) {
-            return props.fields;
-        }
+        const getIterator = () => {
+            if (props.fields != null) {
+                return props.fields;
+            }
 
-        if (props.exclude != null) {
-            return handler.form.iterator.filter(
-                (field) => !props.exclude.includes(field),
-            );
-        }
+            if (props.exclude != null) {
+                return handler.form.iterator.filter(
+                    (field) => !props.exclude.includes(field),
+                );
+            }
 
-        return handler.form.iterator;
+            return handler.form.iterator;
+        };
+
+        return (
+            <>
+                {handler.iterate(getIterator(), (fieldName, field) => (
+                    <React.Fragment key={field.name}>
+                        {props.children(
+                            fieldInterceptor(fieldName, field as any, handler.values),
+                        )}
+                    </React.Fragment>
+                ))}
+            </>
+        );
     };
-
-    return (
-        <>
-            {handler.iterate(getIterator(), (fieldName, field) => (
-                <React.Fragment key={field.name}>
-                    {props.children(fieldInterceptor(fieldName, field as any, handler.values))}
-                </React.Fragment>
-            ))}
-        </>
-    );
-};
 
 export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
     const {field} = props;
@@ -599,9 +608,7 @@ export const bindWidgetType = <W extends WidgetLike>() => {
         callback: (field: FieldHandler<W>, props: TProps) => React.ReactNode,
     ) {
         const Renderer = <T extends FieldMap>(props: TProps & RendererProps<T, W>) => {
-            return (
-                <Iterator {...props}>{(field) => callback(field, props)}</Iterator>
-            );
+            return <Iterator {...props}>{(field) => callback(field, props)}</Iterator>;
         };
         // This is not used, but here so that children is excluded from required props.
         Renderer.defaultProps = {
@@ -613,8 +620,8 @@ export const bindWidgetType = <W extends WidgetLike>() => {
     return {
         createRenderer,
         Iterator,
-    }
-}
+    };
+};
 
 export const createCSRFToken = <TContext extends {csrf_token: string}>(
     Context: React.Context<TContext>,
@@ -631,4 +638,4 @@ export const createCSRFToken = <TContext extends {csrf_token: string}>(
         );
     };
     return CSRFToken;
-}
+};

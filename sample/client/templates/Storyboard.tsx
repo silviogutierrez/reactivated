@@ -1,6 +1,6 @@
 import React from "react";
 
-import {CSRFToken, Types, Iterator} from "@client/generated";
+import {CSRFToken, Iterator, Types} from "@client/generated";
 import {Layout} from "@client/Layout";
 
 import {useForm, Widget} from "reactivated/forms";

@@ -101,26 +101,19 @@ export function reverse<T extends All['name']>(name: T, args?: Extract<WithArgum
     return route;
 }`);
 
-// project.save();
-// const result = project.emitToMemory();
-// project.emi
-
 interfaces.addStatements(`
 import React from "react"
 import createContext from "reactivated/context";
-import createForms from "reactivated/forms";
-import {bindCreateIterator} from "reactivated/forms/genesis";
+import * as forms from "reactivated/forms";
 
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
 
 export const {Context, Provider, getServerData} = createContext<Types["Context"]>();
 
-const forms = createForms(Context);
+export const CSRFToken = forms.createCSRFToken(Context);
 
-export const CSRFToken = forms.CSRFToken;
-
-export const createIterator = bindCreateIterator<Types["globals"]["Widget"]>();
+export const {createRenderer, Iterator} = forms.bindWidgetType<Types["globals"]["Widget"]>();
 `);
 
 // tslint:disable-next-line

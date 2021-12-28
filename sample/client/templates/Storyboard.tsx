@@ -1,9 +1,9 @@
 import React from "react";
 
-import {CSRFToken, Types} from "@client/generated";
+import {CSRFToken, Types, Iterator} from "@client/generated";
 import {Layout} from "@client/Layout";
 
-import {Fields, useForm, Widget} from "reactivated/forms/genesis";
+import {useForm, Widget} from "reactivated/forms";
 
 const SPACING = 2;
 
@@ -15,7 +15,7 @@ export default (props: Types["StoryboardProps"]) => {
             <h1>Storyboard</h1>
             <form action="" method="POST">
                 <CSRFToken />
-                <Fields form={handler}>
+                <Iterator form={handler}>
                     {(field) => (
                         <>
                             <h2>{field.name}</h2>
@@ -24,7 +24,7 @@ export default (props: Types["StoryboardProps"]) => {
                             </p>
                         </>
                     )}
-                </Fields>
+                </Iterator>
                 <button type="submit">Submit</button>
             </form>
             <h1>Values</h1>

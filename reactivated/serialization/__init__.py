@@ -436,7 +436,7 @@ class FormSetType(NamedTuple):
         ManagementForm.__module__ = django_forms.formsets.ManagementForm.__module__
         ManagementForm.__qualname__ = django_forms.formsets.ManagementForm.__qualname__
 
-        management_form_schema = create_schema(
+        management_form_schema, definitions = create_schema(
             ManagementForm, form_type_schema.definitions
         )
 
@@ -448,10 +448,6 @@ class FormSetType(NamedTuple):
             f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"
         ]
 
-        management_form_definition = management_form_schema.definitions[
-            f"{ManagementForm.__module__}.{ManagementForm.__qualname__}"
-        ]
-
         definitions = {
             **definitions,
             definition_name: {
@@ -460,7 +456,7 @@ class FormSetType(NamedTuple):
                     **form_set_type_definition["properties"],
                     "empty_form": form_type_definition,
                     "forms": {"type": "array", "items": form_type_definition},
-                    "management_form": management_form_definition,
+                    "management_form": management_form_schema,
                 },
                 "required": [
                     *form_set_type_definition["required"],

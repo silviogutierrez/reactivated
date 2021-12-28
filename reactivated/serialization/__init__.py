@@ -23,15 +23,11 @@ from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
 
-from reactivated import fields, forms, stubs
+from reactivated import fields, stubs
+from reactivated.forms import EnumChoiceField
 from reactivated.models import ComputedRelation
 
-Schema = Mapping[Any, Any]
-
-Definitions = Mapping[str, Schema]
-
-JSON = Any
-
+from .registry import JSON, PROXIES, Definitions, Schema, Thing, register
 
 FormError = List[str]
 
@@ -71,11 +67,6 @@ class ComputedField(NamedTuple):
 FieldDescriptor = Union[
     "models.Field[Any, Any]", ComputedField, ComputedRelation[Any, Any, Any]
 ]
-
-
-class Thing(NamedTuple):
-    schema: Schema
-    definitions: Definitions
 
 
 class ForeignKeyType:
@@ -149,6 +140,7 @@ class Intersection:
         return IntersectionHolder
 
 
+@register(django_forms.Field)
 class FieldType(NamedTuple):
     name: str
     label: str
@@ -159,31 +151,66 @@ class FieldType(NamedTuple):
     #
     # The actual widget name is done by `form_schema`, which is kind of odd.
     # We need a better way to make a custom schema that is self contained.
-    widget: Any
+    # widget: Any
 
     @classmethod
-    def get_json_schema(Type: Type["FieldType"], definitions: Definitions) -> "Thing":
-        definition_name = f"{Type.__module__}.{Type.__qualname__}"
+    def get_json_schema(
+        Proxy: Type["FieldType"],
+        instance: django_forms.Field,
+        definitions: Definitions,
+    ) -> "Thing":
+        base_schema, definitions = named_tuple_schema(Proxy, definitions)
+        widget_schema, definitions = create_schema(instance.widget, definitions)
 
-        if definition_name in definitions:
-            return Thing(
-                schema={"$ref": f"#/definitions/{definition_name}"},
-                definitions=definitions,
-            )
-
-        schema = named_tuple_schema(Type, definitions)
-
-        definitions = {
-            **definitions,
-            definition_name: {
-                **schema.definitions[definition_name],
-                "serializer": "field_serializer",
-            },
+        extra = {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": False,
         }
 
+        if isinstance(instance, EnumChoiceField):
+            choice_schema, definitions = create_schema(
+                Optional[instance.enum], definitions
+            )
+            extra = {
+                "type": "object",
+                "properties": {"enum": choice_schema,},
+                "required": ["enum"],
+                "additionalProperties": False,
+            }
+
         return Thing(
-            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+            schema={
+                "_reactivated_testing_merge": True,
+                "allOf": [
+                    base_schema,
+                    {
+                        "type": "object",
+                        "properties": {"widget": widget_schema,},
+                        "additionalProperties": False,
+                        "required": ["widget"],
+                    },
+                    extra,
+                ],
+            },
+            definitions=definitions,
         )
+
+    @classmethod
+    def get_serialized_value(
+        Type: Type["FieldType"], value: django_forms.BoundField, schema: Thing
+    ) -> JSON:
+        field = value
+        field.field.widget._render = lambda template_name, context, renderer: context[  # type: ignore[union-attr]
+            "widget"
+        ]
+
+        field.field.widget._reactivated_get_context = field.as_widget  # type: ignore[union-attr]
+        field.widget = field.field.widget  # type: ignore[attr-defined]
+
+        serialized = serialize(value, schema, suppress_custom_serializer=True)
+        return serialized
 
 
 def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
@@ -230,9 +257,7 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     return context  # type: ignore[no-any-return]
 
 
-PROXIES = {}
-
-
+@register(django_forms.BaseForm)
 class FormType(NamedTuple):
     name: str
     errors: Optional[FormErrors]
@@ -253,17 +278,6 @@ class FormType(NamedTuple):
                 schema={"$ref": f"#/definitions/{definition_name}"},
                 definitions=definitions,
             )
-
-        schema = named_tuple_schema(FormType, definitions)
-        """
-        form_type_definition = schema.definitions[
-            f"{FormType.__module__}.{FormType.__qualname__}"
-        ]
-        """
-        field_type_definition = schema.definitions[
-            f"{FieldType.__module__}.{FieldType.__qualname__}"
-        ]
-
         error_definition = create_schema(FormError, definitions).schema
 
         required = []
@@ -272,51 +286,7 @@ class FormType(NamedTuple):
 
         for field_name, SubType in Type.base_fields.items():  # type: ignore[attr-defined]
             required.append(field_name)
-
-            SourceWidget = SubType.widget.__class__
-
-            if SourceWidget.__module__ != "django.forms.widgets":
-                for base_class in SubType.widget.__class__.__bases__:
-                    if issubclass(base_class, django_forms.widgets.Widget):
-                        SourceWidget = base_class
-
-            assert (
-                SourceWidget.__module__ == "django.forms.widgets"
-            ), f"Only core widgets and depth-1 inheritance widgets are currently supported. Check {SubType.widget.__class__}"
-
-            ts_type = f"widgets.{SourceWidget.__name__}"
-
-            # Special treatment to register global Enum types and reference them
-            # through `tsType`
-
-            # Tightly coupled, for now. Can likely be improved once we have proper
-            # widget schema generation.
-            #
-            # Note we need issubclass here and not isinstance because consumer apps
-            # like Joy crash when running mypy. Oddly enough, mypy does not crash
-            # when run directly on reactivated.
-            if issubclass(SubType.__class__, forms.EnumChoiceField):
-                choice_schema, definitions = create_schema(SubType.enum, definitions)
-
-                if (ref := choice_schema.get("$ref", None)) :
-                    generic_name = "".join(
-                        part.capitalize()
-                        for part in ref.replace("#/definitions/", "").split(".")
-                    )
-
-                    from reactivated import global_types
-
-                    global_types[generic_name] = choice_schema  # type: ignore[assignment]
-
-                    ts_type = f'widgets.{SourceWidget.__name__}<Types["globals"]["{generic_name}"]>'
-
-            properties[field_name] = {
-                **field_type_definition,
-                "properties": {
-                    **field_type_definition["properties"],
-                    "widget": {"tsType": ts_type},
-                },
-            }
+            properties[field_name], definitions = create_schema(SubType, definitions)
             error_properties[field_name] = error_definition
 
         iterator = (
@@ -337,6 +307,7 @@ class FormType(NamedTuple):
                                 "type": "object",
                                 "properties": error_properties,
                                 "additionalProperties": False,
+                                "required": [],
                             },
                             {"type": "null"},
                         ]
@@ -366,19 +337,27 @@ class FormType(NamedTuple):
     ) -> JSON:
         form = value
 
-        fields = {
-            field.name: FieldType(
-                widget=extract_widget_context(field),
-                name=field.name,
-                label=str(
-                    field.label
-                ),  # This can be a lazy proxy, so we must call str on it.
-                help_text=str(
-                    field.help_text
-                ),  # This can be a lazy proxy, so we must call str on it.
-            )
-            for field in form
+        # TODO: hackey way to make bound fields work.
+        # This creates a property that is then accessible by our serializer
+        # directly, giving us bound fields instead of unbound fields. The
+        # proper way to do this is to make fields a mapped type of unbound
+        # fields, and then unbound field a type that has a .field property for
+        # the bound field.
+        value.fields = {
+            field_name: form[field_name] for field_name in form.fields.keys()
         }
+
+        serialized = serialize(value, schema, suppress_custom_serializer=True)
+        serialized[
+            "name"
+        ] = f"{value.__class__.__module__}.{value.__class__.__qualname__}"
+        serialized["prefix"] = form.prefix or ""
+        serialized["iterator"] = list(value.fields.keys())
+        serialized["errors"] = form.errors or None
+        return serialized
+
+        """
+        form = value
 
         return FormType(
             name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",
@@ -387,11 +366,10 @@ class FormType(NamedTuple):
             iterator=list(fields.keys()),
             prefix=form.prefix or "",
         )
+        """
 
 
-PROXIES[django_forms.BaseForm] = FormType
-
-
+@register(django_forms.BaseFormSet)
 class FormSetType(NamedTuple):
     initial_form_count: int
     total_form_count: int
@@ -458,7 +436,7 @@ class FormSetType(NamedTuple):
         ManagementForm.__module__ = django_forms.formsets.ManagementForm.__module__
         ManagementForm.__qualname__ = django_forms.formsets.ManagementForm.__qualname__
 
-        management_form_schema = create_schema(
+        management_form_schema, definitions = create_schema(
             ManagementForm, form_type_schema.definitions
         )
 
@@ -470,10 +448,6 @@ class FormSetType(NamedTuple):
             f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"
         ]
 
-        management_form_definition = management_form_schema.definitions[
-            f"{ManagementForm.__module__}.{ManagementForm.__qualname__}"
-        ]
-
         definitions = {
             **definitions,
             definition_name: {
@@ -482,7 +456,7 @@ class FormSetType(NamedTuple):
                     **form_set_type_definition["properties"],
                     "empty_form": form_type_definition,
                     "forms": {"type": "array", "items": form_type_definition},
-                    "management_form": management_form_definition,
+                    "management_form": management_form_schema,
                 },
                 "required": [
                     *form_set_type_definition["required"],
@@ -496,9 +470,6 @@ class FormSetType(NamedTuple):
         return Thing(
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
         )
-
-
-PROXIES[django_forms.BaseFormSet] = FormSetType  # type: ignore[index, assignment]
 
 
 class QuerySetType:
@@ -587,7 +558,13 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
             definitions = {**definitions, **subschema.definitions}
 
         return Thing(
-            schema={"type": "array", "items": subschemas}, definitions=definitions
+            schema={
+                "type": "array",
+                "minItems": len(subschemas),
+                "maxItems": len(subschemas),
+                "items": subschemas,
+            },
+            definitions=definitions,
         )
     elif Type.__origin__ == Union:
         subschemas = ()
@@ -620,7 +597,8 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
         # Mixed types would have to be a Union of enums.
 
         return Thing(
-            schema={"type": "string", "enum": Type.__args__}, definitions=definitions
+            schema={"type": "string", "enum": list(Type.__args__)},
+            definitions=definitions,
         )
     elif Type.__origin__ == type and issubclass(
         (enum_type := Type.__args__[0]), enum.Enum
@@ -718,12 +696,22 @@ def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
 
 
 def named_tuple_schema(
-    Type: Any, definitions: Definitions, *, exclude: Optional[List[str]] = None,
+    Type: Any,
+    definitions: Definitions,
+    *,
+    definition_name: Optional[str] = None,
+    exclude: Optional[List[str]] = None,
 ) -> Thing:
     if exclude is None:
         exclude = []
 
-    definition_name = f"{Type.__module__}.{Type.__qualname__}"
+    # Type name is the actual class that will handle serialization.
+    type_name = f"{Type.__module__}.{Type.__qualname__}"
+    # Definition name can be passed in by proxies to ensure we get the wrapped
+    # name as the name, not the proxy's name.
+    # See BaseWidget proxy as an example.
+    definition_name = definition_name or type_name
+
     if definition_name in definitions:
         return Thing(
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
@@ -740,7 +728,11 @@ def named_tuple_schema(
         field_schema = create_schema(Subtype, definitions)
         definitions = {**definitions, **field_schema.definitions}
 
-        required.append(field_name)
+        is_undefined = getattr(Subtype, "_reactivated_undefined", False)
+
+        if is_undefined is False:
+            required.append(field_name)
+
         properties[field_name] = field_schema.schema
 
     for field_name in dir(Type):
@@ -761,7 +753,7 @@ def named_tuple_schema(
         definitions={
             **definitions,
             definition_name: {
-                "serializer": definition_name
+                "serializer": type_name
                 if callable(getattr(Type, "get_serialized_value", None))
                 else None,
                 "type": "object",
@@ -774,9 +766,12 @@ def named_tuple_schema(
 
 
 def create_schema(Type: Any, definitions: Definitions) -> Thing:
-    for base_class, Proxy in PROXIES.items():
-        if isinstance(Type, type) and issubclass(Type, base_class):
-            return Proxy.get_json_schema(Type, definitions)
+    type_class = Type if isinstance(Type, type) else Type.__class__
+
+    try:
+        return PROXIES[type_class].get_json_schema(Type, definitions)  # type: ignore
+    except KeyError:
+        pass
 
     if isinstance(Type, stubs._GenericAlias):
         return generic_alias_schema(Type, definitions)
@@ -827,6 +822,13 @@ def object_serializer(value: object, schema: Thing) -> JSON:
     representation = {}
 
     for field_name, field_schema in schema.schema["properties"].items():
+        if (
+            isinstance(value, Mapping)
+            and field_name not in value
+            and field_name not in schema.schema["required"]
+        ):
+            continue
+
         attribute = (
             value.get(field_name, None)
             if isinstance(value, Mapping)

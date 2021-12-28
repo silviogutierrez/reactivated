@@ -16,17 +16,10 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
 from .models import ComputedRelation
-from .serialization import (
-    ComputedField,
-    Definitions,
-    FieldDescriptor,
-    Thing,
-    create_schema,
-)
+from .serialization import ComputedField, FieldDescriptor, create_schema
+from .serialization.registry import Definitions, JSONSchema, Thing
 
 FieldSegment = Tuple[str, bool, bool]
-
-JSONSchema = Any
 
 
 class FieldDescriptorWrapper(NamedTuple):

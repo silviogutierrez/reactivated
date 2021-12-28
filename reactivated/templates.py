@@ -5,7 +5,13 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 
 from .renderer import should_respond_with_json
-from .serialization import JSON, create_schema, serialize
+from .serialization import create_schema, serialize
+from .serialization.registry import (
+    JSON,
+    definitions_registry,
+    template_registry,
+    type_registry,
+)
 
 T = TypeVar("T", bound=NamedTuple)
 
@@ -39,15 +45,12 @@ class LazySerializationResponse(TemplateResponse):
         return obj_dict
 
     def resolve_context(self, context: Optional[Dict[str, Any]]) -> JSON:
-        from . import definitions_registry
 
         generated_schema = create_schema(self.template, definitions_registry)
         return serialize(context, generated_schema)
 
 
 def template(cls: Type[T]) -> Type[T]:
-    from . import type_registry, template_registry
-
     type_name = f"{cls.__name__}Props"
     type_registry[type_name] = cls  # type: ignore[assignment]
     template_registry[cls.__name__] = type_name  # type: ignore[assignment]
@@ -115,8 +118,6 @@ def extract_forms_form_sets_and_actions(interface: Any) -> Extracted:
 
 
 def interface(cls: T) -> T:
-    from . import type_registry, definitions_registry
-
     type_name = f"{cls.__name__}Props"  # type: ignore[attr-defined]
     type_registry[type_name] = cls  # type: ignore[assignment]
 

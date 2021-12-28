@@ -8,15 +8,15 @@ from typing import Any, Dict, NamedTuple, Tuple
 from django.apps import AppConfig
 from django.conf import settings
 
-from . import (
+from . import extract_views_from_urlpatterns
+from .serialization import create_schema
+from .serialization.registry import (
     definitions_registry,
-    extract_views_from_urlpatterns,
     global_types,
     template_registry,
     type_registry,
     value_registry,
 )
-from .serialization import create_schema
 
 logger = logging.getLogger("django.server")
 
@@ -135,6 +135,7 @@ class ReactivatedConfig(AppConfig):
         """
 
         from .checks import check_installed_app_order  # NOQA
+        from .serialization import widgets  # noqa
 
         if (
             os.environ.get("WERKZEUG_RUN_MAIN") == "true"
@@ -149,6 +150,8 @@ class ReactivatedConfig(AppConfig):
             os.environ["DJANGO_SEVER_STARTING"] = "true"
             return
 
+        # TODO: generate this on first request, to avoid running a ton of stuff
+        # on tests. Then cache it going forward.
         schema = get_schema()
         generate_schema(schema)
 

@@ -52,6 +52,8 @@ done
 
 echo "Current version: $CURRENT_VERSION"
 
+python scripts/generate_types.py
+
 cd packages/reactivated/
 
 CURRENT_VERSION=$(jq <package.json .version -r)

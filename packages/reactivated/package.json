@@ -5,6 +5,7 @@
     "license": "MIT",
     "description": "",
     "dependencies": {
+        "immer": "^9.0.7",
         "json-schema-to-typescript": "^10.1.5",
         "module-alias": "^2.2.1",
         "react": "^16.4.1",

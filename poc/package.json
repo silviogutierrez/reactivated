@@ -1,0 +1,10 @@
+{
+  "name": "poc",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "development": "../packages/development/",
+    "production": "../packages/production/"
+  }
+}

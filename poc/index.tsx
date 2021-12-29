@@ -1,7 +1,8 @@
 import http from "http";
-import {Page} from "./Page";
 import ReactDOMServer from "react-dom/server";
 import React from "react";
+
+import * as templates from './templates/**/*';
 
 const OK_RESPONSE = 200;
 
@@ -18,8 +19,12 @@ type Rendered = {
 }
 
 const render = (body: Buffer): Rendered => {
+    // const templatePath = "./templates/Page";
+    const Component = require("./templates/Page").default;
+    // const Component = require(templatePath).default;
+
     const rendered = ReactDOMServer.renderToString(
-        <Page />
+        <Component />
     );
 
     return {

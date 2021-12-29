@@ -5,8 +5,15 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __markAsModule = (target) => __defProp(target, "__esModule", {value: true});
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[Object.keys(fn)[0]])(fn = 0)), res;
+};
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[Object.keys(cb)[0]])((mod = {exports: {}}).exports, mod), mod.exports;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, {get: all[name], enumerable: true});
 };
 var __reExport = (target, module2, desc) => {
   if (module2 && typeof module2 === "object" || typeof module2 === "function") {
@@ -6259,21 +6266,29 @@ var require_server = __commonJS({
   }
 });
 
+// templates/Page.tsx
+var Page_exports = {};
+__export(Page_exports, {
+  default: () => Page_default
+});
+var import_react, Page_default;
+var init_Page = __esm({
+  "templates/Page.tsx"() {
+    import_react = __toModule(require_react());
+    Page_default = () => /* @__PURE__ */ import_react.default.createElement("div", null, /* @__PURE__ */ import_react.default.createElement("h1", null, "My Page"));
+  }
+});
+
 // index.tsx
 var import_http = __toModule(require("http"));
-
-// Page.tsx
-var import_react = __toModule(require_react());
-var Page = () => /* @__PURE__ */ import_react.default.createElement("div", null, /* @__PURE__ */ import_react.default.createElement("h1", null, "My Page"), ",");
-
-// index.tsx
 var import_server = __toModule(require_server());
 var import_react2 = __toModule(require_react());
 var OK_RESPONSE = 200;
 var ERROR_REPONSE = 500;
 var PORT = 3e3;
 var render = (body) => {
-  const rendered = import_server.default.renderToString(/* @__PURE__ */ import_react2.default.createElement(Page, null));
+  const Component = (init_Page(), Page_exports).default;
+  const rendered = import_server.default.renderToString(/* @__PURE__ */ import_react2.default.createElement(Component, null));
   return {
     status: "success",
     rendered

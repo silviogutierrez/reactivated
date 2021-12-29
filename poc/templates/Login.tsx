@@ -1,5 +1,5 @@
 import React from "react";
 
 export default () => <div>
-    <h1>TGIF</h1>
+    <h1>Login</h1>
 </div>

@@ -2,7 +2,9 @@ import http from "http";
 import ReactDOMServer from "react-dom/server";
 import React from "react";
 
-import * as templates from './templates/**/*';
+import templates, {filenames} from './templates/**/*';
+
+console.log(templates, filenames);
 
 const OK_RESPONSE = 200;
 
@@ -18,10 +20,12 @@ type Rendered = {
     error: unknown,
 }
 
-const render = (body: Buffer): Rendered => {
-    // const templatePath = "./templates/Page";
-    const Component = require("./templates/Page").default;
+const render = (url: string, body: Buffer): Rendered => {
+    const templatePath = url.includes("Page") ? "./templates/Page.tsx" : "./templates/Login.tsx";
+    const Template = templates.find((t, index) => filenames[index] === templatePath).default;
+    // const Component = require("./templates/Page").default;
     // const Component = require(templatePath).default;
+    const Component = Template;
 
     const rendered = ReactDOMServer.renderToString(
         <Component />
@@ -40,7 +44,7 @@ const server = http.createServer((req, res) => {
         body = Buffer.concat([body, chunk as Buffer]);
     });
     req.on("end", () => {
-        const result = render(body);
+        const result = render(req.url, body);
 
         if (result.status === "success") {
             res.writeHead(OK_RESPONSE, {"Content-Type": "text/html; charset=utf-8"});

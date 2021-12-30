@@ -14,6 +14,9 @@ from django.template.defaultfilters import escape
 renderer_process_port = None
 logger = logging.getLogger("django.server")
 
+# client_process = 
+# server_process =  
+# maybe_render_process = 
 
 def wait_and_get_port() -> Optional[int]:
     global renderer_process_port

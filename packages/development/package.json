@@ -6,6 +6,8 @@
   "dependencies": {
     "@vanilla-extract/css": "^1.6.8",
     "@vanilla-extract/esbuild-plugin": "^2.0.2",
-    "esbuild-plugin-import-glob": "^0.1.1"
+    "esbuild-plugin-import-glob": "^0.1.1",
+    "json-schema-to-typescript": "^10.1.5",
+    "ts-morph": "^13.0.2"
   }
 }

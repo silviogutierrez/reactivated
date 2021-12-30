@@ -1,5 +1,8 @@
 import React from "react";
 
-export default () => <div>
+import {Layout} from "../components/Layout";
+
+export default () => <Layout>
     <h1>TGIF</h1>
-</div>
+    <button onClick={() => alert("working")}>Click me</button>
+</Layout>

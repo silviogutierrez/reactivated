@@ -1,5 +1,7 @@
 import React from "react";
 
-export default () => <div>
+import {Layout} from "../components/Layout";
+
+export default () => <Layout>
     <h1>Login</h1>
-</div>
+</Layout>

@@ -2,10 +2,10 @@ const ImportGlobPlugin = require('esbuild-plugin-import-glob').default;
 const esbuild = require("esbuild");
 
 require('esbuild').build({
-  entryPoints: ['index.tsx'],
+  entryPoints: ['client.tsx'],
   bundle: true,
-  platform: "node",
-  outfile: 'dist/server.js',
+  platform: "browser",
+  outfile: 'dist/client.js',
   plugins: [
       ImportGlobPlugin(),
   ],

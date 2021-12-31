@@ -17,7 +17,7 @@ export const Layout = (props: Props) => {
                     content="width=device-width, initial-scale=1, shrink-to-fit=no"
                 />
 
-                <script defer src="http://localhost:8080/client.js" />
+                <script defer src="/bundles/client.js" />
             </HelmetProvider>
             <div>{props.children}</div>
         </>

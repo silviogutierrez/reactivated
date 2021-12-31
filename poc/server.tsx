@@ -2,8 +2,9 @@ import http from "http";
 import ReactDOMServer from "react-dom/server";
 import React from "react";
 import {FilledContext, Helmet, HelmetData, HelmetProvider} from "react-helmet-async";
+import fs from "fs";
 
-import templates, {filenames} from './templates/**/*';
+import templates, {filenames} from './client/templates/**/*';
 
 const OK_RESPONSE = 200;
 
@@ -13,9 +14,8 @@ const PORT = 3000;
 
 // Useful when running e2e tests or the like, where the output is not
 // co-located with the running process.
-// const REACTIVATED_CLIENT_ROOT =
-//    process.env.REACTIVATED_CLIENT_ROOT ?? `${process.cwd()}/client`;
-const REACTIVATED_CLIENT_ROOT = ".";
+// const REACTIVATED_CLIENT_ROOT = process.env.REACTIVATED_CLIENT_ROOT ?? `${process.cwd()}/client`;
+const REACTIVATED_CLIENT_ROOT = process.env.REACTIVATED_CLIENT_ROOT ?? `./client`;
 
 type Rendered = {
     status: "success",
@@ -70,7 +70,7 @@ export const renderPage = ({
 
 const render = (input: Buffer): Rendered => {
     const {context, props} = JSON.parse(input.toString("utf8"));
-    const templatePath = `${REACTIVATED_CLIENT_ROOT}/templates/${context.template_name}`;
+    const templatePath = `${REACTIVATED_CLIENT_ROOT}/templates/${context.template_name}.tsx`;
     const Template = templates.find((t, index) => filenames[index] === templatePath).default;
     const Component = Template;
     const helmetContext = {} as FilledContext;
@@ -126,6 +126,7 @@ const server = http.createServer((req, res) => {
     });
 });
 
+/*
 server.listen(PORT, () => {
     const address = server.address();
 
@@ -133,9 +134,8 @@ server.listen(PORT, () => {
         throw new Error();
     }
     process.stdout.write(`RENDERER:${address.port.toString()}:LISTENING`);
-
-    // TODO: load this from a passed in parameter.
-    // const warmUpTemplate = "HomePage";
-    // const templatePath = `${process.cwd()}/client/templates/${warmUpTemplate}`;
-    // require(templatePath);
 });
+*/
+
+const stdinBuffer = fs.readFileSync(0);
+process.stdout.write(JSON.stringify(render(stdinBuffer)));

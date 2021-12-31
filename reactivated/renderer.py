@@ -83,6 +83,12 @@ def should_respond_with_json(request: HttpRequest) -> bool:
 
 
 def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
+    build_command = ["node", "build.server.js",]
+    process = subprocess.Popen(
+        build_command, encoding="utf-8", stdout=subprocess.PIPE,
+    )
+    process.wait()
+
     respond_with_json = should_respond_with_json(request)
 
     payload = {"context": context, "props": props}
@@ -92,18 +98,29 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
     if "debug" in request.GET:
         return f"<html><body><h1>Debug response</h1><pre>{escape(data)}</pre></body></html>"
     elif (
-        respond_with_json or "raw" in request.GET or settings.REACTIVATED_SERVER is None
+        respond_with_json or "raw" in request.GET or getattr(settings, "REACTIVATED_SERVER", False) is None
     ):
         request._is_reactivated_response = True  # type: ignore[attr-defined]
         return data
 
-    renderer_port = wait_and_get_port()
+    # renderer_port = wait_and_get_port()
 
-    response = requests.post(
-        f"http://localhost:{renderer_port}", headers=headers, data=data
+    # response = requests.post(
+    #     f"http://localhost:{renderer_port}", headers=headers, data=data
+    # )
+
+    process = subprocess.Popen(
+        ["node", "./dist/server.js"],
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
     )
+    process_response, error = process.communicate(data.encode())
 
-    if response.status_code == 200:
-        return response.text
+    if error is not None:
+        assert False, "Uncaught rendering error"
+    response = simplejson.loads(process_response)
+
+    if response["status"] == "success":
+        return response["rendered"]
     else:
-        raise Exception(response.json()["stack"])
+        raise Exception(response.json()["error"])

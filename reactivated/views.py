@@ -30,9 +30,9 @@ def client_bundle(request: HttpRequest, bundle: str) -> JsonResponse:
         # stdin=subprocess.PIPE,
     )
     process.wait()
-    return static.serve(request, path="client.js", document_root="./dist/")
+    return static.serve(request, path=bundle, document_root="./dist/")
 
 
 schema_views = [path("schema/", schema), path("schema/<path:query>/", schema)]
 
-bundle_views = path("bundles/<str:bundle>.js", client_bundle)
+bundle_views = path("bundles/<str:bundle>", client_bundle)

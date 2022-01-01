@@ -1,6 +1,8 @@
 import React from "react";
 import {HelmetProvider} from "react-helmet-async";
 
+import * as styles from "./Layout.css.ts"
+
 interface Props {
     title: string;
     children?: React.ReactNode;
@@ -18,8 +20,12 @@ export const Layout = (props: Props) => {
                 />
 
                 <script defer src="/bundles/client.js" />
+                <link
+                    href={`/bundles/client.css`}
+                    rel="stylesheet"
+                />
             </HelmetProvider>
-            <div>{props.children}</div>
+            <div className={styles.layout}>{props.children}</div>
         </>
     );
 };

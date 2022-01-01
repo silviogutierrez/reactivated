@@ -1,5 +1,8 @@
 const ImportGlobPlugin = require('esbuild-plugin-import-glob').default;
 const esbuild = require("esbuild");
+const {
+  vanillaExtractPlugin
+} = require('@vanilla-extract/esbuild-plugin');
 
 require('esbuild').build({
   entryPoints: ['client.tsx'],
@@ -8,5 +11,6 @@ require('esbuild').build({
   outfile: 'dist/client.js',
   plugins: [
       ImportGlobPlugin(),
+      vanillaExtractPlugin(),
   ],
 }).catch(() => process.exit(1))

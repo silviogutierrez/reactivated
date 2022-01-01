@@ -25,7 +25,7 @@ def client_bundle(request: HttpRequest, bundle: str) -> JsonResponse:
     from django.views import static
 
     process = subprocess.Popen(
-        ["node", "./build.client.js"],
+        ["node", "./node_modules/.bin/build.client.js"],
         stdout=subprocess.PIPE,
         # stdin=subprocess.PIPE,
     )

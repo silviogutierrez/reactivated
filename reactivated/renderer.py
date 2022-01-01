@@ -83,7 +83,7 @@ def should_respond_with_json(request: HttpRequest) -> bool:
 
 
 def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
-    build_command = ["node", "build.server.js",]
+    build_command = ["node", "node_modules/.bin/build.server.js",]
     process = subprocess.Popen(
         build_command, encoding="utf-8", stdout=subprocess.PIPE,
     )

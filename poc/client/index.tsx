@@ -1,12 +1,12 @@
 import React from "react";
 import {hydrate} from "react-dom";
 
-import templates, {filenames} from './client/templates/**/*';
-import {getServerData} from "./client/generated";
+import templates, {filenames} from './templates/**/*';
+import {getServerData} from "@client/generated";
 
 import {HelmetProvider} from "react-helmet-async";
 
-const REACTIVATED_CLIENT_ROOT = "./client";
+const REACTIVATED_CLIENT_ROOT = ".";
 
 const {props, context} = getServerData();
 

@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "types": ["node"],
+        "baseUrl": ".",
+        "paths": {
+            "@client/*": ["client/*"]
+        },
+        "strict": true,
+        "sourceMap": true,
+        "module": "esnext",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "target": "es6",
+        "jsx": "react",
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "es6",
+
+            "es2016.array.include",
+            "es2018.promise",
+            "es2017.object",
+            "es2019.object",
+            "es2019.array",
+            "es2020.string"
+        ],
+        "noErrorTruncation": true,
+        "skipLibCheck": true
+    }
+}

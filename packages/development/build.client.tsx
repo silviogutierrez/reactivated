@@ -3,7 +3,7 @@ import * as esbuild from "esbuild";
 import ImportGlobPlugin from 'esbuild-plugin-import-glob';
 
 esbuild.build({
-  entryPoints: ['client.tsx'],
+  entryPoints: ['client/index.tsx'],
   bundle: true,
   platform: "browser",
   outfile: 'dist/client.js',

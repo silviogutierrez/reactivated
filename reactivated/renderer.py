@@ -83,7 +83,7 @@ def should_respond_with_json(request: HttpRequest) -> bool:
 
 
 def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
-    build_command = ["node", "node_modules/.bin/build.server.js",]
+    build_command = ["node", "node_modules/development/build.server.js",]
     process = subprocess.Popen(
         build_command, encoding="utf-8", stdout=subprocess.PIPE,
     )
@@ -114,8 +114,10 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
         stdout=subprocess.PIPE,
         stdin=subprocess.PIPE,
     )
+    print(data)
     process_response, error = process.communicate(data.encode())
 
+    print(process_response)
     if error is not None:
         assert False, "Uncaught rendering error"
     response = simplejson.loads(process_response)

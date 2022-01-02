@@ -6,14 +6,10 @@ import ReactDOMServer from "react-dom/server";
 import {FilledContext, Helmet, HelmetData, HelmetProvider} from "react-helmet-async";
 import webpack from "webpack";
 
-import moduleAlias from "module-alias";
-
 // Useful when running e2e tests or the like, where the output is not
 // co-located with the running process.
 const REACTIVATED_CLIENT_ROOT =
-    process.env.REACTIVATED_CLIENT_ROOT ?? `${process.cwd()}/client`;
-
-moduleAlias.addAlias("@client", REACTIVATED_CLIENT_ROOT);
+    process.env.REACTIVATED_CLIENT_ROOT ?? `../client`;
 
 import httpProxy, {ServerOptions} from "http-proxy";
 
@@ -22,9 +18,7 @@ import {Settings} from "./models";
 // TODO: WHAT DOES THIS NEED TO BE? Even 100k was super fragile and a 10 choice field broke it.
 export const BODY_SIZE_LIMIT = "100000000k";
 
-export const bindRenderPage =
-    (settings: Settings) =>
-    ({
+export const renderPage = ({
         html,
         helmet,
         context,
@@ -69,13 +63,6 @@ export const bindRenderPage =
 
 const PATHS = ["/", "/form/"];
 
-const defaultRenderPage = bindRenderPage({
-    DEBUG: true,
-    DEBUG_PORT: 200,
-    MEDIA_URL: "/media/",
-    STATIC_URL: "/static/",
-});
-
 type Result =
     | {
           status: "success";
@@ -87,64 +74,18 @@ type Result =
       };
 
 export const render = (
+    Provider: any,
+    {default: templates, filenames}: {default: any[], filenames: string[]},
     input: Buffer,
-    renderPage: typeof defaultRenderPage = defaultRenderPage,
 ): Result => {
     const {context, props} = JSON.parse(input.toString("utf8"));
 
-    const templatePath = `${REACTIVATED_CLIENT_ROOT}/templates/${context.template_name}`;
+    const templatePath = `${REACTIVATED_CLIENT_ROOT}/templates/${context.template_name}.tsx`;
     const contextPath = `${REACTIVATED_CLIENT_ROOT}/generated`;
-
-    if (process.env.NODE_ENV !== "production") {
-        // Our template names have no extension by design, for when we transpile.
-        delete require.cache[`${templatePath}.tsx`];
-        delete require.cache[`${templatePath}.jsx`];
-
-        // When a template includes other components, like Layout, we also want
-        // to clear that cache. Right now, I'm not sure what actually needs to
-        // be cleared. Layout.tsx is not in the cache. Maybe it's cached by
-        // way of another module.
-        //
-        // So we clear *everything* except:
-        //
-        // Context stateful and we need them for the initial page.
-        //
-        // react-helmet-async has a context that also cannot be cleared. You'll
-        // get a cryptic 404 for this route.
-        //
-        // mini-css-extract-plugin breaks when hot reloading if cleared.
-        //
-        // Possible better fix: https://stackoverflow.com/a/14801711
-        for (const cacheKey of Object.keys(require.cache)) {
-            if (
-                !cacheKey.includes("reactivated/context") &&
-                !cacheKey.includes("mini-css-extract-plugin") &&
-                !cacheKey.includes("react-helmet-async") &&
-                // If we delete React from the cache, this creates two duplicate
-                // instances of React and we get server side rendering issues
-                // when using hooks.
-                // https://reactjs.org/warnings/invalid-hook-call-warning.html
-                //
-                // Note the trailing slash so to avoid matching reactivated.
-                !cacheKey.includes("react/")
-            ) {
-                delete require.cache[cacheKey];
-            }
-        }
-
-        // When developing reactivated itself locally, including Widget.tsx etc.
-        // TODO: has a bug with context.
-        // for (const cacheKey of Object.keys(require.cache)) {
-        //     if (cacheKey.includes('reactivated/dist')) {
-        //         delete require.cache[cacheKey];
-        //     }
-        // }
-    }
 
     try {
         const helmetContext = {} as FilledContext;
-        const Template = require(templatePath).default;
-        const Provider = require(contextPath).Provider;
+        const Template = templates.find((t, index) => filenames[index] === templatePath).default;
 
         const rendered = ReactDOMServer.renderToString(
             <HelmetProvider context={helmetContext}>
@@ -166,6 +107,7 @@ export const render = (
             }),
         };
     } catch (error) {
+        console.log(error);
         return {status: "error", error};
     }
 };

@@ -13,7 +13,7 @@ const server = http.createServer((req, res) => {
         body = Buffer.concat([body, chunk as Buffer]);
     });
     req.on("end", () => {
-        const result = render(body);
+        const result = render({} as any, {} as any, body);
 
         if (result.status === "success") {
             res.writeHead(OK_RESPONSE, {"Content-Type": "text/html; charset=utf-8"});

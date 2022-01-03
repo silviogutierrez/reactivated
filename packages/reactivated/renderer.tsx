@@ -31,7 +31,7 @@ const server = http.createServer((req, res) => {
 server.listen(0, () => {
     const address = server.address();
 
-    if (typeof address === "string") {
+    if (address == null || typeof address === "string") {
         throw new Error();
     }
     process.stdout.write(`RENDERER:${address.port.toString()}:LISTENING`);

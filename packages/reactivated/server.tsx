@@ -4,14 +4,11 @@ import path from "path";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import {FilledContext, Helmet, HelmetData, HelmetProvider} from "react-helmet-async";
-import webpack from "webpack";
 
 // Useful when running e2e tests or the like, where the output is not
 // co-located with the running process.
 const REACTIVATED_CLIENT_ROOT =
     process.env.REACTIVATED_CLIENT_ROOT ?? `../client`;
-
-import httpProxy, {ServerOptions} from "http-proxy";
 
 import {Settings} from "./models";
 

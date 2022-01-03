@@ -18,8 +18,6 @@ import {
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
 const {urls, templates, types, values} = schema;
 
-import {NormalModuleReplacementPlugin} from "webpack";
-
 const project = new Project();
 
 /*

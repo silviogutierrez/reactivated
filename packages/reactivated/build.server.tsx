@@ -18,7 +18,7 @@ esbuild
         platform: "node",
         outfile: "./static/dist/server.js",
         sourcemap: true,
-        watch: true,
+        watch: process.env.REACTIVATED_WATCH !== "false",
         plugins: [
             ImportGlobPlugin(),
             vanillaExtractPlugin(),

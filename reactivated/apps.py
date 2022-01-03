@@ -155,14 +155,16 @@ class ReactivatedConfig(AppConfig):
         # TODO: generate this on first request, to avoid running a ton of stuff
         # on tests. Then cache it going forward.
         schema = get_schema()
+
         generate_schema(schema)
+        entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
 
         client_process = subprocess.Popen(
-            ["node", "./node_modules/reactivated/build.client.js", "site", "app"],
+            ["node", "./node_modules/reactivated/build.client.js", *entry_points],
             stdout=subprocess.PIPE,
         )
         server_process = subprocess.Popen(
-            ["node", "./node_modules/reactivated/build.server.js", "site", "app"],
+            ["node", "./node_modules/reactivated/build.server.js", *entry_points],
             stdout=subprocess.PIPE,
         )
 

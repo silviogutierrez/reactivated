@@ -158,11 +158,11 @@ class ReactivatedConfig(AppConfig):
         generate_schema(schema)
 
         client_process = subprocess.Popen(
-            ["node", "./node_modules/development/build.client.js", "site", "app"],
+            ["node", "./node_modules/reactivated/build.client.js", "site", "app"],
             stdout=subprocess.PIPE,
         )
         server_process = subprocess.Popen(
-            ["node", "./node_modules/development/build.server.js", "site", "app"],
+            ["node", "./node_modules/reactivated/build.server.js", "site", "app"],
             stdout=subprocess.PIPE,
         )
 

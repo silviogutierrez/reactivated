@@ -106,18 +106,16 @@ import React from "react"
 import createContext from "reactivated/context";
 import * as forms from "reactivated/forms";
 
-// @ts-ignore
-import templates, {filenames} from '../templates/**/*';
-
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
 
 export const {Context, Provider, getServerData} = createContext<Types["Context"]>();
 
 export const getTemplate = ({template_name}: {template_name: string}) => {
-    const REACTIVATED_CLIENT_ROOT = ".";
+    // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
+    const { default: templates, filenames } = require('../templates/**/*');
     const templatePath = "../templates/" + template_name + ".tsx";
-    const Template = templates.find((t: any, index: number) => filenames[index] === templatePath).default;
+    const Template: React.ComponentType<any> = templates.find((t: any, index: number) => filenames[index] === templatePath).default;
     return Template;
 }
 
@@ -128,7 +126,7 @@ export const {createRenderer, Iterator} = forms.bindWidgetType<Types["globals"][
 
 // tslint:disable-next-line
 compile(types, "Types").then((ts) => {
-    process.stdout.write("/* tslint:disable */\n");
+    process.stdout.write("/* eslint-disable */\n");
     process.stdout.write(ts);
 
     for (const name of Object.keys(templates)) {

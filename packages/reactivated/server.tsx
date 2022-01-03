@@ -111,6 +111,42 @@ export const render = (
     }
 };
 
+export const simpleRender = () => {
+    const input = fs.readFileSync(0);
+    const {context, props} = JSON.parse(input.toString("utf8"));
+    const {Provider, getTemplate} = require("../../client/generated");
+    const Template = getTemplate(context);
+
+    const templatePath = `${REACTIVATED_CLIENT_ROOT}/templates/${context.template_name}.tsx`;
+    const contextPath = `${REACTIVATED_CLIENT_ROOT}/generated`;
+
+    try {
+        const helmetContext = {} as FilledContext;
+
+        const rendered = ReactDOMServer.renderToString(
+            <HelmetProvider context={helmetContext}>
+                <Provider value={context}>
+                    <Template {...props} />
+                </Provider>
+            </HelmetProvider>,
+        );
+
+        const {helmet} = helmetContext;
+
+        return {
+            status: "success",
+            rendered: renderPage({
+                html: rendered,
+                helmet,
+                props,
+                context,
+            }),
+        };
+    } catch (error) {
+        return {status: "error", error};
+    }
+}
+
 interface ListenOptions {
     node: number | string;
     django: number | string;

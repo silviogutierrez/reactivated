@@ -6,6 +6,7 @@ import sys
 from typing import Any, List, Optional
 
 import requests
+import tempfile
 import simplejson
 from django.conf import settings
 from django.http import HttpRequest
@@ -83,12 +84,6 @@ def should_respond_with_json(request: HttpRequest) -> bool:
 
 
 def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
-    build_command = ["node", "node_modules/development/build.server.js",]
-    process = subprocess.Popen(
-        build_command, encoding="utf-8", stdout=subprocess.PIPE,
-    )
-    process.wait()
-
     respond_with_json = should_respond_with_json(request)
 
     payload = {"context": context, "props": props}
@@ -109,18 +104,25 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
     #     f"http://localhost:{renderer_port}", headers=headers, data=data
     # )
 
-    process = subprocess.Popen(
-        ["node", "./dist/server.js"],
-        stdout=subprocess.PIPE,
-        stdin=subprocess.PIPE,
-    )
-    print(data)
-    process_response, error = process.communicate(data.encode())
+    with tempfile.TemporaryFile() as buffer:
+        buffer.write(data.encode())
+        buffer.flush()
+        buffer.seek(0)
 
-    print(process_response)
+        process = subprocess.Popen(
+            ["node", "./static/dist/server.js"],
+            stdout=subprocess.PIPE,
+            stdin=buffer,
+        )
+        process_response, error = process.communicate()
+
     if error is not None:
         assert False, "Uncaught rendering error"
-    response = simplejson.loads(process_response)
+    try:
+        response = simplejson.loads(process_response)
+    except: 
+        print(process_response)
+        return "ERROR"
 
     if response["status"] == "success":
         return response["rendered"]

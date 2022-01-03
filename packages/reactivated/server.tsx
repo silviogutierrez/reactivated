@@ -107,7 +107,6 @@ export const render = (
             }),
         };
     } catch (error) {
-        console.log(error);
         return {status: "error", error};
     }
 };

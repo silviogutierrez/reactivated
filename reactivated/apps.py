@@ -1,8 +1,10 @@
+import atexit
 import importlib
 import json
 import logging
 import os
 import subprocess
+import sys
 from typing import Any, Dict, NamedTuple, Tuple
 
 from django.apps import AppConfig
@@ -154,6 +156,28 @@ class ReactivatedConfig(AppConfig):
         # on tests. Then cache it going forward.
         schema = get_schema()
         generate_schema(schema)
+
+        client_process = subprocess.Popen(
+            ["node", "./node_modules/development/build.client.js", "site", "app"],
+            stdout=subprocess.PIPE,
+        )
+        server_process = subprocess.Popen(
+            ["node", "./node_modules/development/build.server.js", "site", "app"],
+            stdout=subprocess.PIPE,
+        )
+
+        def cleanup() -> None:
+            # Pytest has issues with this, see https://github.com/pytest-dev/pytest/issues/5502
+            # We can't use the env variable PYTEST_CURRENT_TEST because this happens
+            # after running all tests and closing the session.
+            # See: https://stackoverflow.com/questions/25188119/test-if-code-is-executed-from-within-a-py-test-session
+            if "pytest" not in sys.modules:
+                logger.info("Cleaning up client build process")
+                logger.info("Cleaning up server build process")
+            client_process.terminate()
+            server_process.terminate()
+
+        atexit.register(cleanup)
 
 
 def generate_schema(schema: str, skip_cache: bool = False) -> None:

@@ -106,10 +106,20 @@ import React from "react"
 import createContext from "reactivated/context";
 import * as forms from "reactivated/forms";
 
+// @ts-ignore
+import templates, {filenames} from '../templates/**/*';
+
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
 
 export const {Context, Provider, getServerData} = createContext<Types["Context"]>();
+
+export const getTemplate = ({template_name}: {template_name: string}) => {
+    const REACTIVATED_CLIENT_ROOT = ".";
+    const templatePath = "../templates/" + template_name + ".tsx";
+    const Template = templates.find((t: any, index: number) => filenames[index] === templatePath).default;
+    return Template;
+}
 
 export const CSRFToken = forms.createCSRFToken(Context);
 

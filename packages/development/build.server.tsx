@@ -7,8 +7,9 @@ esbuild.build({
   entryPoints: ['server/index.tsx'],
   bundle: true,
   platform: "node",
-  outfile: 'dist/server.js',
-//  watch: true,
+  outfile: './static/dist/server.js',
+  sourcemap: true,
+  watch: true,
   plugins: [
       ImportGlobPlugin(),
       vanillaExtractPlugin(),

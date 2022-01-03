@@ -74,18 +74,12 @@ type Result =
       };
 
 export const render = (
-    Provider: any,
-    {default: templates, filenames}: {default: any[], filenames: string[]},
-    input: Buffer,
+    {context, props}: {context: any, props: any},
+    Provider: React.ComponentType<any>,
+    Template: React.ComponentType<any>,
 ): Result => {
-    const {context, props} = JSON.parse(input.toString("utf8"));
-
-    const templatePath = `${REACTIVATED_CLIENT_ROOT}/templates/${context.template_name}.tsx`;
-    const contextPath = `${REACTIVATED_CLIENT_ROOT}/generated`;
-
     try {
         const helmetContext = {} as FilledContext;
-        const Template = templates.find((t, index) => filenames[index] === templatePath).default;
 
         const rendered = ReactDOMServer.renderToString(
             <HelmetProvider context={helmetContext}>
@@ -117,34 +111,7 @@ export const simpleRender = () => {
     const {Provider, getTemplate} = require("../../client/generated");
     const Template = getTemplate(context);
 
-    const templatePath = `${REACTIVATED_CLIENT_ROOT}/templates/${context.template_name}.tsx`;
-    const contextPath = `${REACTIVATED_CLIENT_ROOT}/generated`;
-
-    try {
-        const helmetContext = {} as FilledContext;
-
-        const rendered = ReactDOMServer.renderToString(
-            <HelmetProvider context={helmetContext}>
-                <Provider value={context}>
-                    <Template {...props} />
-                </Provider>
-            </HelmetProvider>,
-        );
-
-        const {helmet} = helmetContext;
-
-        return {
-            status: "success",
-            rendered: renderPage({
-                html: rendered,
-                helmet,
-                props,
-                context,
-            }),
-        };
-    } catch (error) {
-        return {status: "error", error};
-    }
+    process.stdout.write(JSON.stringify(render({context, props}, Provider, Template)));
 }
 
 interface ListenOptions {

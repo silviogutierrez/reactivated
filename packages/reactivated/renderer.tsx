@@ -13,7 +13,8 @@ const server = http.createServer((req, res) => {
         body = Buffer.concat([body, chunk as Buffer]);
     });
     req.on("end", () => {
-        const result = render({} as any, {} as any, body);
+        const {context, props} = JSON.parse(body.toString("utf8"));
+        const result = render({context, props}, null as any, null as any);
 
         if (result.status === "success") {
             res.writeHead(OK_RESPONSE, {"Content-Type": "text/html; charset=utf-8"});

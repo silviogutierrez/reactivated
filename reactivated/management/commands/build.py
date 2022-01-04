@@ -23,8 +23,11 @@ class Command(BaseCommand):
             stdout=subprocess.PIPE,
             env=build_env,
         )
+        client_process.wait()
         server_process = subprocess.Popen(
             ["node", "./node_modules/reactivated/build.server.js", *entry_points],
             stdout=subprocess.PIPE,
             env=build_env,
         )
+        client_output, client_error = client_process.communicate()
+        server_output, server_error = server_process.communicate()

@@ -36,10 +36,7 @@ class JSX(BaseEngine):
             return AdapterTemplate(adapter, self)
 
         if template_name.endswith(".tsx") or template_name.endswith(".jsx"):
-            if os.path.isfile(
-                os.path.join(settings.BASE_DIR, "client/templates", template_name)
-            ):
-                return JSXTemplate(template_name, self)
+            return JSXTemplate(template_name, self)
 
         raise TemplateDoesNotExist([], backend=self)  # type: ignore[arg-type]
 

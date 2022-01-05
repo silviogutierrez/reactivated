@@ -21,5 +21,7 @@ twine==2.0.0
 types-requests==2.25.11
 types-simplejson==3.17.1
 
+requests-unixsocket==0.3.0
+
 # Install reactivated package locally
 -e .

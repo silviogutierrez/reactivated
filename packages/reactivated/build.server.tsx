@@ -7,8 +7,9 @@ import fs = require('fs')
 
 let server: http.Server | null = null;
 
-const SOCKET_PATH = "./node_modules/.bin/reactivated.sock";
+const SOCKET_PATH = "node_modules/.bin/reactivated.sock";
 const CACHE_KEY = `${process.cwd()}/node_modules/.bin/server.js`;
+const production = process.env.NODE_ENV === 'production';
 
 esbuild
     .build({
@@ -24,8 +25,7 @@ esbuild
         platform: "node",
         outfile: "./node_modules/.bin/server.js",
         sourcemap: true,
-        //watch: process.env.REACTIVATED_WATCH !== "false",
-        watch: {
+        watch: production === true ? false : {
             onRebuild: () => {
                 restartServer();
             },
@@ -36,7 +36,9 @@ esbuild
             linaria({sourceMap: true}),
         ],
     }).then(() =>{
-        restartServer()
+        if (production === false) {
+            restartServer()
+        }
     })
     .catch(() => process.exit(1));
 

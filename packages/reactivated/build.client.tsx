@@ -7,6 +7,8 @@ const entryNames = process.argv.slice(2);
 
 const entryPoints = Object.fromEntries(entryNames.map(entry => [entry, `./client/${entry}.tsx`]));
 
+const production = process.env.NODE_ENV === 'production';
+
 esbuild
     .build({
         entryPoints,
@@ -14,7 +16,7 @@ esbuild
         platform: "browser",
         outdir: "./static/dist",
         sourcemap: true,
-        watch: process.env.REACTIVATED_WATCH !== "false",
+        watch: production === false,
         define: {
             process: '{"env": {}}',
             global: '{}',

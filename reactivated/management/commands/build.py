@@ -15,7 +15,7 @@ class Command(BaseCommand):
 
         build_env = {
             **os.environ.copy(),
-            "REACTIVATED_WATCH": "false",
+            "NODE_ENV": "production",
         }
 
         client_process = subprocess.Popen(
@@ -25,7 +25,7 @@ class Command(BaseCommand):
         )
         client_process.wait()
         server_process = subprocess.Popen(
-            ["node", "./node_modules/reactivated/build.server.js", *entry_points],
+            ["node", "./node_modules/reactivated/build.server.js"],
             stdout=subprocess.PIPE,
             env=build_env,
         )

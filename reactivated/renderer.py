@@ -15,7 +15,7 @@ import requests_unixsocket
 
 from . import constants
 
-renderer_process_port = None
+renderer_process_port: Optional[str] = None
 logger = logging.getLogger("django.server")
 
 # client_process =
@@ -23,27 +23,18 @@ logger = logging.getLogger("django.server")
 # maybe_render_process =
 
 
-def wait_and_get_port() -> Optional[int]:
+def wait_and_get_port() -> Optional[str]:
     global renderer_process_port
 
     if renderer_process_port is not None:
         return renderer_process_port
 
-    renderer_command = (
-        ["node", "node_modules/reactivated/renderer.js",]
-        if settings.DEBUG is False
-        else [
-            "node_modules/.bin/babel-node",
-            "--extensions",
-            ".ts,.tsx",
-            "node_modules/reactivated/renderer.js",
-        ]
-    )
-
     logger.info("Starting render process")
-
+    entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
     process = subprocess.Popen(
-        renderer_command, encoding="utf-8", stdout=subprocess.PIPE,
+        ["node", "./node_modules/.bin/server.js", *entry_points],
+        encoding="utf-8",
+        stdout=subprocess.PIPE,
     )
 
     def cleanup() -> None:
@@ -62,8 +53,8 @@ def wait_and_get_port() -> Optional[int]:
     for c in iter(lambda: process.stdout.read(1), b""):  # type: ignore[union-attr]
         output += c
 
-        if match := re.match(r"RENDERER:([\w]+):LISTENING", output):
-            renderer_process_port = int(match.group(1))
+        if match := re.match(r"RENDERER:([/.\w]+):LISTENING", output):
+            renderer_process_port = match.group(1)
             return renderer_process_port
     assert False, "Could not bind to renderer"
 
@@ -104,11 +95,11 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
         request._is_reactivated_response = True  # type: ignore[attr-defined]
         return data
 
-    # renderer_port = wait_and_get_port()
+    renderer_port = wait_and_get_port()
 
     session = requests_unixsocket.Session()
     socket = urllib.parse.quote_plus(
-        f"node_modules/.bin/{constants.REACTIVATED_SOCKET}"
+        renderer_port,
     )
 
     response = session.post(f"http+unix://{socket}", headers=headers, data=data)

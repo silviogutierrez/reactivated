@@ -123,6 +123,8 @@ const OK_RESPONSE = 200;
 
 const ERROR_REPONSE = 500;
 
+export const SOCKET_PATH = "./node_modules/.bin/reactivated.sock";
+
 export const server = http.createServer((req, res) => {
     let body = Buffer.from("");
 
@@ -144,13 +146,18 @@ export const server = http.createServer((req, res) => {
     });
 });
 
-server.listen(3000, () => {
+server.listen(SOCKET_PATH, () => {
     const address = server.address();
 
-    if (address == null || typeof address === "string") {
+    if (address == null) {
         throw new Error();
     }
-    process.stdout.write(`RENDERER:${address.port.toString()}:LISTENING`);
+    else if (typeof address === "string") {
+        process.stdout.write(`RENDERER:${address}:LISTENING`);
+    }
+    else {
+        process.stdout.write(`RENDERER:${address.port.toString()}:LISTENING`);
+    }
 
     // TODO: load this from a passed in parameter.
     // const warmUpTemplate = "HomePage";

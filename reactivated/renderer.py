@@ -3,13 +3,17 @@ import logging
 import re
 import subprocess
 import sys
+import urllib.parse
 from typing import Any, List, Optional
 
-import requests
 import simplejson
 from django.conf import settings
 from django.http import HttpRequest
 from django.template.defaultfilters import escape
+
+import requests_unixsocket
+
+from . import constants
 
 renderer_process_port = None
 logger = logging.getLogger("django.server")
@@ -58,7 +62,7 @@ def wait_and_get_port() -> Optional[int]:
     for c in iter(lambda: process.stdout.read(1), b""):  # type: ignore[union-attr]
         output += c
 
-        if match := re.match(r"RENDERER:([\d]+):LISTENING", output):
+        if match := re.match(r"RENDERER:([\w]+):LISTENING", output):
             renderer_process_port = int(match.group(1))
             return renderer_process_port
     assert False, "Could not bind to renderer"
@@ -101,11 +105,13 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
         return data
 
     # renderer_port = wait_and_get_port()
-    renderer_port = 3000
 
-    response = requests.post(
-        f"http://localhost:{renderer_port}", headers=headers, data=data
+    session = requests_unixsocket.Session()
+    socket = urllib.parse.quote_plus(
+        f"node_modules/.bin/{constants.REACTIVATED_SOCKET}"
     )
+
+    response = session.post(f"http+unix://{socket}", headers=headers, data=data)
 
     if response.status_code == 200:
         return response.text

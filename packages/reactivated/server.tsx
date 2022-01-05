@@ -1,4 +1,5 @@
 import fs from "fs";
+import http from "http";
 import {compile} from "json-schema-to-typescript";
 import path from "path";
 import React from "react";
@@ -111,7 +112,48 @@ export const simpleRender = () => {
     process.stdout.write(JSON.stringify(render({context, props}, Provider, Template)));
 }
 
-interface ListenOptions {
-    node: number | string;
-    django: number | string;
+export const serverRender = (body: Buffer) => {
+    const {context, props} = JSON.parse(body.toString("utf8"));
+    const {Provider, getTemplate} = require("../../client/generated");
+    const Template = getTemplate(context);
+    return render({context, props}, Provider, Template);
 }
+
+const OK_RESPONSE = 200;
+
+const ERROR_REPONSE = 500;
+
+export const server = http.createServer((req, res) => {
+    let body = Buffer.from("");
+
+    req.on("data", (chunk) => {
+        body = Buffer.concat([body, chunk as Buffer]);
+    });
+    req.on("end", () => {
+        const result = serverRender(body);
+
+        if (result.status === "success") {
+            res.writeHead(OK_RESPONSE, {"Content-Type": "text/html; charset=utf-8"});
+            res.end(result.rendered);
+        } else {
+            res.writeHead(ERROR_REPONSE, {"Content-Type": "application/json"});
+            res.end(
+                JSON.stringify(result.error, Object.getOwnPropertyNames(result.error)),
+            );
+        }
+    });
+});
+
+server.listen(3000, () => {
+    const address = server.address();
+
+    if (address == null || typeof address === "string") {
+        throw new Error();
+    }
+    process.stdout.write(`RENDERER:${address.port.toString()}:LISTENING`);
+
+    // TODO: load this from a passed in parameter.
+    // const warmUpTemplate = "HomePage";
+    // const templatePath = `${process.cwd()}/client/templates/${warmUpTemplate}`;
+    // require(templatePath);
+});

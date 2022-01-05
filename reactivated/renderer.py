@@ -6,7 +6,6 @@ import sys
 from typing import Any, List, Optional
 
 import requests
-import tempfile
 import simplejson
 from django.conf import settings
 from django.http import HttpRequest
@@ -15,9 +14,10 @@ from django.template.defaultfilters import escape
 renderer_process_port = None
 logger = logging.getLogger("django.server")
 
-# client_process = 
-# server_process =  
-# maybe_render_process = 
+# client_process =
+# server_process =
+# maybe_render_process =
+
 
 def wait_and_get_port() -> Optional[int]:
     global renderer_process_port
@@ -93,38 +93,21 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
     if "debug" in request.GET:
         return f"<html><body><h1>Debug response</h1><pre>{escape(data)}</pre></body></html>"
     elif (
-        respond_with_json or "raw" in request.GET or getattr(settings, "REACTIVATED_SERVER", False) is None
+        respond_with_json
+        or "raw" in request.GET
+        or getattr(settings, "REACTIVATED_SERVER", False) is None
     ):
         request._is_reactivated_response = True  # type: ignore[attr-defined]
         return data
 
     # renderer_port = wait_and_get_port()
+    renderer_port = 3000
 
-    # response = requests.post(
-    #     f"http://localhost:{renderer_port}", headers=headers, data=data
-    # )
+    response = requests.post(
+        f"http://localhost:{renderer_port}", headers=headers, data=data
+    )
 
-    with tempfile.TemporaryFile() as buffer:
-        buffer.write(data.encode())
-        buffer.flush()
-        buffer.seek(0)
-
-        process = subprocess.Popen(
-            ["node", "./static/dist/server.js"],
-            stdout=subprocess.PIPE,
-            stdin=buffer,
-        )
-        process_response, error = process.communicate()
-
-    if error is not None:
-        assert False, "Uncaught rendering error"
-    try:
-        response = simplejson.loads(process_response)
-    except: 
-        print(process_response)
-        return "ERROR"
-
-    if response["status"] == "success":
-        return response["rendered"]
+    if response.status_code == 200:
+        return response.text
     else:
-        raise Exception(response.json()["error"])
+        raise Exception(response.json()["stack"])

@@ -13,6 +13,7 @@ esbuild
     .build({
         entryPoints,
         bundle: true,
+        minify: production,
         platform: "browser",
         outdir: "./static/dist",
         sourcemap: true,

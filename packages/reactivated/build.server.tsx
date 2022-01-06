@@ -21,6 +21,7 @@ esbuild
             resolveDir: process.cwd(),
             loader: "ts",
         },
+        minify: production,
         bundle: true,
         platform: "node",
         outfile: "./node_modules/.bin/server.js",

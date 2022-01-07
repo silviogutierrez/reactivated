@@ -72,8 +72,8 @@ if [[ $SERVER -eq 1 ]]; then
 fi
 
 if [[ $CLIENT -eq 1 ]]; then
-    capture_stdout_and_stderr_if_successful node_modules/.bin/tslint -p packages/reactivated
-    capture_stdout_and_stderr_if_successful node_modules/.bin/tslint -p sample
+    # capture_stdout_and_stderr_if_successful node_modules/.bin/tslint -p packages/reactivated
+    # capture_stdout_and_stderr_if_successful node_modules/.bin/tslint -p sample
     capture_stdout_and_stderr_if_successful node_modules/.bin/prettier --ignore-path .gitignore --check '**/*.{ts,tsx,yaml,json}'
 fi
 

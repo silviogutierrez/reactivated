@@ -28,8 +28,10 @@ esbuild
         watch: production === false,
         external: ["moment", "@client/generated/images"],
         define: {
+            // You need both. The one from the stringified JSON is not picked
+            // up during the build process.
+            "process.env.NODE_ENV": production ? '"production"': '"development"',
             process: JSON.stringify({env}),
-            global: "{}",
         },
         plugins: [
             ImportGlobPlugin(),

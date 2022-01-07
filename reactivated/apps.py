@@ -162,6 +162,7 @@ class ReactivatedConfig(AppConfig):
         client_process = subprocess.Popen(
             ["node", "./node_modules/reactivated/build.client.js", *entry_points],
             stdout=subprocess.PIPE,
+            env={**os.environ.copy()},
         )
         from reactivated import renderer
 
@@ -169,6 +170,7 @@ class ReactivatedConfig(AppConfig):
             ["node", "./node_modules/reactivated/build.renderer.js"],
             encoding="utf-8",
             stdout=subprocess.PIPE,
+            env={**os.environ.copy(),},
         )
 
         def cleanup() -> None:

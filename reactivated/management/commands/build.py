@@ -9,6 +9,13 @@ from django.core.management.base import BaseCommand, CommandError
 class Command(BaseCommand):
     help = "Generates all types and other client assets"
 
+    def add_arguments(self, parser: Any) -> None:
+        parser.add_argument(
+            "--upload-sourcemaps",
+            action="store_true",
+            help="Upload sourcemaps to Sentry",
+        )
+
     def handle(self, *args: Any, **options: Any) -> None:
         entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
 
@@ -40,5 +47,24 @@ class Command(BaseCommand):
         if tsc_process.returncode != 0:
             raise CommandError("TypeScript error. Run 'tsc --noEmit' manually.")
 
-        if client_process.returncode != 0  or renderer_process.returncode != 0:
+        if client_process.returncode != 0 or renderer_process.returncode != 0:
             raise CommandError("esbuild errors")
+
+        if options["upload_sourcemaps"] is True:
+            assert "TAG_VERSION" in os.environ, "TAG_VERSION must be set"
+
+            sentry_process = subprocess.Popen(
+                [
+                    "./node_modules/.bin/sentry-cli",
+                    "releases",
+                    "files",
+                    os.environ["TAG_VERSION"],
+                    "upload-sourcemaps",
+                    "static/dist/",
+                    "--url-prefix",
+                    "~/static/dist",
+                ],
+                stdout=subprocess.PIPE,
+                env=build_env,
+            )
+            sentry_output, sentry_error = sentry_process.communicate()

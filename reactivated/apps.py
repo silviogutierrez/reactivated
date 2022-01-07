@@ -163,10 +163,12 @@ class ReactivatedConfig(AppConfig):
             ["node", "./node_modules/reactivated/build.client.js", *entry_points],
             stdout=subprocess.PIPE,
         )
-        # server_process = subprocess.Popen(
-        #     ["node", "./node_modules/reactivated/build.server.js"],
-        #     stdout=subprocess.PIPE,
-        # )
+        from reactivated import renderer
+        renderer.renderer_process = subprocess.Popen(
+            ["node", "./node_modules/reactivated/build.server.js"],
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+        )
 
         def cleanup() -> None:
             # Pytest has issues with this, see https://github.com/pytest-dev/pytest/issues/5502
@@ -177,7 +179,7 @@ class ReactivatedConfig(AppConfig):
                 logger.info("Cleaning up client build process")
                 logger.info("Cleaning up server build process")
             client_process.terminate()
-            # server_process.terminate()
+            renderer.renderer_process.terminate()
 
         atexit.register(cleanup)
 

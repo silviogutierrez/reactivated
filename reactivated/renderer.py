@@ -15,6 +15,7 @@ import requests_unixsocket
 
 from . import constants
 
+renderer_process: Optional[Any] = None
 renderer_process_port: Optional[str] = None
 logger = logging.getLogger("django.server")
 
@@ -25,32 +26,35 @@ logger = logging.getLogger("django.server")
 
 def wait_and_get_port() -> Optional[str]:
     global renderer_process_port
+    global renderer_process
 
     if renderer_process_port is not None:
         return renderer_process_port
 
     logger.info("Starting render process")
     entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
-    process = subprocess.Popen(
-        ["node", "./node_modules/.bin/server.js", *entry_points],
-        encoding="utf-8",
-        stdout=subprocess.PIPE,
-    )
 
-    def cleanup() -> None:
-        # Pytest has issues with this, see https://github.com/pytest-dev/pytest/issues/5502
-        # We can't use the env variable PYTEST_CURRENT_TEST because this happens
-        # after running all tests and closing the session.
-        # See: https://stackoverflow.com/questions/25188119/test-if-code-is-executed-from-within-a-py-test-session
-        if "pytest" not in sys.modules:
-            logger.info("Cleaning up renderer process")
-        process.terminate()
+    if renderer_process is None:
+        renderer_process = subprocess.Popen(
+            ["node", "./node_modules/.bin/server.js", *entry_points],
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+        )
 
-    atexit.register(cleanup)
+        def cleanup() -> None:
+            # Pytest has issues with this, see https://github.com/pytest-dev/pytest/issues/5502
+            # We can't use the env variable PYTEST_CURRENT_TEST because this happens
+            # after running all tests and closing the session.
+            # See: https://stackoverflow.com/questions/25188119/test-if-code-is-executed-from-within-a-py-test-session
+            if "pytest" not in sys.modules:
+                logger.info("Cleaning up renderer process")
+            renderer_process.terminate()
+
+        atexit.register(cleanup)
 
     output = ""
 
-    for c in iter(lambda: process.stdout.read(1), b""):  # type: ignore[union-attr]
+    for c in iter(lambda: renderer_process.stdout.read(1), b""):  # type: ignore[union-attr]
         output += c
 
         if match := re.match(r"RENDERER:([/.\w]+):LISTENING", output):

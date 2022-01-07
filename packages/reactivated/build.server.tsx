@@ -7,13 +7,12 @@ import fs = require('fs')
 
 let server: http.Server | null = null;
 
-const SOCKET_PATH = "node_modules/.bin/reactivated.sock";
+const SOCKET_PATH = `${process.cwd()}/node_modules/.bin/reactivated.sock`;
 const CACHE_KEY = `${process.cwd()}/node_modules/.bin/server.js`;
 const production = process.env.NODE_ENV === 'production';
 
 esbuild
     .build({
-        // entryPoints: ["server/index.tsx"],
         stdin: {
             contents: `
                 export {server} from "reactivated/server";

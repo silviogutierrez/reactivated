@@ -81,3 +81,7 @@ pip install wheel
 python setup.py sdist bdist_wheel
 twine upload dist/*
 echo "Published version $NEW_VERSION to PyPI"
+
+# Populate PyPI by forcing an install till it works.
+# shellcheck disable=SC2015
+for _ in 1 2 3 4 5; do pip install "reactivated==$NEW_VERSION" && break || sleep 15; done

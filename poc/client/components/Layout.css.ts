@@ -1,6 +1,6 @@
-import {style} from '@vanilla-extract/css';
+import {style} from "@vanilla-extract/css";
 
 export const layout = style({
-  backgroundColor: "blue",
-  maxWidth: 1000,
+    backgroundColor: "blue",
+    maxWidth: 1000,
 });

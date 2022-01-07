@@ -1,10 +1,9 @@
+import os
+import subprocess
 from typing import Any
 
-from django.core.management.base import BaseCommand
-
-import subprocess
 from django.conf import settings
-import os
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):

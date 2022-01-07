@@ -5,7 +5,9 @@ import ImportGlobPlugin from "esbuild-plugin-import-glob";
 
 const entryNames = process.argv.slice(2);
 
-const entryPoints = Object.fromEntries(entryNames.map(entry => [entry, `./client/${entry}.js`]));
+const entryPoints = Object.fromEntries(
+    entryNames.map((entry) => [entry, `./client/${entry}.js`]),
+);
 
 esbuild
     .build({
@@ -17,7 +19,7 @@ esbuild
         watch: true,
         define: {
             // process: '{"env": {}}',
-            global: '{}',
+            global: "{}",
         },
         plugins: [
             ImportGlobPlugin(),

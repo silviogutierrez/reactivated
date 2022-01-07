@@ -13,8 +13,6 @@ from django.template.defaultfilters import escape
 
 import requests_unixsocket
 
-from . import constants
-
 renderer_process: Optional[Any] = None
 renderer_process_port: Optional[str] = None
 logger = logging.getLogger("django.server")
@@ -102,9 +100,7 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
     renderer_port = wait_and_get_port()
 
     session = requests_unixsocket.Session()
-    socket = urllib.parse.quote_plus(
-        renderer_port,
-    )
+    socket = urllib.parse.quote_plus(renderer_port,)
 
     response = session.post(f"http+unix://{socket}", headers=headers, data=data)
 

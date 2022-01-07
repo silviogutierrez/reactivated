@@ -1,5 +1,4 @@
 from django.http import HttpRequest, HttpResponse
-
 from django.utils import timezone
 
 from . import forms, templates

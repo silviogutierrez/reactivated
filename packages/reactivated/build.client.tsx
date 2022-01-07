@@ -5,9 +5,11 @@ import ImportGlobPlugin from "esbuild-plugin-import-glob";
 
 const entryNames = process.argv.slice(2);
 
-const entryPoints = Object.fromEntries(entryNames.map(entry => [entry, `./client/${entry}.tsx`]));
+const entryPoints = Object.fromEntries(
+    entryNames.map((entry) => [entry, `./client/${entry}.tsx`]),
+);
 
-const production = process.env.NODE_ENV === 'production';
+const production = process.env.NODE_ENV === "production";
 
 const env = {
     NODE_ENV: production ? "production" : "development",
@@ -27,7 +29,7 @@ esbuild
         external: ["moment"],
         define: {
             process: JSON.stringify({env}),
-            global: '{}',
+            global: "{}",
         },
         plugins: [
             ImportGlobPlugin(),

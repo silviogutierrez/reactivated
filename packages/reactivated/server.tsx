@@ -8,8 +8,7 @@ import {FilledContext, Helmet, HelmetData, HelmetProvider} from "react-helmet-as
 
 // Useful when running e2e tests or the like, where the output is not
 // co-located with the running process.
-const REACTIVATED_CLIENT_ROOT =
-    process.env.REACTIVATED_CLIENT_ROOT ?? `../client`;
+const REACTIVATED_CLIENT_ROOT = process.env.REACTIVATED_CLIENT_ROOT ?? `../client`;
 
 import {Settings} from "./models";
 
@@ -17,17 +16,17 @@ import {Settings} from "./models";
 export const BODY_SIZE_LIMIT = "100000000k";
 
 export const renderPage = ({
-        html,
-        helmet,
-        context,
-        props,
-    }: {
-        html: string;
-        helmet: HelmetData;
-        context: any;
-        props: any;
-    }) =>
-        `
+    html,
+    helmet,
+    context,
+    props,
+}: {
+    html: string;
+    helmet: HelmetData;
+    context: any;
+    props: any;
+}) =>
+    `
 <!DOCTYPE html>
 <html>
     <head ${helmet.htmlAttributes.toString()}>
@@ -72,7 +71,7 @@ type Result =
       };
 
 export const render = (
-    {context, props}: {context: any, props: any},
+    {context, props}: {context: any; props: any},
     Provider: React.ComponentType<any>,
     Template: React.ComponentType<any>,
 ): Result => {
@@ -110,14 +109,14 @@ export const simpleRender = () => {
     const Template = getTemplate(context);
 
     process.stdout.write(JSON.stringify(render({context, props}, Provider, Template)));
-}
+};
 
 export const serverRender = (body: Buffer) => {
     const {context, props} = JSON.parse(body.toString("utf8"));
     const {Provider, getTemplate} = require("../../client/generated");
     const Template = getTemplate(context);
     return render({context, props}, Provider, Template);
-}
+};
 
 const OK_RESPONSE = 200;
 
@@ -151,11 +150,9 @@ server.listen(SOCKET_PATH, () => {
 
     if (address == null) {
         throw new Error();
-    }
-    else if (typeof address === "string") {
+    } else if (typeof address === "string") {
         process.stdout.write(`RENDERER:${address}:LISTENING`);
-    }
-    else {
+    } else {
         process.stdout.write(`RENDERER:${address.port.toString()}:LISTENING`);
     }
 

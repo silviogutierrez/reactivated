@@ -164,6 +164,7 @@ class ReactivatedConfig(AppConfig):
             stdout=subprocess.PIPE,
         )
         from reactivated import renderer
+
         renderer.renderer_process = subprocess.Popen(
             ["node", "./node_modules/reactivated/build.server.js"],
             encoding="utf-8",

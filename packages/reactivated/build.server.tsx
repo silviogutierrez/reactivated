@@ -3,13 +3,13 @@ import {vanillaExtractPlugin} from "@vanilla-extract/esbuild-plugin";
 import * as esbuild from "esbuild";
 import ImportGlobPlugin from "esbuild-plugin-import-glob";
 import http from "http";
-import fs = require('fs')
+import fs = require("fs");
 
 let server: http.Server | null = null;
 
 const SOCKET_PATH = `${process.cwd()}/node_modules/.bin/reactivated.sock`;
 const CACHE_KEY = `${process.cwd()}/node_modules/.bin/server.js`;
-const production = process.env.NODE_ENV === 'production';
+const production = process.env.NODE_ENV === "production";
 
 esbuild
     .build({
@@ -25,19 +25,23 @@ esbuild
         platform: "node",
         outfile: "./node_modules/.bin/server.js",
         sourcemap: true,
-        watch: production === true ? false : {
-            onRebuild: () => {
-                restartServer();
-            },
-        },
+        watch:
+            production === true
+                ? false
+                : {
+                      onRebuild: () => {
+                          restartServer();
+                      },
+                  },
         plugins: [
             ImportGlobPlugin(),
             vanillaExtractPlugin(),
             linaria({sourceMap: true}),
         ],
-    }).then(() =>{
+    })
+    .then(() => {
         if (production === false) {
-            restartServer()
+            restartServer();
         }
     })
     .catch(() => process.exit(1));
@@ -52,4 +56,4 @@ const restartServer = () => {
     }
     delete require.cache[CACHE_KEY];
     server = require(CACHE_KEY).server;
-}
+};

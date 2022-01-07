@@ -15,7 +15,7 @@ esbuild
     .build({
         stdin: {
             contents: `
-                export {server} from "reactivated/server";
+                export {server} from "reactivated/renderer";
             `,
             resolveDir: process.cwd(),
             loader: "ts",

@@ -32,6 +32,9 @@ esbuild
             // up during the build process.
             "process.env.NODE_ENV": production ? '"production"' : '"development"',
             process: JSON.stringify({env}),
+
+            // Redux persist needs this.
+            global: "{}",
         },
         plugins: [
             ImportGlobPlugin(),

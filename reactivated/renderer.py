@@ -34,7 +34,7 @@ def wait_and_get_port() -> Optional[str]:
 
     if renderer_process is None:
         renderer_process = subprocess.Popen(
-            ["node", "./node_modules/.bin/server.js", *entry_points],
+            ["node", "./node_modules/.bin/renderer.js", *entry_points],
             encoding="utf-8",
             stdout=subprocess.PIPE,
         )

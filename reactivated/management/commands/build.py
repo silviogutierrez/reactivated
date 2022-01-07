@@ -40,5 +40,5 @@ class Command(BaseCommand):
         if tsc_process.returncode != 0:
             raise CommandError("TypeScript error. Run 'tsc --noEmit' manually.")
 
-        if client_error.returncode != 0  or renderer_error.returncode != 0:
+        if client_process.returncode != 0  or renderer_process.returncode != 0:
             raise CommandError("esbuild errors")

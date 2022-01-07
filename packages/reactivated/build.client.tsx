@@ -26,7 +26,7 @@ esbuild
         outdir: "./static/dist",
         sourcemap: true,
         watch: production === false,
-        external: ["moment"],
+        external: ["moment", "@client/generated/images"],
         define: {
             process: JSON.stringify({env}),
             global: "{}",

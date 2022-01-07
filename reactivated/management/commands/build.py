@@ -23,10 +23,10 @@ class Command(BaseCommand):
             env=build_env,
         )
         client_process.wait()
-        server_process = subprocess.Popen(
-            ["node", "./node_modules/reactivated/build.server.js"],
+        renderer_process = subprocess.Popen(
+            ["node", "./node_modules/reactivated/build.renderer.js"],
             stdout=subprocess.PIPE,
             env=build_env,
         )
         client_output, client_error = client_process.communicate()
-        server_output, server_error = server_process.communicate()
+        renderer_ouput, renderer_error = renderer_process.communicate()

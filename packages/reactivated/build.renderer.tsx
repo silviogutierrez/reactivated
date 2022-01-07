@@ -8,7 +8,7 @@ import fs = require("fs");
 let server: http.Server | null = null;
 
 const SOCKET_PATH = `${process.cwd()}/node_modules/.bin/reactivated.sock`;
-const CACHE_KEY = `${process.cwd()}/node_modules/.bin/server.js`;
+const CACHE_KEY = `${process.cwd()}/node_modules/.bin/renderer.js`;
 const production = process.env.NODE_ENV === "production";
 
 esbuild
@@ -23,7 +23,7 @@ esbuild
         minify: production,
         bundle: true,
         platform: "node",
-        outfile: "./node_modules/.bin/server.js",
+        outfile: "./node_modules/.bin/renderer.js",
         sourcemap: true,
         watch:
             production === true

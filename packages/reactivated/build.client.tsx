@@ -43,7 +43,7 @@ esbuild
         plugins: [
             ImportGlobPlugin(),
             vanillaExtractPlugin(),
-            linaria({sourceMap: true}),
+            linaria({sourceMap: true, esbuildOptions: {sourcemap: "inline"}}),
         ],
     })
     .catch(() => process.exit(1));

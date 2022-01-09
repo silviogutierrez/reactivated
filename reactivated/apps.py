@@ -180,7 +180,7 @@ class ReactivatedConfig(AppConfig):
             # See: https://stackoverflow.com/questions/25188119/test-if-code-is-executed-from-within-a-py-test-session
             if "pytest" not in sys.modules:
                 logger.info("Cleaning up client build process")
-                logger.info("Cleaning up server build process")
+                logger.info("Cleaning up renderer build process")
             client_process.terminate()
             renderer.renderer_process.terminate()
 

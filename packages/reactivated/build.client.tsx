@@ -21,7 +21,11 @@ esbuild
     .build({
         entryPoints,
         bundle: true,
-        minify: production,
+        // We use terser to minify because esbuild breaks safari sourcemaps.
+        // It's likely a Safari bug, but terser seems to work for some reason.
+        minify: false,
+        // Related to sourcemaps as well in Safari.
+        legalComments: "none",
         platform: "browser",
         outdir: "./static/dist",
         sourcemap: true,

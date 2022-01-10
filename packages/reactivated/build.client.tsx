@@ -10,6 +10,7 @@ const entryPoints = Object.fromEntries(
 );
 
 const production = process.env.NODE_ENV === "production";
+const identifiers = production ? "short" : "debug";
 
 const env = {
     NODE_ENV: production ? "production" : "development",
@@ -42,7 +43,12 @@ esbuild
         },
         plugins: [
             ImportGlobPlugin(),
-            vanillaExtractPlugin(),
+            // We manually pass in identifiers because the client is not
+            // minified by esbuild but the renderer is, so class names could
+            // differ.
+            // Instead of set it manually instead of relying on minification
+            // settings.
+            vanillaExtractPlugin({identifiers}),
             linaria({sourceMap: true, esbuildOptions: {sourcemap: "inline"}}),
         ],
     })

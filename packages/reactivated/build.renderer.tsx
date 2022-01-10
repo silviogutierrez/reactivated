@@ -10,6 +10,7 @@ let server: http.Server | null = null;
 const SOCKET_PATH = `${process.cwd()}/node_modules/.bin/reactivated.sock`;
 const CACHE_KEY = `${process.cwd()}/node_modules/.bin/renderer.js`;
 const production = process.env.NODE_ENV === "production";
+const identifiers = production ? "short" : "debug";
 
 esbuild
     .build({
@@ -35,7 +36,12 @@ esbuild
                   },
         plugins: [
             ImportGlobPlugin(),
-            vanillaExtractPlugin(),
+            // We manually pass in identifiers because the client is not
+            // minified by esbuild but the renderer is, so class names could
+            // differ.
+            // Instead of set it manually instead of relying on minification
+            // settings.
+            vanillaExtractPlugin({identifiers}),
             linaria({sourceMap: true}),
         ],
     })

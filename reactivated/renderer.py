@@ -6,23 +6,18 @@ import sys
 import urllib.parse
 from typing import Any, List, Optional
 
+import requests_unixsocket  # type: ignore[import]
 import simplejson
 from django.conf import settings
 from django.http import HttpRequest
 from django.template.defaultfilters import escape
 
-import requests_unixsocket
-
-renderer_process: Optional[Any] = None
+renderer_process: Optional[subprocess.Popen[str]] = None
 renderer_process_port: Optional[str] = None
 logger = logging.getLogger("django.server")
 
-# client_process =
-# server_process =
-# maybe_render_process =
 
-
-def wait_and_get_port() -> Optional[str]:
+def wait_and_get_port() -> str:
     global renderer_process_port
     global renderer_process
 
@@ -46,7 +41,9 @@ def wait_and_get_port() -> Optional[str]:
             # See: https://stackoverflow.com/questions/25188119/test-if-code-is-executed-from-within-a-py-test-session
             if "pytest" not in sys.modules:
                 logger.info("Cleaning up renderer process")
-            renderer_process.terminate()
+
+            if renderer_process is not None:
+                renderer_process.terminate()
 
         atexit.register(cleanup)
 
@@ -105,6 +102,6 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
     response = session.post(f"http+unix://{socket}", headers=headers, data=data)
 
     if response.status_code == 200:
-        return response.text
+        return response.text  # type: ignore[no-any-return]
     else:
         raise Exception(response.json()["stack"])

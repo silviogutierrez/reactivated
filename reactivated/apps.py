@@ -182,7 +182,9 @@ class ReactivatedConfig(AppConfig):
                 logger.info("Cleaning up client build process")
                 logger.info("Cleaning up renderer build process")
             client_process.terminate()
-            renderer.renderer_process.terminate()
+
+            if renderer.renderer_process is not None:
+                renderer.renderer_process.terminate()
 
         atexit.register(cleanup)
 

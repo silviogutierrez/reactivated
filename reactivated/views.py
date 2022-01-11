@@ -20,19 +20,4 @@ def schema(request: HttpRequest, query: Optional[str] = None) -> JsonResponse:
     return JsonResponse(_schema)
 
 
-def client_bundle(request: HttpRequest, bundle: str) -> JsonResponse:
-    import subprocess
-    from django.views import static
-
-    process = subprocess.Popen(
-        ["node", "./node_modules/development/build.client.js"],
-        stdout=subprocess.PIPE,
-        # stdin=subprocess.PIPE,
-    )
-    process.wait()
-    return static.serve(request, path=bundle, document_root="./dist/")
-
-
 schema_views = [path("schema/", schema), path("schema/<path:query>/", schema)]
-
-bundle_views = path("bundles/<str:bundle>", client_bundle)

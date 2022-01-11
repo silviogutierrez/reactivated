@@ -34,9 +34,6 @@ class JSX(BaseEngine):
         if adapter is not None:
             return AdapterTemplate(adapter, self)
 
-        if template_name.endswith(".tsx") or template_name.endswith(".jsx"):
-            return JSXTemplate(template_name, self)
-
         raise TemplateDoesNotExist([], backend=self)  # type: ignore[arg-type]
 
     @cached_property

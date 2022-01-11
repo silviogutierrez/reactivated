@@ -1,4 +1,3 @@
-import os
 from typing import Any, Callable, Dict, List, NamedTuple, Optional
 
 from django.conf import settings
@@ -34,12 +33,6 @@ class JSX(BaseEngine):
 
         if adapter is not None:
             return AdapterTemplate(adapter, self)
-
-        if template_name.endswith(".tsx") or template_name.endswith(".jsx"):
-            if os.path.isfile(
-                os.path.join(settings.BASE_DIR, "client/templates", template_name)
-            ):
-                return JSXTemplate(template_name, self)
 
         raise TemplateDoesNotExist([], backend=self)  # type: ignore[arg-type]
 

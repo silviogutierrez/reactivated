@@ -7,7 +7,6 @@
         "@types/reactstrap": "^8.0.1",
         "csstips": "^0.3.0",
         "csx": "9.1.0",
-        "dependencies": "../packages/dependencies/",
         "downshift": "^3.2.10",
         "immer": "^9.0.7",
         "json-schema-to-typescript": "^10.1.5",

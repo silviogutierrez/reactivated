@@ -1,6 +1,8 @@
 import pickle
 from typing import Dict, NamedTuple, Optional
 
+import simplejson
+
 from reactivated import Pick, template
 from sample.server.apps.samples import models
 
@@ -66,4 +68,25 @@ def test_non_class_based_members():
     assert response.context_data == context
     assert response.resolve_context(response.context_data) == {
         "non_class_member": {"a": "b"}
+    }
+
+
+def test_render_template_with_no_renderer(rf, settings):
+    settings.REACTIVATED_SERVER = None
+    request = rf.get("/")
+
+    @template
+    class MyTemplate(NamedTuple):
+        foo: int
+
+    rendered = simplejson.loads(MyTemplate(foo=1).render(request).rendered_content)
+    rendered["context"]["csrf_token"] = "CLOBBERED"
+    assert rendered == {
+        "context": {
+            "template_name": "MyTemplate",
+            "messages": [],
+            "request": {"path": "/", "url": "http://testserver/"},
+            "csrf_token": "CLOBBERED",
+        },
+        "props": {"foo": 1.0},
     }

@@ -4,6 +4,7 @@ from django import forms
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 
+from . import utils
 from .renderer import should_respond_with_json
 from .serialization import create_schema, serialize
 from .serialization.registry import (
@@ -26,11 +27,22 @@ class LazySerializationResponse(TemplateResponse):
     regular Python objects.
     """
 
+    _request: HttpRequest
+
     def __init__(
         self, request: HttpRequest, template: Type[T], *args: Any, **kwargs: Any,
     ) -> None:
         self.template = template
         super().__init__(request, *args, **kwargs)
+
+    @property
+    def rendered_content(self) -> str:
+        from .backend import JSXTemplate
+
+        engine = utils.get_template_engine()
+        template = JSXTemplate(self.template_name, engine)  # type: ignore[arg-type]
+        context = self.resolve_context(self.context_data)
+        return template.render(context, self._request)
 
     def __getstate__(self) -> Any:
         """

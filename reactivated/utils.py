@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import collections
 import inspect
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Manager
+
+if TYPE_CHECKING:
+    from reactivated.backend import JSX
 
 
 # Mock is_simple_callable for now
@@ -77,3 +82,13 @@ class ClassLookupDict:
 
     def __setitem__(self, key: Any, value: Any) -> Any:
         self.mapping[key] = value
+
+
+def get_template_engine() -> JSX:
+    from django.template import engines
+    from reactivated.backend import JSX
+
+    for engine in engines.all():
+        if isinstance(engine, JSX):
+            return engine
+    assert False, "JSX engine not found in settings.TEMPLATES"

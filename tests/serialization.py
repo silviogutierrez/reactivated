@@ -1050,10 +1050,10 @@ def test_form_and_fields():
                             None,
                             [
                                 {
-                                    "label": "2021",
+                                    "label": "2000",
                                     "name": "date_field_year",
                                     "selected": False,
-                                    "value": "2021",
+                                    "value": "2000",
                                 }
                             ],
                             0.0,
@@ -1062,109 +1062,13 @@ def test_form_and_fields():
                             None,
                             [
                                 {
-                                    "label": "2022",
+                                    "label": "2001",
                                     "name": "date_field_year",
                                     "selected": False,
-                                    "value": "2022",
+                                    "value": "2001",
                                 }
                             ],
                             1.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "2023",
-                                    "name": "date_field_year",
-                                    "selected": False,
-                                    "value": "2023",
-                                }
-                            ],
-                            2.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "2024",
-                                    "name": "date_field_year",
-                                    "selected": False,
-                                    "value": "2024",
-                                }
-                            ],
-                            3.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "2025",
-                                    "name": "date_field_year",
-                                    "selected": False,
-                                    "value": "2025",
-                                }
-                            ],
-                            4.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "2026",
-                                    "name": "date_field_year",
-                                    "selected": False,
-                                    "value": "2026",
-                                }
-                            ],
-                            5.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "2027",
-                                    "name": "date_field_year",
-                                    "selected": False,
-                                    "value": "2027",
-                                }
-                            ],
-                            6.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "2028",
-                                    "name": "date_field_year",
-                                    "selected": False,
-                                    "value": "2028",
-                                }
-                            ],
-                            7.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "2029",
-                                    "name": "date_field_year",
-                                    "selected": False,
-                                    "value": "2029",
-                                }
-                            ],
-                            8.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "2030",
-                                    "name": "date_field_year",
-                                    "selected": False,
-                                    "value": "2030",
-                                }
-                            ],
-                            9.0,
                         ],
                     ],
                     "required": False,

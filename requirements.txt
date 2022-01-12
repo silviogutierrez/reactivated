@@ -18,6 +18,9 @@ requests==2.22.0
 simplejson==3.16.0
 twine==2.0.0
 
+playright==1.17.2
+pytest-playwright==0.2.2
+
 types-requests==2.25.11
 types-simplejson==3.17.1
 

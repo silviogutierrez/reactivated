@@ -45,8 +45,12 @@ jobs:
             - name: Yarn
               run: |
                   yarn
+                  python scripts/generate_types.py
                   yarn --cwd packages/reactivated
                   yarn --cwd sample
+                  yarn --cwd packages/reactivated/ tsc --outDir ../../sample/node_modules/reactivated/
+                  rm -rf sample/node_modules/reactivated/node_modules/react
+                  rm -rf sample/node_modules/reactivated/node_modules/react-dom
             - name: Run tests
               run: scripts/test.sh --server
               env:

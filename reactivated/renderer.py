@@ -51,6 +51,7 @@ def wait_and_get_port() -> str:
 
     for c in iter(lambda: renderer_process.stdout.read(1), b""):  # type: ignore[union-attr]
         output += c
+        print("OUTPUT", output)
 
         if match := re.match(r"RENDERER:([/.\w]+):LISTENING", output):
             renderer_process_port = match.group(1)

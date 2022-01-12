@@ -30,6 +30,7 @@ esbuild
         platform: "browser",
         outdir: "./static/dist",
         sourcemap: true,
+        target: "es2018",
         watch: production === false,
         external: ["moment", "@client/generated/images"],
         define: {

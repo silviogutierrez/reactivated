@@ -137,6 +137,8 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static/"),)
+
 DEBUG_PORT = int(os.environ.get("DEBUG_PORT", 8000))
 
 RUNSERVERPLUS_SERVER_ADDRESS_PORT = f"0.0.0.0:{DEBUG_PORT}"

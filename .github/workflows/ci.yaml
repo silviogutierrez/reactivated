@@ -45,9 +45,9 @@ jobs:
             - name: Yarn
               run: |
                   yarn
-                  python scripts/generate_types.py
                   yarn --cwd packages/reactivated
                   yarn --cwd sample
+                  python scripts/generate_types.py
                   yarn --cwd packages/reactivated/ tsc --outDir ../../sample/node_modules/reactivated/
                   rm -rf sample/node_modules/reactivated/node_modules/react
                   rm -rf sample/node_modules/reactivated/node_modules/react-dom

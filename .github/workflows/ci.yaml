@@ -44,7 +44,7 @@ jobs:
               run: pip install -r requirements.txt
             - name: Yarn
               run: |
-                  playwright install
+                  # playwright install
                   yarn
                   yarn --cwd packages/reactivated
                   yarn --cwd sample
@@ -53,7 +53,7 @@ jobs:
                   rm -rf sample/node_modules/reactivated/node_modules/react
                   rm -rf sample/node_modules/reactivated/node_modules/react-dom
             - name: Run tests
-              run: scripts/test.sh --server
+              run: cd sample && node node_modules/.bin/renderer.js
               env:
                   DATABASE_USER: postgres
                   DATABASE_PASSWORD: postgres

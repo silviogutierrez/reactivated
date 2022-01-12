@@ -44,6 +44,7 @@ jobs:
               run: pip install -r requirements.txt
             - name: Yarn
               run: |
+                  playwright install
                   yarn
                   yarn --cwd packages/reactivated
                   yarn --cwd sample

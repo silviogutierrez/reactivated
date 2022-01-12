@@ -7,7 +7,7 @@ from reactivated import registry
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 
-def test_end_to_end(client, live_server, page):
+def test_end_to_end(client, live_server):
     registry.type_registry.clear()
     registry.global_types.clear()
     registry.template_registry.clear()

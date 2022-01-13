@@ -1,5 +1,6 @@
 import atexit
 import logging
+import os
 import re
 import subprocess
 import sys
@@ -29,9 +30,14 @@ def wait_and_get_port() -> str:
 
     if renderer_process is None:
         renderer_process = subprocess.Popen(
-            ["node", "./node_modules/.bin/renderer.js", *entry_points],
+            [
+                "node",
+                f"{settings.BASE_DIR}/node_modules/.bin/renderer.js",
+                *entry_points,
+            ],
             encoding="utf-8",
             stdout=subprocess.PIPE,
+            cwd=settings.BASE_DIR,
         )
 
         def cleanup() -> None:
@@ -96,8 +102,16 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
 
     renderer_port = wait_and_get_port()
 
+    # Sometimes we are running tests and the CWD is outside BASE_DIR.  For
+    # example, the reactivated tests themselves.  Instead of using BASE_DIR as
+    # the prefix, we calculate the relative path to avoid the 100 character
+    # UNIX socket limit.
+    # But dots do not work for relative paths with sockets so we clear it.
+    rel_path = os.path.relpath(settings.BASE_DIR)
+    address = renderer_port if rel_path == "." else f"{rel_path}/{renderer_port}"
+
     session = requests_unixsocket.Session()
-    socket = urllib.parse.quote_plus(renderer_port,)
+    socket = urllib.parse.quote_plus(address)
 
     response = session.post(f"http+unix://{socket}", headers=headers, data=data)
 

@@ -160,14 +160,18 @@ class ReactivatedConfig(AppConfig):
         entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
 
         client_process = subprocess.Popen(
-            ["node", "./node_modules/reactivated/build.client.js", *entry_points],
+            [
+                "node",
+                f"{settings.BASE_DIR}/node_modules/reactivated/build.client.js",
+                *entry_points,
+            ],
             stdout=subprocess.PIPE,
             env={**os.environ.copy()},
         )
         from reactivated import renderer
 
         renderer.renderer_process = subprocess.Popen(
-            ["node", "./node_modules/reactivated/build.renderer.js"],
+            ["node", f"{settings.BASE_DIR}/node_modules/reactivated/build.renderer.js"],
             encoding="utf-8",
             stdout=subprocess.PIPE,
             env={**os.environ.copy(),},
@@ -215,9 +219,10 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
     # Maybe there's a way to force it to be a single atomic write? I tried
     # open('w+b', buffering=0) but no luck.
     process = subprocess.Popen(
-        ["node", "./node_modules/reactivated/generator.js"],
+        ["node", f"{settings.BASE_DIR}/node_modules/reactivated/generator.js"],
         stdout=subprocess.PIPE,
         stdin=subprocess.PIPE,
+        cwd=settings.BASE_DIR,
     )
     out, error = process.communicate(encoded_schema)
 

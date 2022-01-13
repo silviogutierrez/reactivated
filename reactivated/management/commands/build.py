@@ -25,19 +25,26 @@ class Command(BaseCommand):
         }
 
         tsc_process = subprocess.Popen(
-            ["./node_modules/.bin/tsc", "--noEmit"],
+            [f"{settings.BASE_DIR}/node_modules/.bin/tsc", "--noEmit"],
             stdout=subprocess.PIPE,
             env=build_env,
+            cwd=settings.BASE_DIR,
         )
         client_process = subprocess.Popen(
-            ["node", "./node_modules/reactivated/build.client.js", *entry_points],
+            [
+                "node",
+                f"{settings.BASE_DIR}/node_modules/reactivated/build.client.js",
+                *entry_points,
+            ],
             stdout=subprocess.PIPE,
             env=build_env,
+            cwd=settings.BASE_DIR,
         )
         renderer_process = subprocess.Popen(
-            ["node", "./node_modules/reactivated/build.renderer.js"],
+            ["node", f"{settings.BASE_DIR}/node_modules/reactivated/build.renderer.js"],
             stdout=subprocess.PIPE,
             env=build_env,
+            cwd=settings.BASE_DIR,
         )
 
         tsc_output, tsc_error = tsc_process.communicate()
@@ -64,6 +71,7 @@ class Command(BaseCommand):
                 ],
                 stdout=subprocess.PIPE,
                 env=build_env,
+                cwd=settings.BASE_DIR,
             )
             terser_process.communicate()
 
@@ -72,7 +80,7 @@ class Command(BaseCommand):
 
             sentry_process = subprocess.Popen(
                 [
-                    "./node_modules/.bin/sentry-cli",
+                    f"{settings.BASE_DIR}/node_modules/.bin/sentry-cli",
                     "releases",
                     "files",
                     os.environ["TAG_VERSION"],
@@ -83,5 +91,6 @@ class Command(BaseCommand):
                 ],
                 stdout=subprocess.PIPE,
                 env=build_env,
+                cwd=settings.BASE_DIR,
             )
             sentry_output, sentry_error = sentry_process.communicate()

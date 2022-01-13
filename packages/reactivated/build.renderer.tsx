@@ -58,9 +58,6 @@ const restartServer = () => {
         server.close();
     }
 
-    if (fs.existsSync(SOCKET_PATH)) {
-        fs.unlinkSync(SOCKET_PATH);
-    }
     delete require.cache[CACHE_KEY];
     server = require(CACHE_KEY).server;
 };

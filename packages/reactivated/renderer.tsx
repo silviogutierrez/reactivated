@@ -122,7 +122,9 @@ const OK_RESPONSE = 200;
 
 const ERROR_REPONSE = 500;
 
-export const SOCKET_PATH = "node_modules/.bin/reactivated.sock";
+// Relative path to keep it under 100 characters.
+// See: https://unix.stackexchange.com/questions/367008/why-is-socket-path-length-limited-to-a-hundred-chars
+export const SOCKET_PATH = `node_modules/.bin/reactivated.sock`;
 
 export const server = http.createServer((req, res) => {
     let body = Buffer.from("");
@@ -145,6 +147,10 @@ export const server = http.createServer((req, res) => {
     });
 });
 
+if (fs.existsSync(SOCKET_PATH)) {
+    fs.unlinkSync(SOCKET_PATH);
+}
+
 server.listen(SOCKET_PATH, () => {
     const address = server.address();
 
@@ -155,9 +161,4 @@ server.listen(SOCKET_PATH, () => {
     } else {
         process.stdout.write(`RENDERER:${address.port.toString()}:LISTENING`);
     }
-
-    // TODO: load this from a passed in parameter.
-    // const warmUpTemplate = "HomePage";
-    // const templatePath = `${process.cwd()}/client/templates/${warmUpTemplate}`;
-    // require(templatePath);
 });

@@ -15,6 +15,9 @@ class Command(BaseCommand):
             action="store_true",
             help="Upload sourcemaps to Sentry",
         )
+        parser.add_argument(
+            "--minify", action="store_true", help="Minify using terser. Slow.",
+        )
 
     def handle(self, *args: Any, **options: Any) -> None:
         entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
@@ -57,23 +60,24 @@ class Command(BaseCommand):
         if client_process.returncode != 0 or renderer_process.returncode != 0:
             raise CommandError("esbuild errors")
 
-        for bundle in entry_points:
-            terser_process = subprocess.Popen(
-                [
-                    "yarn",
-                    "terser",
-                    f"static/dist/{bundle}.js",
-                    f"--source-map=content=static/dist/{bundle}.js.map",
-                    "--compress",
-                    "--mangle",
-                    "-o",
-                    f"static/dist/{bundle}.js",
-                ],
-                stdout=subprocess.PIPE,
-                env=build_env,
-                cwd=settings.BASE_DIR,
-            )
-            terser_process.communicate()
+        if options["minify"] is True:
+            for bundle in entry_points:
+                terser_process = subprocess.Popen(
+                    [
+                        "yarn",
+                        "terser",
+                        f"static/dist/{bundle}.js",
+                        f"--source-map=content=static/dist/{bundle}.js.map",
+                        "--compress",
+                        "--mangle",
+                        "-o",
+                        f"static/dist/{bundle}.js",
+                    ],
+                    stdout=subprocess.PIPE,
+                    env=build_env,
+                    cwd=settings.BASE_DIR,
+                )
+                terser_process.communicate()
 
         if options["upload_sourcemaps"] is True:
             assert "TAG_VERSION" in os.environ, "TAG_VERSION must be set"

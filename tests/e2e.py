@@ -17,8 +17,5 @@ def test_end_to_end(client, live_server, page):
     call_command("generate_client_assets")
     call_command("build")
 
-    if os.path.exists("./node_modules/.bin/reactivated.sock"):
-        os.remove("./node_modules/.bin/reactivated.sock")
-
     page.goto(live_server.url)
     assert "<h1>Hello World!</h1>" in page.content()

@@ -206,7 +206,9 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
 
     digest = hashlib.sha1(encoded_schema).hexdigest().encode()
 
-    if skip_cache is False and os.path.exists(f"{settings.BASE_DIR}/client/generated/index.tsx"):
+    if skip_cache is False and os.path.exists(
+        f"{settings.BASE_DIR}/client/generated/index.tsx"
+    ):
         with open(f"{settings.BASE_DIR}/client/generated/index.tsx", "r+b") as existing:
             already_generated = existing.read()
 

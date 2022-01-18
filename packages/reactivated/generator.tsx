@@ -138,21 +138,5 @@ export type ${name}Check = Checker<Types["${propsName}"], typeof ${name}Implemen
         `);
     }
 
-    for (const name of Object.keys(values)) {
-        interfaces.addVariableStatement({
-            declarationKind: VariableDeclarationKind.Const,
-            isExported: true,
-            declarations: [
-                {
-                    name,
-                    initializer: Writers.assertion(
-                        JSON.stringify(values[name]),
-                        "const",
-                    ),
-                },
-            ],
-        });
-    }
-
     process.stdout.write(interfaces.getText());
 });

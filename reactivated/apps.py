@@ -228,9 +228,24 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
     )
     out, error = process.communicate(encoded_schema)
 
+    constants_process = subprocess.Popen(
+        [
+            "node",
+            f"{settings.BASE_DIR}/node_modules/reactivated/generator/constants.js",
+        ],
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+        cwd=settings.BASE_DIR,
+    )
+    constants_out, constants_error = constants_process.communicate(encoded_schema)
+
     os.makedirs(f"{settings.BASE_DIR}/client/generated", exist_ok=True)
 
     with open(f"{settings.BASE_DIR}/client/generated/index.tsx", "w+b") as output:
         output.write(b"// Digest: %s\n" % digest)
         output.write(out)
-        logger.info("Finished generating.")
+
+    with open(f"{settings.BASE_DIR}/client/generated/constants.tsx", "w+b") as output:
+        output.write(constants_out)
+
+    logger.info("Finished generating.")

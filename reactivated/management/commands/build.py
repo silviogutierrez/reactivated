@@ -16,7 +16,9 @@ class Command(BaseCommand):
             help="Upload sourcemaps to Sentry",
         )
         parser.add_argument(
-            "--no-minify", action="store_true", help="Minify using terser. Slow.",
+            "--no-minify",
+            action="store_true",
+            help="Skip minifying using terser to speed up build.",
         )
 
     def handle(self, *args: Any, **options: Any) -> None:

@@ -1,20 +1,19 @@
 import React from "react";
-import {hydrate} from "react-dom";
 
-import {getServerData, Provider} from "@client/generated";
+import {hydrate} from "react-dom";
+import {HelmetProvider} from "react-helmet-async";
+
+import {Provider, getServerData, getTemplate} from "@client/generated";
 
 const {props, context} = getServerData();
 
-if ((module as any).hot) {
-    (module as any).hot.accept();
-}
-
-// tslint:disable-next-line
-const Template = require("client/templates/" + context.template_name).default;
+const Template = getTemplate(context);
 
 hydrate(
-    <Provider value={context}>
-        <Template {...props} />
-    </Provider>,
+    <HelmetProvider>
+        <Provider value={context}>
+            <Template {...props} />
+        </Provider>
+    </HelmetProvider>,
     document.getElementById("root"),
 );

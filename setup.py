@@ -21,6 +21,7 @@ setuptools.setup(
     package_data={"reactivated": ["py.typed", "templates/**/*"]},
     data_files=[('""', ["packages/reactivated/package.json"])],
     scripts=[],
+    install_requires=["requests-unixsocket==0.3.0",],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

@@ -18,8 +18,6 @@ import {
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
 const {urls, templates, types, values} = schema;
 
-import {NormalModuleReplacementPlugin} from "webpack";
-
 const project = new Project();
 
 /*
@@ -111,6 +109,14 @@ export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentCl
 
 export const {Context, Provider, getServerData} = createContext<Types["Context"]>();
 
+export const getTemplate = ({template_name}: {template_name: string}) => {
+    // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
+    const { default: templates, filenames } = require('../templates/**/*');
+    const templatePath = "../templates/" + template_name + ".tsx";
+    const Template: React.ComponentType<any> = templates.find((t: any, index: number) => filenames[index] === templatePath).default;
+    return Template;
+}
+
 export const CSRFToken = forms.createCSRFToken(Context);
 
 export const {createRenderer, Iterator} = forms.bindWidgetType<Types["globals"]["Widget"]>();
@@ -118,7 +124,7 @@ export const {createRenderer, Iterator} = forms.bindWidgetType<Types["globals"][
 
 // tslint:disable-next-line
 compile(types, "Types").then((ts) => {
-    process.stdout.write("/* tslint:disable */\n");
+    process.stdout.write("/* eslint-disable */\n");
     process.stdout.write(ts);
 
     for (const name of Object.keys(templates)) {
@@ -130,22 +136,6 @@ export type ${name}Check = Checker<Types["${propsName}"], typeof ${name}Implemen
 
 
         `);
-    }
-
-    for (const name of Object.keys(values)) {
-        interfaces.addVariableStatement({
-            declarationKind: VariableDeclarationKind.Const,
-            isExported: true,
-            declarations: [
-                {
-                    name,
-                    initializer: Writers.assertion(
-                        JSON.stringify(values[name]),
-                        "const",
-                    ),
-                },
-            ],
-        });
     }
 
     process.stdout.write(interfaces.getText());

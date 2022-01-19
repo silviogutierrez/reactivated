@@ -40,3 +40,64 @@ class CustomDecimalFieldType
 ```
 
 This will get picked up before the basic handler.
+
+
+## Rendering approaches
+
+
+### Communicate / stdin
+
+Breaks with large data.
+```
+    process = subprocess.Popen(
+        ["node", "./static/dist/server.js"],
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+    )
+    print(data)
+    process_response, error = process.communicate(data.encode())
+```
+
+
+### Threading
+https://stackoverflow.com/a/14026178
+Still breaks with large enough data.
+```
+    process = subprocess.Popen(
+        ["node", "./static/dist/server.js"],
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+    )
+    process_response = ""
+    error = None
+
+    def writer() -> None:
+        for char in data:
+            process.stdin.write(char.encode())
+        process.stdin.close()
+
+    thread = threading.Thread(target=writer)
+    thread.start()
+    for line in process.stdout:
+        process_response += line.decode()
+    thread.join()
+    process.wait()
+    assert False
+```
+
+### File based
+This works, but seems kind of dirty and maybe problematic on docker images that
+then grow in size.
+```
+    with tempfile.TemporaryFile() as buffer:
+        buffer.write(data.encode())
+        buffer.flush()
+        buffer.seek(0)
+
+        process = subprocess.Popen(
+            ["node", "./static/dist/server.js"],
+            stdout=subprocess.PIPE,
+            stdin=buffer,
+        )
+        process_response, error = process.communicate()
+```

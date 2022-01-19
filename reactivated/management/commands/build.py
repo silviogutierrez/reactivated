@@ -16,7 +16,7 @@ class Command(BaseCommand):
             help="Upload sourcemaps to Sentry",
         )
         parser.add_argument(
-            "--minify", action="store_true", help="Minify using terser. Slow.",
+            "--no-minify", action="store_true", help="Minify using terser. Slow.",
         )
 
     def handle(self, *args: Any, **options: Any) -> None:
@@ -60,7 +60,7 @@ class Command(BaseCommand):
         if client_process.returncode != 0 or renderer_process.returncode != 0:
             raise CommandError("esbuild errors")
 
-        if options["minify"] is True:
+        if options["no_minify"] is False:
             for bundle in entry_points:
                 terser_process = subprocess.Popen(
                     [

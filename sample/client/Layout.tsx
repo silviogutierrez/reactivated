@@ -21,7 +21,7 @@ export const Layout = (props: Props) => {
                     content="width=device-width, initial-scale=1, shrink-to-fit=no"
                 />
 
-                <script defer src="/static/dist/index.js" />
+                <script crossOrigin="anonymous" defer src="/static/dist/index.js" />
             </HelmetProvider>
             <div style={styles.layout}>{props.children}</div>
         </>

@@ -1,4 +1,5 @@
 from enum import Enum
+from enum import unique as ensure_unique
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -134,6 +135,8 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         validators: Iterable[_ValidatorCallable] = (),
         error_messages: Optional[_ErrorMessagesToOverride] = None,
     ):
+        ensure_unique(enum)
+
         self.enum = enum
         self.choices = EnumChoiceIterator(enum=enum)
 
@@ -206,9 +209,9 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
 
         return str(member.name)
 
-    def value_to_string(self, obj: Any) -> Optional[str]:
+    def value_to_string(self, obj: Any) -> str:
         value = self.value_from_object(obj)
-        return self.get_prep_value(value)
+        return self.get_prep_value(value)  # type: ignore[return-value]
 
     def formfield(self, **kwargs: Any) -> Any:
         from .forms import EnumChoiceField

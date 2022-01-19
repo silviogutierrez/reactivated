@@ -1,55 +1,65 @@
 import atexit
 import logging
+import os
 import re
 import subprocess
+import sys
+import urllib.parse
 from typing import Any, List, Optional
 
-import requests
+import requests_unixsocket  # type: ignore[import]
 import simplejson
 from django.conf import settings
 from django.http import HttpRequest
 from django.template.defaultfilters import escape
 
-renderer_process_port = None
+renderer_process: Optional[subprocess.Popen[str]] = None
+renderer_process_port: Optional[str] = None
 logger = logging.getLogger("django.server")
 
 
-def wait_and_get_port() -> Optional[int]:
+def wait_and_get_port() -> str:
     global renderer_process_port
+    global renderer_process
 
     if renderer_process_port is not None:
         return renderer_process_port
 
-    renderer_command = (
-        ["node", "node_modules/reactivated/renderer.js",]
-        if settings.DEBUG is False
-        else [
-            "node_modules/.bin/babel-node",
-            "--extensions",
-            ".ts,.tsx",
-            "node_modules/reactivated/renderer.js",
-        ]
-    )
-
     logger.info("Starting render process")
+    entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
 
-    process = subprocess.Popen(
-        renderer_command, encoding="utf-8", stdout=subprocess.PIPE,
-    )
+    if renderer_process is None:
+        renderer_process = subprocess.Popen(
+            [
+                "node",
+                f"{settings.BASE_DIR}/node_modules/.bin/renderer.js",
+                *entry_points,
+            ],
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            cwd=settings.BASE_DIR,
+        )
 
-    def cleanup() -> None:
-        logger.info("Cleaning up renderer process")
-        process.terminate()
+        def cleanup() -> None:
+            # Pytest has issues with this, see https://github.com/pytest-dev/pytest/issues/5502
+            # We can't use the env variable PYTEST_CURRENT_TEST because this happens
+            # after running all tests and closing the session.
+            # See: https://stackoverflow.com/questions/25188119/test-if-code-is-executed-from-within-a-py-test-session
+            if "pytest" not in sys.modules:
+                logger.info("Cleaning up renderer process")
 
-    atexit.register(cleanup)
+            if renderer_process is not None:
+                renderer_process.terminate()
+
+        atexit.register(cleanup)
 
     output = ""
 
-    for c in iter(lambda: process.stdout.read(1), b""):  # type: ignore[union-attr]
+    for c in iter(lambda: renderer_process.stdout.read(1), b""):  # type: ignore[union-attr]
         output += c
 
-        if match := re.match(r"RENDERER:([\d]+):LISTENING", output):
-            renderer_process_port = int(match.group(1))
+        if match := re.match(r"RENDERER:([/.\w]+):LISTENING", output):
+            renderer_process_port = match.group(1)
             return renderer_process_port
     assert False, "Could not bind to renderer"
 
@@ -73,31 +83,39 @@ def should_respond_with_json(request: HttpRequest) -> bool:
     )
 
 
-def render_jsx_to_string(
-    request: HttpRequest, template_name: str, context: Any, props: Any
-) -> str:
-    from reactivated import encode_complex_types
-
+def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
     respond_with_json = should_respond_with_json(request)
 
-    payload = {"context": {**context, "template_name": template_name}, "props": props}
-    data = simplejson.dumps(payload, indent=4, default=encode_complex_types)
+    payload = {"context": context, "props": props}
+    data = simplejson.dumps(payload)
     headers = {"Content-Type": "application/json"}
 
     if "debug" in request.GET:
         return f"<html><body><h1>Debug response</h1><pre>{escape(data)}</pre></body></html>"
     elif (
-        respond_with_json or "raw" in request.GET or settings.REACTIVATED_SERVER is None
+        respond_with_json
+        or "raw" in request.GET
+        or getattr(settings, "REACTIVATED_SERVER", False) is None
     ):
         request._is_reactivated_response = True  # type: ignore[attr-defined]
         return data
 
     renderer_port = wait_and_get_port()
 
-    response = requests.post(
-        f"http://localhost:{renderer_port}", headers=headers, data=data
-    )
+    # Sometimes we are running tests and the CWD is outside BASE_DIR.  For
+    # example, the reactivated tests themselves.  Instead of using BASE_DIR as
+    # the prefix, we calculate the relative path to avoid the 100 character
+    # UNIX socket limit.
+    # But dots do not work for relative paths with sockets so we clear it.
+    rel_path = os.path.relpath(settings.BASE_DIR)
+    address = renderer_port if rel_path == "." else f"{rel_path}/{renderer_port}"
+
+    session = requests_unixsocket.Session()
+    socket = urllib.parse.quote_plus(address)
+
+    response = session.post(f"http+unix://{socket}", headers=headers, data=data)
+
     if response.status_code == 200:
-        return response.text
+        return response.text  # type: ignore[no-any-return]
     else:
         raise Exception(response.json()["stack"])

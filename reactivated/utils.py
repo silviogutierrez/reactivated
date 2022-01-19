@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 import collections
-from typing import Any, Sequence
+import inspect
+from typing import TYPE_CHECKING, Any, Sequence
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Manager
+
+if TYPE_CHECKING:
+    from reactivated.backend import JSX
 
 
 # Mock is_simple_callable for now
@@ -46,3 +52,43 @@ def get_attribute(instance: Any, attrs: Sequence[str]) -> Any:
                 )
 
     return instance
+
+
+# From https://github.com/encode/django-rest-framework/blob/master/rest_framework/utils/field_mapping.py
+class ClassLookupDict:
+    """
+    Takes a dictionary with classes as keys.
+    Lookups against this object will traverses the object's inheritance
+    hierarchy in method resolution order, and returns the first matching value
+    from the dictionary or raises a KeyError if nothing matches.
+    """
+
+    def __init__(self, mapping: Any) -> None:
+        self.mapping = mapping
+
+    def __getitem__(self, key: Any) -> Any:
+        base_class = key
+        # if hasattr(key, "_proxy_class"):
+        #     # Deal with proxy classes. Ie. BoundField behaves as if it
+        #     # is a Field instance when using ClassLookupDict.
+        #     base_class = key._proxy_class
+        # else:
+        #     base_class = key.__class__
+
+        for cls in inspect.getmro(base_class):
+            if cls in self.mapping:
+                return self.mapping[cls]
+        raise KeyError("Class %s not found in lookup." % base_class.__name__)
+
+    def __setitem__(self, key: Any, value: Any) -> Any:
+        self.mapping[key] = value
+
+
+def get_template_engine() -> JSX:
+    from django.template import engines
+    from reactivated.backend import JSX
+
+    for engine in engines.all():
+        if isinstance(engine, JSX):
+            return engine
+    assert False, "JSX engine not found in settings.TEMPLATES"

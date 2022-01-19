@@ -1,21 +1,24 @@
+import atexit
 import importlib
 import json
 import logging
 import os
 import subprocess
+import sys
 from typing import Any, Dict, NamedTuple, Tuple
 
 from django.apps import AppConfig
 from django.conf import settings
 
-from . import (
-    extract_views_from_urlpatterns,
+from . import extract_views_from_urlpatterns
+from .serialization import create_schema
+from .serialization.registry import (
+    definitions_registry,
     global_types,
     template_registry,
     type_registry,
     value_registry,
 )
-from .serialization import create_schema
 
 logger = logging.getLogger("django.server")
 
@@ -74,17 +77,27 @@ def get_types_schema() -> Any:
     See `unreachableDefinitions` in json-schema-to-typescript
     """
     type_registry["globals"] = Any  # type: ignore[assignment]
+
+    context_processors = []
+
+    from .serialization.context_processors import create_context_processor_type
+
+    for engine in settings.TEMPLATES:
+        if engine["BACKEND"] == "reactivated.backend.JSX":
+            context_processors.extend(engine["OPTIONS"]["context_processors"])  # type: ignore[index]
+
+    type_registry["Context"] = create_context_processor_type(context_processors)
+
     ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore[misc]
-    parent_schema = create_schema(ParentTuple, {})
+    parent_schema, definitions = create_schema(ParentTuple, definitions_registry)
+    definitions_registry.update(definitions)
 
     return {
-        "definitions": parent_schema.definitions,
+        "definitions": definitions,
         **{
-            **parent_schema.definitions["reactivated.apps.ParentTuple"],
+            **definitions["reactivated.apps.ParentTuple"],
             "properties": {
-                **parent_schema.definitions["reactivated.apps.ParentTuple"][
-                    "properties"
-                ],
+                **definitions["reactivated.apps.ParentTuple"]["properties"],
                 "globals": {
                     "type": "object",
                     "additionalProperties": False,
@@ -123,6 +136,9 @@ class ReactivatedConfig(AppConfig):
         the first start. TODO: handle noreload.
         """
 
+        from .checks import check_installed_app_order  # NOQA
+        from .serialization import widgets  # noqa
+
         if (
             os.environ.get("WERKZEUG_RUN_MAIN") == "true"
             or os.environ.get("RUN_MAIN") == "true"
@@ -136,24 +152,64 @@ class ReactivatedConfig(AppConfig):
             os.environ["DJANGO_SEVER_STARTING"] = "true"
             return
 
-        generate_schema()
+        # TODO: generate this on first request, to avoid running a ton of stuff
+        # on tests. Then cache it going forward.
+        schema = get_schema()
+
+        generate_schema(schema)
+        entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
+
+        client_process = subprocess.Popen(
+            [
+                "node",
+                f"{settings.BASE_DIR}/node_modules/reactivated/build.client.js",
+                *entry_points,
+            ],
+            stdout=subprocess.PIPE,
+            env={**os.environ.copy()},
+        )
+        from reactivated import renderer
+
+        renderer.renderer_process = subprocess.Popen(
+            ["node", f"{settings.BASE_DIR}/node_modules/reactivated/build.renderer.js"],
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            env={**os.environ.copy(),},
+        )
+
+        def cleanup() -> None:
+            # Pytest has issues with this, see https://github.com/pytest-dev/pytest/issues/5502
+            # We can't use the env variable PYTEST_CURRENT_TEST because this happens
+            # after running all tests and closing the session.
+            # See: https://stackoverflow.com/questions/25188119/test-if-code-is-executed-from-within-a-py-test-session
+            if "pytest" not in sys.modules:
+                logger.info("Cleaning up client build process")
+                logger.info("Cleaning up renderer build process")
+            client_process.terminate()
+
+            if renderer.renderer_process is not None:
+                renderer.renderer_process.terminate()
+
+        atexit.register(cleanup)
 
 
-def generate_schema(skip_cache: bool = False) -> None:
+def generate_schema(schema: str, skip_cache: bool = False) -> None:
     """
     For development usage only, this requires Node and Python installed
 
     You can use this function for your E2E test prep.
     """
     logger.info("Generating interfaces and client side code")
-    schema = get_schema().encode()
+    encoded_schema = schema.encode()
 
     import hashlib
 
-    digest = hashlib.sha1(schema).hexdigest().encode()
+    digest = hashlib.sha1(encoded_schema).hexdigest().encode()
 
-    if skip_cache is False and os.path.exists("client/generated/index.tsx"):
-        with open("client/generated/index.tsx", "r+b") as existing:
+    if skip_cache is False and os.path.exists(
+        f"{settings.BASE_DIR}/client/generated/index.tsx"
+    ):
+        with open(f"{settings.BASE_DIR}/client/generated/index.tsx", "r+b") as existing:
             already_generated = existing.read()
 
             if digest in already_generated:
@@ -165,15 +221,31 @@ def generate_schema(skip_cache: bool = False) -> None:
     # Maybe there's a way to force it to be a single atomic write? I tried
     # open('w+b', buffering=0) but no luck.
     process = subprocess.Popen(
-        ["node", "./node_modules/reactivated/generator.js"],
+        ["node", f"{settings.BASE_DIR}/node_modules/reactivated/generator.js"],
         stdout=subprocess.PIPE,
         stdin=subprocess.PIPE,
+        cwd=settings.BASE_DIR,
     )
-    out, error = process.communicate(schema)
+    out, error = process.communicate(encoded_schema)
 
-    os.makedirs("client/generated", exist_ok=True)
+    constants_process = subprocess.Popen(
+        [
+            "node",
+            f"{settings.BASE_DIR}/node_modules/reactivated/generator/constants.js",
+        ],
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+        cwd=settings.BASE_DIR,
+    )
+    constants_out, constants_error = constants_process.communicate(encoded_schema)
 
-    with open("client/generated/index.tsx", "w+b") as output:
+    os.makedirs(f"{settings.BASE_DIR}/client/generated", exist_ok=True)
+
+    with open(f"{settings.BASE_DIR}/client/generated/index.tsx", "w+b") as output:
         output.write(b"// Digest: %s\n" % digest)
         output.write(out)
-        logger.info("Finished generating.")
+
+    with open(f"{settings.BASE_DIR}/client/generated/constants.tsx", "w+b") as output:
+        output.write(constants_out)
+
+    logger.info("Finished generating.")

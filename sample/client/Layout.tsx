@@ -1,7 +1,5 @@
 import React from "react";
-import Helmet from "react-helmet";
-
-import Context from "reactivated/context";
+import {HelmetProvider} from "react-helmet-async";
 
 interface Props {
     title: string;
@@ -9,15 +7,13 @@ interface Props {
 }
 
 const styles = {
-    layout: {maxWidth: 800, margin: "0 auto"},
+    layout: {margin: "0 auto", maxWidth: 1000},
 } as const;
 
 export const Layout = (props: Props) => {
-    const context = React.useContext(Context);
-
     return (
         <>
-            <Helmet key={context.request.path}>
+            <HelmetProvider>
                 <meta charSet="utf-8" />
                 <title>{props.title}</title>
                 <meta
@@ -25,8 +21,8 @@ export const Layout = (props: Props) => {
                     content="width=device-width, initial-scale=1, shrink-to-fit=no"
                 />
 
-                <script defer src="/media/dist/bundle.js" />
-            </Helmet>
+                <script crossOrigin="anonymous" defer src="/static/dist/index.js" />
+            </HelmetProvider>
             <div style={styles.layout}>{props.children}</div>
         </>
     );

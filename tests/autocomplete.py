@@ -43,12 +43,15 @@ def test_invalid_value(client):
 
 @pytest.mark.django_db
 @pytest.mark.urls("tests.urls")
-def test_typed_autocomplete(client):
+def test_typed_autocomplete(client, settings):
+    settings.REACTIVATED_SERVER = None
+
     composer = models.Composer.objects.create(name="Richard Wagner")
     models.Composer.objects.create(name="Wolfgang Amadeus Mozart")
 
     assert client.get("/typed-autocomplete-view/").status_code == 200
 
+    # Assert form submits fine.
     assert (
         client.post(
             "/typed-autocomplete-view/", {"name": "Zarzuela", "composer": composer.pk}
@@ -56,10 +59,11 @@ def test_typed_autocomplete(client):
         == 302
     )
 
+    # Assert an invalid field is not picked up, thus not returning JSON.
     response = client.get(
         "/typed-autocomplete-view/", {"autocomplete": "name", "query": "Wagner"}
     )
-    assert "" in str(response.content)
+    assert "text/html" in response["Content-Type"]
 
     response = client.get(
         "/typed-autocomplete-view/", {"autocomplete": "composer", "query": "Wagner"}

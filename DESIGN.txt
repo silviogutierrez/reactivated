@@ -1,81 +1,103 @@
-'favorite_book.authors.name',
-'favorite_book.authors.age','
-'favorite_book.name','
-'name','
+## Proxy types
+This is currently used only for form and form sets, but could be used for
+everything and get rid of the registration system.
 
-{
-   name: string;
-   favorite_book: {
-      name: string;
-      authors: Array<{name: string; age: number}>;
-   }
-}
+So:
 
+```
+@proxy(models.Field)
+class ModelFieldType:
+    @classmethod
+    def get_json_schema(
+        Proxy: Type["ModelFieldType"],
+        Type: Type[models.Field],
+        definitions: Definitions,
+    ) -> "Thing":
+        ...
+```
 
-type: object,
-properties: {
-    'name': {type: string},
-    'authors': {type: array
-}
-
-
-# descriptor, path = get_field_descriptor
-CharFieldInstance, [('favorite_book', False), ('authors', True)]
+This can handle the built-in fields. Custom fields can then just use:
 
 
-def Spam:
-    thing: Iterable[str]
-    again: str
+```
+@proxy(CustomField)
+class CustomFieldType:
+    ...
+```
+
+To specify how to create the schema and serialize.
+
+Since we want to use DRF's ClassLookupDict, you can actually even override
+serialization for built-in types. So the ModelFieldType handles the default for
+say, `DecimalField`. But you can do a custom one by registering a more specific
+type:
+
+```
+@proxy(DecimalField)
+class CustomDecimalFieldType
+    ...
+
+```
+
+This will get picked up before the basic handler.
 
 
-def Bar:
-    a: str
-    b: bool
+## Rendering approaches
 
 
-def Foo:
-    bar: Bar
-    spam: Spam
+### Communicate / stdin
+
+Breaks with large data.
+```
+    process = subprocess.Popen(
+        ["node", "./static/dist/server.js"],
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+    )
+    print(data)
+    process_response, error = process.communicate(data.encode())
+```
 
 
-interface Foo {
-    bar: {
-        a: string
-        b: boolean
-    }
-    spam: {
-        thing: Array<str>
-        again: string
-    }
-}
+### Threading
+https://stackoverflow.com/a/14026178
+Still breaks with large enough data.
+```
+    process = subprocess.Popen(
+        ["node", "./static/dist/server.js"],
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+    )
+    process_response = ""
+    error = None
 
-{
-    "type": "object",
-    "properties": {
-        "bar": {
-            "type": "object",
-            "properties": {
-                "a": {
-                    "type": "string",
-                },
-                "b": {
-                    "type": "boolean",
-                },
-            },
-        },
-        "spam": {
-            "type": "object":,
-            "properties": {
-                "thing": {
-                    type: "array",
-                    "items": {
-                        "type": "string",
-                    },
-                },
-                "again": {
-                    "type": "string"
-                },
-            },
-        },
-    },
-}
+    def writer() -> None:
+        for char in data:
+            process.stdin.write(char.encode())
+        process.stdin.close()
+
+    thread = threading.Thread(target=writer)
+    thread.start()
+    for line in process.stdout:
+        process_response += line.decode()
+    thread.join()
+    process.wait()
+    assert False
+```
+
+### File based
+This works, but seems kind of dirty and maybe problematic on docker images that
+then grow in size.
+```
+    with tempfile.TemporaryFile() as buffer:
+        buffer.write(data.encode())
+        buffer.flush()
+        buffer.seek(0)
+
+        process = subprocess.Popen(
+            ["node", "./static/dist/server.js"],
+            stdout=subprocess.PIPE,
+            stdin=buffer,
+        )
+        process_response, error = process.communicate()
+```

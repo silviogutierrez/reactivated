@@ -1,6 +1,17 @@
 import enum
 from io import StringIO
-from typing import Any, Dict, List, Literal, NamedTuple, Tuple, Type, TypedDict, Union
+from typing import (
+    Any,
+    Dict,
+    List,
+    Literal,
+    NamedTuple,
+    Optional,
+    Tuple,
+    Type,
+    TypedDict,
+    Union,
+)
 
 import pytest
 import simplejson
@@ -10,9 +21,13 @@ from django.core.management import call_command
 from django.db import models as django_models
 
 from reactivated.fields import EnumField
+from reactivated.models import ComputedRelation
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import ComputedField, create_schema
+from reactivated.serialization.context_processors import create_context_processor_type
 from sample.server.apps.samples import forms, models
+
+from .serialization import convert_to_json_and_validate
 
 
 class NamedTupleType(NamedTuple):
@@ -117,10 +132,9 @@ def test_enum_does_not_clobber_enum_type():
 
 
 def test_literal():
-    assert create_schema(Literal["hello"], {}) == (
-        {"type": "string", "enum": ("hello",)},
-        {},
-    )
+    schema = create_schema(Literal["hello"], {})
+    assert schema == ({"type": "string", "enum": ["hello",]}, {},)
+    convert_to_json_and_validate("hello", schema)
 
 
 def test_typed_dict():
@@ -142,12 +156,19 @@ def test_typed_dict():
     )
 
 
-def test_tuple():
+def test_fixed_tuple():
     assert create_schema(Tuple[str, str], {}) == (
-        {"items": [{"type": "string"}, {"type": "string"}], "type": "array"},
+        {
+            "items": [{"type": "string"}, {"type": "string"}],
+            "minItems": 2,
+            "maxItems": 2,
+            "type": "array",
+        },
         {},
     )
 
+
+def test_open_tuple():
     assert create_schema(Tuple[str, ...], {}) == (
         {"items": {"type": "string"}, "type": "array"},
         {},
@@ -189,6 +210,7 @@ def test_int():
     assert create_schema(int, {}) == ({"type": "number"}, {})
 
 
+@pytest.mark.skip
 def test_form():
     schema = create_schema(forms.OperaForm, {})
 
@@ -325,9 +347,8 @@ def custom_schema(Type, definitions):
 
 
 def test_custom_schema(settings):
-    with pytest.raises(AssertionError) as e:
+    with pytest.raises(AssertionError, match="Unsupported"):
         create_schema(CustomField, {})
-        assert "Unsupported" in str(e.value)
 
     settings.REACTIVATED_SERIALIZATION = "tests.types.custom_schema"
 
@@ -349,36 +370,42 @@ def test_enum_field_descriptor():
 
 
 def test_get_field_descriptor():
+    descriptor, path = get_field_descriptor(models.Opera, ["pk"])
+    assert isinstance(descriptor.descriptor, django_models.AutoField)
+    assert descriptor.descriptor.name == "id"
+    assert descriptor.target_name == "pk"
+    assert path == ()
+
     descriptor, path = get_field_descriptor(models.Opera, ["has_piano_transcription"])
-    assert isinstance(descriptor, django_models.BooleanField)
+    assert isinstance(descriptor.descriptor, django_models.BooleanField)
     assert path == ()
 
     descriptor, path = get_field_descriptor(models.Opera, ["composer"])
-    assert isinstance(descriptor, django_models.ForeignKey)
+    assert isinstance(descriptor.descriptor, django_models.ForeignKey)
     assert path == ()
 
     descriptor, path = get_field_descriptor(models.Opera, ["composer", "name"])
-    assert isinstance(descriptor, django_models.CharField)
-    assert path == (("composer", False),)
+    assert isinstance(descriptor.descriptor, django_models.CharField)
+    assert path == (("composer", False, False),)
 
     descriptor, path = get_field_descriptor(
         models.Opera, ["composer", "countries", "name"]
     )
-    assert isinstance(descriptor, django_models.CharField)
-    assert path == (("composer", False), ("countries", True))
+    assert isinstance(descriptor.descriptor, django_models.CharField)
+    assert path == (("composer", False, False), ("countries", True, False))
 
     descriptor, path = get_field_descriptor(
         models.Opera, ["composer", "composer_countries", "was_born"]
     )
-    assert isinstance(descriptor, django_models.BooleanField)
-    assert path == (("composer", False), ("composer_countries", True))
+    assert isinstance(descriptor.descriptor, django_models.BooleanField)
+    assert path == (("composer", False, False), ("composer_countries", True, False))
 
     descriptor, path = get_field_descriptor(models.Composer, ["countries"])
-    assert isinstance(descriptor, django_models.ManyToManyField)
+    assert isinstance(descriptor.descriptor, django_models.ManyToManyField)
     assert path == ()
 
     descriptor, path = get_field_descriptor(models.Opera, ["has_piano_transcription"])
-    assert isinstance(descriptor, django_models.BooleanField)
+    assert isinstance(descriptor.descriptor, django_models.BooleanField)
     assert path == ()
 
     with pytest.raises(FieldDoesNotExist):
@@ -387,9 +414,20 @@ def test_get_field_descriptor():
     descriptor, path = get_field_descriptor(
         models.Opera, ["get_birthplace_of_composer"]
     )
-    assert isinstance(descriptor, ComputedField)
-    assert descriptor.name == "get_birthplace_of_composer"
-    assert descriptor.annotation == Union[str, None]
+    assert isinstance(descriptor.descriptor, ComputedField)
+    assert descriptor.descriptor.name == "get_birthplace_of_composer"
+    assert descriptor.descriptor.annotation == Union[str, None]
+
+    descriptor, path = get_field_descriptor(
+        models.Opera, ["composer", "favorite_opera"]
+    )
+    assert isinstance(descriptor.descriptor, ComputedRelation)
+
+    descriptor, path = get_field_descriptor(
+        models.Opera, ["composer", "favorite_opera", "composer"]
+    )
+    assert isinstance(descriptor.descriptor, django_models.ForeignKey)
+    assert path == (("composer", False, False), ("favorite_opera", False, True))
 
 
 def test_build_nested_schema():
@@ -403,14 +441,17 @@ def test_build_nested_schema():
         "required": [],
     }
 
-    build_nested_schema(schema, (("a", False), ("b", False)))
+    build_nested_schema(schema, (("a", False, False), ("b", False, False)))
     assert schema["properties"]["a"]["properties"]["b"]["type"] == "object"
 
-    build_nested_schema(schema, (("a", False), ("c", False)))
+    build_nested_schema(schema, (("a", False, False), ("c", False, False)))
     assert schema["properties"]["a"]["properties"]["b"]["type"] == "object"
     assert schema["properties"]["a"]["properties"]["c"]["type"] == "object"
 
-    build_nested_schema(schema, (("a", False), ("multiple", True), ("single", False)))
+    build_nested_schema(
+        schema,
+        (("a", False, False), ("multiple", True, False), ("single", False, False)),
+    )
     assert schema["properties"]["a"]["properties"]["multiple"]["type"] == "array"
     assert (
         schema["properties"]["a"]["properties"]["multiple"]["items"]["properties"][
@@ -420,7 +461,12 @@ def test_build_nested_schema():
     )
 
     build_nested_schema(
-        schema, (("a", False), ("multiple", True), ("second_single", False))
+        schema,
+        (
+            ("a", False, False),
+            ("multiple", True, False),
+            ("second_single", False, False),
+        ),
     )
     assert schema["properties"]["a"]["properties"]["multiple"]["type"] == "array"
     assert (
@@ -448,3 +494,117 @@ def test_generate_client_assets(settings):
     assert "types" in schema
     assert "urls" in schema
     assert "templates" in schema
+
+
+class ComplexType(TypedDict):
+    required: int
+    optional: Optional[bool]
+
+
+class SampleContextOne(TypedDict):
+    complex: ComplexType
+    boolean: bool
+
+
+class SampleContextTwo(TypedDict):
+    number: int
+
+
+def sample_context_processor_one() -> SampleContextOne:
+    return {
+        "complex": {"required": 5, "optional": True,},
+        "boolean": True,
+    }
+
+
+def sample_context_processor_two() -> SampleContextTwo:
+    return {
+        "number": 5,
+    }
+
+
+def sample_unannotated_context_processor():
+    pass
+
+
+def test_context_processor_type():
+    with pytest.raises(AssertionError, match="No annotations found"):
+        ContextProcessorType = create_context_processor_type(
+            ["tests.types.sample_unannotated_context_processor"]
+        )
+
+    context_processors = [
+        "django.template.context_processors.request",
+        "tests.types.sample_context_processor_one",
+        "tests.types.sample_context_processor_two",
+    ]
+
+    ContextProcessorType = create_context_processor_type(context_processors)
+    schema, definitions = create_schema(ContextProcessorType, {})
+
+    assert schema == {
+        "allOf": [
+            {
+                "$ref": "#/definitions/reactivated.serialization.context_processors.BaseContext"
+            },
+            {
+                "$ref": "#/definitions/reactivated.serialization.context_processors.RequestProcessor"
+            },
+            {"$ref": "#/definitions/tests.types.SampleContextOne"},
+            {"$ref": "#/definitions/tests.types.SampleContextTwo"},
+        ]
+    }
+    assert definitions == {
+        "reactivated.serialization.context_processors.BaseContext": {
+            "serializer": None,
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {"template_name": {"type": "string"}},
+            "required": ["template_name"],
+        },
+        "reactivated.serialization.context_processors.Request": {
+            "serializer": "reactivated.serialization.context_processors.Request",
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {"path": {"type": "string"}, "url": {"type": "string"}},
+            "required": ["path", "url"],
+        },
+        "reactivated.serialization.context_processors.RequestProcessor": {
+            "serializer": None,
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "request": {
+                    "$ref": "#/definitions/reactivated.serialization.context_processors.Request"
+                }
+            },
+            "required": ["request"],
+        },
+        "tests.types.ComplexType": {
+            "serializer": None,
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "required": {"type": "number"},
+                "optional": {"anyOf": [{"type": "boolean"}, {"type": "null"}]},
+            },
+            "required": ["required", "optional"],
+        },
+        "tests.types.SampleContextOne": {
+            "serializer": None,
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "complex": {"$ref": "#/definitions/tests.types.ComplexType"},
+                "boolean": {"type": "boolean"},
+            },
+            "required": ["complex", "boolean"],
+        },
+        "tests.types.SampleContextTwo": {
+            "serializer": None,
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {"number": {"type": "number"}},
+            "required": ["number"],
+        },
+    }

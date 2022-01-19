@@ -1,4 +1,9 @@
 import fs from "fs";
+
+// Must be above the compile import as get-stdin used by
+// json-schema-to-typescript messes up the descriptor even if unused.
+const stdinBuffer = fs.readFileSync(0);
+
 import {compile} from "json-schema-to-typescript";
 import {
     Project,
@@ -10,12 +15,8 @@ import {
     Writers,
 } from "ts-morph";
 
-const stdinBuffer = fs.readFileSync(0); // STDIN_FILENO = 0
-
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
 const {urls, templates, types, values} = schema;
-
-import {NormalModuleReplacementPlugin} from "webpack";
 
 const project = new Project();
 
@@ -98,22 +99,32 @@ export function reverse<T extends All['name']>(name: T, args?: Extract<WithArgum
     return route;
 }`);
 
-// project.save();
-// const result = project.emitToMemory();
-// project.emi
-
 interfaces.addStatements(`
 import React from "react"
-import * as widgets from "reactivated/components/Widget";
+import createContext from "reactivated/context";
+import * as forms from "reactivated/forms";
 
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
 
+export const {Context, Provider, getServerData} = createContext<Types["Context"]>();
+
+export const getTemplate = ({template_name}: {template_name: string}) => {
+    // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
+    const { default: templates, filenames } = require('../templates/**/*');
+    const templatePath = "../templates/" + template_name + ".tsx";
+    const Template: React.ComponentType<any> = templates.find((t: any, index: number) => filenames[index] === templatePath).default;
+    return Template;
+}
+
+export const CSRFToken = forms.createCSRFToken(Context);
+
+export const {createRenderer, Iterator} = forms.bindWidgetType<Types["globals"]["Widget"]>();
 `);
 
 // tslint:disable-next-line
 compile(types, "Types").then((ts) => {
-    process.stdout.write("/* tslint:disable */\n");
+    process.stdout.write("/* eslint-disable */\n");
     process.stdout.write(ts);
 
     for (const name of Object.keys(templates)) {
@@ -125,22 +136,6 @@ export type ${name}Check = Checker<Types["${propsName}"], typeof ${name}Implemen
 
 
         `);
-    }
-
-    for (const name of Object.keys(values)) {
-        interfaces.addVariableStatement({
-            declarationKind: VariableDeclarationKind.Const,
-            isExported: true,
-            declarations: [
-                {
-                    name,
-                    initializer: Writers.assertion(
-                        JSON.stringify(values[name]),
-                        "const",
-                    ),
-                },
-            ],
-        });
     }
 
     process.stdout.write(interfaces.getText());

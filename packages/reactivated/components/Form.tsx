@@ -1,6 +1,5 @@
 import React from "react";
 
-import {Consumer} from "../context";
 import {getValueForSelect, WidgetType} from "./Widget";
 
 interface FieldLike {
@@ -35,8 +34,8 @@ export interface FormLike<T extends FieldMap> {
 }
 
 export interface FormSetLike<T extends FieldMap> {
-    initial: number;
-    total: number;
+    initial_form_count: number;
+    total_form_count: number;
     max_num: number;
     min_num: number;
     can_delete: boolean;
@@ -62,12 +61,12 @@ export const ManagementForm = <T extends FieldMap>({
             <input
                 type="hidden"
                 name={`${formSet.prefix}-INITIAL_FORMS`}
-                value={formSet.initial}
+                value={formSet.initial_form_count}
             />
             <input
                 type="hidden"
                 name={`${formSet.prefix}-TOTAL_FORMS`}
-                value={formSet.total}
+                value={formSet.total_form_count}
             />
         </>
     );

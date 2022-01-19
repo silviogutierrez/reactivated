@@ -4,8 +4,15 @@ from django import forms
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 
+from . import utils
 from .renderer import should_respond_with_json
-from .serialization import JSON, create_schema, serialize
+from .serialization import create_schema, serialize
+from .serialization.registry import (
+    JSON,
+    definitions_registry,
+    template_registry,
+    type_registry,
+)
 
 T = TypeVar("T", bound=NamedTuple)
 
@@ -20,11 +27,22 @@ class LazySerializationResponse(TemplateResponse):
     regular Python objects.
     """
 
+    _request: HttpRequest
+
     def __init__(
         self, request: HttpRequest, template: Type[T], *args: Any, **kwargs: Any,
     ) -> None:
         self.template = template
         super().__init__(request, *args, **kwargs)
+
+    @property
+    def rendered_content(self) -> str:
+        from .backend import JSXTemplate
+
+        engine = utils.get_template_engine()
+        template = JSXTemplate(self.template_name, engine)  # type: ignore[arg-type]
+        context = self.resolve_context(self.context_data)
+        return template.render(context, self._request)
 
     def __getstate__(self) -> Any:
         """
@@ -39,13 +57,12 @@ class LazySerializationResponse(TemplateResponse):
         return obj_dict
 
     def resolve_context(self, context: Optional[Dict[str, Any]]) -> JSON:
-        generated_schema = create_schema(self.template, {})
+
+        generated_schema = create_schema(self.template, definitions_registry)
         return serialize(context, generated_schema)
 
 
 def template(cls: Type[T]) -> Type[T]:
-    from . import type_registry, template_registry
-
     type_name = f"{cls.__name__}Props"
     type_registry[type_name] = cls  # type: ignore[assignment]
     template_registry[cls.__name__] = type_name  # type: ignore[assignment]
@@ -60,8 +77,6 @@ def template(cls: Type[T]) -> Type[T]:
             return self._asdict().items()
 
         def get_serialized(self) -> Any:
-            from .serialization import serialize, create_schema
-
             generated_schema = create_schema(cls, {})
             return serialize(self, generated_schema)
 
@@ -115,8 +130,6 @@ def extract_forms_form_sets_and_actions(interface: Any) -> Extracted:
 
 
 def interface(cls: T) -> T:
-    from . import type_registry
-
     type_name = f"{cls.__name__}Props"  # type: ignore[attr-defined]
     type_registry[type_name] = cls  # type: ignore[assignment]
 
@@ -124,9 +137,7 @@ def interface(cls: T) -> T:
         is_reactivated_interface = True
 
         def get_serialized(self) -> Any:
-            from .serialization import serialize, create_schema
-
-            generated_schema = create_schema(cls, {})
+            generated_schema = create_schema(cls, definitions_registry)
             return serialize(self, generated_schema)
 
         def render(self, request: HttpRequest) -> HttpResponse:

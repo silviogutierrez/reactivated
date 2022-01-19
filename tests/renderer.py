@@ -26,7 +26,9 @@ def test_render_to_json():
     request_factory = RequestFactory(HTTP_ACCEPT="application/json")
     request = request_factory.get("/")
     response = render_jsx_to_string(
-        request, "doesnotmatter.tsx", {"some": "property"}, {"another": "property"}
+        request,
+        {"template_name": "doesnotmatter.tsx", "some": "property"},
+        {"another": "property"},
     )
     assert json.loads(response) == {
         "context": {"some": "property", "template_name": "doesnotmatter.tsx"},

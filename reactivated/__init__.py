@@ -1,5 +1,4 @@
 import abc
-import datetime
 import inspect
 from typing import (
     Any,
@@ -20,16 +19,16 @@ from typing import (
 
 from django import forms as django_forms
 from django.core.exceptions import ViewDoesNotExist
-from django.db.models.query import QuerySet, ValuesIterable
 from django.http import HttpRequest, HttpResponse
 from django.urls import URLPattern, URLResolver
-from django.utils.functional import Promise
 from mypy_extensions import Arg, KwArg
 
 from .backend import JSX as JSX  # noqa: F401
+from .models import computed_foreign_key as computed_foreign_key  # noqa: F401
 from .models import computed_relation as computed_relation  # noqa: F401
 from .pick import BasePickHolder
 from .pick import Pick as Pick  # noqa: F401
+from .serialization import registry
 from .stubs import _GenericAlias
 from .templates import Action as Action  # noqa: F401
 from .templates import interface as interface  # noqa: F401
@@ -37,18 +36,13 @@ from .templates import template as template  # noqa: F401
 
 default_app_config = "reactivated.apps.ReactivatedConfig"
 
-type_registry: Dict[str, Tuple[Any]] = {}
-global_types: Dict[str, Tuple[Any]] = {}
-template_registry: Dict[str, Tuple[Any]] = {}
-value_registry: Dict[str, Any] = {}
-
 
 def export(var: Any) -> None:
     """ See: https://stackoverflow.com/a/18425523 """
     callers_local_vars = inspect.currentframe().f_back.f_locals.items()  # type: ignore[union-attr]
     name = [var_name for var_name, var_val in callers_local_vars if var_val is var][0]
 
-    value_registry.update({name: var})
+    registry.value_registry.update({name: var})
 
 
 _SingleSerializable = Union[
@@ -100,61 +94,6 @@ def to_camel_case(snake_str: str) -> str:
     return "".join(x.title() for x in components)
 
 
-class Message(NamedTuple):
-    level: int
-    level_tag: str
-    message: str
-
-
-class Request(NamedTuple):
-    path: str
-
-
-class Context(NamedTuple):
-    template_name: str
-    csrf_token: str
-    request: Request
-    messages: List[Message]
-
-
-def encode_complex_types(obj: Any) -> _SingleSerializable:
-    """
-    Handles dates, forms, and other types.
-    From: https://stackoverflow.com/a/22238613
-    """
-    if isinstance(obj, (datetime.datetime, datetime.date)):
-        return obj.isoformat()
-
-    # Handle lazy strings for Django. This is the parent class.
-    if isinstance(obj, Promise):
-        return str(obj)
-
-    # Processor: django.contrib.messages.context_processors.messages
-    from django.contrib.messages.storage.base import BaseStorage
-
-    if isinstance(obj, BaseStorage):
-        return [
-            Message(level=m.level, level_tag=m.level_tag, message=m.message)
-            for m in obj
-        ]
-
-    # Processor: django.template.context_processors.request
-    if isinstance(obj, HttpRequest):
-        return {"path": obj.path, "url": obj.build_absolute_uri()}
-
-    if isinstance(obj, QuerySet):
-        if obj._iterable_class is ValuesIterable:  # type: ignore[attr-defined]
-            return list(obj)
-        raise TypeError(
-            "Type %s not serializable. Only when you call values() does it become serializable."
-            % type(obj)
-        )
-
-    # return f'[Unserializable: {type(obj)}]'
-
-    raise TypeError("Type %s not serializable" % type(obj))
-
-
 def render_jsx(
     request: HttpRequest, template_name: str, props: Union[P, HttpResponse]
 ) -> HttpResponse:
@@ -190,6 +129,8 @@ def ssr(
         [View[K, P]], Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse]
     ],
 ]:
+    from .serialization.registry import type_registry
+
     type_registry[props.__name__] = props  # type: ignore[assignment]
 
     def no_args_wrap_with_jsx(
@@ -336,7 +277,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
         field_schema = create_schema(FieldType, definitions)
 
         # We manually build errors using type augmentation.
-        error_schema = create_schema(FormError, definitions)  # type: ignore[misc]
+        error_schema = create_schema(FormError, definitions)
 
         for field_name, SubType in Type.base_fields.items():
             required.append(field_name)

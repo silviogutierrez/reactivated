@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+import django_stubs_ext
+
+django_stubs_ext.monkeypatch()
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -52,16 +56,18 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "server.urls"
+ROOT_URLCONF = "sample.server.urls"
 
 TEMPLATES = [
     {
-        "BACKEND": "reactivated.JSX",
+        "BACKEND": "reactivated.backend.JSX",
         "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
-                "django.contrib.messages.context_processors.messages"
+                "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.request",
+                "django.template.context_processors.csrf",
             ]
         },
     },
@@ -130,6 +136,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = "/static/"
+
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static/"),)
 
 DEBUG_PORT = int(os.environ.get("DEBUG_PORT", 8000))
 

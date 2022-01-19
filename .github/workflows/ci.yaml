@@ -36,17 +36,22 @@ jobs:
             - uses: actions/checkout@v1
             - uses: actions/setup-node@master
               with:
-                  node-version: "13.x"
+                  node-version: "14.x"
             - uses: actions/setup-python@master
               with:
-                  python-version: "3.8"
+                  python-version: "3.9"
             - name: Python requirements
               run: pip install -r requirements.txt
             - name: Yarn
               run: |
+                  playwright install
                   yarn
                   yarn --cwd packages/reactivated
                   yarn --cwd sample
+                  python scripts/generate_types.py
+                  yarn --cwd packages/reactivated/ tsc --outDir ../../sample/node_modules/reactivated/
+                  rm -rf sample/node_modules/reactivated/node_modules/react
+                  rm -rf sample/node_modules/reactivated/node_modules/react-dom
             - name: Run tests
               run: scripts/test.sh --server
               env:
@@ -62,10 +67,10 @@ jobs:
             - uses: actions/checkout@v1
             - uses: actions/setup-node@master
               with:
-                  node-version: "13.x"
+                  node-version: "14.x"
             - uses: actions/setup-python@master
               with:
-                  python-version: "3.8"
+                  python-version: "3.9"
             - name: Python requirements
               run: pip install -r requirements.txt
             - name: Yarn
@@ -82,10 +87,10 @@ jobs:
             - uses: actions/checkout@v1
             - uses: actions/setup-node@master
               with:
-                  node-version: "13.x"
+                  node-version: "14.x"
             - uses: actions/setup-python@master
               with:
-                  python-version: "3.8"
+                  python-version: "3.9"
             - name: Python requirements
               run: pip install -r requirements.txt
             - name: Yarn

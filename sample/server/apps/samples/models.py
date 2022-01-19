@@ -3,15 +3,8 @@ from typing import Optional, cast
 
 from django.db import models
 
-from reactivated import computed_relation
+from reactivated import computed_foreign_key, computed_relation
 from reactivated.fields import EnumField
-
-models.QuerySet.__class_getitem__ = classmethod(  # type: ignore[assignment]
-    lambda cls, key: cls
-)
-models.Manager.__class_getitem__ = classmethod(  # type: ignore[assignment]
-    lambda cls, key: cls
-)
 
 
 class Continent(models.Model):
@@ -62,8 +55,14 @@ class Composer(models.Model):
     def operas_with_piano_transcriptions(self) -> "models.QuerySet[Opera]":
         return self.operas.all()
 
-    @computed_relation(model=lambda: Opera)
-    def main_opera(self) -> Optional["Opera"]:
+    @computed_foreign_key(model=lambda: Opera, null=False)
+    def main_opera(self) -> "Opera":
+        main = self.operas.all().first()
+        assert main is not None
+        return main
+
+    @computed_foreign_key(model=lambda: Opera, null=True)
+    def favorite_opera(self) -> Optional["Opera"]:
         return self.operas.all().first()
 
     @property

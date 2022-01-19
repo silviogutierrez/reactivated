@@ -1,4 +1,4 @@
-// Digest: e975929aa4bf568211493d7fd1d569f4980b3d95
+// Digest: 74a9df3c733e0d62340921c150349bfbaae7c87d
 /* eslint-disable */
 /* tslint:disable */
 /**
@@ -10,7 +10,10 @@
 export interface Types {
   DjangoDefaultProps: ServerTemplatesDjangoDefault;
   globals: {};
-  Context: ReactivatedSerializationContextProcessorsBaseContext;
+  Context: ReactivatedSerializationContextProcessorsBaseContext &
+    ReactivatedSerializationContextProcessorsMessagesProcessor &
+    ReactivatedSerializationContextProcessorsRequestProcessor &
+    ReactivatedSerializationContextProcessorsCSRFProcessor;
 }
 export interface ServerTemplatesDjangoDefault {
   version: string;
@@ -26,29 +29,25 @@ export interface ServerTemplatesFoo {
 export interface ReactivatedSerializationContextProcessorsBaseContext {
   template_name: string;
 }
-const urls = {};
-
-export interface URLMap {
+export interface ReactivatedSerializationContextProcessorsMessagesProcessor {
+  messages: ReactivatedSerializationContextProcessorsMessage[];
 }
-
-type WithArguments;
-type WithoutArguments;
-
-
-type All = WithArguments|WithoutArguments;
-export function reverse<T extends WithoutArguments['name']>(name: T): string;
-export function reverse<T extends WithArguments['name']>(name: T, args: Extract<WithArguments, {name: T}>['args']): string;
-export function reverse<T extends All['name']>(name: T, args?: Extract<WithArguments, {name: T}>['args']): string {
-    let route = urls[name].route;
-
-    if (args != null) {
-        for (const token of Object.keys(args)) {
-            route = route.replace(new RegExp('<(.+?:)' + token + '>'), (args as any)[token]);
-        }
-    }
-    return route;
+export interface ReactivatedSerializationContextProcessorsMessage {
+  level_tag: "info" | "success" | "error" | "warning" | "debug";
+  message: string;
+  level: number;
+  from_server: boolean;
 }
-
+export interface ReactivatedSerializationContextProcessorsRequestProcessor {
+  request: ReactivatedSerializationContextProcessorsRequest;
+}
+export interface ReactivatedSerializationContextProcessorsRequest {
+  path: string;
+  url: string;
+}
+export interface ReactivatedSerializationContextProcessorsCSRFProcessor {
+  csrf_token: string;
+}
 import React from "react"
 import createContext from "reactivated/context";
 import * as forms from "reactivated/forms";
@@ -76,4 +75,3 @@ export type DjangoDefaultCheck = Checker<Types["DjangoDefaultProps"], typeof Dja
 
 
         
-

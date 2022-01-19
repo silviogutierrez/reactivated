@@ -52,7 +52,7 @@ def get_urls_schema() -> Dict[str, Any]:
             },
         }
 
-    return reverse
+    return {}
 
 
 def get_types_schema() -> Any:

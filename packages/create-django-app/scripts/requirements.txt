@@ -1,0 +1,2 @@
+Django==4.0.1
+reactivated==0.20.1a641

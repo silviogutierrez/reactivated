@@ -25,7 +25,7 @@ process.on("SIGINT", handleExit);
 process.on("uncaughtException", handleError);
 
 try {
-    const nixStatus = child_process.execSync(`nix`, {stdio: "ignore"});
+    const nixStatus = child_process.execSync(`nix --version`, {stdio: "ignore"});
 } catch (error) {
     console.log(
         "You need to install nix. Visit https://nixos.org/download.html to get started",

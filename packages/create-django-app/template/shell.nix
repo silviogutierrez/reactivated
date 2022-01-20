@@ -1,8 +1,8 @@
 let
   stableTarball = fetchTarball
-    "https://github.com/NixOS/nixpkgs/archive/f112b512e1710da6c8beb8e541a8ad9fcd81e6e6.tar.gz";
+    "https://github.com/NixOS/nixpkgs/archive/391f93a83c3.tar.gz";
   unstableTarball = fetchTarball
-    "https://github.com/NixOS/nixpkgs/archive/f112b512e1710da6c8beb8e541a8ad9fcd81e6e6.tar.gz";
+    "https://github.com/NixOS/nixpkgs/archive/391f93a83c3.tar.gz";
   pkgs = import stableTarball { };
   unstable = import unstableTarball { };
 in with pkgs;

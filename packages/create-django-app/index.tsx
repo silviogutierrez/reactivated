@@ -32,3 +32,5 @@ try {
     );
     throw error;
 }
+
+child_process.execSync(`${__dirname}/scripts/create-django-app.sh`, {stdio: "inherit"});

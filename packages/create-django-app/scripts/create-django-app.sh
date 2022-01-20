@@ -19,7 +19,7 @@ sed -i 's/parent.parent/parent.parent.parent/g' "$PROJECT_NAME/server/settings.p
 mkdir "$PROJECT_NAME/server/settings"
 mv "$PROJECT_NAME/server/settings.py" "$PROJECT_NAME/server/settings/common.py"
 # cp "$SCRIPT_PATH/localhost.py" "$PROJECT_NAME/server/settings/localhost.py"
-# ln -s  localhost.py "$PROJECT_NAME/server/settings/__init__.py"
+ln -s  localhost.py "$PROJECT_NAME/server/settings/__init__.py"
 # mkdir "$PROJECT_NAME/client"
 # cp "$SCRIPT_PATH/index.tsx.template" "$PROJECT_NAME/client/index.tsx"
 # cp "$SCRIPT_PATH/tsconfig.json.template" "$PROJECT_NAME/tsconfig.json"

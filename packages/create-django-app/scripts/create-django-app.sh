@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -p nix bash python39 --pure -i bash
+#! nix-shell -p nix cacert bash python39 --pure -i bash
 set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"

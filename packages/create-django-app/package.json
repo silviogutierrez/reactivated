@@ -1,6 +1,6 @@
 {
     "name": "create-django-app",
-    "version": "0.0.5",
+    "version": "0.0.8",
     "main": "index.js",
     "repository": "https://github.com/silviogutierrez/reactivated/",
     "author": "Silvio J. Gutierrez",
@@ -11,7 +11,7 @@
     "files": [
         "index.js",
         "template",
-        "scripts"
+        "scripts/create-django-app.sh"
     ],
     "scripts": {
         "prepublishOnly": "tsc"

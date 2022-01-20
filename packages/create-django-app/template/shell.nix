@@ -13,6 +13,8 @@ mkShell {
     python39Packages.virtualenv
     nodejs-14_x
     (yarn.override { nodejs = nodejs-14_x; })
+    # Needed for psycopg2 to build on Mac Silicon.
+    openssl
   ];
   shellHook = ''
     # Needed to use pip wheels

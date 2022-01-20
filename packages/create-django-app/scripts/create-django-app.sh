@@ -24,5 +24,7 @@ mkdir "$PROJECT_NAME/client"
 cp "$SCRIPT_PATH/index.tsx.template" "$PROJECT_NAME/client/index.tsx"
 cp "$SCRIPT_PATH/tsconfig.json.template" "$PROJECT_NAME/tsconfig.json"
 cp "$SCRIPT_PATH/.babelrc.json.template" "$PROJECT_NAME/.babelrc.json"
+cp "$SCRIPT_PATH/.babelrc.json.template" "$PROJECT_NAME/.babelrc.json"
+cp -RT "$SCRIPT_PATH/../template/server" "$PROJECT_NAME/server"
 cd "$PROJECT_NAME" || exit
 nix-shell --command "yarn init --yes && yarn add reactivated@0.20.1-a641"

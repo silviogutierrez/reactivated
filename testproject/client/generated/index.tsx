@@ -1,4 +1,4 @@
-// Digest: 74a9df3c733e0d62340921c150349bfbaae7c87d
+// Digest: a17554ee79db8b66476568fde77a93428ab00c3a
 /* eslint-disable */
 /* tslint:disable */
 /**
@@ -8,23 +8,15 @@
  */
 
 export interface Types {
-  DjangoDefaultProps: ServerTemplatesDjangoDefault;
+  DjangoDefaultProps: ExampleTemplatesDjangoDefault;
   globals: {};
   Context: ReactivatedSerializationContextProcessorsBaseContext &
     ReactivatedSerializationContextProcessorsMessagesProcessor &
     ReactivatedSerializationContextProcessorsRequestProcessor &
     ReactivatedSerializationContextProcessorsCSRFProcessor;
 }
-export interface ServerTemplatesDjangoDefault {
+export interface ExampleTemplatesDjangoDefault {
   version: string;
-  form: ServerTemplatesFoo;
-}
-export interface ServerTemplatesFoo {
-  name: "server.templates.Foo";
-  errors: {} | null;
-  fields: {};
-  prefix: string;
-  iterator: [];
 }
 export interface ReactivatedSerializationContextProcessorsBaseContext {
   template_name: string;

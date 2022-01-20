@@ -1,3 +1,9 @@
+## Colocation
+Should python and TSX files be mixed? Why aren't templates like WidgetList.tsx
+and templates.py and views.py not all mixed together?
+
+Why continue with the concept with client and server?
+
 ## Proxy types
 This is currently used only for form and form sets, but could be used for
 everything and get rid of the registration system.

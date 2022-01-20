@@ -15,6 +15,9 @@ mkShell {
     (yarn.override { nodejs = nodejs-14_x; })
     # Needed for psycopg2 to build on Mac Silicon.
     openssl
+
+    # Needed for psycopg2 to build in general (pg_config)
+    postgresql_13
   ];
   shellHook = ''
     # Needed to use pip wheels

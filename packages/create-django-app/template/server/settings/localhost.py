@@ -24,3 +24,9 @@ TEMPLATES += [
         },
     },
 ]
+
+STATICFILES_DIRS = (BASE_DIR / "static/",)
+
+REACTIVATED_ADAPTERS = [
+    "server.example.templates.adapters",
+]

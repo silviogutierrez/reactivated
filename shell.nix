@@ -14,8 +14,8 @@ mkShell {
 
     python39
     python39Packages.virtualenv
-    nodejs-14_x
-    (yarn.override { nodejs = nodejs-14_x; })
+    nodejs-16_x
+    (yarn.override { nodejs = nodejs-16_x; })
 
     tmuxp
 

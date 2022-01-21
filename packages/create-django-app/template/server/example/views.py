@@ -7,4 +7,4 @@ from . import templates
 
 
 def django_default(request: HttpRequest,) -> HttpResponse:
-    return templates.DjangoDefault(version="5").render(request)
+    return templates.DjangoDefault(version="X").render(request)

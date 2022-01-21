@@ -17,6 +17,10 @@ mv server $PROJECT_NAME
 # cp "$SCRIPT_PATH/requirements.txt" "$PROJECT_NAME/requirements.txt"
 sed -i 's/parent.parent/parent.parent.parent/g' "$PROJECT_NAME/server/settings.py"
 mkdir "$PROJECT_NAME/server/settings"
+
+# TODO: remove me.
+mkdir -p "$PROJECT_NAME/static"
+
 mv "$PROJECT_NAME/server/settings.py" "$PROJECT_NAME/server/settings/common.py"
 # cp "$SCRIPT_PATH/localhost.py" "$PROJECT_NAME/server/settings/localhost.py"
 ln -s  localhost.py "$PROJECT_NAME/server/settings/__init__.py"

@@ -7,8 +7,6 @@ SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 PROJECT_NAME="testproject"
 
-# TODO: this should go away once we use workspaces, etc.
-nix-shell --command "yarn --cwd packages/reactivated"
 nix-shell --command "rm -rf $PROJECT_NAME/node_modules/reactivated/* && yarn --cwd packages/reactivated tsc --outDir ../../$PROJECT_NAME/node_modules/reactivated"
 
 cd $PROJECT_NAME

@@ -89,3 +89,10 @@ jobs:
               with:
                 nix_path: nixpkgs=channel:nixos-unstable
             - run: scripts/script-create-django-app.sh
+              run: |
+                  # playwright install
+                  yarn
+                  yarn --cwd packages/reactivated
+                  yarn --cwd sample
+                  python scripts/generate_types.py
+                  scripts/script-create-django-app.sh

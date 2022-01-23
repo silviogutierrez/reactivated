@@ -32,3 +32,11 @@ ln -s  localhost.py "$PROJECT_NAME/server/settings/__init__.py"
 cp -RT "$SCRIPT_PATH/../template" "$PROJECT_NAME"
 cd "$PROJECT_NAME" || exit
 nix-shell --command "yarn init --yes && yarn add reactivated@0.20.1-a641"
+
+echo ""
+echo ""
+echo "All done. You can start your project by running"
+echo ""
+echo "cd $PROJECT_NAME"
+echo "nix-shell"
+echo "python manage.py runserver"

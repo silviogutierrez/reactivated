@@ -84,19 +84,8 @@ jobs:
         name: End-to-end tests
         runs-on: ubuntu-18.04
         steps:
-            - uses: actions/checkout@v1
-            - uses: actions/setup-node@master
+            - uses: actions/checkout@v2.4.0
+            - uses: cachix/install-nix-action@v15
               with:
-                  node-version: "14.x"
-            - uses: actions/setup-python@master
-              with:
-                  python-version: "3.9"
-            - name: Python requirements
-              run: pip install -r requirements.txt
-            - name: Yarn
-              run: |
-                  yarn
-                  yarn --cwd packages/reactivated
-                  yarn --cwd sample
-            - name: Run tests
-              run: scripts/test.sh --e2e
+                nix_path: nixpkgs=channel:nixos-unstable
+            - run: scripts/script-create-django-app.sh

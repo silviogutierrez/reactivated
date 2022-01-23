@@ -11,4 +11,4 @@ nix-shell --command "rm -rf $PROJECT_NAME/node_modules/reactivated/* && yarn --c
 
 cd $PROJECT_NAME
 nix-shell --command "pip install -e $SCRIPT_PATH/../"
-nix-shell --command "python manage.py runserver"
+# nix-shell --command "python manage.py runserver"

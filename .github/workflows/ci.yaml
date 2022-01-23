@@ -93,5 +93,6 @@ jobs:
                   yarn
                   yarn --cwd packages/reactivated
                   yarn --cwd sample
+                  nix-shell --command "pip install -r requirements"
                   nix-shell --command "python scripts/generate_types.py"
                   scripts/script-create-django-app.sh

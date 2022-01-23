@@ -93,5 +93,5 @@ jobs:
                   yarn
                   yarn --cwd packages/reactivated
                   yarn --cwd sample
-                  python scripts/generate_types.py
+                  nix-shell --command "python scripts/generate_types.py"
                   scripts/script-create-django-app.sh

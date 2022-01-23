@@ -88,8 +88,7 @@ jobs:
             - uses: cachix/install-nix-action@v15
               with:
                 nix_path: nixpkgs=channel:nixos-unstable
-            - run: scripts/script-create-django-app.sh
-              run: |
+            - run: |
                   # playwright install
                   yarn
                   yarn --cwd packages/reactivated

@@ -91,6 +91,6 @@ jobs:
             - run: |
                   # playwright install
                   nix-shell --command "yarn --cwd packages/reactivated"
-                  nix-shell --command "pip install -r requirements"
+                  nix-shell --command "pip install -r requirements.txt"
                   nix-shell --command "python scripts/generate_types.py"
                   scripts/script-create-django-app.sh

@@ -3,6 +3,19 @@ set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
+DEVELOPMENT=false
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    --development) DEVELOPMENT=true ;;
+    *)
+        echo "Unknown parameter passed: $1"
+        exit 1
+        ;;
+    esac
+    shift
+done
+
 ./packages/create-django-app/scripts/create-django-app.sh
 
 PROJECT_NAME="testproject"
@@ -13,3 +26,11 @@ cd $PROJECT_NAME
 nix-shell --command "pip install -e $SCRIPT_PATH/../"
 # nix-shell --command "python manage.py runserver"
 nix-shell --command "python manage.py print_schema"
+
+
+if [ "$DEVELOPMENT" != false ]; then
+    rm -rf client
+    rm -rf server/example
+    ln -s ../packages/create-django-app/template/client client
+    ln -s ../../packages/create-django-app/template/server/example server/example
+fi

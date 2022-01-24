@@ -31,6 +31,7 @@ esbuild
         outdir: "./static/dist",
         sourcemap: true,
         target: "es2018",
+        preserveSymlinks: true,
         watch: production === false,
         external: ["moment", "@client/generated/images"],
         define: {

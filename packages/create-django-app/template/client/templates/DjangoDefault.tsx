@@ -234,7 +234,10 @@ export default ({version}: {version: string}) => (
                 href="https://www.djangoproject.com/"
                 target="_blank"
                 rel="noopener"
-                onClick={() => alert("Look how easy that was")}
+                onClick={(event) => {
+                    event.preventDefault();
+                    alert("Look how easy that was")
+                }}
             >
                 django reactivated
             </a>

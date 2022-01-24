@@ -31,6 +31,7 @@ nix-shell --command "python manage.py print_schema"
 if [ "$DEVELOPMENT" != false ]; then
     rm -rf client
     rm -rf server/example
+    ln -fs ../packages/create-django-app/template/shell.nix shell.nix
     ln -s ../packages/create-django-app/template/client client
     ln -s ../../packages/create-django-app/template/server/example server/example
 fi

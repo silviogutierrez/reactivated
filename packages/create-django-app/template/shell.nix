@@ -18,6 +18,8 @@ mkShell {
 
     # Needed for psycopg2 to build in general (pg_config)
     postgresql_13
+
+    flyctl
   ];
   shellHook = ''
     # Needed to use pip wheels

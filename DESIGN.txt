@@ -1,3 +1,13 @@
+## Invocation / installation
+Currently using create-django-app with NPM, but that itself really just wraps nix and checks for nix-shell.
+And the user will have to have installed nix anyway already. Why not just use nix directly?
+
+Something like:
+
+```
+nix-shell -E "import (builtins.fetchurl https://reactivated.io/install/)"
+```
+
 ## Node package manager
 Originally using yarn, but that was yarn 1. Seems like yarn is moving in a proprietary direction and no longer shadows NPM.
 

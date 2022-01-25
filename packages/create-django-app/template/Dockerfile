@@ -19,8 +19,8 @@ COPY yarn.lock .
 
 RUN yarn
 
-RUN rm -rf node_modules/reactivated/*
-COPY node_modules/reactivated node_modules/reactivated
+# RUN rm -rf node_modules/reactivated/*
+# COPY node_modules/reactivated node_modules/reactivated
 
 COPY manage.py .
 COPY server server

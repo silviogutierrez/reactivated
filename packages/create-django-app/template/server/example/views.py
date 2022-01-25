@@ -3,9 +3,10 @@ from django.http import (
     HttpResponse,
 )
 
-from . import templates
+from . import forms, templates
 from django.utils.version import get_docs_version
 
 
 def django_default(request: HttpRequest,) -> HttpResponse:
-    return templates.DjangoDefault(version=get_docs_version()).render(request)
+    form = forms.StoryboardForm()
+    return templates.DjangoDefault(form=form, version=get_docs_version()).render(request)

@@ -10,6 +10,8 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 INSTALLED_APPS += ["reactivated"]
 
+MIDDLEWARE = ["whitenoise.middleware.WhiteNoiseMiddleware"] + MIDDLEWARE
+
 TEMPLATES += [
     {
         "BACKEND": "reactivated.backend.JSX",
@@ -27,6 +29,4 @@ TEMPLATES += [
 
 STATICFILES_DIRS = (BASE_DIR / "static/",)
 
-REACTIVATED_ADAPTERS = [
-    "server.example.templates.adapters",
-]
+STATIC_ROOT = BASE_DIR / "collected/"

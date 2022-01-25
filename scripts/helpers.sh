@@ -6,6 +6,7 @@ function super_cwd() {
         echo "$cwd_with_tilde"
     else
         # If we are inside this path, trim it off and show just the virtualenv in parentheses.
+        # shellcheck disable=SC2295
         if [ "${PWD##$PROJECT_PATH}" != "$PWD" ]; then
             root=$(dirname "$PROJECT_PATH")
             echo "(${PWD/$root\//})"
@@ -113,4 +114,17 @@ function start_database() {
     rm -rf "$POSTGRESQL_DATA"
     initdb "$POSTGRESQL_DATA"
     pg_ctl -D "$POSTGRESQL_DATA" start
+}
+
+function sync_template() {
+    local SCRIPT_PATH;
+    SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+    local PROJECT_PATH;
+    PROJECT_PATH="$SCRIPT_PATH/..";
+    cp "$PROJECT_PATH/packages/create-django-app/template/shell.nix" shell.nix
+    cp "$PROJECT_PATH/packages/create-django-app/template/Dockerfile" Dockerfile
+    cp "$PROJECT_PATH/packages/create-django-app/template/requirements.txt" requirements.txt
+    cp "$PROJECT_PATH/packages/create-django-app/template/server/settings/localhost.py" server/settings/localhost.py
+    cp -RT "$PROJECT_PATH/packages/create-django-app/template/client" client
+    cp -RT "$PROJECT_PATH/packages/create-django-app/template/server/example" server/example
 }

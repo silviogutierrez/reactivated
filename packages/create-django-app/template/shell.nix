@@ -5,13 +5,19 @@ let
     "https://github.com/NixOS/nixpkgs/archive/8ca77a63599e.tar.gz";
   pkgs = import stableTarball { };
   unstable = import unstableTarball { };
+
+  dependencies = [
+    pkgs.python39
+    pkgs.python39Packages.virtualenv
+    pkgs.python39Packages.pip
+    pkgs.nodejs-16_x
+  ];
 in with pkgs;
 
 mkShell {
+  dependencies = dependencies;
   buildInputs = [
-    python39
-    python39Packages.virtualenv
-    nodejs-16_x
+    dependencies
     (yarn.override { nodejs = nodejs-16_x; })
     # Needed for psycopg2 to build on Mac Silicon.
     openssl

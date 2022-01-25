@@ -32,10 +32,28 @@ mkShell {
     SOURCE_DATE_EPOCH=$(date +%s);
     VIRTUAL_ENV=$PWD/.venv
     PATH=$VIRTUAL_ENV/bin:$PATH
+    POSTGRESQL_DATA="$VIRTUAL_ENV/postgresql"
+    POSTGRESQL_LOGS="$VIRTUAL_ENV/postgresql/logs.txt"
+    TMP_ENV="$TMPDIR/reactivated/$(echo $VIRTUAL_ENV | md5sum | awk '{print $1}')";
+
+    export PGPORT=1
+    export PGDATABASE="database"
+    export PGHOST=$TMP_ENV
+
 
     if [ ! -d "$VIRTUAL_ENV" ]; then
+        NEED_DATABASE=true
+        rm -rf $TMP_ENV
+        mkdir -p $TMP_ENV
         virtualenv "$VIRTUAL_ENV"
+        initdb "$POSTGRESQL_DATA"
         pip install -r requirements.txt
+    fi
+
+    pg_ctl -o "-p 1 -k \"$PGHOST\" -c listen_addresses=\"\"" -D $POSTGRESQL_DATA -l $POSTGRESQL_LOGS start
+
+    if [ "$NEED_DATABASE" == true ]; then
+        createdb $PGDATABASE
     fi
   '';
 }

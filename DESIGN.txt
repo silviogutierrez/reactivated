@@ -2,6 +2,10 @@
 Destroy every app:
 fly apps list --json | jq ".[].Name" -r | xargs -L 1 fly apps destroy --yes
 
+## General TODO
+- [ ] Trying to render a nonexistent tsx template crashes the server. it should
+error out gracefully.
+
 ## Invocation / installation
 Currently using create-django-app with NPM, but that itself really just wraps nix and checks for nix-shell.
 And the user will have to have installed nix anyway already. Why not just use nix directly?
@@ -12,6 +16,12 @@ Something like:
 nix-shell -E "import (builtins.fetchurl https://reactivated.io/install/)"
 ```
 
+## Conventions
+* Do we want to encourage CreateFooForm or CreateForm? While Django tends to promote
+FooModelAdmin, etc, a lot of it is redundant. Static typing makes everything obvious,
+more over, we encourage namespace imports like forms.CreateFoo, why repeat Form?
+We don't do FooTemplate, we do templates.Foo. And so on.
+
 ## Postgres
 Having local development work on postgres is *essential*. Rather than sqlite.
 
@@ -21,6 +31,11 @@ unfortunately need to go in /tmp to avoid length limits.
 Also, theoretically if you remove .venv without stopping pg_ctl, you will get zombie
 processes. Not the end of the world but can result in a lot of postgres servers
 running.
+
+Troubleshooting postgres: sometimes it seems to crash if you delete and recreate
+the project, maybe related to the zombie processs still running, then giving up.
+
+Deleting the .venv and exiting nix-shell and re-running recreates it.
 
 ## Node package manager
 Originally using yarn, but that was yarn 1. Seems like yarn is moving in a proprietary direction and no longer shadows NPM.

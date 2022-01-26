@@ -34,4 +34,5 @@ if [ "$DEVELOPMENT" != false ]; then
     ln -fs ../packages/create-django-app/template/shell.nix shell.nix
     ln -s ../packages/create-django-app/template/client client
     ln -s ../../packages/create-django-app/template/server/example server/example
+    ln -fs ../../../packages/create-django-app/template/server/settings/localhost.py server/settings/localhost.py
 fi

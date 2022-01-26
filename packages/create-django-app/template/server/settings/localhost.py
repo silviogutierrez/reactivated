@@ -30,3 +30,7 @@ TEMPLATES += [
 STATICFILES_DIRS = (BASE_DIR / "static/",)
 
 STATIC_ROOT = BASE_DIR / "collected/"
+
+import dj_database_url
+
+DATABASES["default"] = dj_database_url.config(default="postgres:///database")

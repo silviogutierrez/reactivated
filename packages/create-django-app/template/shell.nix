@@ -1,10 +1,37 @@
 let
-  stableTarball = fetchTarball
-    "https://github.com/NixOS/nixpkgs/archive/8ca77a63599e.tar.gz";
-  unstableTarball = fetchTarball
-    "https://github.com/NixOS/nixpkgs/archive/8ca77a63599e.tar.gz";
+  stableTarball =
+    fetchTarball "https://github.com/NixOS/nixpkgs/archive/8ca77a63599e.tar.gz";
+  unstableTarball =
+    fetchTarball "https://github.com/NixOS/nixpkgs/archive/8ca77a63599e.tar.gz";
   pkgs = import stableTarball { };
   unstable = import unstableTarball { };
+
+  download = fetchTarball (if pkgs.stdenv.isDarwin then {
+    url = "https://github.com/superfly/flyctl/releases/download/v0.0.286/flyctl_0.0.286_macOS_arm64.tar.gz";
+    sha256 = "sha256:0q1nkaj9jia1kwiphps5hd7jfn9516sqrsjd5ydamq5zpavyg41x";
+  } else {
+    url = "https://github.com/superfly/flyctl/releases/download/v0.0.286/flyctl_0.0.286_Linux_x86_64.tar.gz";
+    sha256 = "sha256:1z3jxvvaya8j6261p9i1hb0cnkxlkk3qs9348p2r5lxax9wsaq1b";
+  });
+
+  flyctlLatest = derivation {
+    name = "flyctl";
+    inherit download;
+    coreutils = pkgs.coreutils;
+    builder = "${pkgs.bash}/bin/bash";
+    args = [
+      "-c"
+      ''
+        unset PATH;
+        export PATH=$coreutils/bin;
+        mkdir -p $out/bin;
+        cp $download $out/bin/fly;
+        chmod +x $out/bin/fly;
+      ''
+    ];
+
+    system = builtins.currentSystem;
+  };
 
   dependencies = [
     pkgs.python39
@@ -25,7 +52,7 @@ mkShell {
     # Needed for psycopg2 to build in general (pg_config)
     postgresql_13
 
-    flyctl
+    flyctlLatest
   ];
   shellHook = ''
     # Needed to use pip wheels

@@ -77,10 +77,10 @@ mkShell {
         pip install -r requirements.txt
     fi
 
-    pg_ctl -o "-p 1 -k \"$PGHOST\" -c listen_addresses=\"\"" -D $POSTGRESQL_DATA -l $POSTGRESQL_LOGS start
+    pg_ctl -o "-p 1 -k \"$PGHOST\" -c listen_addresses=\"\"" -D $POSTGRESQL_DATA -l $POSTGRESQL_LOGS start &> /dev/null
 
     if [ "$NEED_DATABASE" == true ]; then
-        createdb $PGDATABASE
+        createdb $PGDATABASE &> /dev/null
     fi
   '';
 }

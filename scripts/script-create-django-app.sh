@@ -1,5 +1,6 @@
-#!/bin/bash
-set -e
+#! /usr/bin/env nix-shell
+#! nix-shell -p nix cacert bash --pure -i bash
+set -xe
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
@@ -7,6 +8,10 @@ DEVELOPMENT=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
+    --name)
+        PROJECT_NAME="$2"
+        shift
+        ;;
     --development) DEVELOPMENT=true ;;
     *)
         echo "Unknown parameter passed: $1"
@@ -16,13 +21,16 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-./packages/create-django-app/scripts/create-django-app.sh
+if [ -z ${PROJECT_NAME+x} ]; then
+    echo "You must pass in --name"
+    exit
+fi
 
-PROJECT_NAME="testproject"
+./packages/create-django-app/scripts/create-django-app.sh "$PROJECT_NAME"
 
 nix-shell --command "rm -rf $PROJECT_NAME/node_modules/reactivated/* && yarn --cwd packages/reactivated tsc --outDir ../../$PROJECT_NAME/node_modules/reactivated"
 
-cd $PROJECT_NAME
+cd "$PROJECT_NAME"
 nix-shell --command "pip install -e $SCRIPT_PATH/../"
 # nix-shell --command "python manage.py runserver"
 nix-shell --command "python manage.py print_schema"

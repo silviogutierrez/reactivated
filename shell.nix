@@ -28,6 +28,7 @@ mkShell {
 
     # Purely for formatting right now.
     terraform
+    (import ./packages/create-django-app/template/shell.nix).flyctlLatest
   ];
   src = ./scripts/helpers.sh;
   shellHook = ''

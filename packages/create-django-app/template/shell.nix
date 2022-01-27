@@ -6,13 +6,15 @@ let
   pkgs = import stableTarball { };
   unstable = import unstableTarball { };
 
-  download = fetchTarball (if pkgs.stdenv.isDarwin then {
-    url = "https://github.com/superfly/flyctl/releases/download/v0.0.286/flyctl_0.0.286_macOS_arm64.tar.gz";
-    sha256 = "sha256:0q1nkaj9jia1kwiphps5hd7jfn9516sqrsjd5ydamq5zpavyg41x";
-  } else {
-    url = "https://github.com/superfly/flyctl/releases/download/v0.0.286/flyctl_0.0.286_Linux_x86_64.tar.gz";
-    sha256 = "sha256:1z3jxvvaya8j6261p9i1hb0cnkxlkk3qs9348p2r5lxax9wsaq1b";
-  });
+  download = fetchTarball (
+
+    if pkgs.stdenv.isDarwin then
+      (if pkgs.stdenv.hostPlatform.darwinArch == "arm64" then
+        "https://github.com/superfly/flyctl/releases/download/v0.0.290/flyctl_0.0.290_macOS_arm64.tar.gz"
+      else
+        "https://github.com/superfly/flyctl/releases/download/v0.0.290/flyctl_0.0.290_macOS_x86_64.tar.gz")
+    else
+      "https://github.com/superfly/flyctl/releases/download/v0.0.290/flyctl_0.0.290_Linux_x86_64.tar.gz");
 
   flyctlLatest = derivation {
     name = "flyctl";
@@ -42,6 +44,7 @@ let
 in with pkgs;
 
 mkShell {
+  flyctlLatest = flyctlLatest;
   dependencies = dependencies;
   buildInputs = [
     dependencies
@@ -53,6 +56,8 @@ mkShell {
     postgresql_13
 
     flyctlLatest
+    # Needed for automating flyctl
+    jq
   ];
   shellHook = ''
     # Needed to use pip wheels

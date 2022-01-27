@@ -1,6 +1,6 @@
 #! /usr/bin/env nix-shell
 #! nix-shell -p nix cacert bash --pure -i bash
-set -xe
+set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 

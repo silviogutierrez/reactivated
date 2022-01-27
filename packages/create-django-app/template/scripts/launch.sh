@@ -11,7 +11,7 @@ fly postgres attach  --postgres-app long-cloud-3126
 fly deploy --remote-only
 
 # TODO: how can we make this idempootent?
-# TODO: also it takes some time to propgate.
+# TODO: also it takes some time to propagate.
 fly ssh establish personal override
 sleep 30
 fly ssh console --command "sh migrate.sh"

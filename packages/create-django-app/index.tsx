@@ -3,6 +3,13 @@ import fs from "fs";
 import path from "path";
 import child_process from "child_process";
 
+const projectName = process.argv[2];
+
+if (projectName == null || projectName.length == 0) {
+    console.error("Project name is required. Usage: npx create-django-app <project_name>");
+    process.exit(1);
+}
+
 const cleanup = () => {
     console.log("Cleaning up.");
 };
@@ -33,4 +40,4 @@ try {
     throw error;
 }
 
-child_process.execSync(`${__dirname}/scripts/create-django-app.sh`, {stdio: "inherit"});
+child_process.execSync(`${__dirname}/scripts/create-django-app.sh ${projectName}`, {stdio: "inherit"});

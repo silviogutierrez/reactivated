@@ -1,21 +1,22 @@
-from django.http import (
-    HttpRequest,
-    HttpResponse,
-)
-from django.utils import timezone
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
-
-from . import models, forms, templates
+from django.utils import timezone
 from django.utils.version import get_docs_version
+
+from . import forms, models, templates
 
 
 def django_default(request: HttpRequest) -> HttpResponse:
     form = forms.StoryboardForm()
-    return templates.DjangoDefault(form=form, version=get_docs_version()).render(request)
+    return templates.DjangoDefault(form=form, version=get_docs_version()).render(
+        request
+    )
 
 
 def polls_index(request: HttpRequest) -> HttpResponse:
-    return templates.PollsIndex(latest_question_list=list(models.Question.objects.all())).render(request)
+    return templates.PollsIndex(
+        latest_question_list=list(models.Question.objects.all())
+    ).render(request)
 
 
 def create_question(request: HttpRequest) -> HttpResponse:

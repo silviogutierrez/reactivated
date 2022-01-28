@@ -87,14 +87,12 @@ export const Layout = (props: Props) => (
                 padding-top: 20px;
                 padding-bottom: 10px;
 
-
                 @media (max-width: 800px) {
-                        grid-template-columns: 1fr;
-                        padding-left: 20px;
-                        padding-right: 20px;
+                    grid-template-columns: 1fr;
+                    padding-left: 20px;
+                    padding-right: 20px;
                 }
             `}
-
         >
             <a
                 className={css`

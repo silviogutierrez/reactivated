@@ -76,7 +76,10 @@ if (Object.keys(urls).length !== 0) {
         }
     }
     interfaces.addTypeAlias({name: "WithArguments", type: withArguments.join("|")});
-    interfaces.addTypeAlias({name: "WithoutArguments", type: withoutArguments.join("|")});
+    interfaces.addTypeAlias({
+        name: "WithoutArguments",
+        type: withoutArguments.join("|"),
+    });
     interfaces.addStatements(`
 
     type All = WithArguments|WithoutArguments;

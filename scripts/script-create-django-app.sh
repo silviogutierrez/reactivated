@@ -35,7 +35,6 @@ nix-shell --command "pip install -e $SCRIPT_PATH/../"
 # nix-shell --command "python manage.py runserver"
 nix-shell --command "python manage.py print_schema"
 
-
 if [ "$DEVELOPMENT" != false ]; then
     rm -rf client
     rm -rf server/example

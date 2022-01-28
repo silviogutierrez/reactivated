@@ -1,9 +1,8 @@
-from typing import NamedTuple, List
+from typing import List, NamedTuple
 
+from reactivated import Pick, template
 
-from reactivated import template, Pick
-
-from . import models, forms
+from . import forms, models
 
 
 @template

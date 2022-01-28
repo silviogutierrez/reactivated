@@ -117,10 +117,10 @@ function start_database() {
 }
 
 function sync_template() {
-    local SCRIPT_PATH;
+    local SCRIPT_PATH
     SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-    local PROJECT_PATH;
-    PROJECT_PATH="$SCRIPT_PATH/..";
+    local PROJECT_PATH
+    PROJECT_PATH="$SCRIPT_PATH/.."
     cp "$PROJECT_PATH/packages/create-django-app/template/shell.nix" shell.nix
     cp "$PROJECT_PATH/packages/create-django-app/template/Dockerfile" Dockerfile
     cp "$PROJECT_PATH/packages/create-django-app/template/requirements.txt" requirements.txt

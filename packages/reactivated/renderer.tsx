@@ -28,8 +28,8 @@ export const renderPage = ({
 }) =>
     `
 <!DOCTYPE html>
-<html>
-    <head ${helmet.htmlAttributes.toString()}>
+<html ${helmet.htmlAttributes.toString()}>
+    <head>
         <script>
             // These go first because scripts below need them.
             // WARNING: See the following for security issues around embedding JSON in HTML:

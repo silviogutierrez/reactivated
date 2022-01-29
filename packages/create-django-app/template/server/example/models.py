@@ -5,7 +5,7 @@ from reactivated.serialization.registry import register
 
 
 class Question(models.Model):
-    question_text = models.CharField(max_length=200)
+    question_text = models.CharField(max_length=200, verbose_name="question")
     pub_date = models.DateTimeField("date published")
 
 

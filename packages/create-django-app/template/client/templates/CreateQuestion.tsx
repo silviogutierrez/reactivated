@@ -7,9 +7,17 @@ import {Widget} from "reactivated/forms";
 
 export default (props: Types["CreateQuestionProps"]) => (
     <Layout title="Create question">
+        <h1>Create poll</h1>
         <form method="POST" action="">
             <CSRFToken />
-            <Iterator form={props.form}>{(field) => <Widget field={field} />}</Iterator>
+            <Iterator form={props.form}>
+                {(field) => (
+                    <div>
+                        <h2>{field.label}</h2>
+                        <Widget field={field} />
+                    </div>
+                )}
+            </Iterator>
             <button type="submit">Submit</button>
         </form>
     </Layout>

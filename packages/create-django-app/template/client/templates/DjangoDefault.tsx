@@ -119,15 +119,20 @@ export default ({version}: {version: string}) => (
         </svg>
         <h1>The install worked successfully! Congratulations!</h1>
         <p>
-            You are seeing this page because{" "}
-            <a
-                href={`https://docs.djangoproject.com/en/${version}/ref/settings/#debug`}
-                target="_blank"
-                rel="noopener"
-            >
-                DEBUG=True
-            </a>{" "}
-            is in your settings file and you have not configured any URLs.
+            This looks page looks similar to the default Django page when you start a
+            project.
+        </p>
+        <p>
+            But it's actually rendered using React. <br />
+            Open <strong>client/templates/DjangoDefault.tsx</strong> and try modifying
+            it.
+        </p>
+        <p>
+            To get you started, there's a full example application bundled. It's similar
+            to the polls app from the Django Tutorial, but written with React in mind.
+        </p>
+        <p>
+            Try <a href="/polls/create/">creating a question</a> or <a href="/polls/">viewing existing ones</a>.
         </p>
     </Layout>
 );

@@ -1,5 +1,5 @@
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.utils import timezone
 from django.utils.version import get_docs_version
 
@@ -29,3 +29,9 @@ def create_question(request: HttpRequest) -> HttpResponse:
         return redirect("polls_index")
 
     return templates.CreateQuestion(form=form).render(request)
+
+
+def poll_detail(request: HttpRequest, poll_id: int) -> HttpResponse:
+    question = get_object_or_404(models.Question, id=poll_id)
+
+    return templates.PollDetail(question=question).render(request)

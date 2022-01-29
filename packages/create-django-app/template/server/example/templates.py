@@ -19,3 +19,8 @@ class PollsIndex(NamedTuple):
 @template
 class CreateQuestion(NamedTuple):
     form: forms.CreateQuestion
+
+
+@template
+class PollDetail(NamedTuple):
+    question: Pick[models.Question, "id", "question_text"]

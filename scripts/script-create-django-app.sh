@@ -28,6 +28,7 @@ fi
 
 ./packages/create-django-app/scripts/create-django-app.sh "$PROJECT_NAME"
 
+# TODO: why does this produce git not found?
 nix-shell --command "rm -rf $PROJECT_NAME/node_modules/reactivated/* && yarn --cwd packages/reactivated tsc --outDir ../../$PROJECT_NAME/node_modules/reactivated"
 
 cd "$PROJECT_NAME"

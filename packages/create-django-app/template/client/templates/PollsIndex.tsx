@@ -24,5 +24,8 @@ export default (props: Types["PollsIndexProps"]) => (
         ) : (
             <p>No polls are available.</p>
         )}
+        <p>
+            <a href="/polls/create/">Create a new question</a>
+        </p>
     </Layout>
 );

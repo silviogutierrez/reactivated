@@ -132,6 +132,13 @@ export const Layout = (props: Props) => (
                     margin: 15px auto 0;
                 }
 
+                & ul {
+                    text-align: left;
+                    line-height: 1.25;
+                    max-width: 26rem;
+                    margin: 15px auto 0;
+                }
+
                 @media (max-width: 800px) {
                     padding: 0 25px;
                     & h1 {

@@ -28,7 +28,7 @@ ln -s localhost.py "$PROJECT_NAME/server/settings/__init__.py"
 
 cp -RT "$SCRIPT_PATH/../template" "$PROJECT_NAME"
 cd "$PROJECT_NAME" || exit
-nix-shell --command "yarn init --yes && yarn add reactivated@0.20.1-a641"
+nix-shell --command "yarn init --yes && yarn add reactivated@0.20.1-a676"
 
 echo ""
 echo ""

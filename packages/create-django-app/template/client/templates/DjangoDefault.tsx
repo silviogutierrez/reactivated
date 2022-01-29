@@ -132,7 +132,8 @@ export default ({version}: {version: string}) => (
             to the polls app from the Django Tutorial, but written with React in mind.
         </p>
         <p>
-            Try <a href="/polls/create/">creating a question</a> or <a href="/polls/">viewing existing ones</a>.
+            Try <a href="/polls/create/">creating a question</a> or{" "}
+            <a href="/polls/">viewing existing ones</a>.
         </p>
     </Layout>
 );

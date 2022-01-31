@@ -100,13 +100,8 @@ export const Layout = (props: Props) => (
                     font-size: 1.375rem;
                     text-decoration: none;
                 `}
-                href="https://www.djangoproject.com/"
-                target="_blank"
+                href="/"
                 rel="noopener"
-                onClick={(event) => {
-                    event.preventDefault();
-                    alert("Look how easy that was");
-                }}
             >
                 django reactivated
             </a>

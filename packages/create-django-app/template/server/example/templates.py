@@ -1,4 +1,4 @@
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Optional
 
 from reactivated import Pick, template
 
@@ -17,10 +17,32 @@ class PollsIndex(NamedTuple):
 
 
 @template
-class CreateQuestion(NamedTuple):
-    form: forms.CreateQuestion
+class CreatePoll(NamedTuple):
+    form: forms.Poll
+    choice_form_set: forms.ChoiceFormSet
+
+
+@template
+class UpdatePoll(NamedTuple):
+    form: forms.Poll
+    choice_form_set: forms.ChoiceFormSet
 
 
 @template
 class PollDetail(NamedTuple):
-    question: Pick[models.Question, "id", "question_text"]
+    question: Pick[
+        models.Question, "id", "question_text", "choices.id", "choices.choice_text"
+    ]
+    error_message: Optional[str] = None
+
+
+@template
+class Results(NamedTuple):
+    question: Pick[
+        models.Question,
+        "id",
+        "question_text",
+        "choices.id",
+        "choices.choice_text",
+        "choices.votes",
+    ]

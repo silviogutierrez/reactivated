@@ -168,6 +168,12 @@ class ReactivatedConfig(AppConfig):
             stdout=subprocess.PIPE,
             env={**os.environ.copy()},
         )
+        tsc_process = subprocess.Popen(
+            ["yarn", "tsc", "--watch", "--noEmit",],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env={**os.environ.copy()},
+        )
         from reactivated import renderer
 
         renderer.renderer_process = subprocess.Popen(
@@ -185,7 +191,9 @@ class ReactivatedConfig(AppConfig):
             if "pytest" not in sys.modules:
                 logger.info("Cleaning up client build process")
                 logger.info("Cleaning up renderer build process")
+                logger.info("Cleaning up tsc process")
             client_process.terminate()
+            tsc_process.terminate()
 
             if renderer.renderer_process is not None:
                 renderer.renderer_process.terminate()

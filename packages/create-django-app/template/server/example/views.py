@@ -19,19 +19,68 @@ def polls_index(request: HttpRequest) -> HttpResponse:
     ).render(request)
 
 
-def create_question(request: HttpRequest) -> HttpResponse:
-    form = forms.CreateQuestion(request.POST or None)
+def create_poll(request: HttpRequest) -> HttpResponse:
+    form = forms.Poll(request.POST or None)
+    choice_form_set = forms.ChoiceFormSet(
+        request.POST or None, queryset=models.Choice.objects.none()
+    )
 
-    if form.is_valid():
+    if form.is_valid() and choice_form_set.is_valid():
         question = form.save(commit=False)
         question.pub_date = timezone.now()
         question.save()
-        return redirect("polls_index")
+        for instance in choice_form_set.save(commit=False):
+            instance.question = question
+            instance.save()
 
-    return templates.CreateQuestion(form=form).render(request)
+        return redirect("poll_detail", question.pk)
+
+    return templates.CreatePoll(form=form, choice_form_set=choice_form_set).render(
+        request
+    )
 
 
-def poll_detail(request: HttpRequest, poll_id: int) -> HttpResponse:
-    question = get_object_or_404(models.Question, id=poll_id)
+def update_poll(request: HttpRequest, question_id: int) -> HttpResponse:
+    question = get_object_or_404(models.Question, id=question_id)
+    form = forms.Poll(request.POST or None, instance=question)
+    choice_form_set = forms.ChoiceFormSet(
+        request.POST or None, queryset=models.Choice.objects.filter(question=question)
+    )
 
-    return templates.PollDetail(question=question).render(request)
+    if form.is_valid() and choice_form_set.is_valid():
+        form.save()
+        for instance in choice_form_set.save(commit=False):
+            instance.question = question
+            instance.save()
+
+        return redirect("poll_detail", question.pk)
+
+    return templates.UpdatePoll(form=form, choice_form_set=choice_form_set).render(
+        request
+    )
+
+
+def poll_detail(request: HttpRequest, question_id: int) -> HttpResponse:
+    question = get_object_or_404(models.Question, id=question_id)
+
+    return templates.PollDetail(error_message=None, question=question).render(request)
+
+
+def vote(request: HttpRequest, question_id: int) -> HttpResponse:
+    question = get_object_or_404(models.Question, id=question_id)
+
+    try:
+        selected_choice = question.choices.get(pk=request.POST["choice"])
+    except (KeyError, models.Choice.DoesNotExist):
+        return templates.PollDetail(
+            error_message="You didn't select a choice.", question=question
+        ).render(request)
+    else:
+        selected_choice.votes += 1
+        selected_choice.save()
+        return redirect("results", question.pk)
+
+
+def results(request: HttpRequest, question_id: int) -> HttpResponse:
+    question = get_object_or_404(models.Question, pk=question_id)
+    return templates.Results(question=question).render(request)

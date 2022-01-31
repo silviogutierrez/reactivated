@@ -169,9 +169,9 @@ class ReactivatedConfig(AppConfig):
             env={**os.environ.copy()},
         )
         tsc_process = subprocess.Popen(
-            ["yarn", "tsc", "--watch", "--noEmit",],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            ["yarn", "tsc", "--watch", "--noEmit", "--preserveWatchOutput"],
+            # stdout=subprocess.PIPE,
+            # stderr=subprocess.PIPE,
             env={**os.environ.copy()},
         )
         from reactivated import renderer

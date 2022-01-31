@@ -26,6 +26,13 @@ if [ -z ${PROJECT_NAME+x} ]; then
     exit
 fi
 
+POSTGRES_PID_FILE="./$PROJECT_NAME/.venv/postgresql/postmaster.pid"
+
+if [ -f "$POSTGRES_PID_FILE" ]; then
+    echo "$POSTGRES_PID_FILE exists. Shutting down database"
+    head -n 1 <"$POSTGRES_PID_FILE" | xargs kill -9 &>/dev/null || true
+fi
+
 ./packages/create-django-app/scripts/create-django-app.sh "$PROJECT_NAME"
 
 # TODO: why does this produce git not found?

@@ -4,6 +4,7 @@ set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
+# TODO: should probably not do this if the directory exists. Maybe outside?
 rm -rf "$SCRIPT_PATH/.venv"
 python3 -m venv "$SCRIPT_PATH/.venv"
 
@@ -28,7 +29,7 @@ ln -s localhost.py "$PROJECT_NAME/server/settings/__init__.py"
 
 cp -RT "$SCRIPT_PATH/../template" "$PROJECT_NAME"
 cd "$PROJECT_NAME" || exit
-nix-shell --command "yarn init --yes && yarn add reactivated@0.20.1-a676"
+nix-shell --command "yarn init --yes && yarn add reactivated@0.20.1-a678"
 
 echo ""
 echo ""

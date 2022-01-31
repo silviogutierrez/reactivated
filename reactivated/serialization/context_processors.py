@@ -45,9 +45,14 @@ class BaseContext(NamedTuple):
     template_name: str
 
 
+class StaticProcessor(NamedTuple):
+    STATIC_URL: str
+
+
 TYPE_HINTS = {
     "django.template.context_processors.request": {"return": RequestProcessor},
     "django.template.context_processors.csrf": {"return": CSRFProcessor},
+    "django.template.context_processors.static": {"return": StaticProcessor},
     "django.contrib.messages.context_processors.messages": {
         "return": MessagesProcessor
     },

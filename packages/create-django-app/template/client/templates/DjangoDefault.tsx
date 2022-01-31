@@ -4,7 +4,6 @@ import {Helmet} from "react-helmet-async";
 import {Layout} from "@client/components/Layout";
 import {css} from "@linaria/core";
 
-
 export default ({version}: {version: string}) => (
     <Layout title="The install worked successfully! Congratulations!">
         <svg

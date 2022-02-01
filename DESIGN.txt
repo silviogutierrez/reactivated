@@ -5,6 +5,10 @@ fly apps list --json | jq ".[].Name" -r | xargs -L 1 fly apps destroy --yes
 ## General TODO
 - [ ] Trying to render a nonexistent tsx template crashes the server. it should
 error out gracefully.
+- [ ] Figure out static generation. Do we put it inside the the reactivated app
+  package? This is kind of magical but would work. Or maybe inside client/generated/.
+- [ ] pyproject.toml consolidation.
+- [ ] Do we want tests.py or pytests.py?
 
 ## Invocation / installation
 Currently using create-django-app with NPM, but that itself really just wraps nix and checks for nix-shell.

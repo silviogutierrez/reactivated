@@ -1,1 +1,7 @@
 client/generated
+node_modules
+*.pyc
+.DS_Store
+node_modules
+.mypy_cache
+.cache

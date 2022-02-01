@@ -34,8 +34,6 @@ from .templates import Action as Action  # noqa: F401
 from .templates import interface as interface  # noqa: F401
 from .templates import template as template  # noqa: F401
 
-default_app_config = "reactivated.apps.ReactivatedConfig"
-
 
 def export(var: Any) -> None:
     """ See: https://stackoverflow.com/a/18425523 """

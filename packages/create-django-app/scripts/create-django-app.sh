@@ -4,7 +4,6 @@ set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-# TODO: should probably not do this if the directory exists. Maybe outside?
 rm -rf "$SCRIPT_PATH/.venv"
 python3 -m venv "$SCRIPT_PATH/.venv"
 
@@ -16,7 +15,8 @@ if [ -z ${PROJECT_NAME+x} ]; then
 fi
 
 "$SCRIPT_PATH/.venv/bin/pip" install Django==4.0.1
-rm -rf "$PROJECT_NAME"
+# TODO: should probably not do this if the directory exists. Maybe outside?
+# rm -rf "$PROJECT_NAME"
 "$SCRIPT_PATH/.venv/bin/django-admin" startproject server
 mv server "$PROJECT_NAME"
 mkdir "$PROJECT_NAME/server/settings"

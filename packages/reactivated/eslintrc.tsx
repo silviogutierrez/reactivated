@@ -33,6 +33,12 @@ module.exports = {
                 "newlines-between": "always",
                 "pathGroups": [
                     {"group": "builtin", "pattern": "react", "position": "before"},
+                    {"group": "builtin", "pattern": "react-*", "position": "after"},
+                    {
+                        "group": "builtin",
+                        "pattern": "@linaria/*",
+                        "position": "after"
+                    },
                     {
                         "group": "internal",
                         "pattern": "@client/actions/*",

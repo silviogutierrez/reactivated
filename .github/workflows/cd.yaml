@@ -28,7 +28,7 @@ jobs:
                   git config --global user.name "Silvio J. Gutierrez"
             - uses: actions/setup-node@v1
               with:
-                  node-version: "13.x"
+                  node-version: "16.x"
                   registry-url: "https://registry.npmjs.org"
             - uses: actions/setup-python@master
               with:

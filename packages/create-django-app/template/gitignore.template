@@ -8,7 +8,7 @@ node_modules
 .DS_Store
 node_modules
 .mypy_cache
-.cache
+.pytest_cache
 
 # TODO: remove me or figure out. See DESIGN.
 static

@@ -1,9 +1,9 @@
 import React from "react";
 
-import {Types} from "@client/generated";
-import {Layout} from "@client/components/Layout";
-
 import {css} from "@linaria/core";
+
+import {Layout} from "@client/components/Layout";
+import {Types} from "@client/generated";
 
 export default (props: Types["PollsIndexProps"]) => (
     <Layout title="Polls">

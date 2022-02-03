@@ -1,9 +1,7 @@
 import React from "react";
 
-import {Types, Iterator, CSRFToken, reverse} from "@client/generated";
 import {Layout} from "@client/components/Layout";
-
-import {Widget} from "reactivated/forms";
+import {CSRFToken, Types, reverse} from "@client/generated";
 
 export default ({error_message, question}: Types["PollDetailProps"]) => (
     <Layout title={question.question_text}>

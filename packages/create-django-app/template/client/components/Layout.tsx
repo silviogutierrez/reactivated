@@ -1,11 +1,14 @@
 import React from "react";
+
 import {Helmet} from "react-helmet-async";
+
 import {css} from "@linaria/core";
 import {styled} from "@linaria/react";
-import * as styles from "@client/styles";
-styles;
 
 import {Context} from "@client/generated";
+import * as styles from "@client/styles";
+
+styles;
 
 const Option = styled.a`
     display: grid;
@@ -106,7 +109,7 @@ export const Layout = (props: Props) => {
                     <a
                         href={`https://docs.djangoproject.com/en/${context.django_version}/releases/`}
                         target="_blank"
-                        rel="noopener"
+                        rel="noopener noreferrer"
                     >
                         release notes
                     </a>{" "}

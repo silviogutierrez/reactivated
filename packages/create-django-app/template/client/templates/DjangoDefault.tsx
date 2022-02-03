@@ -1,10 +1,10 @@
 import React from "react";
-import {Helmet} from "react-helmet-async";
 
-import {Layout} from "@client/components/Layout";
 import {css} from "@linaria/core";
 
-export default ({version}: {version: string}) => (
+import {Layout} from "@client/components/Layout";
+
+export default () => (
     <Layout title="The install worked successfully! Congratulations!">
         <svg
             className={css`
@@ -123,12 +123,12 @@ export default ({version}: {version: string}) => (
             project.
         </p>
         <p>
-            But it's actually rendered using React. <br />
+            But it’s actually rendered using React. <br />
             Open <strong>client/templates/DjangoDefault.tsx</strong> and try modifying
             it.
         </p>
         <p>
-            To get you started, there's a full example application bundled. It's similar
+            To get you started, there’s a full example application bundled. It’s similar
             to the polls app from the Django Tutorial, but written with React in mind.
         </p>
         <p>

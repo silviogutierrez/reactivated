@@ -1,5 +1,4 @@
 from django.db import models
-
 from reactivated.serialization import field_descriptor_schema
 from reactivated.serialization.registry import register
 
@@ -20,5 +19,5 @@ class Choice(models.Model):
 @register(models.BigAutoField)
 class BigAutoField:
     @classmethod
-    def get_json_schema(Type, instance, definitions):
+    def get_json_schema(Type, instance, definitions):  # type: ignore[no-untyped-def]
         return field_descriptor_schema(models.IntegerField(), definitions)

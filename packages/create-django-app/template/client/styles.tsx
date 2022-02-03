@@ -1,5 +1,3 @@
-import React from "react";
-
 import {css} from "@linaria/core";
 
 css`
@@ -37,5 +35,23 @@ css`
                 max-width: 780px;
             }
         }
+    }
+`;
+
+export const verticallySpaced = css`
+    & > * {
+        margin-bottom: 10px;
+    }
+    & > *:last-child {
+        margin-bottom: 0 !important;
+    }
+`;
+
+export const horizontallySpaced = css`
+    & > * {
+        margin-right: 10px;
+    }
+    & > *:last-child {
+        margin-right: 0 !important;
     }
 `;

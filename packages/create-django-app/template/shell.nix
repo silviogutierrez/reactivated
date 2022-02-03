@@ -58,6 +58,10 @@ mkShell {
     flyctlLatest
     # Needed for automating flyctl
     jq
+
+    shfmt
+    shellcheck
+    nixfmt
   ];
   shellHook = ''
     # Needed to use pip wheels

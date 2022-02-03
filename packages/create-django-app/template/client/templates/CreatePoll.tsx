@@ -1,10 +1,11 @@
 import React from "react";
 
-import {Types, Iterator, CSRFToken} from "@client/generated";
-import {Layout} from "@client/components/Layout";
 import {css} from "@linaria/core";
 
-import {Widget, ManagementForm, useFormSet, FieldHandler} from "reactivated/forms";
+import {FieldHandler, ManagementForm, Widget, useFormSet} from "reactivated/forms";
+
+import {Layout} from "@client/components/Layout";
+import {CSRFToken, Iterator, Types} from "@client/generated";
 
 export const Field = (props: {field: FieldHandler<Types["globals"]["Widget"]>}) => {
     const {field} = props;

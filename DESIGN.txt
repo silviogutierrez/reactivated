@@ -9,6 +9,8 @@ error out gracefully.
   package? This is kind of magical but would work. Or maybe inside client/generated/.
 - [ ] pyproject.toml consolidation.
 - [ ] Do we want tests.py or pytests.py?
+- [ ] Daemons like TSC still start but do not get stopped if the runserver command
+  fails to start. For example, the port is already bound.
 
 ## Invocation / installation
 Currently using create-django-app with NPM, but that itself really just wraps nix and checks for nix-shell.

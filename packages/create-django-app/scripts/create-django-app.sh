@@ -32,6 +32,7 @@ cd "$PROJECT_NAME" || exit
 mv gitignore.template .gitignore
 nix-shell --command "git init --initial-branch=main && git add -A"
 nix-shell --command "yarn init --yes && yarn add reactivated@0.20.1-a685 && git add -A"
+nix-shell --command "python manage.py generate_client_assets"
 nix-shell --command "scripts/fix.sh --all"
 nix-shell --command "git add -A && git commit -m 'Initial files'"
 

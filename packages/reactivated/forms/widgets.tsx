@@ -7,6 +7,7 @@ type Optgroup = Types["Optgroup"];
 
 export const CheckboxInput = (props: {
     name: string;
+    className?: string;
     value: true | false;
     onChange: (value: boolean) => void;
 }) => {
@@ -14,6 +15,7 @@ export const CheckboxInput = (props: {
         <input
             type="checkbox"
             name={props.name}
+            className={props.className}
             checked={props.value}
             onChange={(event) => props.onChange(event.target.checked)}
         />
@@ -22,6 +24,7 @@ export const CheckboxInput = (props: {
 
 export const TextInput = (props: {
     name: string;
+    className?: string;
     value: string | null;
     onChange: (value: string) => void;
 }) => {
@@ -29,6 +32,7 @@ export const TextInput = (props: {
         <input
             type="text"
             name={props.name}
+            className={props.className}
             value={props.value ?? ""}
             onChange={(event) => props.onChange(event.target.value)}
         />
@@ -37,6 +41,7 @@ export const TextInput = (props: {
 
 export const Select = (props: {
     name: string;
+    className?: string;
     value: string | number | null;
     optgroups: Optgroup[];
     onChange: (value: string) => void;
@@ -47,6 +52,7 @@ export const Select = (props: {
         <select
             key={name}
             name={name}
+            className={props.className}
             value={value ?? ""}
             onChange={(event) => props.onChange(event.target.value)}
         >

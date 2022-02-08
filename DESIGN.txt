@@ -3,6 +3,10 @@ Destroy every app:
 fly apps list --json | jq ".[].Name" -r | xargs -L 1 fly apps destroy --yes
 
 ## General TODO
+- [ ] Auto run migrations
+- [ ] Static files
+- [ ] Unknown error occurs with missing organizations.
+- [ ] Seems lke launch.sh is idempotent. Another app is not created. It isn't. Remove fly.toml and retry.
 - [ ] Trying to render a nonexistent tsx template crashes the server. it should
 error out gracefully.
 - [ ] Figure out static generation. Do we put it inside the the reactivated app

@@ -320,6 +320,7 @@ class FormType(NamedTuple):
                     },
                     "prefix": {"type": "string"},
                     "iterator": iterator,
+                    "hidden_fields": iterator,
                 },
                 "serializer": "reactivated.serialization.FormType",
                 "additionalProperties": False,
@@ -336,6 +337,10 @@ class FormType(NamedTuple):
         Type: Type["FormType"], value: django_forms.BaseForm, schema: Thing
     ) -> JSON:
         form = value
+        context = form.get_context()  # type: ignore[attr-defined]
+
+        hidden_fields = {field.name: field for field in context["hidden_fields"]}
+        visible_fields = {field.name: field for field, _ in context["fields"]}
 
         # TODO: hackey way to make bound fields work.
         # This creates a property that is then accessible by our serializer
@@ -343,16 +348,17 @@ class FormType(NamedTuple):
         # proper way to do this is to make fields a mapped type of unbound
         # fields, and then unbound field a type that has a .field property for
         # the bound field.
-        value.fields = {
-            field_name: form[field_name] for field_name in form.fields.keys()
-        }
+        value.fields = {**hidden_fields, **visible_fields}
 
         serialized = serialize(value, schema, suppress_custom_serializer=True)
         serialized[
             "name"
         ] = f"{value.__class__.__module__}.{value.__class__.__qualname__}"
         serialized["prefix"] = form.prefix or ""
-        serialized["iterator"] = list(value.fields.keys())
+        serialized["iterator"] = list(hidden_fields.keys()) + list(
+            visible_fields.keys()
+        )
+        serialized["hidden_fields"] = list(hidden_fields.keys())
         serialized["errors"] = form.errors or None
         return serialized
 

@@ -43,6 +43,7 @@ OperaFormSet = forms.modelformset_factory(
 
 
 class StoryboardForm(forms.Form):
+    hidden_field = forms.CharField(widget=forms.HiddenInput())
     char_field = forms.CharField()
     integer_field = forms.IntegerField()
     date_field = forms.DateField(widget=forms.SelectDateWidget(years=[2000, 2001]))

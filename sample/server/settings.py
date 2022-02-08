@@ -36,7 +36,7 @@ ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     "reactivated",
-    "django_extensions",
+    "django_extensions.apps.DjangoExtensionsConfig",
     "sample.server.apps.samples",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -126,8 +126,6 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 

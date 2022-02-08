@@ -1,4 +1,4 @@
-Django==3.1.14
+Django==4.0.2
 psycopg2-binary==2.8.6
 Werkzeug==0.16.0
 black==19.10b0

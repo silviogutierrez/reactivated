@@ -1,1 +1,14 @@
 client/generated
+node_modules
+
+# venv already has a .gitignore in it, but prettier does not respect it using
+# the --ignore-path option since it points to this file.
+.venv
+*.pyc
+.DS_Store
+node_modules
+.mypy_cache
+.pytest_cache
+
+# TODO: remove me or figure out. See DESIGN.
+static

@@ -35,7 +35,7 @@ def create_poll(request: HttpRequest) -> HttpResponse:
 
         return redirect("poll_detail", question.pk)
 
-    return templates.CreatePoll(form=form, choice_form_set=choice_form_set).render(
+    return templates.EditPoll(form=form, choice_form_set=choice_form_set).render(
         request
     )
 
@@ -55,9 +55,9 @@ def update_poll(request: HttpRequest, question_id: int) -> HttpResponse:
 
         return redirect("poll_detail", question.pk)
 
-    return templates.UpdatePoll(form=form, choice_form_set=choice_form_set).render(
-        request
-    )
+    return templates.EditPoll(
+        existing_poll=question, form=form, choice_form_set=choice_form_set
+    ).render(request)
 
 
 def poll_detail(request: HttpRequest, question_id: int) -> HttpResponse:

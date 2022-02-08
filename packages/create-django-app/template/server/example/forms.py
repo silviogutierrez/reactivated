@@ -32,5 +32,5 @@ class Choice(forms.ModelForm[models.Choice]):
 
 
 ChoiceFormSet = forms.modelformset_factory(
-    model=models.Choice, form=Choice, extra=0, min_num=1, validate_min=True
+    model=models.Choice, form=Choice, extra=0, min_num=2, validate_min=True
 )

@@ -17,15 +17,10 @@ class PollsIndex(NamedTuple):
 
 
 @template
-class CreatePoll(NamedTuple):
+class EditPoll(NamedTuple):
     form: forms.Poll
     choice_form_set: forms.ChoiceFormSet
-
-
-@template
-class UpdatePoll(NamedTuple):
-    form: forms.Poll
-    choice_form_set: forms.ChoiceFormSet
+    existing_poll: Optional[Pick[models.Question, "id"]] = None
 
 
 @template

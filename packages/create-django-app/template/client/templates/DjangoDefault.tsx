@@ -1,11 +1,47 @@
 import React from "react";
 
-import {css} from "@linaria/core";
+import {css, cx} from "@linaria/core";
 
 import {Layout} from "@client/components/Layout";
+import * as styles from "@client/styles";
 
 export default () => (
-    <Layout title="The install worked successfully! Congratulations!">
+    <Layout
+        title="The install worked successfully! Congratulations!"
+        className={cx(
+            css`
+                ${styles.verticallySpaced(10)}
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                p {
+                    line-height: 1.25;
+                    max-width: 26rem;
+                }
+
+                ul {
+                    text-align: left;
+                    line-height: 1.25;
+                    max-width: 26rem;
+                }
+
+                h1 {
+                    font-size: 1.375rem;
+                    max-width: 32rem;
+                }
+
+                @media (max-width: 800px) {
+                    padding: 0 25px;
+
+                    h1 {
+                        font-size: 1.25rem;
+                    }
+                }
+            `,
+        )}
+    >
         <svg
             className={css`
                 margin-top: 19vh;

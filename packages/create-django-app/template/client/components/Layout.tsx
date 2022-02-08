@@ -2,13 +2,11 @@ import React from "react";
 
 import {Helmet} from "react-helmet-async";
 
-import {css} from "@linaria/core";
+import {css, cx} from "@linaria/core";
 import {styled} from "@linaria/react";
 
 import {Context} from "@client/generated";
 import * as styles from "@client/styles";
-
-styles;
 
 const Option = styled.a`
     display: grid;
@@ -18,8 +16,8 @@ const Option = styled.a`
     text-decoration: none;
 
     & svg {
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 2.2rem;
+        height: 2.2rem;
         fill: gray;
         border: 1px solid #d6d6d6;
         padding: 5px;
@@ -52,6 +50,7 @@ const ScreenReader = styled.span`
 interface Props {
     title: string;
     children: React.ReactNode;
+    className?: string;
 }
 
 export const Layout = (props: Props) => {
@@ -59,7 +58,7 @@ export const Layout = (props: Props) => {
 
     return (
         <>
-            <Helmet htmlAttributes={{className: "bar"}}>
+            <Helmet htmlAttributes={{class: styles.globalStyles}}>
                 <meta charSet="utf-8" />
                 <title>{props.title}</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -117,29 +116,17 @@ export const Layout = (props: Props) => {
                 </p>
             </header>
             <main
-                className={css`
-                    text-align: center;
+                className={cx(
+                    css`
+                        padding: 20px 0;
 
-                    & p {
-                        line-height: 1.25;
-                        max-width: 26rem;
-                        margin: 15px auto 0;
-                    }
-
-                    & ul {
-                        text-align: left;
-                        line-height: 1.25;
-                        max-width: 26rem;
-                        margin: 15px auto 0;
-                    }
-
-                    @media (max-width: 800px) {
-                        padding: 0 25px;
-                        & h1 {
-                            font-size: 1.25rem;
+                        @media (max-width: 800px) {
+                            padding-left: 20px;
+                            padding-right: 20px;
                         }
-                    }
-                `}
+                    `,
+                    props.className,
+                )}
             >
                 {props.children}
             </main>

@@ -127,7 +127,12 @@ class BaseIntersectionHolder:
             schema, definitions = create_schema(context_processor, definitions)
             schemas.append(schema)
 
-        return Thing(schema={"allOf": schemas,}, definitions=definitions,)
+        return Thing(
+            schema={
+                "allOf": schemas,
+            },
+            definitions=definitions,
+        )
 
 
 class Intersection:
@@ -175,7 +180,9 @@ class FieldType(NamedTuple):
             )
             extra = {
                 "type": "object",
-                "properties": {"enum": choice_schema,},
+                "properties": {
+                    "enum": choice_schema,
+                },
                 "required": ["enum"],
                 "additionalProperties": False,
             }
@@ -187,7 +194,9 @@ class FieldType(NamedTuple):
                     base_schema,
                     {
                         "type": "object",
-                        "properties": {"widget": widget_schema,},
+                        "properties": {
+                            "widget": widget_schema,
+                        },
                         "additionalProperties": False,
                         "required": ["widget"],
                     },
@@ -290,7 +299,10 @@ class FormType(NamedTuple):
             error_properties[field_name] = error_definition
 
         iterator = (
-            {"type": "array", "items": {"enum": required, "type": "string"},}
+            {
+                "type": "array",
+                "items": {"enum": required, "type": "string"},
+            }
             if len(required) > 0
             else {"type": "array", "items": []}
         )
@@ -915,7 +927,10 @@ def serialize(
     # remains a higher-order construct. Same for $ref.
     if serializer_path is not None and suppress_custom_serializer is False:
         serializer = import_string(serializer_path).get_serialized_value
-        return serializer(value, schema,)
+        return serializer(
+            value,
+            schema,
+        )
     elif "$ref" in schema.schema:
         dereferenced_schema = schema.definitions[
             schema.schema["$ref"].replace("#/definitions/", "")
@@ -944,4 +959,7 @@ def serialize(
     # Should this be an option?
     serializer = SERIALIZERS[schema.schema.get("type", "any")]
 
-    return serializer(value, schema,)
+    return serializer(
+        value,
+        schema,
+    )

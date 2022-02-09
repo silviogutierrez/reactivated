@@ -74,7 +74,9 @@ def test_enum_form_field():
     class EnumForm(forms.Form):
         enum_form_field = EnumChoiceField(enum=EnumTest)
 
-    form = EnumForm({"enum_form_field": "THIRD"},)
+    form = EnumForm(
+        {"enum_form_field": "THIRD"},
+    )
     assert form.is_valid()
     assert form.cleaned_data["enum_form_field"] == EnumTest.THIRD
 
@@ -112,9 +114,11 @@ def test_convert_enum_to_choices():
     assert str(last_choice) == "CHUNKY"
     assert last_label == "Chunky"
 
-    ((first_choice, first_label), *rest, (last_choice, last_label),) = list(
-        fields.convert_enum_to_choices(include_blank=True, enum=EnumTest)
-    )
+    (
+        (first_choice, first_label),
+        *rest,
+        (last_choice, last_label),
+    ) = list(fields.convert_enum_to_choices(include_blank=True, enum=EnumTest))
 
     assert first_choice == ""
     assert first_label == "---------"

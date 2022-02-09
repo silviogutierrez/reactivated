@@ -24,4 +24,6 @@ def storyboard(request: HttpRequest) -> HttpResponse:
             "boolean_field": True,
         },
     )
-    return templates.Storyboard(form=form,).render(request)
+    return templates.Storyboard(
+        form=form,
+    ).render(request)

@@ -56,7 +56,7 @@ def get_urls_schema() -> Dict[str, Any]:
 
 
 def get_types_schema() -> Any:
-    """ The package json-schema-to-typescript does expose a way to
+    """The package json-schema-to-typescript does expose a way to
     automatically export any interface it sees. However, this can bloat our
     generated files.
 
@@ -174,7 +174,9 @@ class ReactivatedConfig(AppConfig):
             ["node", f"{settings.BASE_DIR}/node_modules/reactivated/build.renderer.js"],
             encoding="utf-8",
             stdout=subprocess.PIPE,
-            env={**os.environ.copy(),},
+            env={
+                **os.environ.copy(),
+            },
         )
 
         def cleanup() -> None:

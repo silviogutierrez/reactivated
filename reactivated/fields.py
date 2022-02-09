@@ -68,7 +68,7 @@ def convert_enum_to_choices(
 
 
 class EnumChoiceIterator(Generic[_GT]):
-    """ This is a special iterator that preserves the original enum. Useful so
+    """This is a special iterator that preserves the original enum. Useful so
     we can use the "choices" argument that triggers special Django behaviors,
     but leave our enum intact for reference."""
 
@@ -286,7 +286,6 @@ if TYPE_CHECKING:
         error_messages: Optional[_ErrorMessagesToOverride] = None,
     ) -> Union[_EnumField[TEnum, TEnum], _EnumField[Optional[TEnum], Optional[TEnum]]]:  # type: ignore[type-var]
         return _EnumField[TEnum, TEnum](enum=enum, default=default, null=null)
-
 
 else:
 

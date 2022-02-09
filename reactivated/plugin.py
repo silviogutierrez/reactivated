@@ -65,7 +65,10 @@ def analyze_stubs(ctx: ClassDefContext) -> None:
     boolean = ctx.api.builtin_type("builtins.bool")
 
     add_method(
-        ctx, "is_valid", args=[], return_type=Instance(boolean.type, []),
+        ctx,
+        "is_valid",
+        args=[],
+        return_type=Instance(boolean.type, []),
     )
 
 
@@ -78,7 +81,9 @@ def analyze_formset_factory(ctx: DynamicClassDefContext) -> None:
         if ctx.call.callee.name == "modelformset_factory"  # type: ignore[attr-defined]
         else "reactivated.stubs.BaseFormSet"
     )
-    form_set_class = ctx.api.lookup_fully_qualified_or_none(class_lookup,)
+    form_set_class = ctx.api.lookup_fully_qualified_or_none(
+        class_lookup,
+    )
     assert form_set_class is not None
 
     form_set_class_instance = Instance(

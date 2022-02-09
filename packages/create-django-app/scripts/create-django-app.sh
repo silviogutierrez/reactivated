@@ -14,17 +14,6 @@ if [ -z ${PROJECT_NAME+x} ]; then
     exit
 fi
 
-"$SCRIPT_PATH/.venv/bin/pip" install Django==4.0.1
-# TODO: should probably not do this if the directory exists. Maybe outside?
-# rm -rf "$PROJECT_NAME"
-"$SCRIPT_PATH/.venv/bin/django-admin" startproject server
-mv server "$PROJECT_NAME"
-mkdir "$PROJECT_NAME/server/settings"
-rm "$PROJECT_NAME/server/settings.py"
-
-# TODO: remove me.
-mkdir -p "$PROJECT_NAME/static"
-
 ln -s localhost.py "$PROJECT_NAME/server/settings/__init__.py"
 
 cp -RT "$SCRIPT_PATH/../template" "$PROJECT_NAME"

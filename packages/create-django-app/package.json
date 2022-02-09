@@ -14,7 +14,7 @@
         "scripts/create-django-app.sh"
     ],
     "scripts": {
-        "prepublishOnly": "cp -R ../../development template && cp template/.gitignore template/gitignore.template && tsc"
+        "prepublishOnly": "rm -rf template && cp -R ../../development template && rm template/server/settings/__init__.py && cp template/.gitignore template/gitignore.template && tsc"
     },
     "devDependencies": {
         "@types/node": "^14.14.35",

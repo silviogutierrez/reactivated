@@ -133,7 +133,15 @@ def test_enum_does_not_clobber_enum_type():
 
 def test_literal():
     schema = create_schema(Literal["hello"], {})
-    assert schema == ({"type": "string", "enum": ["hello",]}, {},)
+    assert schema == (
+        {
+            "type": "string",
+            "enum": [
+                "hello",
+            ],
+        },
+        {},
+    )
     convert_to_json_and_validate("hello", schema)
 
 
@@ -431,8 +439,8 @@ def test_get_field_descriptor():
 
 
 def test_build_nested_schema():
-    """ This function mutates, so we test building multiple paths that are nested
-    under the same object. """
+    """This function mutates, so we test building multiple paths that are nested
+    under the same object."""
 
     schema = {
         "type": "object",
@@ -512,7 +520,10 @@ class SampleContextTwo(TypedDict):
 
 def sample_context_processor_one() -> SampleContextOne:
     return {
-        "complex": {"required": 5, "optional": True,},
+        "complex": {
+            "required": 5,
+            "optional": True,
+        },
         "boolean": True,
     }
 

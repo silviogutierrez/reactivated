@@ -183,7 +183,14 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
     for item, marked_for_null in needs_null:
         contents = {**marked_for_null}
         marked_for_null.clear()
-        marked_for_null.update({"anyOf": [contents, {"type": "null"},]})
+        marked_for_null.update(
+            {
+                "anyOf": [
+                    contents,
+                    {"type": "null"},
+                ]
+            }
+        )
 
     return schema
 

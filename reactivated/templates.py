@@ -30,7 +30,11 @@ class LazySerializationResponse(TemplateResponse):
     _request: HttpRequest
 
     def __init__(
-        self, request: HttpRequest, template: Type[T], *args: Any, **kwargs: Any,
+        self,
+        request: HttpRequest,
+        template: Type[T],
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         self.template = template
         super().__init__(request, *args, **kwargs)
@@ -82,7 +86,10 @@ def template(cls: Type[T]) -> Type[T]:
 
         def render(self, request: HttpRequest) -> TemplateResponse:
             response = LazySerializationResponse(  # type
-                request, cls, f"{self.__class__.__name__}.tsx", self,
+                request,
+                cls,
+                f"{self.__class__.__name__}.tsx",
+                self,
             )
             return response
 

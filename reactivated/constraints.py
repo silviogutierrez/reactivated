@@ -21,7 +21,7 @@ class EnumConstraint(models.constraints.BaseConstraint):
         model: Optional[Type[Model]],
         schema_editor: Optional[BaseDatabaseSchemaEditor],
     ) -> str:
-        """ We leave this blank as the migration code tries to inject
+        """We leave this blank as the migration code tries to inject
         constraint code inline with the field, which doesn't work for custom
         types in PostgreSQL.
         """

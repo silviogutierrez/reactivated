@@ -202,7 +202,9 @@ def test_serialization():
             "name": "Götterdämmerung",
             "get_birthplace_of_composer": "Germany",
         },
-        "pick_property": {"did_live_in_more_than_one_country": True,},
+        "pick_property": {
+            "did_live_in_more_than_one_country": True,
+        },
         "pick_literal": {"name": composer.name, "operas": [{"name": opera.name}]},
         "pick_computed_foreign_key": {"main_opera": {"name": opera.name}},
         "pick_computed_null_foreign_key": {"favorite_opera": {"name": opera.name}},

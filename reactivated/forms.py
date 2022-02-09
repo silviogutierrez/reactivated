@@ -43,7 +43,7 @@ class EnumChoiceField(django_forms.TypedChoiceField):
         disabled: bool = False,
         label_suffix: Optional[Any] = None,
     ) -> None:
-        """ When instantiated by a model form, choices will be populated and
+        """When instantiated by a model form, choices will be populated and
         enum will not, as Django strips all but a defined set of kwargs.
 
         And coerce will be populated by the model as well.

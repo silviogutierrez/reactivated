@@ -54,7 +54,9 @@ class BaseWidget(NamedTuple):
 
     @classmethod
     def get_json_schema(
-        Proxy: Type["BaseWidget"], instance: forms.Widget, definitions: Definitions,
+        Proxy: Type["BaseWidget"],
+        instance: forms.Widget,
+        definitions: Definitions,
     ) -> "Thing":
         from . import create_schema, named_tuple_schema
 
@@ -119,11 +121,19 @@ class BaseWidget(NamedTuple):
         base = base.add_property(
             "tag", create_schema(Literal[tag], base.definitions).schema
         )
-        GlobalWidget: Dict[str, Any] = global_types.get("Widget", {"anyOf": [],})  # type: ignore[assignment]
+        GlobalWidget: Dict[str, Any] = global_types.get(
+            "Widget",
+            {
+                "anyOf": [],
+            },
+        )  # type: ignore[assignment]
 
         GlobalWidget = {
             **GlobalWidget,
-            "anyOf": [*GlobalWidget["anyOf"], base.schema,],
+            "anyOf": [
+                *GlobalWidget["anyOf"],
+                base.schema,
+            ],
         }
         global_types["Widget"] = GlobalWidget  # type: ignore[assignment]
 
@@ -144,7 +154,7 @@ class BaseWidget(NamedTuple):
         serialized["tag"] = f"{widget_class.__module__}.{widget_class.__qualname__}"
         serialized["value"] = Proxy.coerce_value(context)
 
-        if (subwidgets := get_type_hints(Proxy).get("subwidgets", None)) :
+        if subwidgets := get_type_hints(Proxy).get("subwidgets", None):
             subwidgets_to_enumerate = (
                 subwidgets.__annotations__.values()
                 if hasattr(subwidgets, "__annotations__")

@@ -42,7 +42,9 @@ class ComputedRelation(Generic[T, S, Z]):
         pass
 
     def __get__(
-        self, instance: Union[T, None], own: Type[T],
+        self,
+        instance: Union[T, None],
+        own: Type[T],
     ) -> Union["ComputedRelation[T, S, Z]", Z]:
         if instance is None:
             return self
@@ -51,7 +53,9 @@ class ComputedRelation(Generic[T, S, Z]):
 
 
 def computed_relation(
-    *, label: Optional[str] = None, model: Union[Callable[[], Type[S]], Type[S]],
+    *,
+    label: Optional[str] = None,
+    model: Union[Callable[[], Type[S]], Type[S]],
 ) -> Callable[[Callable[[T], SQuerySet]], ComputedRelation[T, S, SQuerySet]]:
     def inner(fget: Callable[[T], SQuerySet]) -> ComputedRelation[T, S, SQuerySet]:
         return ComputedRelation(

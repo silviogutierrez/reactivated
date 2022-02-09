@@ -1,18 +1,18 @@
 module.exports = {
-    "root": true,
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "project": ["./tsconfig.json"]
+    root: true,
+    parser: "@typescript-eslint/parser",
+    parserOptions: {
+        project: ["./tsconfig.json"],
     },
-    "plugins": ["@typescript-eslint"],
-    "settings": {
-        "react": {
-            "version": "detect"
+    plugins: ["@typescript-eslint"],
+    settings: {
+        react: {
+            version: "detect",
         },
-        "import/resolver": "typescript"
+        "import/resolver": "typescript",
     },
-    "rules": {
-        "sort-imports": ["error", {"ignoreDeclarationSort": true}],
+    rules: {
+        "sort-imports": ["error", {ignoreDeclarationSort: true}],
 
         // TypeScript handles this for us.
         "import/namespace": 0,
@@ -29,37 +29,38 @@ module.exports = {
         "import/order": [
             "error",
             {
-                "alphabetize": {"order": "asc"},
+                alphabetize: {order: "asc"},
                 "newlines-between": "always",
-                "pathGroups": [
-                    {"group": "builtin", "pattern": "react", "position": "before"},
-                    {"group": "builtin", "pattern": "react-*", "position": "after"},
+                pathGroups: [
+                    {group: "builtin", pattern: "react", position: "before"},
+                    {group: "builtin", pattern: "react-*", position: "after"},
                     {
-                        "group": "builtin",
-                        "pattern": "@linaria/*",
-                        "position": "after"
+                        group: "builtin",
+                        pattern: "@linaria/*",
+                        position: "after",
                     },
                     {
-                        "group": "internal",
-                        "pattern": "@client/actions/*",
-                        "position": "before"
+                        group: "internal",
+                        pattern: "@client/actions/*",
+                        position: "before",
                     },
                     {
-                        "group": "internal",
-                        "pattern": "@client/{app/graphics,shared/analytics,dates,utils,routes,models,style,shared/typography,constants}",
-                        "position": "before"
-                    }
+                        group: "internal",
+                        pattern:
+                            "@client/{app/graphics,shared/analytics,dates,utils,routes,models,style,shared/typography,constants}",
+                        position: "before",
+                    },
                 ],
-                "groups": [
+                groups: [
                     "builtin",
                     "external",
                     "internal",
                     "parent",
                     "sibling",
-                    "index"
+                    "index",
                 ],
-                "pathGroupsExcludedImportTypes": ["builtin"]
-            }
+                pathGroupsExcludedImportTypes: ["builtin"],
+            },
         ],
         // React overrides
         "react/prop-types": "off",
@@ -76,15 +77,12 @@ module.exports = {
         "@typescript-eslint/no-namespace": "off",
 
         // We use empty callbacks that are no-ops sometimes.
-        "@typescript-eslint/no-empty-function": [
-            "error",
-            {"allow": ["arrowFunctions"]}
-        ],
+        "@typescript-eslint/no-empty-function": ["error", {allow: ["arrowFunctions"]}],
 
         // Typescript additions
-        "@typescript-eslint/strict-boolean-expressions": "error"
+        "@typescript-eslint/strict-boolean-expressions": "error",
     },
-    "extends": [
+    extends: [
         "eslint:recommended",
         "plugin:react/recommended",
         "plugin:react-hooks/recommended",
@@ -93,6 +91,6 @@ module.exports = {
         "prettier",
         "plugin:import/typescript",
         "plugin:import/errors",
-        "plugin:import/warnings"
-    ]
-}
+        "plugin:import/warnings",
+    ],
+};

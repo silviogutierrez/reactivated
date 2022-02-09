@@ -52,6 +52,7 @@ RUN virtualenv .venv && .venv/bin/pip install -r requirements.txt
 
 COPY manage.py .
 COPY server server
+RUN mkdir static
 
 RUN mkdir -p node_modules/.bin/
 COPY --from=builder /app/node_modules/.bin/renderer.js node_modules/.bin/

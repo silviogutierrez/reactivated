@@ -28,7 +28,7 @@ esbuild
         // Related to sourcemaps as well in Safari.
         legalComments: "none",
         platform: "browser",
-        outdir: "./static/dist",
+        outdir: "./.venv/static/",
         sourcemap: true,
         target: "es2018",
         preserveSymlinks: true,

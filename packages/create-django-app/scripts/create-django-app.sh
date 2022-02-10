@@ -2,9 +2,8 @@
 #! nix-shell -p jq git nix cacert bash python39 --pure -i bash
 set -e
 
-CURRENT_VERSION=$(jq <package.json .version -r)
-
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+CURRENT_VERSION=$(jq < "$SCRIPT_PATH/../package.json" .version -r)
 
 rm -rf "$SCRIPT_PATH/.venv"
 python3 -m venv "$SCRIPT_PATH/.venv"

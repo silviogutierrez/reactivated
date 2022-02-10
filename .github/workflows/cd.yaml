@@ -42,6 +42,7 @@ jobs:
               run: |
                   yarn
                   yarn --cwd packages/reactivated
+                  yarn --cwd packages/create-django-app
             - name: Publish snapshot
               if: github.event_name != 'workflow_dispatch'
               run: scripts/release.sh --snapshot

@@ -14,7 +14,7 @@ trap clean_up ERR
 
 SECRET_KEY=$(base64 /dev/urandom | head -c50)
 
-fly launch --generate-name --region iad --no-deploy
+fly launch --generate-name --region iad --no-deploy --dockerfile Dockerfile
 APP_NAME=$(fly info --json | jq .App.Name -r)
 CLUSTER_NAME="$APP_NAME-postgres"
 

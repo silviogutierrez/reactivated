@@ -1,6 +1,6 @@
 import {css} from "@linaria/core";
 
-export const globalStyles = css`
+export const globalStyles = () => css`
     :global() {
         *,
         *::before,

@@ -71,7 +71,7 @@ class Command(BaseCommand):
                         "yarn",
                         "terser",
                         f"{DIST_ROOT}{bundle}.js",
-                        f"--source-map=content={DIST_ROOT}{bundle}.js.map",
+                        f"--source-map=content='{DIST_ROOT}{bundle}.js.map'",
                         "--compress",
                         "--mangle",
                         "-o",

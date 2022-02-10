@@ -8,6 +8,8 @@ import {styled} from "@linaria/react";
 import {Context} from "@client/generated";
 import * as styles from "@client/styles";
 
+styles.globalStyles();
+
 const Option = styled.a`
     display: grid;
     grid-template-columns: min-content 1fr;
@@ -58,7 +60,7 @@ export const Layout = (props: Props) => {
 
     return (
         <>
-            <Helmet htmlAttributes={{class: styles.globalStyles}}>
+            <Helmet>
                 <meta charSet="utf-8" />
                 <title>{props.title}</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1" />

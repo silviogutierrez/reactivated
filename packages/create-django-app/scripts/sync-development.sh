@@ -9,4 +9,6 @@ rm -rf template
 mkdir template
 rsync -a --filter=':- .gitignore' ../../development/ template/
 rm template/server/settings/__init__.py
+rm template/package.json
+rm template/yarn.lock
 cp template/.gitignore template/gitignore.template

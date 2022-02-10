@@ -1,6 +1,8 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -p git nix cacert bash python39 --pure -i bash
+#! nix-shell -p jq git nix cacert bash python39 --pure -i bash
 set -e
+
+CURRENT_VERSION=$(jq <package.json .version -r)
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
@@ -20,7 +22,7 @@ ln -s localhost.py "$PROJECT_NAME/server/settings/__init__.py"
 cd "$PROJECT_NAME" || exit
 mv gitignore.template .gitignore
 nix-shell --command "git init --initial-branch=main && git add -A"
-nix-shell --command "yarn init --yes && yarn add reactivated@0.20.1-a685 && git add -A"
+nix-shell --command "yarn init --yes && yarn add reactivated@${CURRENT_VERSION} && git add -A"
 nix-shell --command "python manage.py generate_client_assets"
 nix-shell --command "python manage.py migrate"
 nix-shell --command "scripts/fix.sh --all"

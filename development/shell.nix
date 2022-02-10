@@ -82,6 +82,7 @@ mkShell {
         rm -rf $TMP_ENV
         mkdir -p $TMP_ENV
         virtualenv "$VIRTUAL_ENV"
+        mkdir "$VIRTUAL_ENV/static"
         initdb "$POSTGRESQL_DATA"
         pip install -r requirements.txt
     fi

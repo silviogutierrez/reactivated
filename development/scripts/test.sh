@@ -7,23 +7,13 @@ PWD=$(pwd)
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 PROJECT_ROOT=$(realpath "$SCRIPT_PATH/..")
 
-if [ "$GITHUB_BASE_REF" != "" ]; then
-    TARGET_BRANCH="origin/$GITHUB_BASE_REF"
-    echo "PR event: running against base branch $TARGET_BRANCH"
-elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
-    TARGET_BRANCH=$(git rev-parse HEAD~1)
-    echo "Push event: running against previous commit $TARGET_BRANCH"
-else
-    TARGET_BRANCH="origin/main"
-    echo "Local run: running against default branch $TARGET_BRANCH"
-fi
-
 SERVER=1
 CLIENT=1
 E2E=1
 BENCHMARK=1
 INFRASTRUCTURE=1
 ALL=0
+REMOTES=$(git remote)
 
 # shellcheck source=SCRIPTDIR/helpers.sh
 source "$SCRIPT_PATH/helpers.sh"
@@ -81,9 +71,20 @@ echo "$CLIENT $E2E $BENCHMARK" >/dev/null
 
 AT_LEAST_ONE_ERROR=0
 
-if [[ $ALL -eq 1 ]]; then
+if [[ $ALL -eq 1 ]] || [[ $REMOTES == "" ]]; then
     CHANGED_FILES=$(git ls-files)
 else
+    if [ "$GITHUB_BASE_REF" != "" ]; then
+        TARGET_BRANCH="origin/$GITHUB_BASE_REF"
+        echo "PR event: running against base branch $TARGET_BRANCH"
+    elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
+        TARGET_BRANCH=$(git rev-parse HEAD~1)
+        echo "Push event: running against previous commit $TARGET_BRANCH"
+    else
+        TARGET_BRANCH="origin/main"
+        echo "Local run: running against default branch $TARGET_BRANCH"
+    fi
+
     CHANGED_FILES=$(git diff --name-only --diff-filter d --relative "$(git merge-base $TARGET_BRANCH HEAD)")
 fi
 

@@ -8,22 +8,34 @@ PWD=$(pwd)
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 PROJECT_ROOT=$(realpath "$SCRIPT_PATH/../")
 
-SPECIFIC_FILE=$1
 ALL=0
+REMOTES=$(git remote)
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-    --all)
-        ALL=1
+    --file)
+        SPECIFIC_FILE="$2"
         shift
         ;;
-    *) usage ;;
+    --all) ALL=1 ;;
+    *)
+        echo "Unknown parameter passed: $1"
+        exit 1
+        ;;
     esac
+    shift
 done
 
 if [[ $ALL -eq 1 ]]; then
+    echo "Running against all git files"
     CHANGED_FILES=$(git ls-files)
-elif [ -z "$SPECIFIC_FILE" ]; then
+elif [[ $REMOTES == "" ]]; then
+    echo "No origin, running against all git files"
+    CHANGED_FILES=$(git ls-files)
+elif [ -f "$SPECIFIC_FILE" ]; then
+    echo "Specific file run: running against $SPECIFIC_FILE"
+    CHANGED_FILES=$SPECIFIC_FILE
+elif [ -z "$ORIGIN" ]; then
     if [ "$GITHUB_BASE_REF" != "" ]; then
         TARGET_BRANCH="origin/$GITHUB_BASE_REF"
         echo "PR event: running against base branch $TARGET_BRANCH"
@@ -38,11 +50,8 @@ elif [ -z "$SPECIFIC_FILE" ]; then
     # Changed files against target branch, but exclude deleted files.
     CHANGED_FILES=$(git diff --name-only --diff-filter d --relative "$(git merge-base $TARGET_BRANCH HEAD)")
     CHANGED_FILES=${CHANGED_FILES// /}
-elif [ -f "$SPECIFIC_FILE" ]; then
-    echo "Specific file run: running against $SPECIFIC_FILE"
-    CHANGED_FILES=$SPECIFIC_FILE
 else
-    echo "Invalid file $SPECIFIC_FILE"
+    echo "Invalid fix options"
     exit 1
 fi
 

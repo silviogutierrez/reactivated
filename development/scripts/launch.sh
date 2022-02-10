@@ -22,3 +22,5 @@ fly deploy --remote-only
 fly ssh establish personal override
 sleep 30
 fly ssh console --command "sh migrate.sh"
+
+# TODO: this there a way to know when the app can be opened with fly apps open and it'll resolve?

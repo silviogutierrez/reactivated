@@ -6,3 +6,4 @@ set -e
 (fly auth whoami &>/dev/null) || (echo "You must first login with 'fly auth login' and try again" && exit 1)
 
 fly deploy --remote-only
+fly ssh console --command "sh migrate.sh"

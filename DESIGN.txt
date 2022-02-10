@@ -2,6 +2,13 @@
 Destroy every app:
 fly apps list --json | jq ".[].Name" -r | xargs -L 1 fly apps destroy --yes
 
+## Notes for fly.io team
+- [ ] "docker run" equivalent does not respect WORKDIR it seems. It starts at
+  the root and there's really no way to change this using the --command flag of
+  fly ssh console.
+- [ ] deploy.release_command does not seem to work at all. Even just putting
+  "ls" in there provides no output in fly logs.
+
 ## General TODO
 - [x] Switch fix and test to default to "all" when there is no origin.
 - [x] Auto run migrations
@@ -59,6 +66,63 @@ Should python and TSX files be mixed? Why aren't templates like WidgetList.tsx
 and templates.py and views.py not all mixed together?
 
 Why continue with the concept with client and server?
+
+So a possible file setup could be:
+
+- Root
+  - node_modules
+  - pyproject.toml
+  - server/polls/templates/PollsIndex.tsx
+  - server/polls/polls-specific-frontend-business-logic.tsx
+  - server/polls/models.py
+  - server/polls/views.py
+  - components/Button.tsx
+  - styles.tsx
+
+Instead of:
+- Root
+  - node_modules
+  - pyproject.toml
+  - server/polls/models.py
+  - server/polls/views.py
+  - client/polls/templates/PollsIndex.tsx
+  - client/polls/polls-specific-frontend-business-logic.tsx
+  - client/components/Button.tsx
+  - client/styles.tsx
+
+Currently it's this, no app separation for frotend:
+- Root
+  - node_modules
+  - pyproject.toml
+  - server/polls/models.py
+  - server/polls/views.py
+  - client/templates/PollsIndex.tsx
+  - client/polls-specific-frontend-business-logic.tsx
+  - client/components/Button.tsx
+  - client/styles.tsx
+
+We could maybe even get rid of "server" entirely, everything is flat.
+
+Colocation is a good thing: keep related things close together. See: https://kentcdodds.com/blog/colocation
+
+## Styling
+Linaria vs vanilla-extract?
+
+### linaria
+pros: colocation, you can use css directly on the component in the samne file.
+cons: much more complicated build toolchain. And slower. Babel.
+
+### vanilla extract
+pros: much faster, easier toolchain. No babel.
+cons: no colocation, no descendant selector. But maybe using "tailwind" link sprinkles makes this easier?
+
+So for small components, utility classes could do away with this. But what does a big landing page look like?
+templates/Foo/index.tsx
+templates/Foo/styles.css.tsx
+
+Again, colocation: https://kentcdodds.com/blog/colocation
+
+# Internal
 
 ## Proxy types
 This is currently used only for form and form sets, but could be used for

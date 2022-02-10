@@ -5,6 +5,13 @@ set -e
 # Ensure we are logged in.
 (fly auth whoami &>/dev/null) || (echo "You must first login with 'fly auth login' and try again" && exit 1)
 
+clean_up() {
+    ARG=$?
+    echo "There was a problem launching your app. Remove fly.toml and try again. Be sure to visit your fly.io dashboard to remove any created instances."
+    exit $ARG
+}
+trap clean_up ERR
+
 SECRET_KEY=$(base64 /dev/urandom | head -c50)
 
 fly launch --generate-name --region iad --no-deploy

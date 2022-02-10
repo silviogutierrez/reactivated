@@ -21,7 +21,7 @@ ln -s localhost.py "$PROJECT_NAME/server/settings/__init__.py"
 
 cd "$PROJECT_NAME" || exit
 mv gitignore.template .gitignore
-sed  "s/reactivated==\(.*\)/reactivated==$PIP_CURRENT_VERSION/" requirements.txt
+sed  -i "s/reactivated==\(.*\)/reactivated==$PIP_CURRENT_VERSION/" requirements.txt
 nix-shell --command "git init --initial-branch=main && git add -A"
 nix-shell --command "yarn init --yes && yarn add reactivated@${CURRENT_VERSION} && git add -A"
 nix-shell --command "python manage.py generate_client_assets"

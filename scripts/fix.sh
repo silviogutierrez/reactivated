@@ -52,7 +52,7 @@ if [[ -n "${CHANGED_PY_FILES// /}" ]]; then
     autoflake --exclude node_modules,.venv -i -r --remove-all-unused-imports $CHANGED_PY_FILES
 
     # shellcheck disable=SC2086
-    isort --recursive $CHANGED_PY_FILES
+    isort $CHANGED_PY_FILES
 
     # shellcheck disable=SC2086
     black $CHANGED_PY_FILES

@@ -9,6 +9,17 @@ fly apps list --json | jq ".[].Name" -r | xargs -L 1 fly apps destroy --yes
 - [ ] deploy.release_command does not seem to work at all. Even just putting
   "ls" in there provides no output in fly logs.
 
+## Why not docker?
+- Filesystem
+- Slow
+- Battery
+- Scripts need to be run inside docker.
+- Port management?
+
+## Why docker?
+- Already installed on a lot of machines. Quick. Could work on windows.
+- No nix installation. Less output.
+
 ## General TODO
 - [x] Switch fix and test to default to "all" when there is no origin.
 - [x] Auto run migrations
@@ -34,6 +45,18 @@ Something like:
 ```
 nix-shell -E "import (builtins.fetchurl https://reactivated.io/install/)"
 ```
+
+Or
+```
+nix-shell -E 'import (builtins.fetchurl https://reactivated.io/install/) "my-app"'
+```
+
+The latter requires no prompts which is nice. But is uglier syntax. Maybe another option is to do:
+
+```
+nix-shell -E 'import (builtins.fetchurl https://reactivated.io/install/my-app/)'
+```
+
 
 ## Conventions
 * Do we want to encourage CreateFooForm or CreateForm? While Django tends to promote

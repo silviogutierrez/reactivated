@@ -19,6 +19,8 @@ APP_NAME=$(fly info --json | jq .App.Name -r)
 CLUSTER_NAME="$APP_NAME-postgres"
 
 fly postgres create --name "$CLUSTER_NAME" --region iad --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 10
+# SSH/SSL connectivity issues with first-time user accounts after creating database.
+sleep 60
 fly postgres attach --postgres-app "$CLUSTER_NAME"
 
 fly secrets set "SECRET_KEY=$SECRET_KEY"

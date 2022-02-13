@@ -1,12 +1,16 @@
 appName:
 let
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/8ca77a63599e.tar.gz") { };
-  download = pkgs.fetchurl {url = "http://localhost:8000/static/script.sh"; executable = true; hash = null;};
+  pkgs = import (fetchTarball
+    "https://github.com/NixOS/nixpkgs/archive/8ca77a63599e.tar.gz") { };
+  download = pkgs.fetchurl {
+    url = "http://localhost:8000/static/script.sh";
+    executable = true;
+    hash = null;
+  };
 in with pkgs;
 
 mkShell {
-  buildInputs = [
-  ];
+  buildInputs = [ ];
   src = download;
   appName = appName;
   shellHook = ''

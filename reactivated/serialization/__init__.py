@@ -529,11 +529,11 @@ def field_descriptor_schema(
     }
 
     try:
-        from django_extensions.db import fields as dbf  # type: ignore[import]
+        import django_extensions.db.fields  # type: ignore[import]
 
         mapping = {
             **mapping,
-            dbf.ShortUUIDField: lambda field: str,
+            django_extensions.db.fields.ShortUUIDField: lambda field: str,
         }
     except ImportError:
         pass

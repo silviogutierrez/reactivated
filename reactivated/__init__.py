@@ -38,7 +38,7 @@ from .templates import template as template  # noqa: F401
 original_restart_with_reloader = autoreload.restart_with_reloader
 
 
-def patched_restart_with_reloader():
+def patched_restart_with_reloader() -> None:
     from . import processes
     from .apps import generate_schema, get_schema
 
@@ -54,7 +54,7 @@ def patched_restart_with_reloader():
     # No need to lazy load I think.
 
 
-autoreload.restart_with_reloader = patched_restart_with_reloader
+autoreload.restart_with_reloader = patched_restart_with_reloader  # type: ignore[assignment]
 
 
 def export(var: Any) -> None:

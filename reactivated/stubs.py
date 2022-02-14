@@ -53,6 +53,7 @@ if TYPE_CHECKING:
     Undefined = Optional[T]
 else:
     from typing import _GenericAlias, _TypedDictMeta  # noqa: F401
+
     from django.forms.formsets import BaseFormSet  # noqa: F401
 
     class BaseUndefinedHolder:

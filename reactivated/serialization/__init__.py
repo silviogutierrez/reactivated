@@ -22,6 +22,7 @@ from django import forms as django_forms
 from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
+
 from reactivated import fields, stubs
 from reactivated.forms import EnumChoiceField
 from reactivated.models import ComputedRelation
@@ -528,9 +529,7 @@ def field_descriptor_schema(
     }
 
     try:
-        from django_extensions.db import (  # type: ignore[import]
-            fields as django_extension_fields,
-        )
+        from django_extensions.db import fields as django_extension_fields
 
         mapping = {
             **mapping,

@@ -6,9 +6,6 @@ SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 CURRENT_VERSION=$(jq <"$SCRIPT_PATH/../package.json" .version -r)
 PIP_CURRENT_VERSION="${CURRENT_VERSION/-/}"
 
-rm -rf "$SCRIPT_PATH/.venv"
-python3 -m venv "$SCRIPT_PATH/.venv"
-
 PROJECT_NAME=$1
 
 if [ -z ${PROJECT_NAME+x} ]; then
@@ -17,6 +14,7 @@ if [ -z ${PROJECT_NAME+x} ]; then
 fi
 
 cp -RT "$SCRIPT_PATH/../template" "$PROJECT_NAME"
+chmod -R u+w "$PROJECT_NAME"
 ln -s localhost.py "$PROJECT_NAME/server/settings/__init__.py"
 
 cd "$PROJECT_NAME" || exit

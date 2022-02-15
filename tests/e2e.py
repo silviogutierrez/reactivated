@@ -36,7 +36,6 @@ def test_default_widget(tmp_path):
     registry.template_registry.clear()
     registry.value_registry.clear()
     registry.definitions_registry.clear()
-    # apps.get_types_schema()
 
     tsconfig = Path(settings.BASE_DIR) / "tsconfig.pytest.json"
     tsconfig.write_text(
@@ -62,6 +61,50 @@ def test_default_widget(tmp_path):
                 "args": {"arg": "string"},
             },
         },
+    ):
+        HelloWorld.register()
+        call_command("generate_client_assets")
+        assert registry.global_types["Widget"] is registry.DefaultWidgetType
+        tsc_process = subprocess.Popen(
+            [
+                f"{settings.BASE_DIR}/node_modules/.bin/tsc",
+                "--noEmit",
+                "--project",
+                tsconfig,
+            ],
+            stdout=subprocess.PIPE,
+            cwd=settings.BASE_DIR,
+        )
+        tsc_output, tsc_error = tsc_process.communicate()
+        assert tsc_process.returncode == 0
+    tsconfig.unlink()
+
+
+def test_no_urls(tmp_path):
+    from sample.server.apps.samples.templates import HelloWorld
+
+    registry.type_registry.clear()
+    registry.global_types.clear()
+    registry.global_types["Widget"] = registry.DefaultWidgetType
+    registry.template_registry.clear()
+    registry.value_registry.clear()
+    registry.definitions_registry.clear()
+
+    tsconfig = Path(settings.BASE_DIR) / "tsconfig.pytest.json"
+    tsconfig.write_text(
+        json.dumps(
+            {
+                "extends": "./tsconfig.json",
+                "include": [
+                    "./client/templates/HelloWorld.tsx",
+                ],
+            }
+        )
+    )
+
+    with mock.patch(
+        "reactivated.apps.get_urls_schema",
+        return_value={},
     ):
         HelloWorld.register()
         call_command("generate_client_assets")

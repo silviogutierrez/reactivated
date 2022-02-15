@@ -16,17 +16,24 @@ import {
 } from "ts-morph";
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
-const {urls, templates, types, values} = schema;
+const {urls: possibleEmptyUrls, templates, types, values} = schema;
+
+const urls = {
+    ...possibleEmptyUrls,
+    __reactivated_do_not_use: {
+        route: "__reactivated_do_not_use",
+        args: {},
+    },
+    __reactivated_do_not_use_args: {
+        route: "__reactivated_do_not_use_args",
+        args: {
+            _: "string",
+        },
+    },
+};
 
 const project = new Project();
 
-/*
-const urls = {
-    'widget_list': {'widget_id': 'number', 'category_id': 'string'},
-    'create_widget': {},
-    'widget_detail': {'pk': 'number'},
-};
-*/
 const interfaces = project.createSourceFile("");
 
 interfaces.addVariableStatement({

@@ -142,3 +142,5 @@ DEBUG_PORT = int(os.environ.get("DEBUG_PORT", 8000))
 RUNSERVERPLUS_SERVER_ADDRESS_PORT = f"0.0.0.0:{DEBUG_PORT}"
 
 REACTIVATED_SERVER = f"http://0.0.0.0:{DEBUG_PORT + 200}"
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"

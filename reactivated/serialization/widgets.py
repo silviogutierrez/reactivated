@@ -16,7 +16,14 @@ from django import forms
 
 from reactivated import stubs
 
-from .registry import JSON, Definitions, Thing, global_types, register
+from .registry import (
+    JSON,
+    DefaultWidgetType,
+    Definitions,
+    Thing,
+    global_types,
+    register,
+)
 
 Override = TypeVar("Override")
 
@@ -121,12 +128,13 @@ class BaseWidget(NamedTuple):
         base = base.add_property(
             "tag", create_schema(Literal[tag], base.definitions).schema
         )
-        GlobalWidget: Dict[str, Any] = global_types.get(
-            "Widget",
-            {
+        GlobalWidget: Dict[str, Any] = (
+            global_types["Widget"]
+            if global_types["Widget"] is not DefaultWidgetType
+            else {
                 "anyOf": [],
-            },
-        )  # type: ignore[assignment]
+            }
+        )
 
         GlobalWidget = {
             **GlobalWidget,
@@ -135,7 +143,7 @@ class BaseWidget(NamedTuple):
                 base.schema,
             ],
         }
-        global_types["Widget"] = GlobalWidget  # type: ignore[assignment]
+        global_types["Widget"] = GlobalWidget
 
         return base
 

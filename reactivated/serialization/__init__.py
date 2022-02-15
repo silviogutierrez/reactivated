@@ -12,7 +12,6 @@ from typing import (
     Optional,
     Protocol,
     Sequence,
-    Tuple,
     Type,
     Union,
     get_type_hints,
@@ -26,6 +25,7 @@ from django.utils.module_loading import import_string
 from reactivated import fields, stubs
 from reactivated.forms import EnumChoiceField
 from reactivated.models import ComputedRelation
+from reactivated.types import Optgroup
 
 from .registry import JSON, PROXIES, Definitions, Schema, Thing, register
 
@@ -87,32 +87,6 @@ class ForeignKeyType:
             },
             definitions=definitions,
         )
-
-
-class OptgroupMember(NamedTuple):
-    name: str
-    value: Union[str, int, bool, None]
-    label: str
-    selected: bool
-
-
-Optgroup = Tuple[None, Tuple[OptgroupMember], int]
-
-"""
-type Optgroup = [
-    null,
-    [
-        {
-            name: string;
-            // value: string|number|boolean|null;
-            value: string | number | boolean | null;
-            label: string;
-            selected: boolean;
-        },
-    ],
-    number,
-];
-"""
 
 
 class BaseIntersectionHolder:

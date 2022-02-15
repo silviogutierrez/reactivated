@@ -1,4 +1,5 @@
 import fs from "fs";
+import * as generated from "./generated";
 
 // Must be above the compile import as get-stdin used by
 // json-schema-to-typescript messes up the descriptor even if unused.
@@ -16,7 +17,21 @@ import {
 } from "ts-morph";
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
-const {urls, templates, types, values} = schema;
+const {urls: possibleEmptyUrls, templates, types, values} = schema;
+
+const urls: generated.Types["URLSchema"] = {
+    ...possibleEmptyUrls,
+    __reactivated_do_not_use: {
+        route: "__reactivated_do_not_use",
+        args: {},
+    },
+    __reactivated_do_not_use_args: {
+        route: "__reactivated_do_not_use_args",
+        args: {
+            _: "string",
+        },
+    },
+};
 
 const project = new Project();
 
@@ -101,6 +116,7 @@ interfaces.addStatements(`
 import React from "react"
 import createContext from "reactivated/context";
 import * as forms from "reactivated/forms";
+import * as generated from "reactivated/generated";
 
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};

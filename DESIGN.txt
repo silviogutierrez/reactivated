@@ -8,6 +8,7 @@ fly apps list --json | jq ".[].Name" -r | xargs -L 1 fly apps destroy --yes
   fly ssh console.
 - [ ] deploy.release_command does not seem to work at all. Even just putting
   "ls" in there provides no output in fly logs.
+- [ ] new postgres clusters cannot be connected to. They fail with "Error create ssh certificate: An unknown error occured. (if you haven't created a key for your org yet, try `flyctl ssh establish`)" or "Error error connecting to SSH server: ssh: handshake failed: ssh: unable to authenticate, attempted methods [none publickey], no supported methods remain"
 
 ## Why not docker?
 - Filesystem
@@ -21,6 +22,8 @@ fly apps list --json | jq ".[].Name" -r | xargs -L 1 fly apps destroy --yes
 - No nix installation. Less output.
 
 ## General TODO
+- [ ] Encourage all models in core/models.py
+- [ ] Need a canonical way to add stubs. Say, for custom_user
 - [x] Switch fix and test to default to "all" when there is no origin.
 - [x] Auto run migrations
 - [ ] Run migrations inside the fly.toml somehow.
@@ -101,6 +104,17 @@ So a possible file setup could be:
   - server/polls/views.py
   - components/Button.tsx
   - styles.tsx
+
+Or:
+  - node_modules
+  - pyproject.toml
+  - src/polls/templates/PollsIndex.tsx
+  - src/polls/polls-specific-frontend-business-logic.tsx
+  - src/polls/models.py
+  - src/polls/views.py
+  - src/components/Button.tsx
+  - src/styles.tsx
+
 
 Instead of:
 - Root

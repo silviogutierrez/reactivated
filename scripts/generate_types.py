@@ -1,34 +1,9 @@
 import subprocess
-from typing import NamedTuple, Union
 
 import simplejson
-from django import forms
 
-from reactivated.serialization import Optgroup, create_schema
-
-Widget = Union[
-    forms.HiddenInput,
-    forms.TextInput,
-    forms.NumberInput,
-    forms.URLInput,
-    forms.TimeInput,
-    forms.DateInput,
-    forms.CheckboxInput,
-    forms.PasswordInput,
-    forms.EmailInput,
-    forms.Textarea,
-    forms.Select,
-    forms.SelectMultiple,
-    forms.ClearableFileInput,
-    forms.SelectDateWidget,
-    forms.SplitDateTimeWidget,
-]
-
-
-class Types(NamedTuple):
-    Widget: Widget
-    Optgroup: Optgroup
-
+from reactivated.serialization import create_schema
+from reactivated.types import Types
 
 types_schema = create_schema(Types, {})
 

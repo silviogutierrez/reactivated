@@ -68,10 +68,13 @@ class LazySerializationResponse(TemplateResponse):
 
 def template(cls: Type[T]) -> Type[T]:
     type_name = f"{cls.__name__}Props"
-    type_registry[type_name] = cls  # type: ignore[assignment]
-    template_registry[cls.__name__] = type_name  # type: ignore[assignment]
 
     class Augmented(cls):  # type: ignore[misc, valid-type]
+        @staticmethod
+        def register() -> None:
+            type_registry[type_name] = cls  # type: ignore[assignment]
+            template_registry[cls.__name__] = type_name  # type: ignore[assignment]
+
         def items(self) -> Any:
             """
             Duck-typing for context, so you can loop over a template.
@@ -93,6 +96,7 @@ def template(cls: Type[T]) -> Type[T]:
             )
             return response
 
+    Augmented.register()
     Augmented.__name__ = cls.__name__
     return Augmented
 

@@ -10,7 +10,7 @@ from typing import Any, Dict, NamedTuple, Tuple
 from django.apps import AppConfig
 from django.conf import settings
 
-from . import extract_views_from_urlpatterns
+from . import extract_views_from_urlpatterns, types
 from .serialization import create_schema
 from .serialization.registry import (
     definitions_registry,
@@ -39,7 +39,7 @@ def get_urls_schema() -> Dict[str, Any]:
     }
 
     urls = extract_views_from_urlpatterns(urlpatterns)  # type: ignore[no-untyped-call]
-    reverse = {}
+    reverse: types.URLSchema = {}
 
     for _, regex, name, pattern in urls:
         if not isinstance(pattern, RoutePattern):

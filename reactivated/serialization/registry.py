@@ -12,8 +12,11 @@ from typing import (
 
 from reactivated import utils
 
+DefaultWidgetType = {"tsType": 'generated.Types["Widget"]'}
+
+
 type_registry: Dict[str, Tuple[Any]] = {}
-global_types: Dict[str, Tuple[Any]] = {}
+global_types: Dict[str, Any] = {"Widget": DefaultWidgetType}
 template_registry: Dict[str, Tuple[Any]] = {}
 value_registry: Dict[str, Any] = {}
 definitions_registry: Dict[Any, Any] = {}

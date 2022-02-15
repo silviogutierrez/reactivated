@@ -1,5 +1,4 @@
 from django.db import models
-
 from reactivated.serialization import field_descriptor_schema
 from reactivated.serialization.registry import register
 

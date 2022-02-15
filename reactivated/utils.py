@@ -86,7 +86,6 @@ class ClassLookupDict:
 
 def get_template_engine() -> JSX:
     from django.template import engines
-
     from reactivated.backend import JSX
 
     for engine in engines.all():

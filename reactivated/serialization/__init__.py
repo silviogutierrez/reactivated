@@ -21,7 +21,6 @@ from django import forms as django_forms
 from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
-
 from reactivated import fields, stubs
 from reactivated.forms import EnumChoiceField
 from reactivated.models import ComputedRelation

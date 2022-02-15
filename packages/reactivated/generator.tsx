@@ -103,6 +103,7 @@ interfaces.addStatements(`
 import React from "react"
 import createContext from "reactivated/context";
 import * as forms from "reactivated/forms";
+import * as generated from "reactivated/generated";
 
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};

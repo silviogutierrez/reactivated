@@ -1,4 +1,5 @@
 import fs from "fs";
+import * as generated from "./generated";
 
 // Must be above the compile import as get-stdin used by
 // json-schema-to-typescript messes up the descriptor even if unused.
@@ -18,7 +19,7 @@ import {
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
 const {urls: possibleEmptyUrls, templates, types, values} = schema;
 
-const urls = {
+const urls: generated.Types["URLSchema"] = {
     ...possibleEmptyUrls,
     __reactivated_do_not_use: {
         route: "__reactivated_do_not_use",

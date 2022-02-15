@@ -1,4 +1,4 @@
-from typing import NamedTuple, Tuple, Union
+from typing import Dict, NamedTuple, Tuple, TypedDict, Union
 
 from django import forms
 
@@ -32,6 +32,15 @@ Widget = Union[
 ]
 
 
+class URL(TypedDict):
+    route: str
+    args: Dict[str, str]
+
+
+URLSchema = Dict[str, URL]
+
+
 class Types(NamedTuple):
     Widget: Widget
     Optgroup: Optgroup
+    URLSchema: URLSchema

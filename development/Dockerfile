@@ -25,14 +25,14 @@ RUN yarn
 COPY .babelrc.json .
 COPY manage.py .
 COPY server server
-# COPY static static
+COPY static static
 COPY client client
 COPY tsconfig.json .
 
 RUN .venv/bin/python manage.py generate_client_assets
 RUN .venv/bin/python manage.py build
 RUN .venv/bin/python manage.py collectstatic --no-input
-RUN rm static/dist/*.map
+RUN rm collected/dist/*.map
 
 
 FROM alpine
@@ -57,7 +57,7 @@ COPY server server
 RUN mkdir -p node_modules/.bin/
 COPY --from=builder /app/node_modules/.bin/renderer.js node_modules/.bin/
 COPY --from=builder /app/node_modules/.bin/renderer.js.map node_modules/.bin/
-COPY --from=builder /app/static static
+COPY --from=builder /app/collected collected
 
 ENV PYTHONUNBUFFERED 1
 ENV PATH="/app/.venv/bin:$PATH"

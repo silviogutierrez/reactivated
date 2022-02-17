@@ -12,7 +12,6 @@ from django.conf import settings
 from django.http import HttpRequest
 from django.template.defaultfilters import escape
 
-renderer_process: Optional[subprocess.Popen[str]] = None
 renderer_process_port: Optional[str] = None
 logger = logging.getLogger("django.server")
 
@@ -20,6 +19,11 @@ logger = logging.getLogger("django.server")
 def wait_and_get_port() -> str:
     if renderer := os.environ.get("REACTIVATED_RENDERER", None):
         return renderer
+
+    global renderer_process_port
+
+    if renderer_process_port is not None:
+        return renderer_process_port
 
     renderer_process = subprocess.Popen(
         [

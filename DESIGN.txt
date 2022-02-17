@@ -3,6 +3,7 @@ Destroy every app:
 fly apps list --json | jq ".[].Name" -r | xargs -L 1 fly apps destroy --yes
 
 ## Notes for fly.io team
+- [ ] Ensure static always exists by adding a favicon.
 - [ ] "docker run" equivalent does not respect WORKDIR it seems. It starts at
   the root and there's really no way to change this using the --command flag of
   fly ssh console.

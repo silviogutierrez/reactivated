@@ -5,7 +5,7 @@ from typing import Any
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-DIST_ROOT = ".venv/static/dist/"
+DIST_ROOT = "static/dist/"
 
 
 class Command(BaseCommand):

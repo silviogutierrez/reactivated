@@ -67,3 +67,19 @@ export const Select = (props: {
         </select>
     );
 };
+
+export const Textarea = (props: {
+    name: string;
+    className?: string;
+    value: string | null;
+    onChange: (value: string) => void;
+}) => {
+    return (
+        <textarea
+            name={props.name}
+            className={props.className}
+            value={props.value ?? ""}
+            onChange={(event) => props.onChange(event.target.value)}
+        />
+    );
+};

@@ -74,7 +74,11 @@ export const Layout = (props: Props) => {
                     type="text/css"
                     href={`${context.STATIC_URL}dist/index.css`}
                 />
-                <script defer src={`${context.STATIC_URL}dist/index.js`} />
+                <script
+                    defer
+                    crossOrigin="anonymous"
+                    src={`${context.STATIC_URL}dist/index.js`}
+                />
             </Helmet>
             <header
                 className={css`

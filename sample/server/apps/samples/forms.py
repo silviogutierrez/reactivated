@@ -57,4 +57,4 @@ class StoryboardForm(forms.Form):
         )
     )
     enum_field = EnumChoiceField(enum=models.Opera.Style)
-    boolean_field = forms.BooleanField()
+    boolean_field = forms.BooleanField(help_text="Not blank")

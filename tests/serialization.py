@@ -428,7 +428,7 @@ def test_form_and_fields():
     serialized = serialize(instance, schema)
 
     assert serialized["fields"]["char_field"] == {
-        "help_text": "",
+        "help_text": None,
         "label": "Char field",
         "name": "char_field",
         "widget": {
@@ -452,7 +452,7 @@ def test_form_and_fields():
     convert_to_json_and_validate(serialized["fields"]["char_field"], field_schema)
 
     assert serialized["fields"]["integer_field"] == {
-        "help_text": "",
+        "help_text": None,
         "label": "Integer field",
         "name": "integer_field",
         "widget": {
@@ -476,7 +476,7 @@ def test_form_and_fields():
     convert_to_json_and_validate(serialized["fields"]["integer_field"], field_schema)
 
     assert serialized["fields"]["date_field"] == {
-        "help_text": "",
+        "help_text": None,
         "label": "Date field",
         "name": "date_field",
         "widget": {
@@ -1088,7 +1088,7 @@ def test_form_and_fields():
     convert_to_json_and_validate(serialized["fields"]["date_field"], field_schema)
 
     assert serialized["fields"]["date_time_field"] == {
-        "help_text": "",
+        "help_text": None,
         "label": "Date time field",
         "name": "date_time_field",
         "widget": {
@@ -1148,7 +1148,7 @@ def test_form_and_fields():
     assert serialized["fields"]["boolean_field"] == {
         "name": "boolean_field",
         "label": "Boolean field",
-        "help_text": "",
+        "help_text": "Not blank",
         "widget": {
             "template_name": "django/forms/widgets/checkbox.html",
             "name": "boolean_field",

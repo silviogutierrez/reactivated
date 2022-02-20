@@ -123,7 +123,7 @@ class Intersection:
 class FieldType(NamedTuple):
     name: str
     label: str
-    help_text: str
+    help_text: Optional[str]
 
     # TODO: way to mark this as a custom property we define. This is just so it is
     # marked as required.
@@ -193,6 +193,8 @@ class FieldType(NamedTuple):
         field.widget = field.field.widget  # type: ignore[attr-defined]
 
         serialized = serialize(value, schema, suppress_custom_serializer=True)
+        help_text = serialized.get("help_text")
+        serialized["help_text"] = help_text if help_text != "" else None
         return serialized
 
 

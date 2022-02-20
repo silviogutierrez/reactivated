@@ -24,7 +24,7 @@ interface FieldLike {
     name: string;
     widget: WidgetLike;
     label: string;
-    help_text: string;
+    help_text: string | null;
 }
 
 export interface FieldMap {
@@ -342,7 +342,7 @@ export interface WidgetHandler<T extends WidgetLike> {
     value: T["value"];
     label: string;
     error: string | null;
-    help_text: string;
+    help_text: string | null;
     disabled: boolean;
     widget: T;
     handler: (value: T["value"]) => void;

@@ -15,21 +15,32 @@ trap clean_up ERR
 SECRET_KEY=$(base64 /dev/urandom | head -c50)
 
 fly launch --generate-name --region iad --no-deploy --dockerfile Dockerfile
+
+cat <<EOF >> fly.toml
+
+[[statics]]
+  guest_path = "/app/collected"
+  url_prefix = "/static"
+EOF
+
 APP_NAME=$(fly info --json | jq .App.Name -r)
 CLUSTER_NAME="$APP_NAME-postgres"
 
 fly postgres create --name "$CLUSTER_NAME" --region iad --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 10
 # SSH/SSL connectivity issues with first-time user accounts after creating database.
-sleep 60
-fly postgres attach --postgres-app "$CLUSTER_NAME"
+fly ssh establish personal override
+
+# shellcheck disable=SC2015
+for _ in 1 2 3 4 5 6 7 8 9 10; do fly postgres attach --postgres-app "$CLUSTER_NAME" && break || sleep 30; done
 
 fly secrets set "SECRET_KEY=$SECRET_KEY"
 fly deploy --remote-only
 
 # TODO: how can we make this idempotent?
 # TODO: also it takes some time to propagate.
-fly ssh establish personal override
-sleep 30
+# TODO: do we need this too? thanks to the retry above it seems to be fine.
+# fly ssh establish personal override
+# sleep 30
 fly ssh console --command "sh migrate.sh"
 
 # TODO: this there a way to know when the app can be opened with fly apps open and it'll resolve?

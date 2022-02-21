@@ -34,6 +34,14 @@ FormError = List[str]
 FormErrors = Dict[str, FormError]
 
 
+# TODO: can we handle other field types somewhat like this and widgets?
+@register(models.BigAutoField)
+class BigAutoField:
+    @classmethod
+    def get_json_schema(Type, instance, definitions):  # type: ignore[no-untyped-def]
+        return field_descriptor_schema(models.IntegerField(), definitions)
+
+
 class ComputedField(NamedTuple):
     name: str
     annotation: Any

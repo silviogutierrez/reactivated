@@ -3,7 +3,7 @@ Destroy every app:
 fly apps list --json | jq ".[].Name" -r | xargs -L 1 fly apps destroy --yes
 
 ## Notes for fly.io team
-- [ ] Ensure static always exists by adding a favicon.
+- [x] Ensure static always exists by adding a favicon.
 - [ ] "docker run" equivalent does not respect WORKDIR it seems. It starts at
   the root and there's really no way to change this using the --command flag of
   fly ssh console.
@@ -27,17 +27,17 @@ fly apps list --json | jq ".[].Name" -r | xargs -L 1 fly apps destroy --yes
 - [ ] Need a canonical way to add stubs. Say, for custom_user
 - [x] Switch fix and test to default to "all" when there is no origin.
 - [x] Auto run migrations
-- [ ] Run migrations inside the fly.toml somehow.
-- [ ] Static files
+- [x] Run migrations inside the fly.toml somehow.
+- [x] Static files
 - [ ] Unknown error occurs with missing organizations.
 - [ ] Seems lke launch.sh is idempotent. Another app is not created. It isn't. Remove fly.toml and retry.
 - [ ] Trying to render a nonexistent tsx template crashes the server. it should
 error out gracefully.
-- [ ] Figure out static generation. Do we put it inside the the reactivated app
+- [x] Figure out static generation. Do we put it inside the the reactivated app
   package? This is kind of magical but would work. Or maybe inside client/generated/.
 - [ ] pyproject.toml consolidation.
 - [ ] Do we want tests.py or pytests.py?
-- [ ] Daemons like TSC still start but do not get stopped if the runserver command
+- [x] Daemons like TSC still start but do not get stopped if the runserver command
   fails to start. For example, the port is already bound.
 
 ## Invocation / installation

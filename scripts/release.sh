@@ -60,10 +60,17 @@ cd "${PROJECT_ROOT}/packages/reactivated/"
 CURRENT_VERSION=$(jq <package.json .version -r)
 
 if [ "$IS_SNAPSHOT" = false ]; then
-    yarn version "--$VERSIONING"
-    echo "Release version: $NEW_VERSION"
+    yarn version --no-git-tag-version "--$VERSIONING"
     NEW_VERSION=$(jq <package.json .version -r)
+    echo "Release version: $NEW_VERSION"
     yarn publish
+
+    cd "${PROJECT_ROOT}/packages/create-django-app/"
+    yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
+    yarn publish
+
+    git commit -am "v${NEW_VERSION}"
+    git tag "v${NEW_VERSION}"
 
     EXISTING_CHECKS=$(disable_github_checks)
     git push

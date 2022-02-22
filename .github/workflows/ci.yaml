@@ -92,6 +92,8 @@ jobs:
               with:
                   nix_path: nixpkgs=channel:nixos-unstable
             - run: |
+                  git config --global user.email "example@example.com"
+                  git config --global user.name "Example"
                   nix-shell --command "yarn --cwd packages/reactivated"
                   nix-shell --command "pip install -r requirements.txt"
                   nix-shell --command "python scripts/generate_types.py"

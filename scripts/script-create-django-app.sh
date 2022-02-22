@@ -16,7 +16,7 @@ done
 
 if [ -z ${PROJECT_NAME+x} ]; then
     echo "You must pass in --name"
-    exit
+    exit 1
 fi
 
 POSTGRES_PID_FILE="./$PROJECT_NAME/.venv/postgresql/postmaster.pid"

@@ -106,4 +106,10 @@ jobs:
             - name: Run tests
               run: |
                   cd create_django_test
+                  nix-shell --command "python manage.py generate_client_assets"
+                  nix-shell --command "python manage.py build"
+                  nix-shell --command "scripts/test.sh"
+                  nix-shell --command "scripts/remove_example.sh"
+                  nix-shell --command "python manage.py generate_client_assets"
+                  nix-shell --command "python manage.py build"
                   nix-shell --command "scripts/test.sh"

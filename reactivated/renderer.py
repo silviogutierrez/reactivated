@@ -3,7 +3,6 @@ import logging
 import os
 import re
 import subprocess
-import sys
 import urllib.parse
 from typing import Any, List, Optional
 
@@ -13,45 +12,29 @@ from django.conf import settings
 from django.http import HttpRequest
 from django.template.defaultfilters import escape
 
-renderer_process: Optional[subprocess.Popen[str]] = None
 renderer_process_port: Optional[str] = None
 logger = logging.getLogger("django.server")
 
 
 def wait_and_get_port() -> str:
+    if renderer := os.environ.get("REACTIVATED_RENDERER", None):
+        return renderer
+
     global renderer_process_port
-    global renderer_process
 
     if renderer_process_port is not None:
         return renderer_process_port
 
-    logger.info("Starting render process")
-    entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
-
-    if renderer_process is None:
-        renderer_process = subprocess.Popen(
-            [
-                "node",
-                f"{settings.BASE_DIR}/node_modules/.bin/renderer.js",
-                *entry_points,
-            ],
-            encoding="utf-8",
-            stdout=subprocess.PIPE,
-            cwd=settings.BASE_DIR,
-        )
-
-        def cleanup() -> None:
-            # Pytest has issues with this, see https://github.com/pytest-dev/pytest/issues/5502
-            # We can't use the env variable PYTEST_CURRENT_TEST because this happens
-            # after running all tests and closing the session.
-            # See: https://stackoverflow.com/questions/25188119/test-if-code-is-executed-from-within-a-py-test-session
-            if "pytest" not in sys.modules:
-                logger.info("Cleaning up renderer process")
-
-            if renderer_process is not None:
-                renderer_process.terminate()
-
-        atexit.register(cleanup)
+    renderer_process = subprocess.Popen(
+        [
+            "node",
+            f"{settings.BASE_DIR}/node_modules/.bin/renderer.js",
+        ],
+        encoding="utf-8",
+        stdout=subprocess.PIPE,
+        cwd=settings.BASE_DIR,
+    )
+    atexit.register(lambda: renderer_process.terminate())
 
     output = ""
 

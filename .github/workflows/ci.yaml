@@ -36,7 +36,7 @@ jobs:
             - uses: actions/checkout@v1
             - uses: actions/setup-node@master
               with:
-                  node-version: "14.x"
+                  node-version: "16.x"
             - uses: actions/setup-python@master
               with:
                   python-version: "3.9"
@@ -67,7 +67,7 @@ jobs:
             - uses: actions/checkout@v1
             - uses: actions/setup-node@master
               with:
-                  node-version: "14.x"
+                  node-version: "16.x"
             - uses: actions/setup-python@master
               with:
                   python-version: "3.9"
@@ -80,23 +80,30 @@ jobs:
                   yarn --cwd sample
             - name: Run tests
               run: scripts/test.sh --client
-    e2e_tests:
-        name: End-to-end tests
-        runs-on: ubuntu-18.04
+    integration_tests:
+        name: Integration tests
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [macos-11, ubuntu-20.04]
         steps:
-            - uses: actions/checkout@v1
-            - uses: actions/setup-node@master
+            - uses: actions/checkout@v2.4.0
+            - uses: cachix/install-nix-action@v15
               with:
-                  node-version: "14.x"
-            - uses: actions/setup-python@master
-              with:
-                  python-version: "3.9"
-            - name: Python requirements
-              run: pip install -r requirements.txt
-            - name: Yarn
+                  nix_path: nixpkgs=channel:nixos-unstable
+            - name: Setup git
               run: |
-                  yarn
-                  yarn --cwd packages/reactivated
-                  yarn --cwd sample
+                  git config --global user.email "example@example.com"
+                  git config --global user.name "Example"
+            - name: Setup reactivated
+              run: |
+                  nix-shell --command "yarn --cwd packages/reactivated"
+                  nix-shell --command "pip install -r requirements.txt"
+                  nix-shell --command "python scripts/generate_types.py"
+            - name: Create test project
+              run: |
+                  scripts/script-create-django-app.sh --name create_django_test
             - name: Run tests
-              run: scripts/test.sh --e2e
+              run: |
+                  cd create_django_test
+                  nix-shell --command "scripts/test.sh"

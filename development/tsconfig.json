@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "sourceMap": true,
+        "noEmit": true,
+        "module": "commonjs",
+        "target": "es6",
+        "esModuleInterop": true,
+        "allowJs": true,
+        "jsx": "react",
+        "baseUrl": ".",
+        "paths": {
+            "@client/*": ["client/*"]
+        }
+    },
+    "include": ["./client/**/*"]
+}

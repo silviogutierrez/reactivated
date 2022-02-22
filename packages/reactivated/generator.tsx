@@ -37,75 +37,80 @@ const project = new Project();
 
 const interfaces = project.createSourceFile("");
 
-interfaces.addVariableStatement({
-    declarationKind: VariableDeclarationKind.Const,
-    declarations: [
-        {
-            name: "urls",
-            initializer: JSON.stringify(urls),
-        },
-    ],
-});
-
-const urlMap = interfaces.addInterface({
-    name: "URLMap",
-});
-urlMap.setIsExported(true);
-
-const withArguments = [];
-const withoutArguments = [];
-
-for (const name of Object.keys(urls)) {
-    const properties = urls[name as keyof typeof urls].args;
-    const normalizedName = name.replace(/[^\w]/g, "_");
-
-    const urlInterface = interfaces.addInterface({
-        name: normalizedName,
-        properties: [{name: "name", type: `'${name}'`}],
-    });
-    const argsInterface = interfaces.addInterface({
-        name: `${normalizedName}_args`,
+if (Object.keys(urls).length !== 0) {
+    interfaces.addVariableStatement({
+        declarationKind: VariableDeclarationKind.Const,
+        declarations: [
+            {
+                name: "urls",
+                initializer: JSON.stringify(urls),
+            },
+        ],
     });
 
-    for (const propertyName of Object.keys(properties)) {
-        argsInterface.addProperty({
-            name: propertyName,
-            type: properties[propertyName as keyof typeof properties],
+    const urlMap = interfaces.addInterface({
+        name: "URLMap",
+    });
+    urlMap.setIsExported(true);
+
+    const withArguments = [""];
+    const withoutArguments = [""];
+
+    for (const name of Object.keys(urls)) {
+        const properties = urls[name as keyof typeof urls].args;
+        const normalizedName = name.replace(/[^\w]/g, "_");
+
+        const urlInterface = interfaces.addInterface({
+            name: normalizedName,
+            properties: [{name: "name", type: `'${name}'`}],
         });
-    }
-    urlInterface.addProperty({
-        name: "args",
-        type: `${normalizedName}_args`,
-    });
+        const argsInterface = interfaces.addInterface({
+            name: `${normalizedName}_args`,
+        });
 
-    urlMap.addProperty({
-        name: normalizedName,
-        type: normalizedName,
-    });
+        for (const propertyName of Object.keys(properties)) {
+            argsInterface.addProperty({
+                name: propertyName,
+                type: properties[propertyName as keyof typeof properties],
+            });
+        }
+        urlInterface.addProperty({
+            name: "args",
+            type: `${normalizedName}_args`,
+        });
 
-    if (Object.keys(properties).length === 0) {
-        withoutArguments.push(normalizedName);
-    } else {
-        withArguments.push(normalizedName);
-    }
-}
-interfaces.addTypeAlias({name: "WithArguments", type: withArguments.join("|")});
-interfaces.addTypeAlias({name: "WithoutArguments", type: withoutArguments.join("|")});
-interfaces.addStatements(`
+        urlMap.addProperty({
+            name: normalizedName,
+            type: normalizedName,
+        });
 
-type All = WithArguments|WithoutArguments;
-export function reverse<T extends WithoutArguments['name']>(name: T): string;
-export function reverse<T extends WithArguments['name']>(name: T, args: Extract<WithArguments, {name: T}>['args']): string;
-export function reverse<T extends All['name']>(name: T, args?: Extract<WithArguments, {name: T}>['args']): string {
-    let route = urls[name].route;
-
-    if (args != null) {
-        for (const token of Object.keys(args)) {
-            route = route.replace(new RegExp('<(.+?:)' + token + '>'), (args as any)[token]);
+        if (Object.keys(properties).length === 0) {
+            withoutArguments.push(normalizedName);
+        } else {
+            withArguments.push(normalizedName);
         }
     }
-    return route;
-}`);
+    interfaces.addTypeAlias({name: "WithArguments", type: withArguments.join("|")});
+    interfaces.addTypeAlias({
+        name: "WithoutArguments",
+        type: withoutArguments.join("|"),
+    });
+    interfaces.addStatements(`
+
+    type All = WithArguments|WithoutArguments;
+    export function reverse<T extends WithoutArguments['name']>(name: T): string;
+    export function reverse<T extends WithArguments['name']>(name: T, args: Extract<WithArguments, {name: T}>['args']): string;
+    export function reverse<T extends All['name']>(name: T, args?: Extract<WithArguments, {name: T}>['args']): string {
+        let route = urls[name].route;
+
+        if (args != null) {
+            for (const token of Object.keys(args)) {
+                route = route.replace(new RegExp('<(.+?:)' + token + '>'), (args as any)[token]);
+            }
+        }
+        return route;
+    }`);
+}
 
 interfaces.addStatements(`
 import React from "react"

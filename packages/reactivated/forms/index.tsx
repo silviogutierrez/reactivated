@@ -20,15 +20,15 @@ export interface WidgetLike {
     value: unknown;
 }
 
-interface Field {
+interface FieldLike {
     name: string;
     widget: WidgetLike;
     label: string;
-    help_text: string;
+    help_text: string | null;
 }
 
 export interface FieldMap {
-    [name: string]: Field;
+    [name: string]: FieldLike;
 }
 
 export interface FormLike<T extends FieldMap> {
@@ -179,6 +179,7 @@ export const getFormHandler = <T extends FieldMap>({
         return iterator.map((fieldName) => {
             const field = form.fields[fieldName];
             const error = errors?.[fieldName]?.[0] ?? null;
+            const {help_text} = field;
 
             if (field.widget.subwidgets != null) {
                 const subwidgets = field.widget.subwidgets.map((subwidget) => {
@@ -205,6 +206,7 @@ export const getFormHandler = <T extends FieldMap>({
                     const subfieldHandler: WidgetHandler<any> = {
                         name: subwidget.name,
                         error,
+                        help_text,
                         label: field.label,
                         disabled: false,
                         tag: subwidget.tag,
@@ -240,6 +242,7 @@ export const getFormHandler = <T extends FieldMap>({
             const fieldHandler: WidgetHandler<typeof field.widget> = {
                 name: field.widget.name,
                 error,
+                help_text,
                 label: field.label,
                 disabled: field.widget.attrs.disabled ?? false,
                 tag: field.widget.tag,
@@ -339,6 +342,7 @@ export interface WidgetHandler<T extends WidgetLike> {
     value: T["value"];
     label: string;
     error: string | null;
+    help_text: string | null;
     disabled: boolean;
     widget: T;
     handler: (value: T["value"]) => void;
@@ -443,6 +447,14 @@ export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
                 onChange={field.handler}
             />
         );
+    } else if (field.tag === "django.forms.widgets.Textarea") {
+        return (
+            <widgets.Textarea
+                name={field.name}
+                value={field.value}
+                onChange={field.handler}
+            />
+        );
     } else if (
         field.tag === "django.forms.widgets.TextInput" ||
         field.tag === "django.forms.widgets.DateInput" ||
@@ -450,8 +462,7 @@ export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
         field.tag === "django.forms.widgets.PasswordInput" ||
         field.tag === "django.forms.widgets.EmailInput" ||
         field.tag === "django.forms.widgets.TimeInput" ||
-        field.tag === "django.forms.widgets.NumberInput" ||
-        field.tag === "django.forms.widgets.Textarea"
+        field.tag === "django.forms.widgets.NumberInput"
     ) {
         return (
             <widgets.TextInput
@@ -604,7 +615,7 @@ export const useFormSet = <T extends FieldMap>(options: {
 export const bindWidgetType = <W extends WidgetLike>() => {
     const Iterator = createIterator<W>();
 
-    function createRenderer<TProps>(
+    function createRenderer<TProps = Record<never, never>>(
         callback: (field: FieldHandler<W>, props: TProps) => React.ReactNode,
     ) {
         const Renderer = <T extends FieldMap>(props: TProps & RendererProps<T, W>) => {

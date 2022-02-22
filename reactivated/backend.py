@@ -60,8 +60,8 @@ class JSXTemplate:
     def render(self, context: Any = None, request: Optional[HttpRequest] = None) -> str:
         template_name = self.jsx_template_name.replace(".tsx", "").replace(".jsx", "")
         from .serialization.context_processors import (
-            create_context_processor_type,
             BaseContext,
+            create_context_processor_type,
         )
 
         props = context or {}

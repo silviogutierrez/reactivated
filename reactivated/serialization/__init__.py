@@ -34,6 +34,14 @@ FormError = List[str]
 FormErrors = Dict[str, FormError]
 
 
+# TODO: can we handle other field types somewhat like this and widgets?
+@register(models.BigAutoField)
+class BigAutoField:
+    @classmethod
+    def get_json_schema(Type, instance, definitions):  # type: ignore[no-untyped-def]
+        return field_descriptor_schema(models.IntegerField(), definitions)
+
+
 class ComputedField(NamedTuple):
     name: str
     annotation: Any
@@ -123,7 +131,7 @@ class Intersection:
 class FieldType(NamedTuple):
     name: str
     label: str
-    help_text: str
+    help_text: Optional[str]
 
     # TODO: way to mark this as a custom property we define. This is just so it is
     # marked as required.
@@ -193,6 +201,8 @@ class FieldType(NamedTuple):
         field.widget = field.field.widget  # type: ignore[attr-defined]
 
         serialized = serialize(value, schema, suppress_custom_serializer=True)
+        help_text = serialized.get("help_text")
+        serialized["help_text"] = help_text if help_text != "" else None
         return serialized
 
 
@@ -503,13 +513,11 @@ def field_descriptor_schema(
     }
 
     try:
-        from django_extensions.db import (  # type: ignore[import]
-            fields as django_extension_fields,
-        )
+        import django_extensions.db.fields  # type: ignore[import]
 
         mapping = {
             **mapping,
-            django_extension_fields.ShortUUIDField: lambda field: str,
+            django_extensions.db.fields.ShortUUIDField: lambda field: str,
         }
     except ImportError:
         pass

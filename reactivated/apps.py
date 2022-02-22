@@ -1,14 +1,13 @@
-import atexit
 import importlib
 import json
 import logging
 import os
 import subprocess
-import sys
 from typing import Any, Dict, NamedTuple, Tuple
 
 from django.apps import AppConfig
 from django.conf import settings
+from django.utils.autoreload import file_changed  # type: ignore[attr-defined]
 
 from . import extract_views_from_urlpatterns, types
 from .serialization import create_schema
@@ -139,60 +138,11 @@ class ReactivatedConfig(AppConfig):
         from .checks import check_installed_app_order  # NOQA
         from .serialization import widgets  # noqa
 
-        if (
-            os.environ.get("WERKZEUG_RUN_MAIN") == "true"
-            or os.environ.get("RUN_MAIN") == "true"
-        ):
-            # Triggers for the subprocess of the dev server after restarts or initial start.
-            pass
+        def regenerate_schema(*args: Any, **kwargs: Any) -> None:
+            schema = get_schema()
+            generate_schema(schema)
 
-        is_server_started = "DJANGO_SEVER_STARTING" in os.environ
-
-        if is_server_started is False:
-            os.environ["DJANGO_SEVER_STARTING"] = "true"
-            return
-
-        # TODO: generate this on first request, to avoid running a ton of stuff
-        # on tests. Then cache it going forward.
-        schema = get_schema()
-
-        generate_schema(schema)
-        entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
-
-        client_process = subprocess.Popen(
-            [
-                "node",
-                f"{settings.BASE_DIR}/node_modules/reactivated/build.client.js",
-                *entry_points,
-            ],
-            stdout=subprocess.PIPE,
-            env={**os.environ.copy()},
-        )
-        from reactivated import renderer
-
-        renderer.renderer_process = subprocess.Popen(
-            ["node", f"{settings.BASE_DIR}/node_modules/reactivated/build.renderer.js"],
-            encoding="utf-8",
-            stdout=subprocess.PIPE,
-            env={
-                **os.environ.copy(),
-            },
-        )
-
-        def cleanup() -> None:
-            # Pytest has issues with this, see https://github.com/pytest-dev/pytest/issues/5502
-            # We can't use the env variable PYTEST_CURRENT_TEST because this happens
-            # after running all tests and closing the session.
-            # See: https://stackoverflow.com/questions/25188119/test-if-code-is-executed-from-within-a-py-test-session
-            if "pytest" not in sys.modules:
-                logger.info("Cleaning up client build process")
-                logger.info("Cleaning up renderer build process")
-            client_process.terminate()
-
-            if renderer.renderer_process is not None:
-                renderer.renderer_process.terminate()
-
-        atexit.register(cleanup)
+        file_changed.connect(regenerate_schema)
 
 
 def generate_schema(schema: str, skip_cache: bool = False) -> None:

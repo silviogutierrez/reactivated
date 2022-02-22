@@ -27,6 +27,7 @@ esbuild
         outfile: "./node_modules/.bin/renderer.js",
         sourcemap: true,
         target: "es2018",
+        preserveSymlinks: true,
         watch:
             production === true
                 ? false

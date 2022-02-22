@@ -96,4 +96,6 @@ jobs:
                   nix-shell --command "yarn --cwd packages/reactivated"
                   nix-shell --command "pip install -r requirements.txt"
                   nix-shell --command "python scripts/generate_types.py"
-                  scripts/script-create-django-app.sh
+                  scripts/script-create-django-app.sh --name create_django_test
+                  cd create_django_test
+                  nix-shell --command "scripts/test.sh"

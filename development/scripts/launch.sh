@@ -14,6 +14,8 @@ trap clean_up ERR
 
 SECRET_KEY=$(base64 /dev/urandom | head -c50)
 
+DATABASE_PASSWORD=$(base64 /dev/urandom | head -c20)
+
 fly launch --generate-name --region iad --no-deploy --dockerfile Dockerfile
 
 cat <<EOF >>fly.toml
@@ -24,9 +26,10 @@ cat <<EOF >>fly.toml
 EOF
 
 APP_NAME=$(fly info --json | jq .App.Name -r)
+URL="https://$APP_NAME.fly.dev"
 CLUSTER_NAME="$APP_NAME-postgres"
 
-fly postgres create --name "$CLUSTER_NAME" --region iad --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 10
+fly postgres create --password "$DATABASE_PASSWORD" --name "$CLUSTER_NAME" --region iad --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 10
 # SSH/SSL connectivity issues with first-time user accounts after creating database.
 fly ssh establish personal override
 
@@ -43,4 +46,15 @@ fly deploy --remote-only
 # sleep 30
 fly ssh console --command "sh migrate.sh"
 
-# TODO: this there a way to know when the app can be opened with fly apps open and it'll resolve?
+# shellcheck disable=SC2015
+for _ in 1 2 3 4 5 6 7 8 9 10; do curl -s "$URL" >/dev/null && break || sleep 30; done
+
+echo ""
+echo "All done."
+echo "You can visit your site by going to $URL"
+echo ""
+echo "Do not forget to store your root credentials for the database cluster."
+echo "Username: postgres"
+echo "Password: $DATABASE_PASSWORD"
+echo ""
+echo "It cannot be retrieved after this."

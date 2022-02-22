@@ -59,6 +59,10 @@ mkShell {
     # Needed for automating flyctl
     jq
 
+    # Used by our deployment scripts.
+    curl
+    cacert
+
     shfmt
     shellcheck
     nixfmt

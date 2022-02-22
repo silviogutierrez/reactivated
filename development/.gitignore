@@ -9,5 +9,4 @@ node_modules
 node_modules
 .mypy_cache
 .pytest_cache
-
 static/dist

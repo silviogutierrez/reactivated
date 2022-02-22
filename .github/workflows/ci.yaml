@@ -85,7 +85,8 @@ jobs:
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                os: [macos-11, ubuntu-20.04]
+              # os: [macos-11, ubuntu-20.04]
+              os: [ubuntu-20.04]
         steps:
             - uses: actions/checkout@v2.4.0
             - uses: cachix/install-nix-action@v15
@@ -96,6 +97,8 @@ jobs:
                   nix-shell --command "yarn --cwd packages/reactivated"
                   nix-shell --command "pip install -r requirements.txt"
                   nix-shell --command "python scripts/generate_types.py"
-                  scripts/script-create-django-app.sh --name create_django_test
-                  cd create_django_test
-                  nix-shell --command "scripts/test.sh"
+            - name: Setup tmate session
+              uses: mxschmitt/action-tmate@v3
+                  # scripts/script-create-django-app.sh --name create_django_test
+                  # cd create_django_test
+                  # nix-shell --command "scripts/test.sh"

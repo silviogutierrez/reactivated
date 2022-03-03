@@ -1,13 +1,15 @@
+from typing import Any, Dict
+
 from django import forms
 
 from . import models
 
 
-class StoryboardForm(forms.Form):
+class ExampleForm(forms.Form):
     char_field = forms.CharField()
-    integer_field = forms.IntegerField()
+    integer_field = forms.IntegerField(help_text="Help for integer field")
     date_field = forms.DateField(widget=forms.SelectDateWidget(years=[2000, 2001]))
-    date_time_field = forms.DateTimeField(
+    date_time_field = forms.SplitDateTimeField(
         widget=forms.SplitDateTimeWidget,
     )
     choice_field = forms.ChoiceField(
@@ -17,6 +19,12 @@ class StoryboardForm(forms.Form):
         )
     )
     boolean_field = forms.BooleanField()
+    hidden_field = forms.CharField(widget=forms.HiddenInput)
+
+    def clean(self) -> Dict[str, Any]:
+        raise forms.ValidationError(
+            "Non-field error",
+        )
 
 
 class Poll(forms.ModelForm[models.Question]):

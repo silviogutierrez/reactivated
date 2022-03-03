@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from django import forms
 
 from reactivated.forms import Autocomplete, EnumChoiceField
@@ -47,7 +49,7 @@ class StoryboardForm(forms.Form):
     char_field = forms.CharField()
     integer_field = forms.IntegerField()
     date_field = forms.DateField(widget=forms.SelectDateWidget(years=[2000, 2001]))
-    date_time_field = forms.DateTimeField(
+    date_time_field = forms.SplitDateTimeField(
         widget=forms.SplitDateTimeWidget,
     )
     choice_field = forms.ChoiceField(
@@ -58,3 +60,8 @@ class StoryboardForm(forms.Form):
     )
     enum_field = EnumChoiceField(enum=models.Opera.Style)
     boolean_field = forms.BooleanField(help_text="Not blank")
+
+    def clean(self) -> Dict[str, Any]:
+        raise forms.ValidationError(
+            "Non-field error",
+        )

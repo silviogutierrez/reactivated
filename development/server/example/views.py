@@ -7,10 +7,7 @@ from . import forms, models, templates
 
 
 def django_default(request: HttpRequest) -> HttpResponse:
-    form = forms.StoryboardForm()
-    return templates.DjangoDefault(form=form, version=get_docs_version()).render(
-        request
-    )
+    return templates.DjangoDefault(version=get_docs_version()).render(request)
 
 
 def polls_index(request: HttpRequest) -> HttpResponse:
@@ -79,6 +76,16 @@ def vote(request: HttpRequest, question_id: int) -> HttpResponse:
         selected_choice.votes += 1
         selected_choice.save()
         return redirect("results", question.pk)
+
+
+def form_playground(request: HttpRequest) -> HttpResponse:
+    form = forms.ExampleForm(request.POST or None)
+    form_as_p = forms.ExampleForm(request.POST or None, prefix="as_p")
+
+    if form.is_valid():
+        assert False, "Valid form"
+
+    return templates.FormPlayground(form=form, form_as_p=form_as_p).render(request)
 
 
 def results(request: HttpRequest, question_id: int) -> HttpResponse:

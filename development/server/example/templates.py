@@ -8,7 +8,6 @@ from . import forms, models
 @template
 class DjangoDefault(NamedTuple):
     version: str
-    form: forms.StoryboardForm
 
 
 @template
@@ -41,3 +40,9 @@ class Results(NamedTuple):
         "choices.choice_text",
         "choices.votes",
     ]
+
+
+@template
+class FormPlayground(NamedTuple):
+    form: forms.ExampleForm
+    form_as_p: forms.ExampleForm

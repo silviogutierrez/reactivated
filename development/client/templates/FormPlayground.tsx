@@ -1,10 +1,7 @@
 import React from "react";
 
 import {Layout} from "@client/components/Layout";
-
-import {Form} from "reactivated/forms";
-
-import {Types, reverse, CSRFToken} from "@client/generated";
+import {CSRFToken, Form, Types} from "@client/generated";
 
 export default (props: Types["FormPlaygroundProps"]) => (
     <Layout title="Forms">

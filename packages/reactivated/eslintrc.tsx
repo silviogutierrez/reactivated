@@ -70,11 +70,10 @@ module.exports = {
         "react-hooks/exhaustive-deps": "off",
 
         // Typescript overrides from recommended
+        "@typescript-eslint/no-unused-vars": "error",
+
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
-
-        // Legacy namespaces for styles
-        "@typescript-eslint/no-namespace": "off",
 
         // We use empty callbacks that are no-ops sometimes.
         "@typescript-eslint/no-empty-function": ["error", {allow: ["arrowFunctions"]}],

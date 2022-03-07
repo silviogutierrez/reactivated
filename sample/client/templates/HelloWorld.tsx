@@ -1,6 +1,6 @@
 import React from "react";
 
-import {Types} from "@client/generated";
+import {Types} from "@reactivated";
 import {Layout} from "@client/Layout";
 
 export default (props: Types["HelloWorldProps"]) => {

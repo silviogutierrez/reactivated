@@ -14,7 +14,8 @@
         "jsx": "react",
         "baseUrl": ".",
         "paths": {
-            "@client/*": ["client/*"]
+            "@client/*": ["client/*"],
+            "@reactivated": ["node_modules/_reactivated"]
         }
     },
     "include": ["./client/**/*"]

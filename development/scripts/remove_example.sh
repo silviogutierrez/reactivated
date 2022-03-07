@@ -7,7 +7,7 @@ git rm -r server/example
 # shellcheck disable=SC2016
 sed -i 's/${context.django_version}/'"$DJANGO_VERSION"'/' client/components/Layout.tsx
 sed -i 's/{context.django_version}/'"$DJANGO_VERSION"'/' client/components/Layout.tsx
-git rm -f client/templates/{FormPlayground,DjangoDefault,EditPoll,PollDetail,PollsIndex,Results}.tsx
+git rm client/templates/{FormPlayground,DjangoDefault,EditPoll,PollDetail,PollsIndex,Results}.tsx
 scripts/fix.sh
 echo "DELETE from django_migrations WHERE app = 'example'" | python manage.py dbshell
 git rm -f "$0"

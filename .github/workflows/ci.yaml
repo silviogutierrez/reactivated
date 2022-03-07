@@ -107,20 +107,11 @@ jobs:
               run: |
                   cd create_django_test
                   nix-shell --command "python manage.py generate_client_assets"
-
-                  # We run a quick fix here in case eslint rules have changed
-                  # since our last publish, etc.
-                  # In theory, our template code should be properly formatted
-                  # and passing tests, so this is a hack.
-                  nix-shell --command "scripts/fix.sh --all"
-
                   nix-shell --command "python manage.py build"
 
 
                   nix-shell --command "scripts/test.sh"
                   nix-shell --command "scripts/remove_example.sh"
                   nix-shell --command "python manage.py generate_client_assets"
-
-                  nix-shell --command "yarn tsc"
                   nix-shell --command "python manage.py build"
                   nix-shell --command "scripts/test.sh"

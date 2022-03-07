@@ -46,3 +46,4 @@ class Results(NamedTuple):
 class FormPlayground(NamedTuple):
     form: forms.ExampleForm
     form_as_p: forms.ExampleForm
+    form_set: forms.ChoiceFormSet

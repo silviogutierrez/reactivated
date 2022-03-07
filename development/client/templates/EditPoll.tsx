@@ -36,9 +36,9 @@ export default (props: Types["EditPollProps"]) => {
                 </forms.Fieldset>
                 <ManagementForm formSet={formSet.schema} />
 
-                {formSet.handlers.map((handler) => (
+                {formSet.forms.map((form) => (
                     <forms.Fieldset
-                        key={handler.form.prefix}
+                        key={form.form.prefix}
                         className={cx(
                             styles.horizontallySpaced,
                             css`
@@ -49,7 +49,7 @@ export default (props: Types["EditPollProps"]) => {
                             `,
                         )}
                     >
-                        <Iterator form={handler}>
+                        <Iterator form={form}>
                             {(field) => <forms.Field field={field} />}
                         </Iterator>
                     </forms.Fieldset>

@@ -81,11 +81,14 @@ def vote(request: HttpRequest, question_id: int) -> HttpResponse:
 def form_playground(request: HttpRequest) -> HttpResponse:
     form = forms.ExampleForm(request.POST or None)
     form_as_p = forms.ExampleForm(request.POST or None, prefix="as_p")
+    form_set = forms.ChoiceFormSet(request.POST or None, prefix="form_set")
 
     if form.is_valid():
         assert False, "Valid form"
 
-    return templates.FormPlayground(form=form, form_as_p=form_as_p).render(request)
+    return templates.FormPlayground(
+        form=form, form_as_p=form_as_p, form_set=form_set
+    ).render(request)
 
 
 def results(request: HttpRequest, question_id: int) -> HttpResponse:

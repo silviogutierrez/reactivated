@@ -1,7 +1,7 @@
 import React from "react";
 
 import {Layout} from "@client/components/Layout";
-import {CSRFToken, Form, Types} from "@client/generated";
+import {CSRFToken, Form, FormSet, Types} from "@client/generated";
 
 export default (props: Types["FormPlaygroundProps"]) => (
     <Layout title="Forms">
@@ -10,17 +10,24 @@ export default (props: Types["FormPlaygroundProps"]) => (
             <CSRFToken />
             <table>
                 <tbody>
-                    <Form form={props.form} as="table">
-                        <button type="submit">Submit</button>
-                    </Form>
+                    <Form form={props.form} as="table" />
                 </tbody>
             </table>
+            <button type="submit">Submit</button>
         </form>
         <form method="POST" action="">
             <CSRFToken />
-            <Form form={props.form_as_p} as="p">
-                <button type="submit">Submit</button>
-            </Form>
+            <Form form={props.form_as_p} as="p" />
+            <button type="submit">Submit</button>
+        </form>
+        <form method="POST" action="">
+            <CSRFToken />
+            <table>
+                <tbody>
+                    <FormSet formSet={props.form_set} as="table" />
+                </tbody>
+            </table>
+            <button type="submit">Submit</button>
         </form>
     </Layout>
 );

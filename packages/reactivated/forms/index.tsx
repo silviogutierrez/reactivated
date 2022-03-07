@@ -593,7 +593,7 @@ export const useFormSet = <T extends FieldMap>(options: {
 
     const emptyFormValues = getInitialFormState(formSet.empty_form);
 
-    const handlers = formSet.forms.map((form, index) => {
+    const forms = formSet.forms.map((form, index) => {
         return getFormHandler({
             form,
             changeInterceptor: options.changeInterceptor,
@@ -644,7 +644,7 @@ export const useFormSet = <T extends FieldMap>(options: {
         options.onAddForm?.(extraForm);
     };
 
-    return {schema: formSet, values, handlers, addForm};
+    return {schema: formSet, values, forms, addForm};
 };
 
 export const bindWidgetType = <W extends WidgetLike>() => {
@@ -689,7 +689,6 @@ export const createCSRFToken = <TContext extends {csrf_token: string}>(
 export const Form = <T extends FieldMap<widgets.CoreWidget>>(props: {
     form: FormLike<T>;
     as: "p" | "table";
-    children?: React.ReactNode;
 }) => {
     const form = useForm({form: props.form});
 
@@ -712,7 +711,6 @@ export const Form = <T extends FieldMap<widgets.CoreWidget>>(props: {
                         </p>
                     </React.Fragment>
                 ))}
-                {props.children}
             </>
         );
     } else {
@@ -749,10 +747,17 @@ export const Form = <T extends FieldMap<widgets.CoreWidget>>(props: {
                         </td>
                     </tr>
                 ))}
-                <tr>
-                    <td colSpan={2}>{props.children}</td>
-                </tr>
             </>
         );
     }
 };
+
+export const FormSet = <T extends FieldMap<widgets.CoreWidget>>(props: {
+    formSet: FormSetLike<T>;
+    as: "p" | "table";
+}) => {
+    return <>
+        <ManagementForm formSet={props.formSet} />
+        {props.formSet.forms.map(form => <Form key={form.prefix} form={form} as={props.as} />)}
+    </>
+}

@@ -135,7 +135,7 @@ export const CSRFToken = forms.createCSRFToken(Context);
 
 export const {createRenderer, Iterator} = forms.bindWidgetType<Types["globals"]["Widget"]>();
 
-export const {Form} = forms;
+export const {Form, FormSet} = forms;
 `);
 
 // tslint:disable-next-line

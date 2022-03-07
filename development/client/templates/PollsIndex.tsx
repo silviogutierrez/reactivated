@@ -1,10 +1,11 @@
 import React from "react";
 
+import {Types} from "@reactivated";
+
 import {css} from "@linaria/core";
 
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
-import {Types} from "@client/generated";
 import * as styles from "@client/styles";
 
 export default (props: Types["PollsIndexProps"]) => (

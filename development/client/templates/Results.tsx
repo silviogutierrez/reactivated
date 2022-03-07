@@ -1,7 +1,8 @@
 import React from "react";
 
+import {Types, reverse} from "@reactivated";
+
 import {Layout} from "@client/components/Layout";
-import {Types, reverse} from "@client/generated";
 
 export default ({question}: Types["ResultsProps"]) => (
     <Layout title={question.question_text}>

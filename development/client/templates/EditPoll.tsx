@@ -1,12 +1,13 @@
 import React from "react";
 
+import {CSRFToken, Iterator, Types} from "@reactivated";
+
 import {css, cx} from "@linaria/core";
 
 import {ManagementForm, useFormSet} from "reactivated/forms";
 
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
-import {CSRFToken, Iterator, Types} from "@client/generated";
 import * as styles from "@client/styles";
 
 export default (props: Types["EditPollProps"]) => {

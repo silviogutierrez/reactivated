@@ -70,12 +70,11 @@ type Result =
           error: any;
       };
 
-export const render = (
-    {context, props}: {context: any; props: any},
-    Provider: React.ComponentType<any>,
-    Template: React.ComponentType<any>,
-): Result => {
+export const render = ({context, props}: {context: any; props: any}): Result => {
+    const {Provider, getTemplate} = require("../../node_modules/_reactivated");
+
     try {
+        const Template = getTemplate(context);
         const helmetContext = {} as FilledContext;
 
         const rendered = ReactDOMServer.renderToString(
@@ -105,17 +104,13 @@ export const render = (
 export const simpleRender = () => {
     const input = fs.readFileSync(0);
     const {context, props} = JSON.parse(input.toString("utf8"));
-    const {Provider, getTemplate} = require("../../client/generated");
-    const Template = getTemplate(context);
 
-    process.stdout.write(JSON.stringify(render({context, props}, Provider, Template)));
+    process.stdout.write(JSON.stringify(render({context, props})));
 };
 
 export const serverRender = (body: Buffer) => {
     const {context, props} = JSON.parse(body.toString("utf8"));
-    const {Provider, getTemplate} = require("../../client/generated");
-    const Template = getTemplate(context);
-    return render({context, props}, Provider, Template);
+    return render({context, props});
 };
 
 const OK_RESPONSE = 200;

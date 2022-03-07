@@ -2,7 +2,7 @@ import produce, {castDraft} from "immer";
 import {FileInfoResult} from "prettier";
 import React from "react";
 
-import {Types} from "../generated";
+import {DjangoFormsWidgetsHiddenInput, Types} from "../generated";
 import {DiscriminateUnion} from "../types";
 import * as widgets from "./widgets";
 
@@ -20,18 +20,18 @@ export interface WidgetLike {
     value: unknown;
 }
 
-interface FieldLike {
+interface FieldLike<W = WidgetLike> {
     name: string;
-    widget: WidgetLike;
+    widget: W;
     label: string;
     help_text: string | null;
 }
 
-export interface FieldMap {
-    [name: string]: FieldLike;
+export interface FieldMap<W = WidgetLike> {
+    [name: string]: FieldLike<W>;
 }
 
-export interface FormLike<T extends FieldMap> {
+export interface FormLike<T extends FieldMap<W>, W = WidgetLike> {
     name: string;
     fields: T;
     errors: {[P in keyof T]?: string[]} | null;
@@ -39,7 +39,7 @@ export interface FormLike<T extends FieldMap> {
     prefix: string;
 }
 
-export interface FormSetLike<T extends FieldMap> {
+export interface FormSetLike<T extends FieldMap<W>, W = WidgetLike> {
     initial_form_count: number;
     total_form_count: number;
     max_num: number;
@@ -53,8 +53,8 @@ export interface FormSetLike<T extends FieldMap> {
     management_form: unknown;
     prefix: string;
 
-    forms: Array<FormLike<T>>;
-    empty_form: FormLike<T>;
+    forms: Array<FormLike<T, W>>;
+    empty_form: FormLike<T, W>;
 }
 
 export type FormErrors<T extends FieldMap> = {[P in keyof T]?: string[]} | null;
@@ -72,6 +72,12 @@ export interface FormHandler<T extends FieldMap> {
     values: FormValues<T>;
     initial: FormValues<T>;
     errors: FormErrors<T>;
+
+    fields: {[K in keyof T]: FieldHandler<T[keyof T]["widget"]>};
+    visibleFields: FieldHandler<T[keyof T]["widget"]>[];
+    hiddenFields: FieldHandler<DjangoFormsWidgetsHiddenInput>[];
+    nonFieldErrors: string[] | null;
+
     setValue: <K extends keyof T>(name: K, value: FormValues<T>[K]) => void;
     setErrors: (errors: FormErrors<T>) => void;
     iterate: (
@@ -169,14 +175,8 @@ export const getFormHandler = <T extends FieldMap>({
         setValues(() => initial);
     };
 
-    const iterate = (
-        iterator: Array<Extract<keyof T, string>>,
-        callback: (
-            fieldName: keyof T,
-            field: FieldHandler<T[keyof T]["widget"]>,
-        ) => React.ReactNode,
-    ) => {
-        return iterator.map((fieldName) => {
+    const fields = Object.fromEntries(
+        form.iterator.map((fieldName) => {
             const field = form.fields[fieldName];
             const error = errors?.[fieldName]?.[0] ?? null;
             const {help_text} = field;
@@ -225,18 +225,19 @@ export const getFormHandler = <T extends FieldMap>({
                     disabled: field.widget.attrs.disabled ?? false,
                     label: field.label,
                     error,
+                    help_text,
                     tag: field.widget.tag,
                     subwidgets,
                 };
 
-                return callback(
+                return [
                     fieldName,
                     fieldInterceptor(
                         fieldName,
                         subwidgetHandler as FieldHandler<T[keyof T]["widget"]>,
                         values,
                     ),
-                );
+                ] as const;
             }
 
             const fieldHandler: WidgetHandler<typeof field.widget> = {
@@ -256,22 +257,55 @@ export const getFormHandler = <T extends FieldMap>({
                 },
             };
 
-            return callback(
+            return [
                 fieldName,
                 fieldInterceptor(
                     fieldName,
                     fieldHandler as FieldHandler<T[keyof T]["widget"]>,
                     values,
                 ),
-            );
+            ] as const;
+        }),
+    ) as FormHandler<T>["fields"];
+
+    const iterate = (
+        iterator: Array<Extract<keyof T, string>>,
+        callback: (
+            fieldName: keyof T,
+            field: FieldHandler<T[keyof T]["widget"]>,
+        ) => React.ReactNode,
+    ) => {
+        return iterator.map((fieldName) => {
+            return callback(fieldName, fields[fieldName]);
         });
     };
+
+    const visibleFields: FormHandler<T>["visibleFields"] = form.iterator
+        .filter(
+            (fieldName) => fields[fieldName].tag !== "django.forms.widgets.HiddenInput",
+        )
+        .map((fieldName) => fields[fieldName]);
+    const hiddenFields: FormHandler<T>["hiddenFields"] = form.iterator
+        .filter(
+            (fieldName) => fields[fieldName].tag === "django.forms.widgets.HiddenInput",
+        )
+        .map(
+            (fieldName) =>
+                fields[
+                    fieldName
+                ] as unknown as FieldHandler<DjangoFormsWidgetsHiddenInput>,
+        );
+    const nonFieldErrors = errors?.["__all__"] ?? null;
 
     return {
         form,
         values,
         initial,
         errors,
+        fields,
+        nonFieldErrors,
+        visibleFields,
+        hiddenFields,
         iterate,
         reset,
         setErrors,
@@ -332,6 +366,7 @@ export interface SubwidgetHandler<T extends {tag: string; name: string}, U> {
     name: string;
     label: string;
     error: string | null;
+    help_text: string | null;
     disabled: boolean;
     subwidgets: {[K in keyof U]: U[K] extends WidgetLike ? WidgetHandler<U[K]> : never};
 }
@@ -558,7 +593,7 @@ export const useFormSet = <T extends FieldMap>(options: {
 
     const emptyFormValues = getInitialFormState(formSet.empty_form);
 
-    const handlers = formSet.forms.map((form, index) => {
+    const forms = formSet.forms.map((form, index) => {
         return getFormHandler({
             form,
             changeInterceptor: options.changeInterceptor,
@@ -609,7 +644,7 @@ export const useFormSet = <T extends FieldMap>(options: {
         options.onAddForm?.(extraForm);
     };
 
-    return {schema: formSet, values, handlers, addForm};
+    return {schema: formSet, values, forms, addForm};
 };
 
 export const bindWidgetType = <W extends WidgetLike>() => {
@@ -649,4 +684,84 @@ export const createCSRFToken = <TContext extends {csrf_token: string}>(
         );
     };
     return CSRFToken;
+};
+
+export const Form = <T extends FieldMap<widgets.CoreWidget>>(props: {
+    form: FormLike<T>;
+    as: "p" | "table";
+}) => {
+    const form = useForm({form: props.form});
+
+    if (props.as == "p") {
+        return (
+            <>
+                {form.nonFieldErrors?.map((error, index) => (
+                    <div key={index}>{error}</div>
+                ))}
+                {form.hiddenFields.map((field, index) => (
+                    <Widget key={index} field={field} />
+                ))}
+                {form.visibleFields.map((field, index) => (
+                    <React.Fragment key={field.name}>
+                        {field.error != null && <div>{field.error}</div>}
+                        <p>
+                            <label>{field.label}</label>
+                            {field.help_text != null && <span>{field.help_text}</span>}
+                            <Widget field={field} />
+                        </p>
+                    </React.Fragment>
+                ))}
+            </>
+        );
+    } else {
+        return (
+            <>
+                {form.nonFieldErrors != null && (
+                    <tr>
+                        {form.nonFieldErrors.map((error, index) => (
+                            <td key={index} colSpan={2}>
+                                {error}
+                            </td>
+                        ))}
+                    </tr>
+                )}
+                <tr style={{display: "none"}}>
+                    {form.hiddenFields.map((field, index) => (
+                        <Widget key={index} field={field} />
+                    ))}
+                </tr>
+                {form.visibleFields.map((field, index) => (
+                    <tr key={field.name}>
+                        <th>
+                            <label>{field.label}</label>
+                        </th>
+                        <td>
+                            {field.error != null && <div>{field.error}</div>}
+                            {field.help_text != null && (
+                                <>
+                                    <br />
+                                    <span>{field.help_text}</span>
+                                </>
+                            )}
+                            <Widget field={field} />
+                        </td>
+                    </tr>
+                ))}
+            </>
+        );
+    }
+};
+
+export const FormSet = <T extends FieldMap<widgets.CoreWidget>>(props: {
+    formSet: FormSetLike<T>;
+    as: "p" | "table";
+}) => {
+    return (
+        <>
+            <ManagementForm formSet={props.formSet} />
+            {props.formSet.forms.map((form) => (
+                <Form key={form.prefix} form={form} as={props.as} />
+            ))}
+        </>
+    );
 };

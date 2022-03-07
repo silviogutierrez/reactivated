@@ -756,8 +756,12 @@ export const FormSet = <T extends FieldMap<widgets.CoreWidget>>(props: {
     formSet: FormSetLike<T>;
     as: "p" | "table";
 }) => {
-    return <>
-        <ManagementForm formSet={props.formSet} />
-        {props.formSet.forms.map(form => <Form key={form.prefix} form={form} as={props.as} />)}
-    </>
-}
+    return (
+        <>
+            <ManagementForm formSet={props.formSet} />
+            {props.formSet.forms.map((form) => (
+                <Form key={form.prefix} form={form} as={props.as} />
+            ))}
+        </>
+    );
+};

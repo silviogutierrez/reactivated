@@ -1,10 +1,10 @@
 import React from "react";
 
-import {Types, reverse} from "@reactivated";
+import {templates, reverse} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
 
-export default ({question}: Types["ResultsProps"]) => (
+export default ({question}: templates.Results) => (
     <Layout title={question.question_text}>
         <h1>{question.question_text}</h1>
         <ul>

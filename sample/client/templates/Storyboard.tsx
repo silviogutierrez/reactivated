@@ -1,13 +1,13 @@
 import React from "react";
 
-import {CSRFToken, Iterator, Types} from "@reactivated";
+import {CSRFToken, Iterator, templates} from "@reactivated";
 import {Layout} from "@client/Layout";
 
 import {useForm, Widget} from "reactivated/forms";
 
 const SPACING = 2;
 
-export default (props: Types["StoryboardProps"]) => {
+export default (props: templates.Storyboard) => {
     const handler = useForm({form: props.form});
 
     return (

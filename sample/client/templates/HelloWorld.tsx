@@ -1,9 +1,9 @@
 import React from "react";
 
-import {Types} from "@reactivated";
+import {templates} from "@reactivated";
 import {Layout} from "@client/Layout";
 
-export default (props: Types["HelloWorldProps"]) => {
+export default (props: templates.HelloWorld) => {
     const [showStyle, setShowStyle] = React.useState(false);
 
     return (

@@ -1,6 +1,6 @@
 import React from "react";
 
-import {templates, reverse} from "@reactivated";
+import {reverse, templates} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
 

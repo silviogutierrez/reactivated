@@ -1,6 +1,6 @@
 import React from "react";
 
-import {CSRFToken, templates, reverse} from "@reactivated";
+import {CSRFToken, reverse, templates} from "@reactivated";
 
 import {css} from "@linaria/core";
 

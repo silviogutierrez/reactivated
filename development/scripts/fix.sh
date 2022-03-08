@@ -56,7 +56,7 @@ else
 fi
 
 CHANGED_PY_FILES=$(echo "$CHANGED_FILES" | grep -e '.pyi\?$' || true)
-CHANGED_PRETTIER_FILES=$(echo "$CHANGED_FILES" | grep -e '.jsx\?$\|.tsx\?$\|.yaml$\|.json$' || true)
+CHANGED_PRETTIER_FILES=$(echo "$CHANGED_FILES" | grep -e '.jsx\?$\|.tsx\?$\|.yaml$\|.json$\|.md$' || true)
 CHANGED_TS_JS_FILES=$(echo "$CHANGED_FILES" | grep -e '.jsx\?$\|.tsx\?$' || true)
 CHANGED_SH_FILES=$(echo "$CHANGED_FILES" | grep -e '.sh$' || true)
 CHANGED_NIX_FILES=$(echo "$CHANGED_FILES" | grep -e '.nix$' || true)

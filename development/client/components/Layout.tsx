@@ -1,11 +1,11 @@
 import React from "react";
 
+import {Context} from "@reactivated";
 import {Helmet} from "react-helmet-async";
 
 import {css, cx} from "@linaria/core";
 import {styled} from "@linaria/react";
 
-import {Context} from "@client/generated";
 import * as styles from "@client/styles";
 
 styles.globalStyles();

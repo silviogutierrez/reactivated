@@ -1,9 +1,10 @@
 import React from "react";
 
-import {Layout} from "@client/components/Layout";
-import {CSRFToken, Form, FormSet, Types} from "@client/generated";
+import {CSRFToken, Form, FormSet, templates} from "@reactivated";
 
-export default (props: Types["FormPlaygroundProps"]) => (
+import {Layout} from "@client/components/Layout";
+
+export default (props: templates.FormPlayground) => (
     <Layout title="Forms">
         <h1>Forms</h1>
         <form method="POST" action="">

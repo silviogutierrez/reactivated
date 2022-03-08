@@ -26,11 +26,14 @@ if [ -f "$POSTGRES_PID_FILE" ]; then
     head -n 1 <"$POSTGRES_PID_FILE" | xargs kill -9 &>/dev/null || true
 fi
 
-./packages/create-django-app/scripts/sync-development.sh
-./packages/create-django-app/scripts/create-django-app.sh "$PROJECT_NAME"
+REACTIVATED_NODE=$(mktemp -d -t "REACTIVATED_NODE.XXX")
+REACTIVATED_PYTHON="$SCRIPT_PATH/../"
+
+export REACTIVATED_NODE
+export REACTIVATED_PYTHON
 
 # TODO: why does this produce git not found?
-nix-shell --command "rm -rf $PROJECT_NAME/node_modules/reactivated/* && yarn --cwd packages/reactivated tsc --outDir ../../$PROJECT_NAME/node_modules/reactivated"
+nix-shell --command "yarn --cwd packages/reactivated tsc --outDir $REACTIVATED_NODE"
 
-cd "$PROJECT_NAME"
-nix-shell --command "pip install -e $SCRIPT_PATH/../"
+./packages/create-django-app/scripts/sync-development.sh
+./packages/create-django-app/scripts/create-django-app.sh "$PROJECT_NAME"

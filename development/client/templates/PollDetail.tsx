@@ -1,13 +1,14 @@
 import React from "react";
 
+import {CSRFToken, reverse, templates} from "@reactivated";
+
 import {css} from "@linaria/core";
 
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
-import {CSRFToken, Types, reverse} from "@client/generated";
 import * as styles from "@client/styles";
 
-export default ({error_message, question}: Types["PollDetailProps"]) => (
+export default ({error_message, question}: templates.PollDetail) => (
     <Layout title={question.question_text}>
         <form
             action={reverse("vote", {question_id: question.id})}

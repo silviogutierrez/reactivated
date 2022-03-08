@@ -32,8 +32,16 @@ module.exports = {
                 alphabetize: {order: "asc"},
                 "newlines-between": "always",
                 pathGroups: [
-                    {group: "builtin", pattern: "react", position: "before"},
-                    {group: "builtin", pattern: "react-*", position: "after"},
+                    {
+                        group: "builtin",
+                        pattern: "{react,react-dom}",
+                        position: "before",
+                    },
+                    {
+                        group: "builtin",
+                        pattern: "{@reactivated,react-*}",
+                        position: "after",
+                    },
                     {
                         group: "builtin",
                         pattern: "@linaria/*",

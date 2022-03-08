@@ -2,3 +2,4 @@ trailingComma: "all"
 tabWidth: 4
 printWidth: 88
 bracketSpacing: false
+proseWrap: "always"

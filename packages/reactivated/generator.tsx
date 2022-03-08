@@ -121,25 +121,30 @@ import * as generated from "reactivated/generated";
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
 
-export const {Context, Provider, getServerData} = createContext<Types["Context"]>();
+export const {Context, Provider, getServerData} = createContext<_Types["Context"]>();
 
 export const getTemplate = ({template_name}: {template_name: string}) => {
     // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
-    const { default: templates, filenames } = require('../templates/**/*');
-    const templatePath = "../templates/" + template_name + ".tsx";
-    const Template: React.ComponentType<any> = templates.find((t: any, index: number) => filenames[index] === templatePath).default;
-    return Template;
+    const { default: templates, filenames } = require('../../client/templates/**/*');
+    const templatePath = "../../client/templates/" + template_name + ".tsx";
+    const possibleTemplate: {default: React.ComponentType<any>} | null = templates.find((t: any, index: number) => filenames[index] === templatePath);
+
+    if (possibleTemplate == null) {
+        throw new Error("Template " + template_name + ".tsx not found");
+    }
+    return possibleTemplate.default;
 }
 
 export const CSRFToken = forms.createCSRFToken(Context);
 
-export const {createRenderer, Iterator} = forms.bindWidgetType<Types["globals"]["Widget"]>();
+export const {createRenderer, Iterator} = forms.bindWidgetType<_Types["globals"]["Widget"]>();
+export type FieldHandler = forms.FieldHandler<_Types["globals"]["Widget"]>;
 
-export const {Form, FormSet} = forms;
+export const {Form, FormSet, Widget} = forms;
 `);
 
 // tslint:disable-next-line
-compile(types, "Types").then((ts) => {
+compile(types, "_Types").then((ts) => {
     process.stdout.write("/* eslint-disable */\n");
     process.stdout.write(ts);
 
@@ -148,7 +153,11 @@ compile(types, "Types").then((ts) => {
         interfaces.addStatements(`
 
 import ${name}Implementation from "@client/templates/${name}"
-export type ${name}Check = Checker<Types["${propsName}"], typeof ${name}Implementation>;
+export type ${name}Check = Checker<_Types["${propsName}"], typeof ${name}Implementation>;
+
+export namespace templates {
+    export type ${name} = _Types["${propsName}"];
+}
 
 
         `);

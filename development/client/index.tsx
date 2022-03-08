@@ -1,9 +1,8 @@
 import React from "react";
 
+import {Provider, getServerData, getTemplate} from "@reactivated";
 import {hydrate} from "react-dom";
 import {HelmetProvider} from "react-helmet-async";
-
-import {Provider, getServerData, getTemplate} from "@client/generated";
 
 const {props, context} = getServerData();
 

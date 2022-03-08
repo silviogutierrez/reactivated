@@ -21,6 +21,8 @@ from .serialization.registry import (
 
 logger = logging.getLogger("django.server")
 
+GENERATED_DIRECTORY = f"{settings.BASE_DIR}/node_modules/_reactivated"
+
 
 def get_urls_schema() -> Dict[str, Any]:
     urlconf = importlib.import_module(settings.ROOT_URLCONF)
@@ -158,10 +160,8 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
 
     digest = hashlib.sha1(encoded_schema).hexdigest().encode()
 
-    if skip_cache is False and os.path.exists(
-        f"{settings.BASE_DIR}/client/generated/index.tsx"
-    ):
-        with open(f"{settings.BASE_DIR}/client/generated/index.tsx", "r+b") as existing:
+    if skip_cache is False and os.path.exists(f"{GENERATED_DIRECTORY}/index.tsx"):
+        with open(f"{GENERATED_DIRECTORY}/index.tsx", "r+b") as existing:
             already_generated = existing.read()
 
             if digest in already_generated:
@@ -191,13 +191,13 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
     )
     constants_out, constants_error = constants_process.communicate(encoded_schema)
 
-    os.makedirs(f"{settings.BASE_DIR}/client/generated", exist_ok=True)
+    os.makedirs(GENERATED_DIRECTORY, exist_ok=True)
 
-    with open(f"{settings.BASE_DIR}/client/generated/index.tsx", "w+b") as output:
+    with open(f"{GENERATED_DIRECTORY}/index.tsx", "w+b") as output:
         output.write(b"// Digest: %s\n" % digest)
         output.write(out)
 
-    with open(f"{settings.BASE_DIR}/client/generated/constants.tsx", "w+b") as output:
+    with open(f"{GENERATED_DIRECTORY}/constants.tsx", "w+b") as output:
         output.write(constants_out)
 
     logger.info("Finished generating.")

@@ -1,13 +1,14 @@
 import React from "react";
 
+import {templates} from "@reactivated";
+
 import {css} from "@linaria/core";
 
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
-import {Types} from "@client/generated";
 import * as styles from "@client/styles";
 
-export default (props: Types["PollsIndexProps"]) => (
+export default (props: templates.PollsIndex) => (
     <Layout
         title="Polls"
         className={css`

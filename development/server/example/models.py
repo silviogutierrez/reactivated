@@ -18,4 +18,4 @@ class Comment(models.Model):
     question = models.ForeignKey(
         Question, on_delete=models.CASCADE, related_name="comments"
     )
-    comment_text = models.TextField()
+    comment_text = models.TextField(verbose_name="comment")

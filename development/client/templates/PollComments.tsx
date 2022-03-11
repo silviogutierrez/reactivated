@@ -65,6 +65,10 @@ export default (props: templates.PollComments) => {
                 <CSRFToken />
 
                 <h3>Post comment</h3>
+                <p>
+                    Comments are created using AJAX. However, if you disable JavaScript
+                    this form will still work. Try it.
+                </p>
 
                 <forms.Fields form={form} />
 

@@ -74,8 +74,6 @@ def poll_comments(request: HttpRequest, question_id: int) -> HttpResponse:
 
         if request.accepts("application/json") is False:
             return redirect("poll_comments", question.pk)
-        else:
-            form = forms.Comment()
 
     return templates.PollComments(question=question, form=form).render(request)
 

@@ -63,6 +63,23 @@ def poll_detail(request: HttpRequest, question_id: int) -> HttpResponse:
     return templates.PollDetail(error_message=None, question=question).render(request)
 
 
+def poll_comments(request: HttpRequest, question_id: int) -> HttpResponse:
+    question = get_object_or_404(models.Question, id=question_id)
+    form = forms.Comment(
+        request.POST or None, instance=models.Comment(question=question)
+    )
+
+    if form.is_valid():
+        form.save()
+
+        if request.accepts("application/json") is False:
+            return redirect("poll_comments", question.pk)
+        else:
+            form = forms.Comment()
+
+    return templates.PollComments(question=question, form=form).render(request)
+
+
 def vote(request: HttpRequest, question_id: int) -> HttpResponse:
     question = get_object_or_404(models.Question, id=question_id)
 

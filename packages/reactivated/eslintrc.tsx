@@ -88,6 +88,17 @@ module.exports = {
 
         // Typescript additions
         "@typescript-eslint/strict-boolean-expressions": "error",
+
+        // See: https://github.com/typescript-eslint/typescript-eslint/issues/4619#issuecomment-1057096238
+        // We want async callbacks to React event handlers
+        "@typescript-eslint/no-misused-promises": [
+            "error",
+            {
+                checksVoidReturn: {
+                    attributes: false,
+                },
+            },
+        ],
     },
     extends: [
         "eslint:recommended",

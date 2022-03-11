@@ -25,9 +25,19 @@ class EditPoll(NamedTuple):
 @template
 class PollDetail(NamedTuple):
     question: Pick[
-        models.Question, "id", "question_text", "choices.id", "choices.choice_text"
+        models.Question,
+        "id",
+        "question_text",
+        "choices.id",
+        "choices.choice_text",
     ]
     error_message: Optional[str] = None
+
+
+@template
+class PollComments(NamedTuple):
+    question: Pick[models.Question, "id", "question_text", "comments.comment_text"]
+    form: forms.Comment
 
 
 @template

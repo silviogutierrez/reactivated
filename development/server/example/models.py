@@ -12,3 +12,10 @@ class Choice(models.Model):
     )
     choice_text = models.CharField(max_length=200, verbose_name="choice")
     votes = models.IntegerField(default=0)
+
+
+class Comment(models.Model):
+    question = models.ForeignKey(
+        Question, on_delete=models.CASCADE, related_name="comments"
+    )
+    comment_text = models.TextField(verbose_name="comment")

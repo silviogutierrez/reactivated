@@ -10,5 +10,8 @@ urlpatterns = [
     path("polls/<int:question_id>/update/", views.update_poll, name="update_poll"),
     path("polls/<int:question_id>/vote/", views.vote, name="vote"),
     path("polls/<int:question_id>/results/", views.results, name="results"),
+    path(
+        "polls/<int:question_id>/comments/", views.poll_comments, name="poll_comments"
+    ),
     path("polls/create/", views.create_poll, name="create_poll"),
 ]

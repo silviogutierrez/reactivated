@@ -173,6 +173,7 @@ export const getFormHandler = <T extends FieldMap>({
 
     const reset = () => {
         setValues(() => initial);
+        setErrors({});
     };
 
     const fields = Object.fromEntries(
@@ -285,6 +286,7 @@ export const getFormHandler = <T extends FieldMap>({
             (fieldName) => fields[fieldName].tag !== "django.forms.widgets.HiddenInput",
         )
         .map((fieldName) => fields[fieldName]);
+
     const hiddenFields: FormHandler<T>["hiddenFields"] = form.iterator
         .filter(
             (fieldName) => fields[fieldName].tag === "django.forms.widgets.HiddenInput",
@@ -687,10 +689,10 @@ export const createCSRFToken = <TContext extends {csrf_token: string}>(
 };
 
 export const Form = <T extends FieldMap<widgets.CoreWidget>>(props: {
-    form: FormLike<T>;
+    form: FormLike<T> | FormHandler<T>;
     as: "p" | "table";
 }) => {
-    const form = useForm({form: props.form});
+    const form = "form" in props.form ? props.form : useForm({form: props.form});
 
     if (props.as == "p") {
         return (

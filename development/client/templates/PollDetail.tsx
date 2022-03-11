@@ -47,6 +47,11 @@ export default ({error_message, question}: templates.PollDetail) => (
                 >
                     Update poll
                 </forms.ButtonLink>
+                <forms.ButtonLink
+                    href={reverse("poll_comments", {question_id: question.id})}
+                >
+                    Comments
+                </forms.ButtonLink>
             </div>
         </form>
     </Layout>

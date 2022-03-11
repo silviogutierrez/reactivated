@@ -1,6 +1,6 @@
 import React from "react";
 
-import {FieldHandler, Widget} from "@reactivated";
+import {FieldHandler, Widget, createRenderer} from "@reactivated";
 
 import {css} from "@linaria/core";
 import {styled} from "@linaria/react";
@@ -22,6 +22,11 @@ export const Field = (props: {field: FieldHandler}) => {
             className={css`
                 ${styles.verticallySpaced(5)}
                 display: block;
+
+                textarea {
+                    width: 100%;
+                    min-height: 100px;
+                }
             `}
         >
             <div
@@ -44,6 +49,10 @@ export const Field = (props: {field: FieldHandler}) => {
         </label>
     );
 };
+
+export const Fields = createRenderer((field) => {
+    return <Field field={field} />;
+});
 
 export const Fieldset = styled.fieldset`
     border: 1px solid #bbb;

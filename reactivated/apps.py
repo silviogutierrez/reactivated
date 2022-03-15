@@ -14,6 +14,7 @@ from .serialization import create_schema
 from .serialization.registry import (
     definitions_registry,
     global_types,
+    interface_registry,
     template_registry,
     type_registry,
     value_registry,
@@ -114,6 +115,10 @@ def get_templates() -> Dict[str, Tuple[Any]]:
     return template_registry
 
 
+def get_interfaces() -> Dict[str, Tuple[Any]]:
+    return interface_registry
+
+
 def get_values() -> Dict[str, Any]:
     return value_registry
 
@@ -122,6 +127,7 @@ def get_schema() -> str:
     schema = {
         "urls": get_urls_schema(),
         "templates": get_templates(),
+        "interfaces": get_interfaces(),
         "types": get_types_schema(),
         "values": get_values(),
     }

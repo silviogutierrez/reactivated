@@ -17,6 +17,7 @@ def test_end_to_end(client, live_server, page):
     registry.global_types.clear()
     registry.global_types["Widget"] = registry.DefaultWidgetType
     registry.template_registry.clear()
+    registry.interface_registry.clear()
     registry.value_registry.clear()
     registry.definitions_registry.clear()
 
@@ -34,6 +35,7 @@ def test_default_widget(tmp_path):
     registry.global_types.clear()
     registry.global_types["Widget"] = registry.DefaultWidgetType
     registry.template_registry.clear()
+    registry.interface_registry.clear()
     registry.value_registry.clear()
     registry.definitions_registry.clear()
 
@@ -87,6 +89,7 @@ def test_no_urls(tmp_path):
     registry.global_types.clear()
     registry.global_types["Widget"] = registry.DefaultWidgetType
     registry.template_registry.clear()
+    registry.interface_registry.clear()
     registry.value_registry.clear()
     registry.definitions_registry.clear()
 

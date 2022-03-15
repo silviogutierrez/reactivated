@@ -17,7 +17,7 @@ import {
 } from "ts-morph";
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
-const {urls: possibleEmptyUrls, templates, types, values} = schema;
+const {urls: possibleEmptyUrls, templates, interfaces, types, values} = schema;
 
 const urls: generated.Types["URLSchema"] = {
     ...possibleEmptyUrls,
@@ -35,10 +35,10 @@ const urls: generated.Types["URLSchema"] = {
 
 const project = new Project();
 
-const interfaces = project.createSourceFile("");
+const sourceFile = project.createSourceFile("");
 
 if (Object.keys(urls).length !== 0) {
-    interfaces.addVariableStatement({
+    sourceFile.addVariableStatement({
         declarationKind: VariableDeclarationKind.Const,
         declarations: [
             {
@@ -48,7 +48,7 @@ if (Object.keys(urls).length !== 0) {
         ],
     });
 
-    const urlMap = interfaces.addInterface({
+    const urlMap = sourceFile.addInterface({
         name: "URLMap",
     });
     urlMap.setIsExported(true);
@@ -60,11 +60,11 @@ if (Object.keys(urls).length !== 0) {
         const properties = urls[name as keyof typeof urls].args;
         const normalizedName = name.replace(/[^\w]/g, "_");
 
-        const urlInterface = interfaces.addInterface({
+        const urlInterface = sourceFile.addInterface({
             name: normalizedName,
             properties: [{name: "name", type: `'${name}'`}],
         });
-        const argsInterface = interfaces.addInterface({
+        const argsInterface = sourceFile.addInterface({
             name: `${normalizedName}_args`,
         });
 
@@ -90,12 +90,12 @@ if (Object.keys(urls).length !== 0) {
             withArguments.push(normalizedName);
         }
     }
-    interfaces.addTypeAlias({name: "WithArguments", type: withArguments.join("|")});
-    interfaces.addTypeAlias({
+    sourceFile.addTypeAlias({name: "WithArguments", type: withArguments.join("|")});
+    sourceFile.addTypeAlias({
         name: "WithoutArguments",
         type: withoutArguments.join("|"),
     });
-    interfaces.addStatements(`
+    sourceFile.addStatements(`
 
     type All = WithArguments|WithoutArguments;
     export function reverse<T extends WithoutArguments['name']>(name: T): string;
@@ -112,7 +112,7 @@ if (Object.keys(urls).length !== 0) {
     }`);
 }
 
-interfaces.addStatements(`
+sourceFile.addStatements(`
 import React from "react"
 import createContext from "reactivated/context";
 import * as forms from "reactivated/forms";
@@ -150,7 +150,7 @@ compile(types, "_Types").then((ts) => {
 
     for (const name of Object.keys(templates)) {
         const propsName = templates[name];
-        interfaces.addStatements(`
+        sourceFile.addStatements(`
 
 import ${name}Implementation from "@client/templates/${name}"
 export type ${name}Check = Checker<_Types["${propsName}"], typeof ${name}Implementation>;
@@ -163,5 +163,17 @@ export namespace templates {
         `);
     }
 
-    process.stdout.write(interfaces.getText());
+    for (const name of Object.keys(interfaces)) {
+        const propsName = interfaces[name];
+        sourceFile.addStatements(`
+
+export namespace interfaces {
+    export type ${name} = _Types["${propsName}"];
+}
+
+
+        `);
+    }
+
+    process.stdout.write(sourceFile.getText());
 });

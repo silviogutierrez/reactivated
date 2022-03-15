@@ -1,7 +1,7 @@
 from django.http import HttpRequest, HttpResponse
 from django.utils import timezone
 
-from . import forms, models, templates
+from . import forms, interfaces, models, templates
 
 
 def hello_world(request: HttpRequest) -> HttpResponse:
@@ -27,3 +27,9 @@ def storyboard(request: HttpRequest) -> HttpResponse:
     return templates.Storyboard(
         form=form,
     ).render(request)
+
+
+def opera_list(request: HttpRequest) -> HttpResponse:
+    operas = models.Opera.objects.all()
+
+    return interfaces.OperaList(operas=list(operas)).render(request)

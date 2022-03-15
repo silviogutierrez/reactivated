@@ -24,4 +24,5 @@ urlpatterns = [
     path("schema/", schema),
     path("", views.hello_world, name="home_page"),
     path("storyboard/", views.storyboard, name="storyboard"),
+    path("api/operas/", views.opera_list, name="opera_list"),
 ]

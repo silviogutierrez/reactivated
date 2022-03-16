@@ -129,4 +129,4 @@ jobs:
             - name: Run tests
               run: |
                   cd reactivated.io
-                  nix-shell --command "scripts/test.sh"
+                  nix-shell --command "scripts/test.sh --all"

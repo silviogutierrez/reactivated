@@ -115,7 +115,7 @@ aws s3 cp myfolder s3://mybucket/myfolder --recursive
 
 ```
 
-New dev working on the project? Tell them to install nix, check out the repository, and
+New dev working on the project? Tell them to install Nix, check out the repository, and
 run the script. That's it. Nix will install and cache all the dependencies.
 
 Eudaimonia.

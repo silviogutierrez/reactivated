@@ -84,7 +84,7 @@ Besides, another page may also show orders, but not just recent ones. Do you spl
 `/orders/?recent`?
 
 This paradigm quickly breaks. It's best to stop thinking in terms of resources and go
-back to thinking on pages and features.
+back to thinking in pages and features.
 
 What does the home page need? First think of the types of resources. But then gather
 them all together in one endpoint.

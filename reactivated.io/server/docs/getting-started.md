@@ -12,7 +12,7 @@ Think of `create-react-app` but for Django+React.
 
 ## Installation
 
-Once you've [installed nix](https://nixos.org/download.html), run this command on your
+Once you've [installed Nix](https://nixos.org/download.html), run this command on your
 shell:
 
 ```bash

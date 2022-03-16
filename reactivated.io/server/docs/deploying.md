@@ -11,7 +11,7 @@ trivial.
 The core challenge for a server deployment is that you need both, Python and Node.js in
 the same instance. Even with Docker, this can be tricky.
 
-Fortunately, just like in local development, we [use nix](/documentation/why-nix/)
+Fortunately, just like in local development, we [use Nix](/documentation/why-nix/)
 inside a Docker image. It's optimized to be as light as can be, with only the runtime
 requirements. Review the `Dockerfile` provided after setup for details.
 

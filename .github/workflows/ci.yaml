@@ -130,4 +130,5 @@ jobs:
               run: |
                   cd reactivated.io
                   nix-shell --command "yarn"
+                  nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "scripts/test.sh --all"

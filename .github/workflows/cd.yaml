@@ -8,10 +8,10 @@ on:
                 required: true
     push:
         branches:
-            - master
+            - main
     pull_request:
         branches:
-            - master
+            - main
         types: [labeled, opened, synchronize, reopened]
 jobs:
     release:

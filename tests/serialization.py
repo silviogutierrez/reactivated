@@ -418,6 +418,12 @@ def test_deferred_evaluation_of_types(settings):
     }
 
 
+def test_pick_reverse_relationship():
+    with pytest.raises(AssertionError, match="reverse relationships"):
+        assert create_schema(Pick[models.Composer, "operas"], {})
+    assert create_schema(Pick[models.Composer, "operas.name"], {})
+
+
 def test_form_and_fields():
     date = datetime.date(2015, 1, 1)
     Form = forms.StoryboardForm

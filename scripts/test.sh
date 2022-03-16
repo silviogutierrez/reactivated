@@ -14,7 +14,7 @@ elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
     TARGET_BRANCH=$(git rev-parse HEAD~1)
     echo "Push event: running against previous commit $TARGET_BRANCH"
 else
-    TARGET_BRANCH="origin/master"
+    TARGET_BRANCH="origin/main"
     echo "Local run: running against default branch $TARGET_BRANCH"
 fi
 

@@ -128,7 +128,7 @@ jobs:
                   nix-shell --command "python scripts/generate_types.py"
             - name: Run tests
               run: |
-                  cd reactivated.io
+                  cd website
                   nix-shell --command "yarn"
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "scripts/test.sh --all"

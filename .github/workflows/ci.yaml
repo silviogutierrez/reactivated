@@ -129,4 +129,5 @@ jobs:
             - name: Run tests
               run: |
                   cd reactivated.io
+                  nix-shell --command "yarn"
                   nix-shell --command "scripts/test.sh --all"

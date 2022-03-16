@@ -29,7 +29,7 @@ No magic, no tooling. Just classic CSS.
 
 ## Zero runtime CSS-in-JS
 
-Classic CSS is fine, but it's not great. But we believe firmly the best approach is
+Classic CSS is fine, but it's not great. But we firmly believe the best approach is
 CSS-in-JS that statically compiles to a CSS stylesheet. Currently, there are two
 dominant players in the field, and both require special tooling.
 
@@ -109,7 +109,7 @@ import React from "react";
 // styleVariants though.
 import {cx} from "@linaria/core";
 
-import * as css from "./Banner.css"
+import * as css from "./Banner.css";
 
 export const Banner = (props: {
     children: React.React.Node;
@@ -121,13 +121,14 @@ export const Banner = (props: {
 );
 ```
 
-You can see Vanilla Extract encourages type safety and pure TypeScript usage.
-Like Linaria, it has a powerful — possibly better documented — [API](https://vanilla-extract.style/documentation).
+You can see Vanilla Extract encourages type safety and pure TypeScript usage. Like
+Linaria, it has a powerful — possibly better documented —
+[API](https://vanilla-extract.style/documentation).
 
 ## Next steps
 
-Be sure to read our [request for comments](/documentation/rfc/) to provide feedback
-on these two libraries and help us choose the One True Way™.
+Be sure to read our [request for comments](/documentation/rfc/) to provide feedback on
+these two libraries and help us choose the One True Way™.
 
 ## Other tools
 

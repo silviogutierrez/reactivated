@@ -117,4 +117,8 @@ export const colors = {
     darkBackground: "#c7e7eb",
     header: "#05445E",
     textWithColor: "#127387",
+    warningBorder: "#EDBC9B",
+    warningBackground: "#fdf6f2",
+    warningText: "#b15a20",
+    warningDarkBackground: "#f8e5d8",
 };

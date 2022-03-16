@@ -10,6 +10,13 @@ import {Code} from "@client/components/Code";
 import {Layout} from "@client/components/Layout";
 import * as styles from "@client/styles";
 
+const warning = css`
+    ${styles.style({
+        borderColor: `${styles.colors.warningBorder} !important`,
+        backgroundColor: styles.colors.warningBackground,
+    })}
+`;
+
 const inlineCode = css`
     ${styles.style({
         fontFamily: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
@@ -19,6 +26,13 @@ const inlineCode = css`
         backgroundColor: styles.colors.background,
         color: styles.colors.textWithColor,
     })}
+
+    .${warning} & {
+        ${styles.style({
+            color: styles.colors.warningText,
+            backgroundColor: styles.colors.warningDarkBackground,
+        })}
+    }
 `;
 
 css`
@@ -27,6 +41,12 @@ css`
             ${styles.style({
                 fontSize: 18,
             })};
+        }
+
+        .${warning} a {
+            ${styles.style({
+                color: styles.colors.warningText,
+            })}
         }
     }
 `;
@@ -229,11 +249,7 @@ export default (props: templates.Documentation) => (
             >
                 <ReactMarkdown
                     components={{
-                        h1: ({className, children, ...props}) => {
-                            console.log(className, children, props);
-
-                            const foo = <>{children} | Reactivated</>;
-
+                        h1: ({children}) => {
                             return (
                                 <>
                                     <Helmet>
@@ -241,6 +257,16 @@ export default (props: templates.Documentation) => (
                                     </Helmet>
                                     <h1>{children}</h1>
                                 </>
+                            );
+                        },
+                        blockquote: (props) => {
+                            const isWarning = JSON.stringify(props.children).includes(
+                                "Warning",
+                            );
+                            return (
+                                <blockquote className={isWarning ? warning : undefined}>
+                                    {props.children}
+                                </blockquote>
                             );
                         },
                         code: ({inline, className, children, ...props}) => {

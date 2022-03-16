@@ -20,9 +20,9 @@ requirements. Review the `Dockerfile` provided after setup for details.
 Theoretically, you can run this Docker image anywhere. But we've scripted the entire
 deployment to [fly.io](https://fly.io/) for you.
 
-> **Warning**: Fly is under heavy development and deployments can be spotty.
-> Particularly for new applications and new accounts. Be patient, once it's working, it
-> works quite well.
+> **Note**: Fly is under heavy development and deployments can be spotty. Particularly
+> for new applications and new accounts. Be patient, once it's working, it works quite
+> well.
 
 ## Initial deployment
 
@@ -45,8 +45,8 @@ This script will:
 -   Build the `Dockerfile` remotely and deploy it to the instance.
 -   Run database migrations.
 
-> **Note**: Initial deploys to Fly are still spotty. If anything goes wrong, delete the
-> `fly.toml` file that is created and re-rerun `scripts/launch.sh`. **Make sure** to
+> **Warning**: Initial deploys to Fly are still spotty. If anything goes wrong, delete
+> the `fly.toml` file that is created and re-rerun `scripts/launch.sh`. **Make sure** to
 > delete any apps using the [Fly dashboard](https://fly.io/apps) to avoid being billed.
 
 ## Follow up deployments

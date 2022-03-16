@@ -23,8 +23,8 @@ needed to run the application. For _that_ specific project, in _that_ specific b
 at _that_ point in time.
 
 Not just language-level dependencies like `requests` or `react`, but actual binaries and
-language runtimes themselves. That's right, you should declare `python3.9` and `jdk11`.
-Don't just document them, _require_ them.
+language runtimes themselves. That's right, you should declare `python 3.9` and
+`jdk 11`. Don't just document them, _require_ them.
 
 Check these requirements into your code.
 
@@ -89,15 +89,16 @@ then I'll rewrite it later in Python" 1000 line scripts. Yes,
 
 Try to identify all the binaries that need to exist. Probably the regular cast of
 characters: `sed`, `git`, and `wget`. You can sort of expect most devs or setups to have
-this, [OS-level differences aside](https://stackoverflow.com/a/4247319).
+these, [OS-level differences aside](https://stackoverflow.com/a/4247319).
 
 But you need `gcloud` installed, probably a version that supports their latest storage
 options. And the `aws` CLI.
 
 Last but not least, you need `ffmpeg`.
 
-Are you going to list all of these with setup instructions? Identifying versions?
-Provide a Docker image?
+Are you going to list all of these with setup instructions, identifying versions?
+Provide a Docker image? Just hope for the best? Write assertions at the top of the
+script ensuring they exist?
 
 No, you're just going to list them in `requirements.nix`.
 

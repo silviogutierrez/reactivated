@@ -13,7 +13,7 @@ henceforth SPAs.
 There's a time and place for these. It's not never, it's not nowhere. But it's not as
 often as you'd think.
 
-Are you creating a registration form? You don't need an SPA. You don't need to
+Are you creating a registration form? You don't need a SPA. You don't need to
 immediately report `john` is not a valid email when the user hasn't had the chance to
 type in the `@`. Same for the validity of the password.
 
@@ -115,21 +115,22 @@ get when you `GET` and individual order? Is it fewer?
 
 Ok you say, let's make fields some fields read-only. And some write-only.
 
-And there you have it. The inputs don't match the outputs. They never will.
+And there you have it. The **inputs** don't match the **outputs**. They _never_ will.
 
-Think aloud: what information do I want when retrieving an order? And what information
-do I want when creating an order? They're vastly different.
+**Think aloud**: what information do I want when retrieving an order? And what
+information do I want when creating an order? They're vastly different.
 
-When creating an order, you really need minimal information: a list of items and
+When **creating an order**, you really need minimal information: a list of items and
 quantities.
 
-When retrieving an order, you want all those quantities, all those items, their price,
-their name and so forth.
+When **retrieving an order**, you want all those quantities, all those items, their
+price, their name and so forth.
 
 Tying these to a _single_ isomorphic resource is futile.
 
-What about GraphQL? It helps. Certainly it bundles things. But from my cursory
-understanding, it's still _too_ generic. You want specificity, not re-usability.
+What about [GraphQL](https://graphql.org)? It helps. It _does_ bundle things. But from
+my cursory understanding, it's still _too_ generic. You want **specificity**, not
+re-usability.
 
 In short: for your own internal use, REST is sometimes suitable for consuming.
 Practically never for producing.

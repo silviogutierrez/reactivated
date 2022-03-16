@@ -3,7 +3,7 @@
 set -e
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 PROJECT_ROOT="$SCRIPT_PATH/.."
-REPOSITORY_URL="https://api.github.com/repos/silviogutierrez/reactivated/branches/master/protection/required_status_checks"
+REPOSITORY_URL="https://api.github.com/repos/silviogutierrez/reactivated/branches/main/protection/required_status_checks"
 
 function disable_github_checks() {
     EXISTING_CHECKS=$(curl --url $REPOSITORY_URL \

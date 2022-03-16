@@ -66,7 +66,7 @@ export const Layout = (props: Props) => {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link
                     rel="icon"
-                    href={`${context.STATIC_URL}favicon.svg`}
+                    href={`${context.STATIC_URL}favicon.ico`}
                     type="image/x-icon"
                 />
                 <link

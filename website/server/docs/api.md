@@ -260,6 +260,47 @@ add a form to the form set.
 
 Just like `useForm`, `useFormSet` exposes the values of each form under `values`.
 
+### `reverse`
+
+Yes, it's magic. You can use `reverse` just like you can in your Django code.
+
+All your named views will be there with full static types.
+
+Take the following `urls.py` file:
+
+```python
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path("", views.home_page, name="home_page"),
+    path("blog/<str:post_slug>/", views.post_detail, name="post_detail"),
+    path("widgets/<int:widget_id>/", views.widget_detail, name="widget_detail"),
+]
+```
+
+Reverse will expect the following fully type-safe code:
+
+```typescript
+import {reverse} from "@reactivated";
+
+// No arguments. If you pass any, TypeScript will not compile.
+reverse("home_page");
+
+// An argument of type string with the name post_slug is expected
+reverse("post_detail", {post_slug: "you-might-not-need-jwt"});
+
+// An argument of type number with the name widget_id is expected
+reverse("widget_detail", {widget_id: 3});
+```
+
+When your code executes, the right URLs will be resolved for you.
+
+> **Warning**: We need your
+> [thoughts and feedback](https://github.com/silviogutierrez/reactivated/discussions/154)
+> on the `reverse` API. There are potential security considerations.
+
 ## Scripts
 
 ### Formatting

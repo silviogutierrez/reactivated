@@ -8,9 +8,34 @@ PWD=$(pwd)
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 PROJECT_ROOT=$(realpath "$SCRIPT_PATH/../")
 
-SPECIFIC_FILE=$1
+ALL=0
+REMOTES=$(git remote)
 
-if [ -z "$SPECIFIC_FILE" ]; then
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    --file)
+        SPECIFIC_FILE="$2"
+        shift
+        ;;
+    --all) ALL=1 ;;
+    *)
+        echo "Unknown parameter passed: $1"
+        exit 1
+        ;;
+    esac
+    shift
+done
+
+if [[ $ALL -eq 1 ]]; then
+    echo "Running against all git files"
+    CHANGED_FILES=$(git ls-files)
+elif [[ $REMOTES == "" ]]; then
+    echo "No origin, running against all git files"
+    CHANGED_FILES=$(git ls-files)
+elif [ -f "$SPECIFIC_FILE" ]; then
+    echo "Specific file run: running against $SPECIFIC_FILE"
+    CHANGED_FILES=$SPECIFIC_FILE
+elif [ -z "$ORIGIN" ]; then
     if [ "$GITHUB_BASE_REF" != "" ]; then
         TARGET_BRANCH="origin/$GITHUB_BASE_REF"
         echo "PR event: running against base branch $TARGET_BRANCH"
@@ -25,22 +50,21 @@ if [ -z "$SPECIFIC_FILE" ]; then
     # Changed files against target branch, but exclude deleted files.
     CHANGED_FILES=$(git diff --name-only --diff-filter d --relative "$(git merge-base $TARGET_BRANCH HEAD)")
     CHANGED_FILES=${CHANGED_FILES// /}
-elif [ -f "$SPECIFIC_FILE" ]; then
-    echo "Specific file run: running against $SPECIFIC_FILE"
-    CHANGED_FILES=$SPECIFIC_FILE
 else
-    echo "Invalid file $SPECIFIC_FILE"
+    echo "Invalid fix options"
     exit 1
 fi
 
 CHANGED_PY_FILES=$(echo "$CHANGED_FILES" | grep -e '.pyi\?$' || true)
-CHANGED_PRETTIER_FILES=$(echo "$CHANGED_FILES" | grep -e '.tsx\?$\|.ya\?ml$\|.json$' || true)
+CHANGED_PRETTIER_FILES=$(echo "$CHANGED_FILES" | grep -e '.jsx\?$\|.tsx\?$\|.yaml$\|.json$\|.md$' || true)
+CHANGED_TS_JS_FILES=$(echo "$CHANGED_FILES" | grep -e '.jsx\?$\|.tsx\?$' || true)
 CHANGED_SH_FILES=$(echo "$CHANGED_FILES" | grep -e '.sh$' || true)
 CHANGED_NIX_FILES=$(echo "$CHANGED_FILES" | grep -e '.nix$' || true)
 CHANGED_TF_FILES=$(echo "$CHANGED_FILES" | grep -e '.tf$\|.tfvars$' || true)
 
 echo -e "[Python]:\n$CHANGED_PY_FILES\n"
 echo -e "[Prettier]:\n$CHANGED_PRETTIER_FILES\n"
+echo -e "[TypeScript/JS]:\n$CHANGED_TS_JS_FILES\n"
 echo -e "[Shell]:\n$CHANGED_SH_FILES\n"
 echo -e "[Nix]:\n${CHANGED_NIX_FILES}\n"
 echo -e "[Terraform]:\n${CHANGED_TF_FILES}\n"
@@ -56,6 +80,11 @@ if [[ -n "${CHANGED_PY_FILES// /}" ]]; then
 
     # shellcheck disable=SC2086
     black $CHANGED_PY_FILES
+fi
+
+if [[ -n "${CHANGED_TS_JS_FILES// /}" ]]; then
+    # shellcheck disable=SC2086
+    node_modules/.bin/eslint --ignore-path .gitignore --fix $CHANGED_TS_JS_FILES || true
 fi
 
 if [[ -n "${CHANGED_PRETTIER_FILES// /}" ]]; then

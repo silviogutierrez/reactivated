@@ -81,7 +81,7 @@ mkShell {
     export PGHOST=$TMP_ENV
 
 
-    if [ ! -d "$VIRTUAL_ENV" ]; then
+    if [ ! -d "$VIRTUAL_ENV/bin" ]; then
         NEED_DATABASE=true
         rm -rf $TMP_ENV
         mkdir -p $TMP_ENV

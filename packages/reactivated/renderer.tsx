@@ -119,7 +119,7 @@ const ERROR_REPONSE = 500;
 
 // Relative path to keep it under 100 characters.
 // See: https://unix.stackexchange.com/questions/367008/why-is-socket-path-length-limited-to-a-hundred-chars
-export const SOCKET_PATH = `node_modules/.bin/reactivated.sock`;
+export const SOCKET_PATH = `node_modules/_reactivated/reactivated.sock`;
 
 export const server = http.createServer((req, res) => {
     let body = Buffer.from("");

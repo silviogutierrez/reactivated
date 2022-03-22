@@ -24,6 +24,7 @@ let
     args = [
       "-c"
       ''
+        sleep 0.5;
         unset PATH;
         export PATH=$coreutils/bin;
         mkdir -p $out/bin;

@@ -6,6 +6,7 @@ WORKDIR /app
 COPY shell.nix shell.nix
 
 RUN mkdir -p /output/store
+RUN nix-env -f shell.nix --option filter-syscalls false -i -A buildInputs --profile /output/profile; exit 0
 RUN nix-env -f shell.nix --option filter-syscalls false -i -A buildInputs --profile /output/profile
 RUN cp -va $(nix-store -qR /output/profile) /output/store
 

@@ -10,11 +10,11 @@ let
 
     if pkgs.stdenv.isDarwin then
       (if pkgs.stdenv.hostPlatform.darwinArch == "arm64" then
-        "https://github.com/superfly/flyctl/releases/download/v0.0.296/flyctl_0.0.296_macOS_arm64.tar.gz"
+        "https://github.com/superfly/flyctl/releases/download/v0.0.306/flyctl_0.0.306_macOS_arm64.tar.gz"
       else
-        "https://github.com/superfly/flyctl/releases/download/v0.0.296/flyctl_0.0.296_macOS_x86_64.tar.gz")
+        "https://github.com/superfly/flyctl/releases/download/v0.0.306/flyctl_0.0.306_macOS_x86_64.tar.gz")
     else
-      "https://github.com/superfly/flyctl/releases/download/v0.0.296/flyctl_0.0.296_Linux_x86_64.tar.gz");
+      "https://github.com/superfly/flyctl/releases/download/v0.0.306/flyctl_0.0.306_Linux_x86_64.tar.gz");
 
   flyctlLatest = derivation {
     name = "flyctl";

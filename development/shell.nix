@@ -24,9 +24,9 @@ let
     args = [
       "-c"
       ''
-        sleep 0.5;
         unset PATH;
         export PATH=$coreutils/bin;
+        sleep 0.5;
         mkdir -p $out/bin;
         cp $download $out/bin/fly;
         chmod +x $out/bin/fly;

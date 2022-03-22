@@ -4,20 +4,69 @@ RUN mkdir /app
 WORKDIR /app
 
 COPY shell.nix shell.nix
+
+RUN mkdir -p /output/store
 RUN nix-env -f shell.nix -i -A buildInputs
+RUN nix-env -f shell.nix -i -A dependencies --profile /output/profile
+RUN cp -va $(nix-store -qR /output/profile) /output/store
+
+COPY requirements.txt requirements.txt
+
+RUN virtualenv .venv && .venv/bin/pip install -r requirements.txt
+
+COPY package.json .
+COPY yarn.lock .
+
+RUN yarn
+
+# RUN rm -rf node_modules/reactivated/*
+# COPY node_modules/reactivated node_modules/reactivated
+
+COPY .babelrc.json .
+COPY manage.py .
+COPY server server
+COPY static static
+COPY client client
+COPY tsconfig.json .
+
+RUN .venv/bin/python manage.py generate_client_assets
+RUN .venv/bin/python manage.py build
+RUN .venv/bin/python manage.py collectstatic --no-input
+RUN rm collected/dist/*.map
 
 
-RUN mkdir /app/bar && chown 30001:30001 /app/bar && mkdir -p /run/postgresql && chown 30001:30001 /run/postgresql
+FROM alpine
 
-RUN echo -en "#!/bin/sh\ninitdb /database\npg_ctl -D /database start -l /dev/null\nexec \"\$@\"\n" > /entrypoint.sh && chmod +x /entrypoint.sh
+# Nix package is very heavy and includes the full DB.
+RUN apk add postgresql-client
 
-USER 30001
-# RUN initdb /app/bar
+COPY --from=builder /output/store /nix/store
+COPY --from=builder /output/profile/ /usr/local/
 
+RUN mkdir /app
+WORKDIR /app
 
-ENV PGPORT=1
-ENV PGDATABASE="database"
+ENV NODE_ENV production
 
-ENTRYPOINT ["/entrypoint.sh"]
-CMD sh
-# CMD pg_ctl -D /app/bar start && createdb database && bash
+COPY requirements.txt requirements.txt
+RUN virtualenv .venv && .venv/bin/pip install -r requirements.txt
+
+COPY manage.py .
+COPY server server
+
+RUN mkdir -p node_modules/.bin/
+RUN mkdir -p static/
+COPY --from=builder /app/node_modules/.bin/renderer.js node_modules/.bin/
+COPY --from=builder /app/node_modules/.bin/renderer.js.map node_modules/.bin/
+COPY --from=builder /app/collected collected
+
+ENV PYTHONUNBUFFERED 1
+ENV PATH="/app/.venv/bin:$PATH"
+ENV ENVIRONMENT=production
+RUN rm server/settings/__init__.py && echo 'export DJANGO_SETTINGS_MODULE=server.settings.$ENVIRONMENT' > /etc/profile
+ENTRYPOINT ["/bin/sh", "-lc"]
+# SSH commands are weird with fly for now, so we use this dirty script at the root level.
+RUN echo "source /etc/profile; cd /app; python manage.py migrate" > /migrate.sh && chmod +x /migrate.sh
+RUN echo "source /etc/profile; cd /app; python manage.py dumpdata --indent=4" > /backup.sh && chmod +x /backup.sh
+
+CMD ["gunicorn server.wsgi --forwarded-allow-ips='*' --bind 0.0.0.0:8080 --workers 1 --preload --timeout 90"]

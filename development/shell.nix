@@ -68,42 +68,6 @@ mkShell {
     nixfmt
   ];
   shellHook = ''
-    # Needed to use pip wheels
-    SOURCE_DATE_EPOCH=$(date +%s);
-    VIRTUAL_ENV=$PWD/.venv
-    PATH=$VIRTUAL_ENV/bin:$PATH
-    POSTGRESQL_DATA="$VIRTUAL_ENV/postgresql"
-    POSTGRESQL_LOGS="$VIRTUAL_ENV/postgresql/logs.txt"
-    TMP_ENV="$TMPDIR/reactivated/$(echo $VIRTUAL_ENV | md5sum | awk '{print $1}')";
-
-    export PGPORT=1
-    export PGDATABASE="database"
-    export PGHOST=$TMP_ENV
-    EXTERNAL_PID="$TMP_ENV/postmaster.pid"
-
-    if [ ! -d "$VIRTUAL_ENV/bin" ]; then
-        if [ -f "$EXTERNAL_PID" ]; then
-            kill -9 $(cat $EXTERNAL_PID)
-            rm $EXTERNAL_PID
-        fi
-
-        NEED_DATABASE=true
-        rm -rf $TMP_ENV
-        mkdir -p $TMP_ENV
-        virtualenv "$VIRTUAL_ENV"
-        mkdir "$VIRTUAL_ENV/static"
-        initdb "$POSTGRESQL_DATA"
-        pip install -r requirements.txt
-
-    fi
-
-    if [ ! -f "$EXTERNAL_PID" ]; then
-        pg_ctl -o "-p 1 -k \"$PGHOST\" -c listen_addresses=\"\" -c external_pid_file=\"$EXTERNAL_PID\"" -D $POSTGRESQL_DATA -l $POSTGRESQL_LOGS start &> /dev/null
-    fi
-
-
-    if [ "$NEED_DATABASE" == true ]; then
-        createdb $PGDATABASE &> /dev/null
-    fi
+    source scripts/setup_environment.sh
   '';
 }

@@ -5,6 +5,6 @@
     "author": "Silvio J. Gutierrez <silviogutierrez@gmail.com>",
     "license": "MIT",
     "dependencies": {
-        "reactivated": "0.22.0-a823"
+        "reactivated": "0.22.0-a825"
     }
 }

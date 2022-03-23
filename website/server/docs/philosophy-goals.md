@@ -2,9 +2,11 @@
 
 Reactivated aims to be _the_ way to use Django and React together.
 
-And we hold **strong** opinions and conventions. Here they are.
+## Opinions
 
-## Traditional server-rendered views work well
+We hold **strong** opinions and conventions. Here they are.
+
+### Traditional server-rendered views work well
 
 The tech world is currently leaning heavily on
 [single-page-applications](https://en.wikipedia.org/wiki/Single-page_application) —
@@ -23,7 +25,7 @@ validate on the server anyway. Then render the response.
 Are you creating a map view where users can drag and place pins? A SPA sounds like a
 good idea.
 
-## Until they don't
+### Until they don't
 
 Then the requirement finally comes in. You know exactly what I'm talking about. If the
 user answers **Other** for **How did you hear about us?** when registering, show a
@@ -31,7 +33,7 @@ free-form field to write in the answer.
 
 Reactivated makes this trivial. But we sprinkle dynamic behavior only when necessary.
 
-## All roads lead to types
+### All roads lead to types
 
 Save yourself a hard lesson. Any sufficiently dynamically-typed large project contains
 an ad hoc, informally-specified, bug-ridden type-system using unit tests and assertions.
@@ -42,12 +44,12 @@ TypeScript is _amazing_. You'll never want to go back.
 
 MyPy less so, but it's improving.
 
-## Autoformat and lint everything
+### Autoformat and lint everything
 
 Waste no time [bike-shedding](https://en.wikipedia.org/wiki/Law_of_triviality).
 Everything should be auto formatted and linted. Get back to writing your business logic.
 
-## Colocation is a good thing
+### Colocation is a good thing
 
 Do not confuse separation of concerns with separation of file types. Sure, your home
 page CSS shouldn't live in the same file as your order processing logic. But isn't it
@@ -56,7 +58,7 @@ same concern.
 
 Learn to love [colocation](https://kentcdodds.com/blog/colocation).
 
-## Use cookies and sessions. You are not Google. You are not Uber.
+### Use cookies and sessions. You are not Google. You are not Uber.
 
 Just use sessions. Don't waste your time with JSON Web Tokens. You don't need to be
 stateless. Not yet. Probably never.
@@ -71,7 +73,7 @@ JWT [introduce](https://news.ycombinator.com/item?id=13865459) complexities and 
 Are you creating a platform for millions of users? Look into Redis as a session backend.
 Still having performance issues? Then maybe look into JWT.
 
-## REST is not the way. Not always. Practically never.
+### REST is not the way. Not always. Practically never.
 
 Yes, if you're loading a page listing every widget, go ahead and create a `/widgets/`
 REST endpoint.

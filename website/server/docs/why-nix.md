@@ -19,7 +19,7 @@ performance.
 Your projects should be reproducible. Table stakes.
 
 Checking out a version, tag or branch should declaratively state every requirement
-needed to run the application. For _that_ specific project, in _that_ specific branch,
+needed to run the application. For _that_ specific project, on _that_ specific branch,
 at _that_ point in time.
 
 Not just language-level dependencies like `requests` or `react`, but actual binaries and
@@ -43,8 +43,8 @@ This is true isolation. And Nix provides it. But... so does Docker, right?
 
 ### Native performance
 
-You spent thousands of dollars on a machine. It runs quiet. It runs cool. It runs
-forever on battery. Why throw all that way and run your projects on Docker?
+You spent thousands of dollars on a machine. It runs **quiet**. It runs **cool**. It
+runs **forever** on battery. Why throw all that way and run your projects on Docker?
 
 If you develop on a Mac: you're doing just that. Docker on MacOS is virtualized. And if
 you use Apple Silicon hardware, images can run even slower depending on the
@@ -57,11 +57,11 @@ Moreover, running commands and scripting with Docker is clunky. A plain old shel
 experience is far nicer.
 
 Finally: some will say running on Docker better reflects what is running on production —
-which does use containers. A [pillar](https://12factor.net/dev-prod-parity) of the
-12-factor app in fact.
+which does use containers. Dev / prod parity
+[is a pillar of the 12-factor app](https://12factor.net/dev-prod-parity), in fact.
 
-Maybe, but probably not. You're on different architectures at this point. Or worse,
-emulating them. Many cloud providers internally don't even use Docker at all.
+I say _maybe_, but probably not. You're on different architectures at this point. Or
+worse, emulating them. Many cloud providers internally don't even use Docker at all.
 
 ## Nix to the rescue
 
@@ -83,16 +83,17 @@ No surprises.
 
 ## Nix for scripting
 
-Remember, this applies to our scripts too. Open up one of those "quick, only for now
-then I'll rewrite it later in Python" 1000 line scripts. Yes,
+Remember, this applies to our scripts too. Open up one of those **quick, only for now
+then I'll rewrite it later in Python** 1000 line scripts. Yes,
 `convert-gcp-mp4s-to-gifs-and-upload-to-aws.sh`, I'm looking at you.
 
-Try to identify all the binaries that need to exist. Probably the regular cast of
-characters: `sed`, `git`, and `wget`. You can sort of expect most devs or setups to have
-these, [OS-level differences aside](https://stackoverflow.com/a/4247319).
+Try to identify all the binaries that need to exist. You'll likely run into the regular
+cast of characters: `sed`, `git`, and `wget`. If you're lucky, you can expect most devs
+and setups to have these,
+[OS-level differences aside](https://stackoverflow.com/a/4247319).
 
 But you need `gcloud` installed, probably a version that supports their latest storage
-options. And the `aws` CLI.
+options — the options your script uses. And — lest we forget — the `aws` CLI.
 
 Last but not least, you need `ffmpeg`.
 

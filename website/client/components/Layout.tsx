@@ -23,16 +23,6 @@ export const Layout = (props: Props) => {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link
-                    rel="preconnect"
-                    href="https://fonts.gstatic.com"
-                    crossOrigin="anonymous"
-                />
-                <link
-                    href="https://fonts.googleapis.com/css2?family=Suez+One&display=swap"
-                    rel="stylesheet"
-                />
-
-                <link
                     rel="apple-touch-icon"
                     sizes="180x180"
                     href={`${context.STATIC_URL}apple-touch-icon.png`}
@@ -48,12 +38,6 @@ export const Layout = (props: Props) => {
                     type="image/png"
                     sizes="16x16"
                     href={`${context.STATIC_URL}favicon-16x16.png`}
-                />
-
-                <link
-                    rel="stylesheet"
-                    type="text/css"
-                    href={`${context.STATIC_URL}admin/css/fonts.css`}
                 />
                 <link
                     rel="stylesheet"

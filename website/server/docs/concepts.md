@@ -23,7 +23,7 @@ render(request, "my_template.html", {"book": book_instance, "form": form_instanc
 With Reactivated, we first declare our template structure:
 
 ```python
-from reactivated import template
+from reactivated import Pick, template
 
 @template
 class MyTemplate(NamedTuple):

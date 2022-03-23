@@ -117,6 +117,28 @@ See the [AJAX concepts](/documentation/concepts/) for more information.
 
 ## TypeScript / React
 
+### `templates`
+
+When you use the `reactivated.template` decorator in your Django code, Reactivated will
+generate types for you.
+
+For a template named `MyTemplate` inside `server/custom_app/templates.py`, you would
+then create a file named `client/templates/MyTemplate.tsx` and import `templates` like
+so:
+
+```typescript
+import {templates} from "@reactivated";
+
+export default (props: templates.MyTemplate) => (
+    <div>{props.properties_of_my_template}</div>
+);
+```
+
+If you mismatch types, say `templates.MyOtherTemplate` and they are
+[structurally](https://www.typescriptlang.org/docs/handbook/type-compatibility.html)
+different, TypeScript will complain. If you don't create the template file or don't
+export the template correctly, TypeScript will also complain.
+
 ### `Form`
 
 Just like Django templates, you can import `Form` and render a basic form as `p` tags or

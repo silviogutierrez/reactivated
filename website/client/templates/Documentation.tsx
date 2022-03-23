@@ -75,6 +75,17 @@ css`
     }
 `;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getAnchor = (children: any) => {
+    const heading: string = // eslint-disable-line
+        (children as any)?.[0]?.props?.children?.[0] ?? children?.[0] ?? ""; // eslint-disable-line
+    const anchor = heading
+        .toLowerCase()
+        .replace(/[^.a-zA-Z0-9 ]/g, "")
+        .replace(/\s+/g, "-");
+    return anchor;
+};
+
 export const Hamburger = () => {
     return (
         <label
@@ -266,28 +277,12 @@ export default (props: templates.Documentation) => {
                                 );
                             },
                             h2: ({children}) => {
-                                // eslint-disable-next-line
-                                const heading: string =
-                                    (children as any)?.[0]?.props?.children?.[0] ??
-                                    children?.[0] ??
-                                    "";
-                                const anchor = heading
-                                    .toLowerCase()
-                                    .replace(/[^.a-zA-Z0-9 ]/g, "")
-                                    .replace(/\s+/g, "-");
+                                const anchor = getAnchor(children);
 
                                 return <h2 id={anchor}>{children}</h2>;
                             },
                             h3: ({children}) => {
-                                // eslint-disable-next-line
-                                const heading: string =
-                                    (children as any)?.[0]?.props?.children?.[0] ??
-                                    children?.[0] ??
-                                    "";
-                                const anchor = heading
-                                    .toLowerCase()
-                                    .replace(/[^.a-zA-Z0-9 ]/g, "")
-                                    .replace(/\s+/g, "-");
+                                const anchor = getAnchor(children);
 
                                 return <h3 id={anchor}>{children}</h3>;
                             },
@@ -372,15 +367,7 @@ export default (props: templates.Documentation) => {
                             `}
                             components={{
                                 h2: ({children}) => {
-                                    // eslint-disable-next-line
-                                    const heading: string =
-                                        (children as any)?.[0]?.props?.children?.[0] ??
-                                        children?.[0] ??
-                                        "";
-                                    const anchor = heading
-                                        .toLowerCase()
-                                        .replace(/[^.a-zA-Z0-9 ]/g, "")
-                                        .replace(/\s+/g, "-");
+                                    const anchor = getAnchor(children);
 
                                     return (
                                         <h2>
@@ -389,15 +376,7 @@ export default (props: templates.Documentation) => {
                                     );
                                 },
                                 h3: ({children}) => {
-                                    // eslint-disable-next-line
-                                    const heading: string =
-                                        (children as any)?.[0]?.props?.children?.[0] ??
-                                        children?.[0] ??
-                                        "";
-                                    const anchor = heading
-                                        .toLowerCase()
-                                        .replace(/[^.a-zA-Z0-9 ]/g, "")
-                                        .replace(/\s+/g, "-");
+                                    const anchor = getAnchor(children);
 
                                     return (
                                         <h3>

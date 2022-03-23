@@ -48,7 +48,8 @@ project.
 
 Really, you should be using [Nix](/documentation/why-nix/).
 
-But fine, you don't want to commit. And the Nix installer requires `sudo`. Maybe it looks scary.
+But fine, you don't want to commit. And the Nix installer requires `sudo`. Maybe it
+looks scary.
 
 Assuming you `git` and `docker` installed and running, you can just clone the repository
 and run our image on the code.
@@ -59,19 +60,24 @@ cd reactivated/development
 docker run -it --rm -t -v $PWD:/app -p 8000:8000 silviogutierrez/reactivated
 ```
 
-The container will take some time to boot the first time, as it will create a `virtualenv`, run `yarn` and create an isolated database.
+The container will take some time to boot the first time, as it will create a
+`virtualenv`, run `yarn` and create an isolated database.
 
 ### Next steps
 
-In another shell, you can modify the code inside `reactivated/development` to get an idea how things work.
+In another shell, you can modify the code inside `reactivated/development` to get an
+idea how things work.
 
 You can also use this project as a template to develop locally with Docker.
 
 ### Limitations
 
-On MacOS, the filesystem operations will be slow. This [may improve](https://www.docker.com/blog/speed-boost-achievement-unlocked-on-docker-desktop-4-6-for-mac/) in the future.
+On MacOS, the filesystem operations will be slow. This
+[may improve](https://www.docker.com/blog/speed-boost-achievement-unlocked-on-docker-desktop-4-6-for-mac/)
+in the future.
 
-And you'll need to run `manage.py` shell commands in another container instance. Like so:
+And you'll need to run `manage.py` shell commands in another container instance. Like
+so:
 
 ```bash
 docker run -it --rm -t -v $PWD:/app silviogutierrez/reactivated python manage.py makemigrations

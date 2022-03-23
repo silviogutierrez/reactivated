@@ -1,7 +1,7 @@
 import React from "react";
 
-import {Helmet} from "react-helmet-async";
 import {templates} from "@reactivated";
+import {Helmet} from "react-helmet-async";
 
 import {css, cx} from "@linaria/core";
 import {styled} from "@linaria/react";

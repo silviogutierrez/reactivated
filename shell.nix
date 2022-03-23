@@ -2,7 +2,7 @@ let
   stableTarball =
     fetchTarball "https://github.com/NixOS/nixpkgs/archive/8ca77a63599e.tar.gz";
   unstableTarball =
-    fetchTarball "https://github.com/NixOS/nixpkgs/archive/8ca77a63599e.tar.gz";
+    fetchTarball "https://github.com/NixOS/nixpkgs/archive/9bc841fec1c0.tar.gz";
   pkgs = import stableTarball { };
   unstable = import unstableTarball { };
 in with pkgs;
@@ -28,7 +28,6 @@ mkShell {
 
     # Purely for formatting right now.
     terraform
-    (import ./development/shell.nix).flyctlLatest
   ];
   src = ./scripts/helpers.sh;
   shellHook = ''

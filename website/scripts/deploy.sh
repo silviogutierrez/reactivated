@@ -3,7 +3,7 @@
 set -e
 
 # Ensure we are logged in.
-(fly auth whoami &>/dev/null) || (echo "You must first login with 'fly auth login' and try again" && exit 1)
+(flyctl auth whoami &>/dev/null) || (echo "You must first login with 'flyctl auth login' and try again" && exit 1)
 
-fly deploy --remote-only
-fly ssh console --command "sh migrate.sh"
+flyctl deploy --remote-only
+flyctl ssh console --command "sh migrate.sh"

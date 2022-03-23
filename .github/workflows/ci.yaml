@@ -155,7 +155,7 @@ jobs:
                   context: development
                   platforms: linux/amd64,linux/arm64
                   file: packages/create-django-app/Dockerfile
-                  push: true
+                  push: false
                   tags: silviogutierrez/reactivated:latest
             - name: Setup tmate session
               uses: mxschmitt/action-tmate@v3

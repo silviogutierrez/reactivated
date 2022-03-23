@@ -151,6 +151,7 @@ const DOCKER = `
             document.getElementById("docker-command").style.display = ""
             document.getElementById("docker-option").style.display = "none"
             document.getElementById("nix-command").style.display = "none"
+            document.getElementById("docker-warning").style.display = ""
         };
     });
 `;
@@ -301,6 +302,16 @@ export default (props: templates.HomePage) => (
                         <a id="docker" href="#">
                             Use Docker
                         </a>
+                    </p>
+                    <p
+                        id="docker-warning"
+                        className={css`
+                            ${styles.style({marginTop: -20})}
+                        `}
+                        style={{display: "none"}}
+                    >
+                        But you really should be{" "}
+                        <a href="/documentation/why-nix/">using Nix</a>.
                     </p>
                 </div>
                 <div

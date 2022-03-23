@@ -57,7 +57,7 @@ and run our image on the code.
 ```bash
 git clone git@github.com:silviogutierrez/reactivated.git
 cd reactivated/development
-docker run -it --rm -t -v $PWD:/app -p 8000:8000 silviogutierrez/reactivated
+docker run --rm -itv $PWD:/app -p 8000:8000 silviogutierrez/reactivated
 ```
 
 The container will take some time to boot the first time, as it will create a

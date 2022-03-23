@@ -157,5 +157,3 @@ jobs:
                   file: packages/create-django-app/Dockerfile
                   push: false
                   tags: silviogutierrez/reactivated:latest
-            - name: Setup tmate session
-              uses: mxschmitt/action-tmate@v3

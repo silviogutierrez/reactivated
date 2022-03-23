@@ -56,7 +56,7 @@ minutes. Migrations are auto-run for you after deployment.
 
 ## SSH access
 
-You may want to SSH into your app. Just run `fly ssh console` and you'll gain access to
+You may want to SSH into your app. Just run `flyctl ssh console` and you'll gain access to
 the running instance.
 
 > **Note**: There are a few quirks with the SSH session. You'll likely need to manually

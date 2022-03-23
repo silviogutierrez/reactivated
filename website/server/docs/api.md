@@ -117,6 +117,28 @@ See the [AJAX concepts](/documentation/concepts/) for more information.
 
 ## TypeScript / React
 
+### `templates`
+
+When you use the `reactivated.template` decorator in your Django code, Reactivated will
+generate types for you.
+
+For a template named `MyTemplate` inside `server/custom_app/templates.py`, you would
+then create a file named `client/templates/MyTemplate.tsx` and import `templates` like
+so:
+
+```typescript
+import {templates} from "@reactivated";
+
+export default (props: templates.MyTemplate) => (
+    <div>{props.properties_of_my_template}</div>
+);
+```
+
+If you mismatch types, say `templates.MyOtherTemplate` and they are
+[structurally](https://www.typescriptlang.org/docs/handbook/type-compatibility.html)
+different, TypeScript will complain. If you don't create the template file or don't
+export the template correctly, TypeScript will also complain.
+
 ### `Form`
 
 Just like Django templates, you can import `Form` and render a basic form as `p` tags or
@@ -259,6 +281,47 @@ Note that for convenience, `useFormSet` also exposes an `addForm` method to dyna
 add a form to the form set.
 
 Just like `useForm`, `useFormSet` exposes the values of each form under `values`.
+
+### `reverse`
+
+Yes, it's magic. You can use `reverse` just like you can in your Django code.
+
+All your named views will be there with full static types.
+
+Take the following `urls.py` file:
+
+```python
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path("", views.home_page, name="home_page"),
+    path("blog/<str:post_slug>/", views.post_detail, name="post_detail"),
+    path("widgets/<int:widget_id>/", views.widget_detail, name="widget_detail"),
+]
+```
+
+Reverse will expect the following fully type-safe code:
+
+```typescript
+import {reverse} from "@reactivated";
+
+// No arguments. If you pass any, TypeScript will not compile.
+reverse("home_page");
+
+// An argument of type string with the name post_slug is expected
+reverse("post_detail", {post_slug: "you-might-not-need-jwt"});
+
+// An argument of type number with the name widget_id is expected
+reverse("widget_detail", {widget_id: 3});
+```
+
+When your code executes, the right URLs will be resolved for you.
+
+> **Warning**: We need your
+> [thoughts and feedback](https://github.com/silviogutierrez/reactivated/discussions/154)
+> on the `reverse` API. There are potential security considerations.
 
 ## Scripts
 

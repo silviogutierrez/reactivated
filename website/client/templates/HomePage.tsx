@@ -1,6 +1,7 @@
 import React from "react";
 
 import {templates} from "@reactivated";
+import {Helmet} from "react-helmet-async";
 
 import {css, cx} from "@linaria/core";
 import {styled} from "@linaria/react";
@@ -39,6 +40,24 @@ const Highlight = styled.div`
                 textAlign: "center",
             },
         },
+    })}
+`;
+
+const InstallationCommand = styled.pre`
+    ${styles.style({
+        margin: 0,
+        padding: 15,
+        fontSize: 14,
+        fontFamily: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
+        backgroundColor: styles.colors.darkBackground,
+        inlineSize: "min-content",
+        borderRadius: "10px",
+        color: styles.colors.header,
+        lineHeight: 1.5,
+
+        overflow: "hidden",
+        maxWidth: "100%",
+        textOverflow: "ellipsis",
     })}
 `;
 
@@ -125,6 +144,17 @@ const GitHub = () => (
     </svg>
 );
 
+const DOCKER = `
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById("docker").onclick = (event) => {
+            event.preventDefault();
+            document.getElementById("docker-command").style.display = ""
+            document.getElementById("docker-option").style.display = "none"
+            document.getElementById("nix-command").style.display = "none"
+        };
+    });
+`;
+
 export default (props: templates.HomePage) => (
     <Site
         title="Reactivated — Zero-configuration Django and React"
@@ -132,6 +162,9 @@ export default (props: templates.HomePage) => (
             ${styles.style({})}
         `}
     >
+        <Helmet>
+            <script>{DOCKER}</script>
+        </Helmet>
         <div
             className={css`
                 ${styles.style({
@@ -204,28 +237,20 @@ export default (props: templates.HomePage) => (
                         </p>
                         <p>No webpack, no config, no tooling. Just React and Django.</p>
                     </div>
-                    <pre
-                        className={css`
-                            ${styles.style({
-                                margin: 0,
-                                padding: 15,
-                                fontSize: 14,
-                                fontFamily:
-                                    "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
-                                backgroundColor: styles.colors.darkBackground,
-                                inlineSize: "min-content",
-                                borderRadius: "10px",
-                                color: styles.colors.header,
-
-                                overflow: "hidden",
-                                maxWidth: "100%",
-                                textOverflow: "ellipsis",
-                            })}
-                        `}
-                    >
+                    <InstallationCommand id="nix-command">
                         nix-shell -E &quot;$(curl -L
                         https://reactivated.io/install/)&quot;
-                    </pre>
+                    </InstallationCommand>
+                    <InstallationCommand
+                        id="docker-command"
+                        style={{display: "none", fontSize: 13.5}}
+                    >
+                        {outdent`
+                        git clone git@github.com:silviogutierrez/reactivated.git
+                        cd reactivated/development
+                        docker run -itv $PWD:/app -p 8000:8000 silviogutierrez/reactivated
+                        `}
+                    </InstallationCommand>
                     <div
                         className={css`
                             ${styles.style({
@@ -266,6 +291,17 @@ export default (props: templates.HomePage) => (
                             Install Nix
                         </forms.ButtonLink>
                     </div>
+                    <p
+                        id="docker-option"
+                        className={css`
+                            ${styles.style({marginTop: -20})}
+                        `}
+                    >
+                        Don‘t have Nix?{" "}
+                        <a id="docker" href="#">
+                            Use Docker
+                        </a>
+                    </p>
                 </div>
                 <div
                     className={css`

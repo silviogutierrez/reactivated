@@ -108,7 +108,7 @@ if [[ $CLIENT -eq 1 ]]; then
         # shellcheck disable=SC2086
         capture_stdout_and_stderr_if_successful yarn eslint --ignore-path .gitignore $CHANGED_TS_JS_FILES
     fi
-    capture_stdout_and_stderr_if_successful yarn prettier --ignore-path .gitignore --check '**/*.{js,jsx,ts,tsx,yaml,json}'
+    capture_stdout_and_stderr_if_successful yarn prettier --ignore-path .gitignore --check '**/*.{js,jsx,ts,tsx,yaml,json,md}'
 fi
 
 if [[ $INFRASTRUCTURE -eq 1 ]]; then

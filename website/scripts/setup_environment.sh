@@ -23,7 +23,9 @@ if [ ! -d "$VIRTUAL_ENV" ]; then
     rm -rf "$TMP_ENV"
     virtualenv "$VIRTUAL_ENV"
     mkdir "$VIRTUAL_ENV/static"
-    initdb "$POSTGRESQL_DATA"
+    # Impure nix shell has issues with this on international systems since LANG
+    # might be set.
+    LANG=C.UTF-8 initdb "$POSTGRE" initdb "$POSTGRESQL_DATA"
     pip install -r requirements.txt
 
 fi

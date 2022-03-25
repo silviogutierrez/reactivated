@@ -51,7 +51,7 @@ Really, you should be using [Nix](/documentation/why-nix/).
 But fine, you don't want to commit. And the Nix installer requires `sudo`. Maybe it
 looks scary.
 
-Assuming you `git` and `docker` installed and running, you can just clone the repository
+Assuming you have `git` and `docker` installed and running, you can just clone the repository
 and run our image on the code.
 
 ```bash
@@ -76,9 +76,11 @@ On MacOS, the filesystem operations will be slow. This
 [may improve](https://www.docker.com/blog/speed-boost-achievement-unlocked-on-docker-desktop-4-6-for-mac/)
 in the future.
 
-And you'll need to run `manage.py` shell commands in another container instance. Like
-so:
+And you'll need to run `manage.py` shell commands in the *same* container instance, like so:
 
 ```bash
-docker run -it --rm -t -v $PWD:/app silviogutierrez/reactivated python manage.py makemigrations
+# Identify the Container ID
+CONTAINER_ID=$(docker ps -aqf "ancestor=silviogutierrez/reactivated")
+docker exec -it $CONTAINER_ID python manage.py makemigrations
+docker exec -it $CONTAINER_ID python manage.py shell
 ```

@@ -79,10 +79,12 @@ css`
 const getAnchor = (children: any) => {
     const heading: string = // eslint-disable-line
         (children as any)?.[0]?.props?.children?.[0] ?? children?.[0] ?? ""; // eslint-disable-line
-    const anchor = heading
-        .toLowerCase()
-        .replace(/[^.a-zA-Z0-9 ]/g, "")
-        .replace(/\s+/g, "-");
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const keepDots: boolean = children?.[0]?.type === "code";
+    const regex = keepDots === true ? /[^.a-zA-Z0-9 ]/g : /[^a-zA-Z0-9 ]/g;
+    const anchor = heading.toLowerCase().replace(regex, "").replace(/\s+/g, "-");
+
     return anchor;
 };
 

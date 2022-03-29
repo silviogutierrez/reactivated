@@ -155,7 +155,7 @@ jobs:
             - name: Build and push
               uses: docker/build-push-action@v2
               with:
-                  context: development
+                  context: packages/create-django-app
                   platforms: linux/amd64,linux/arm64
                   file: packages/create-django-app/Dockerfile
                   push: false

@@ -47,7 +47,6 @@ jobs:
                   yarn --cwd packages/create-django-app
             - name: Publish release
               id: publish_release
-              run: scripts/release.sh --versioning ${{ github.event.inputs.versioning }}
               env:
                   TWINE_USERNAME: __token__
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}

@@ -58,45 +58,44 @@ python scripts/generate_types.py
 cd "${PROJECT_ROOT}/packages/reactivated/"
 
 CURRENT_VERSION=$(jq <package.json .version -r)
-NEW_VERSION="FOO"
 
-# if [ "$IS_SNAPSHOT" = false ]; then
-#     yarn version --no-git-tag-version "--$VERSIONING"
-#     NEW_VERSION=$(jq <package.json .version -r)
-#     echo "Release version: $NEW_VERSION"
-#     yarn publish
-# 
-#     cd "${PROJECT_ROOT}/packages/create-django-app/"
-#     yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
-#     yarn publish
-# 
-#     git commit -am "v${NEW_VERSION}"
-#     git tag "v${NEW_VERSION}"
-# 
-#     EXISTING_CHECKS=$(disable_github_checks)
-#     git push
-#     git push --tags
-#     enable_github_checks "$EXISTING_CHECKS"
-# else
-#     NEW_VERSION="${CURRENT_VERSION}a${GITHUB_RUN_NUMBER}"
-#     echo "Snapshot version: $NEW_VERSION"
-#     yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
-#     yarn publish --tag cd
-# 
-#     cd "${PROJECT_ROOT}/packages/create-django-app/"
-#     yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
-#     yarn publish --tag cd
-# fi
-# echo "Published version $NEW_VERSION to NPM"
-# cd "$PROJECT_ROOT"
-# 
-# pip install wheel
-# python setup.py sdist bdist_wheel
-# twine upload dist/*
-# echo "Published version $NEW_VERSION to PyPI"
-# 
-# # Populate PyPI by forcing an install till it works.
-# # shellcheck disable=SC2015
-# for _ in 1 2 3 4 5; do pip install --ignore-installed "reactivated==$NEW_VERSION" && break || sleep 15; done
+if [ "$IS_SNAPSHOT" = false ]; then
+    yarn version --no-git-tag-version "--$VERSIONING"
+    NEW_VERSION=$(jq <package.json .version -r)
+    echo "Release version: $NEW_VERSION"
+    yarn publish
 
-echo "::set-output name=NEW_VERSION::$NEW_VERSION"
+    cd "${PROJECT_ROOT}/packages/create-django-app/"
+    yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
+    yarn publish
+
+    git commit -am "v${NEW_VERSION}"
+    git tag "v${NEW_VERSION}"
+
+    EXISTING_CHECKS=$(disable_github_checks)
+    git push
+    git push --tags
+    enable_github_checks "$EXISTING_CHECKS"
+else
+    NEW_VERSION="${CURRENT_VERSION}a${GITHUB_RUN_NUMBER}"
+    echo "Snapshot version: $NEW_VERSION"
+    yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
+    yarn publish --tag cd
+
+    cd "${PROJECT_ROOT}/packages/create-django-app/"
+    yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
+    yarn publish --tag cd
+fi
+echo "Published version $NEW_VERSION to NPM"
+cd "$PROJECT_ROOT"
+
+pip install wheel
+python setup.py sdist bdist_wheel
+twine upload dist/*
+echo "Published version $NEW_VERSION to PyPI"
+
+# Populate PyPI by forcing an install till it works.
+# shellcheck disable=SC2015
+for _ in 1 2 3 4 5; do pip install --ignore-installed "reactivated==$NEW_VERSION" && break || sleep 15; done
+
+echo "::set-output nameVERSION_TAG::v$NEW_VERSION"

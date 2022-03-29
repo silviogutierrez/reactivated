@@ -18,6 +18,9 @@ jobs:
         name: Create releases or snapshot
         runs-on: ubuntu-18.04
         if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'snapshot')
+        outputs:
+          output1: ${{ steps.yarn.outputs.ANOTHER }}
+          output2: ${{ steps.release.outputs.NEW_VERSION }}
         steps:
             - uses: actions/checkout@v2
               with:
@@ -39,12 +42,14 @@ jobs:
             - name: Python requirements
               run: pip install -r requirements.txt
             - name: Yarn
+              id: "yarn"
               run: |
                   yarn
                   yarn --cwd packages/reactivated
                   yarn --cwd packages/create-django-app
                   echo "::set-output name=ANOTHER::blah"
             - name: Publish snapshot
+              id: release
               if: github.event_name != 'workflow_dispatch'
               run: scripts/release.sh --snapshot
               env:

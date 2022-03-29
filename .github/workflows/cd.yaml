@@ -19,8 +19,8 @@ jobs:
         runs-on: ubuntu-18.04
         if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'snapshot')
         outputs:
-          output1: ${{ steps.yarn.outputs.ANOTHER }}
-          output2: ${{ steps.release.outputs.NEW_VERSION }}
+          ANOTHER: ${{ steps.yarn.outputs.ANOTHER }}
+          NEW_VERSION: ${{ steps.release.outputs.NEW_VERSION }}
         steps:
             - uses: actions/checkout@v2
               with:

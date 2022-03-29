@@ -30,7 +30,7 @@ Once you're ready to deploy your app, **make sure you've committed your changes.
 
 Then run `scripts/launch.sh` from `BASE_DIR`.
 
-You'll almost certainly be prompted to asked to authenticate. And if you've never used
+You'll almost certainly be asked to authenticate. And if you've never used
 Fly before, you'll have to sign up. Go ahead and do so.
 
 > **Note**: You'll probably be asked for a credit card to sign up. If you deploy a

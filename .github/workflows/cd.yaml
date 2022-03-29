@@ -64,5 +64,6 @@ jobs:
         runs-on: ubuntu-latest
         needs: release
         steps:
-             - run: echo ${{needs.release.outputs.NEW_VERSION}}
-             - run: echo ${{needs.release.outputs.ANOTHER}}
+             - run: |
+                 echo ${{needs.release.outputs.NEW_VERSION}}
+                 echo ${{needs.release.outputs.ANOTHER}}

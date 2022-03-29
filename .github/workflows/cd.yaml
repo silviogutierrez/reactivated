@@ -43,6 +43,7 @@ jobs:
                   yarn
                   yarn --cwd packages/reactivated
                   yarn --cwd packages/create-django-app
+                  echo "::set-output name=ANOTHER::blah"
             - name: Publish snapshot
               if: github.event_name != 'workflow_dispatch'
               run: scripts/release.sh --snapshot
@@ -64,3 +65,4 @@ jobs:
         needs: release
         steps:
              - run: echo ${{needs.release.outputs.NEW_VERSION}}
+             - run: echo ${{needs.release.outputs.ANOTHER}}

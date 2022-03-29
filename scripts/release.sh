@@ -98,4 +98,4 @@ echo "Published version $NEW_VERSION to PyPI"
 # shellcheck disable=SC2015
 for _ in 1 2 3 4 5; do pip install --ignore-installed "reactivated==$NEW_VERSION" && break || sleep 15; done
 
-echo "::set-output nameVERSION_TAG::v$NEW_VERSION"
+echo "::set-output name=VERSION_TAG::v$NEW_VERSION"

@@ -159,4 +159,4 @@ jobs:
                   platforms: linux/amd64,linux/arm64
                   file: packages/create-django-app/Dockerfile
                   push: false
-                  tags: silviogutierrez/reactivated:latest
+                  tags: silviogutierrez/reactivated:ci

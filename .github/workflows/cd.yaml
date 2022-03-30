@@ -20,6 +20,7 @@ jobs:
         if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'snapshot')
         outputs:
             VERSION_TAG: ${{ steps.publish_release.outputs.VERSION_TAG }}
+            SNAPSHOT_OR_RELEASE: ${{ steps.publish_release.outputs.SNAPSHOT_OR_RELEASE }}
         steps:
             - uses: actions/checkout@v2
               with:
@@ -87,4 +88,6 @@ jobs:
                   platforms: linux/amd64,linux/arm64
                   file: packages/create-django-app/Dockerfile
                   push: true
-                  tags: silviogutierrez/reactivated:${{ needs.release.outputs.VERSION_TAG }}
+                  tags:
+                      - silviogutierrez/reactivated:${{ needs.release.outputs.VERSION_TAG }}
+                      - silviogutierrez/reactivated:${{ needs.release.outputs.SNAPSHOT_OR_RELEASE }}

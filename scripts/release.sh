@@ -62,6 +62,7 @@ CURRENT_VERSION=$(jq <package.json .version -r)
 if [ "$IS_SNAPSHOT" = false ]; then
     yarn version --no-git-tag-version "--$VERSIONING"
     NEW_VERSION=$(jq <package.json .version -r)
+    SNAPSHOT_OR_RELEASE="latest"
     echo "Release version: $NEW_VERSION"
     yarn publish
 
@@ -78,6 +79,7 @@ if [ "$IS_SNAPSHOT" = false ]; then
     enable_github_checks "$EXISTING_CHECKS"
 else
     NEW_VERSION="${CURRENT_VERSION}a${GITHUB_RUN_NUMBER}"
+    SNAPSHOT_OR_RELEASE="snapshot"
     echo "Snapshot version: $NEW_VERSION"
     yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
     yarn publish --tag cd
@@ -99,3 +101,4 @@ echo "Published version $NEW_VERSION to PyPI"
 for _ in 1 2 3 4 5; do pip install --ignore-installed "reactivated==$NEW_VERSION" && break || sleep 15; done
 
 echo "::set-output name=VERSION_TAG::v$NEW_VERSION"
+echo "::set-output name=SNAPSHOT_OR_RELEASE::$SNAPSHOT_OR_RELEASE"

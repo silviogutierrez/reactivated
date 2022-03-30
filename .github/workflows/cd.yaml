@@ -88,4 +88,6 @@ jobs:
                   platforms: linux/amd64,linux/arm64
                   file: packages/create-django-app/Dockerfile
                   push: true
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
                   tags: silviogutierrez/reactivated:${{ needs.release.outputs.VERSION_TAG }},silviogutierrez/reactivated:${{ needs.release.outputs.SNAPSHOT_OR_RELEASE }}

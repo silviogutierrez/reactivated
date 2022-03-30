@@ -160,3 +160,5 @@ jobs:
                   file: packages/create-django-app/Dockerfile
                   push: false
                   tags: silviogutierrez/reactivated:ci
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max

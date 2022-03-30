@@ -51,8 +51,8 @@ Really, you should be using [Nix](/documentation/why-nix/).
 But fine, you don't want to commit. And the Nix installer requires `sudo`. Maybe it
 looks scary.
 
-Assuming you have `docker` installed and running, create your project first. We'll
-name it `my_app`.
+Assuming you have `docker` installed and running, create your project first. We'll name
+it `my_app`.
 
 ```bash
 docker run -itv $PWD:/app silviogutierrez/reactivated install my_app
@@ -61,7 +61,8 @@ docker run -itv $PWD:/app silviogutierrez/reactivated install my_app
 The container will take some time to boot the first time, as it will create a
 `virtualenv`, run `yarn` and create an isolated database.
 
-Once done, `cd` into your project, start the container, and start the development server.
+Once done, `cd` into your project, start the container, and start the development
+server.
 
 ```bash
 cd my_app
@@ -69,7 +70,8 @@ docker run -itp 8000:8000 -v $PWD:/app --name my_app silviogutierrez/reactivated
 python manage.py runserver 0.0.0.0:8000
 ```
 
-On your host machine, you should be able to visit `localhost:8000` and see Reactivated in action.
+On your host machine, you should be able to visit `localhost:8000` and see Reactivated
+in action.
 
 ### Limitations
 
@@ -77,9 +79,9 @@ On MacOS, the filesystem operations will be slow. This
 [may improve](https://www.docker.com/blog/speed-boost-achievement-unlocked-on-docker-desktop-4-6-for-mac/)
 in the future.
 
-To visit the site on the host machine, you *must* bind to `0.0.0.0` manually.
- By default, `runserver` without a port will bind to `localhost` and will not let
- outside hosts, including the host machine, reach the site.
+To visit the site on the host machine, you _must_ bind to `0.0.0.0` manually. By
+default, `runserver` without a port will bind to `localhost` and will not let outside
+hosts, including the host machine, reach the site.
 
 And you'll need to run `manage.py` shell commands in the _same_ container instance, like
 so:

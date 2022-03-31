@@ -247,9 +247,7 @@ export default (props: templates.HomePage) => (
                         style={{display: "none", fontSize: 13.5}}
                     >
                         {outdent`
-                        git clone git@github.com:silviogutierrez/reactivated.git
-                        cd reactivated/development
-                        docker run -itv $PWD:/app -p 8000:8000 silviogutierrez/reactivated
+                        docker run -itv $PWD:/app silviogutierrez/reactivated install my_app
                         `}
                     </InstallationCommand>
                     <div

@@ -19,4 +19,6 @@ COPY package.json /reactivated/package.json
 COPY scripts/create-django-app.sh /reactivated/scripts/install
 COPY template /reactivated/template
 
+ENV IS_DOCKER=true
+
 RUN install populate_cache && rm -rf populate_cache

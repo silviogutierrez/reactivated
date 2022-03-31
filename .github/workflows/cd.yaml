@@ -18,6 +18,7 @@ jobs:
         name: Create releases or snapshot
         runs-on: ubuntu-18.04
         if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'snapshot')
+        # Currently unused, we do everything within the same job.
         outputs:
             VERSION_TAG: ${{ steps.publish_release.outputs.VERSION_TAG }}
             SNAPSHOT_OR_RELEASE: ${{ steps.publish_release.outputs.SNAPSHOT_OR_RELEASE }}
@@ -60,18 +61,6 @@ jobs:
                   else
                       scripts/release.sh --snapshot
                   fi
-    docker:
-        name: Create docker image
-        runs-on: ubuntu-latest
-        needs: release
-        steps:
-            - uses: actions/checkout@v2.4.0
-            - uses: cachix/install-nix-action@v15
-              with:
-                  nix_path: nixpkgs=channel:nixos-unstable
-            - name: Setup reactivated
-              run: |
-                  nix-shell --command "yarn --cwd packages/create-django-app && yarn --cwd packages/create-django-app prepublishOnly"
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v1
             - name: Set up Docker Buildx
@@ -90,4 +79,4 @@ jobs:
                   push: true
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
-                  tags: silviogutierrez/reactivated:${{ needs.release.outputs.VERSION_TAG }},silviogutierrez/reactivated:${{ needs.release.outputs.SNAPSHOT_OR_RELEASE }}
+                  tags: silviogutierrez/reactivated:${{ steps.publish_release.outputs.VERSION_TAG }},silviogutierrez/reactivated:${{ steps.publish_release.outputs.SNAPSHOT_OR_RELEASE }}

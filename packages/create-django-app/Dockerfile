@@ -1,31 +1,24 @@
-FROM nixos/nix as builder
+FROM ubuntu
+RUN apt update
+RUN apt install -y curl xz-utils
+RUN useradd -m guest
+RUN mkdir /nix && mkdir /app && chown guest /nix && chown guest /app && mkdir /reactivated && chown guest /reactivated
 
-RUN mkdir /app
 WORKDIR /app
-
-COPY shell.nix shell.nix
-
-RUN mkdir -p /output/store
-RUN nix-env -f shell.nix --option filter-syscalls false -i -A buildInputs --profile /output/profile;
-RUN cp -va $(nix-store -qR /output/profile) /output/store
-
-FROM alpine
-
-RUN apk add bash
-RUN mkdir /app
-WORKDIR /app
-
-COPY --from=builder /output/store /nix/store
-COPY --from=builder /output/profile/ /usr/local/
-
-RUN echo -en "#!/bin/sh\nsource scripts/setup_environment.sh\npython manage.py migrate\nexec \"\$@\"\n" > /entrypoint.sh && chmod +x /entrypoint.sh
-
 USER guest
+ENV USER=guest
+RUN curl -L https://nixos.org/nix/install | sh
 
+ENV PATH="/home/guest/.nix-profile/bin:/reactivated/scripts/:${PATH}"
 ENV REACTIVATED_SOCKET=/tmp/reactivated.sock
 ENV TMPDIR=/tmp
-ENV HOME=/tmp
 
-ENTRYPOINT ["/entrypoint.sh"]
+RUN nix-shell -p git --command 'git config --global user.email "bot@reactivated.io" && git config --global user.name "Reactivated"'
 
-CMD python manage.py runserver 0.0.0.0:8000
+COPY package.json /reactivated/package.json
+COPY scripts/create-django-app.sh /reactivated/scripts/install
+COPY template /reactivated/template
+
+ENV IS_DOCKER=true
+
+RUN install populate_cache && rm -rf populate_cache

@@ -51,24 +51,27 @@ Really, you should be using [Nix](/documentation/why-nix/).
 But fine, you don't want to commit. And the Nix installer requires `sudo`. Maybe it
 looks scary.
 
-Assuming you have `git` and `docker` installed and running, you can just clone the
-repository and run our image on the code.
+Assuming you have `docker` installed and running, create your project first. We'll name
+it `my_app`.
 
 ```bash
-git clone git@github.com:silviogutierrez/reactivated.git
-cd reactivated/development
-docker run --rm -itv $PWD:/app -p 8000:8000 silviogutierrez/reactivated
+docker run -itv $PWD:/app silviogutierrez/reactivated install my_app
 ```
 
 The container will take some time to boot the first time, as it will create a
 `virtualenv`, run `yarn` and create an isolated database.
 
-### Next steps
+Once done, `cd` into your project, start the container, and start the development
+server.
 
-In another shell, you can modify the code inside `reactivated/development` to get an
-idea how things work.
+```bash
+cd my_app
+docker run -itp 8000:8000 -v $PWD:/app --name my_app silviogutierrez/reactivated nix-shell
+python manage.py runserver 0.0.0.0:8000
+```
 
-You can also use this project as a template to develop locally with Docker.
+On your host machine, you should be able to visit `localhost:8000` and see Reactivated
+in action.
 
 ### Limitations
 
@@ -76,14 +79,27 @@ On MacOS, the filesystem operations will be slow. This
 [may improve](https://www.docker.com/blog/speed-boost-achievement-unlocked-on-docker-desktop-4-6-for-mac/)
 in the future.
 
+To visit the site on the host machine, you _must_ bind to `0.0.0.0` manually. By
+default, `runserver` without a port will bind to `localhost` and will not let outside
+hosts, including the host machine, reach the site.
+
 And you'll need to run `manage.py` shell commands in the _same_ container instance, like
 so:
 
 ```bash
-# Identify the Container ID
-CONTAINER_ID=$(docker ps -aqf "ancestor=silviogutierrez/reactivated")
-docker exec -it $CONTAINER_ID python manage.py makemigrations
-docker exec -it $CONTAINER_ID python manage.py shell
+docker exec -it my_app nix-shell
+
+# Once inside nix-shell
+python manage.py migrate
+python manage.py check
 ```
 
-``
+### Cleaning up
+
+When you're done using Docker, you can stop the container like so:
+
+```bash
+docker remove -f my_app
+```
+
+Your files and project will stay behind for future use.

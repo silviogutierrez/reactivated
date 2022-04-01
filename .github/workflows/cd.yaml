@@ -18,6 +18,10 @@ jobs:
         name: Create releases or snapshot
         runs-on: ubuntu-18.04
         if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'snapshot')
+        # Currently unused, we do everything within the same job.
+        outputs:
+            VERSION_TAG: ${{ steps.publish_release.outputs.VERSION_TAG }}
+            SNAPSHOT_OR_RELEASE: ${{ steps.publish_release.outputs.SNAPSHOT_OR_RELEASE }}
         steps:
             - uses: actions/checkout@v2
               with:
@@ -43,30 +47,20 @@ jobs:
                   yarn
                   yarn --cwd packages/reactivated
                   yarn --cwd packages/create-django-app
-            - name: Publish snapshot
-              if: github.event_name != 'workflow_dispatch'
-              run: scripts/release.sh --snapshot
-              env:
-                  TWINE_USERNAME: __token__
-                  TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
             - name: Publish release
-              if: github.event_name == 'workflow_dispatch'
-              run: scripts/release.sh --versioning ${{ github.event.inputs.versioning }}
+              id: publish_release
               env:
                   TWINE_USERNAME: __token__
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
-    docker:
-        name: Create docker image
-        runs-on: ubuntu-latest
-        if: github.event_name != 'pull_request'
-        steps:
-            - uses: actions/checkout@v2.4.0
-            - uses: cachix/install-nix-action@v15
-              with:
-                  nix_path: nixpkgs=channel:nixos-unstable
+              run: |
+                  if [${{ github.event_name }} == 'workflow_dispatch']
+                  then
+                      scripts/release.sh --versioning ${{ github.event.inputs.versioning }}
+                  else
+                      scripts/release.sh --snapshot
+                  fi
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v1
             - name: Set up Docker Buildx
@@ -79,8 +73,10 @@ jobs:
             - name: Build and push
               uses: docker/build-push-action@v2
               with:
-                  context: development
+                  context: packages/create-django-app
                   platforms: linux/amd64,linux/arm64
                   file: packages/create-django-app/Dockerfile
                   push: true
-                  tags: silviogutierrez/reactivated:latest
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+                  tags: silviogutierrez/reactivated:${{ steps.publish_release.outputs.VERSION_TAG }},silviogutierrez/reactivated:${{ steps.publish_release.outputs.SNAPSHOT_OR_RELEASE }}

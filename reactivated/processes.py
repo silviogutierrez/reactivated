@@ -8,7 +8,7 @@ from django.conf import settings
 
 def start_tsc() -> None:
     tsc_process = subprocess.Popen(
-        ["yarn", "tsc", "--watch", "--noEmit", "--preserveWatchOutput"],
+        ["node_modules/.bin/tsc", "--watch", "--noEmit", "--preserveWatchOutput"],
         # stdout=subprocess.PIPE,
         # stderr=subprocess.PIPE,
         env={**os.environ.copy()},

@@ -3488,10 +3488,10 @@ react@^17.0.2:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
 
-reactivated@0.21.0-a774:
-  version "0.21.0-a774"
-  resolved "https://registry.yarnpkg.com/reactivated/-/reactivated-0.21.0-a774.tgz#1fe2322d12aacee1ed1bf09e5849c38f601465ec"
-  integrity sha512-wA2X6p+SDchBdQg/9oQIAa60jAb39R7oAM4M+fAyHdtfc0w5GcOM6YWkMgn6cUrAy6y3lMyH6+qkI7Vvtbb3aA==
+reactivated@^0.23.0:
+  version "0.23.0"
+  resolved "https://registry.yarnpkg.com/reactivated/-/reactivated-0.23.0.tgz#fc6dda3b4d7d3d059749b22a59376ad2776fcb94"
+  integrity sha512-UrzlGsLAkvOT1SSi1WX3bDbXGFALlT6Ojb81IwomM8Poc4vtQMpDTsc2A035y1nQCu6HD+nLjm3Y35IiIH1ZpQ==
   dependencies:
     "@babel/core" "^7.16.7"
     "@babel/preset-typescript" "^7.16.7"

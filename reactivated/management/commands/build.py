@@ -68,8 +68,7 @@ class Command(BaseCommand):
             for bundle in entry_points:
                 terser_process = subprocess.Popen(
                     [
-                        "yarn",
-                        "terser",
+                        "node_modules/.bin/terser",
                         f"{DIST_ROOT}{bundle}.js",
                         f"--source-map=content='{DIST_ROOT}{bundle}.js.map'",
                         "--compress",

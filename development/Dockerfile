@@ -54,10 +54,10 @@ RUN virtualenv .venv && .venv/bin/pip install -r requirements.txt
 COPY manage.py .
 COPY server server
 
-RUN mkdir -p node_modules/.bin/
+RUN mkdir -p node_modules/_reactivated/
 RUN mkdir -p static/
-COPY --from=builder /app/node_modules/.bin/renderer.js node_modules/.bin/
-COPY --from=builder /app/node_modules/.bin/renderer.js.map node_modules/.bin/
+COPY --from=builder /app/node_modules/_reactivated/renderer.js node_modules/_reactivated/
+COPY --from=builder /app/node_modules/_reactivated/renderer.js.map node_modules/_reactivated/
 COPY --from=builder /app/collected collected
 
 ENV PYTHONUNBUFFERED 1

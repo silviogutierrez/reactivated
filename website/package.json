@@ -9,6 +9,6 @@
         "outdent": "^0.8.0",
         "react-markdown": "^8.0.0",
         "react-syntax-highlighter": "^15.4.5",
-        "reactivated": "0.21.0-a774"
+        "reactivated": "^0.23.0"
     }
 }

@@ -23,6 +23,8 @@ setuptools.setup(
     scripts=[],
     install_requires=[
         "requests-unixsocket==0.3.0",
+        "mypy>=0.910",
+        "simplejson>=3.16.0",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

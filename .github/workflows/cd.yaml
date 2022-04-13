@@ -55,7 +55,7 @@ jobs:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
               run: |
-                  if [${{ github.event_name }} == 'workflow_dispatch']
+                  if ['${{ github.event_name }}' == 'workflow_dispatch']
                   then
                       scripts/release.sh --versioning ${{ github.event.inputs.versioning }}
                   else

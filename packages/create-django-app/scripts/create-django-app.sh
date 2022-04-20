@@ -48,7 +48,7 @@ git add -A
 if [ "$HAS_GIT_CONFIGURED" = true ]; then
     git commit -m "$commit_message"
 else
-    git commit -c user.email="/dev/null@reactivated.io" -c user.name="Reactivated" -m "$commit_message"
+    git -c user.email="/dev/null@reactivated.io" -c user.name="Reactivated" commit -m "$commit_message"
 fi
 
 echo ""

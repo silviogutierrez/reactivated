@@ -28,9 +28,7 @@ cd "$PROJECT_NAME" || exit
 mv gitignore.template .gitignore
 sed -i "s/reactivated==\(.*\)/reactivated==$PIP_CURRENT_VERSION/" requirements.txt
 
-if [ "$HAS_GIT_CONFIGURED" = true ]; then
-    nix-shell --command "git init --initial-branch=main && git add -A"
-fi
+git init --initial-branch=main
 
 nix-shell --command "yarn init --yes && yarn add reactivated@${CURRENT_VERSION} && git add -A"
 

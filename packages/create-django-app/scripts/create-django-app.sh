@@ -32,7 +32,7 @@ if [ "$HAS_GIT_CONFIGURED" = true ]; then
     nix-shell --command "git init --initial-branch=main && git add -A"
 fi
 
-nix-shell --command "yarn init --yes && yarn add reactivated@${CURRENT_VERSION} && git add -A"
+nix-shell --command "yarn init --yes && yarn add reactivated@${CURRENT_VERSION}"
 
 if [ -n "$REACTIVATED_NODE" ]; then
     nix-shell --command "rm -rf node_modules/reactivated && cp -R $REACTIVATED_NODE node_modules/reactivated"

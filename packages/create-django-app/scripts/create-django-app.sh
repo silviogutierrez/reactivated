@@ -39,6 +39,11 @@ if [ -n "$REACTIVATED_NODE" ]; then
     nix-shell --command "pip install -e $REACTIVATED_PYTHON"
 fi
 
+# So that scripts/fix.sh picks this up.
+if [ "$HAS_GIT_CONFIGURED" = true ]; then
+    nix-shell --command "git add -A"
+fi
+
 nix-shell --command "python manage.py generate_client_assets"
 nix-shell --command "python manage.py migrate"
 nix-shell --command "scripts/fix.sh --all"

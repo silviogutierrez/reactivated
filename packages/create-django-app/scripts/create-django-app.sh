@@ -28,9 +28,7 @@ cd "$PROJECT_NAME" || exit
 mv gitignore.template .gitignore
 sed -i "s/reactivated==\(.*\)/reactivated==$PIP_CURRENT_VERSION/" requirements.txt
 
-if [ "$HAS_GIT_CONFIGURED" = true ]; then
-    nix-shell --command "git init --initial-branch=main && git add -A"
-fi
+git init --initial-branch=main
 
 nix-shell --command "yarn init --yes && yarn add reactivated@${CURRENT_VERSION} && git add -A"
 
@@ -43,8 +41,14 @@ nix-shell --command "python manage.py generate_client_assets"
 nix-shell --command "python manage.py migrate"
 nix-shell --command "scripts/fix.sh --all"
 
+commit_message="Initial files"
+
+git add -A
+
 if [ "$HAS_GIT_CONFIGURED" = true ]; then
-    nix-shell --command "git add -A && git commit -m 'Initial files'"
+    git commit -m "$commit_message"
+else
+    git -c user.email="/dev/null@reactivated.io" -c user.name="Reactivated" commit -m "$commit_message"
 fi
 
 echo ""

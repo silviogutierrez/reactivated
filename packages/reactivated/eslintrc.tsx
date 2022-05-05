@@ -99,6 +99,9 @@ module.exports = {
                 },
             },
         ],
+
+        // https://www.reddit.com/r/typescript/comments/uiil9k/am_i_crazy_for_expecting_typescript_to_catch_this/
+        "@typescript-eslint/no-use-before-define": ["error"],
     },
     extends: [
         "eslint:recommended",

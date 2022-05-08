@@ -62,6 +62,16 @@ to the running instance.
 > **Note**: There are a few quirks with the SSH session. You'll likely need to manually
 > activate the virtualenv and `cd` into the `WORKDIR` of your Docker image.
 
+## Invoking manage.py commands
+
+Note that the default Dockerfile deletes the default settings module and replaces it
+with an environment variable. So to run a `manage.py` command (for example,
+`createsuperuser`) on the fly.io app instance, you can set the correct environment via:
+
+```bash
+DJANGO_SETTINGS_MODULE=server.settings.production python manage.py
+```
+
 ## Custom domain
 
 Adding a custom domain with **TLS** is easy. However, we don't automate the process

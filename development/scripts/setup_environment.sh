@@ -27,7 +27,8 @@ if [ ! -d "$VIRTUAL_ENV" ]; then
     mkdir "$VIRTUAL_ENV/static"
     # Impure nix shell has issues with this on international systems since LANG
     # might be set.
-    LANG=en_US.UTF-8 initdb "$POSTGRESQL_DATA"
+    # Maybe try LANG= initdb or something to unset it.
+    initdb "$POSTGRESQL_DATA"
     pip install -r requirements.txt
 
 fi

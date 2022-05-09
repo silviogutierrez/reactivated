@@ -28,6 +28,18 @@ export function style(...objects: Styles[]) {
     return merged;
 }
 
+// https://www.canva.com/colors/color-palettes/summer-splash/
+export const colors = {
+    background: "#D4F1F4",
+    darkBackground: "#c7e7eb",
+    header: "#05445E",
+    textWithColor: "#127387",
+    warningBorder: "#EDBC9B",
+    warningBackground: "#fdf6f2",
+    warningText: "#b15a20",
+    warningDarkBackground: "#f8e5d8",
+};
+
 export const globalStyles = () => css`
     :global() {
         *,
@@ -112,15 +124,3 @@ export const globalStyles = () => css`
         }
     }
 `;
-
-// https://www.canva.com/colors/color-palettes/summer-splash/
-export const colors = {
-    background: "#D4F1F4",
-    darkBackground: "#c7e7eb",
-    header: "#05445E",
-    textWithColor: "#127387",
-    warningBorder: "#EDBC9B",
-    warningBackground: "#fdf6f2",
-    warningText: "#b15a20",
-    warningDarkBackground: "#f8e5d8",
-};

@@ -19,7 +19,7 @@ import {nord as style} from "react-syntax-highlighter/dist/esm/styles/prism";
 import * as styles from "@client/styles";
 
 interface Props {
-    children: React.ReactNode;
+    children: string | string[];
     language: "tsx" | "python" | "bash" | undefined;
 }
 

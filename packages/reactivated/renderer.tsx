@@ -4,7 +4,12 @@ import {compile} from "json-schema-to-typescript";
 import path from "path";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import {FilledContext, Helmet, HelmetData, HelmetProvider} from "react-helmet-async";
+import {
+    FilledContext,
+    Helmet,
+    HelmetProvider,
+    HelmetServerState,
+} from "react-helmet-async";
 
 // Useful when running e2e tests or the like, where the output is not
 // co-located with the running process.
@@ -22,7 +27,7 @@ export const renderPage = ({
     props,
 }: {
     html: string;
-    helmet: HelmetData;
+    helmet: HelmetServerState;
     context: any;
     props: any;
 }) =>

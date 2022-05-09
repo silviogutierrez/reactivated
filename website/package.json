@@ -5,10 +5,10 @@
     "author": "Silvio J. Gutierrez <silviogutierrez@gmail.com>",
     "license": "MIT",
     "dependencies": {
-        "@types/react-syntax-highlighter": "^13.5.2",
+        "@types/react-syntax-highlighter": "^15.5.1",
         "outdent": "^0.8.0",
         "react-markdown": "^8.0.0",
         "react-syntax-highlighter": "^15.4.5",
-        "reactivated": "^0.23.0"
+        "reactivated": "0.24.0-a956"
     }
 }

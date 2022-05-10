@@ -17,14 +17,16 @@ export type ExtractRouteParams<T> = string extends T
     ? {[k in Param]: number}
     : Record<never, never>;
 
-
 // import {AnimatePresence, motion} from "framer-motion";
 
 type Resolvable = Promise<Record<string, any>> | Record<string, any>;
 
 const REGEX = /<(string|number):([\w]*)>/g;
 
-const processRoutePath = <TPath extends string, TTabs extends string[]>(path: TPath, tabs: [...TTabs]) => {
+const processRoutePath = <TPath extends string, TTabs extends string[]>(
+    path: TPath,
+    tabs: [...TTabs],
+) => {
     type Tokens = Record<
         Extract<keyof ExtractRouteParams<TPath>, string>,
         "string" | "number"
@@ -41,8 +43,7 @@ const processRoutePath = <TPath extends string, TTabs extends string[]>(path: TP
     if (tabs.length > 1) {
         const validTabs = tabs.slice(1).join("|");
         regexPattern = regexPattern.concat(`(?:$|(?<tab>${validTabs})\/$)`);
-    }
-    else {
+    } else {
         regexPattern = regexPattern.concat("$");
     }
 
@@ -65,15 +66,16 @@ export const interpolatePath = (pattern: string, params: Record<string, any>) =>
 };
 
 type WithTab<TTabs extends string[], TTabsSoFar extends string[], TProps> = {
-    <TTab extends TTabs[number], TGuardedProps = TProps>(definition: {
-        name: TTab;
-        guard?: (props: TProps) => TGuardedProps | false;
-    },
-    component: React.ComponentType<TGuardedProps>
+    <TTab extends TTabs[number], TGuardedProps = TProps>(
+        definition: {
+            name: TTab;
+            guard?: (props: TProps) => TGuardedProps | false;
+        },
+        component: React.ComponentType<TGuardedProps>,
     ): {
         withTab: WithTab<TTabs, [...TTabsSoFar, TTab], TProps>;
         withActions: WithActions<TProps>;
-        options: () => ({title: string});
+        options: () => {title: string};
         actions: () => [];
         tabs: {
             [K in [...TTabsSoFar, TTab][number]]: {
@@ -83,13 +85,13 @@ type WithTab<TTabs extends string[], TTabsSoFar extends string[], TProps> = {
                 };
             };
         };
-    }
+    };
 };
 
 type Action = {
     name: string;
     onClick: () => void;
-}
+};
 
 export type ActionsDefinition =
     | ([] & ReadonlyArray<Action>)
@@ -100,17 +102,15 @@ export type ActionsDefinition =
     | readonly [Action, Action, Action, Action, Action]
     | readonly [Action, Action, Action, Action, Action, Action];
 
-
 export type OptionsDefinition = {title: string};
-
 
 type WithOptions<TProps> = {
     (options: (props: TProps) => OptionsDefinition): {
         tabs: TabMap<string[]>;
         actions: (props: TProps) => ActionsDefinition;
         options: typeof options;
-    }
-}
+    };
+};
 
 type WithActions<TProps> = {
     (actions: (props: TProps) => ActionsDefinition): {
@@ -119,9 +119,8 @@ type WithActions<TProps> = {
         // withOptions: WithOptions<TProps>;
         options: () => {title: string};
         withOptions: WithOptions<TProps>;
-    }
+    };
 };
-
 
 /*
         const withTab = <
@@ -148,9 +147,11 @@ type WithActions<TProps> = {
 
 type MyThing<TTabs extends string[]> = {
     withTab: (tab: TTabs[number]) => MyThing<TTabs>;
-}
+};
 
-function myThing<TTabs extends string[] = ["index"]>(options: {tabs?: [...TTabs]}): MyThing<TTabs> {
+function myThing<TTabs extends string[] = ["index"]>(options: {
+    tabs?: [...TTabs];
+}): MyThing<TTabs> {
     return null as any;
     /*
 
@@ -161,12 +162,9 @@ function myThing<TTabs extends string[] = ["index"]>(options: {tabs?: [...TTabs]
     */
 }
 
-
 // const result = myThing({})
 
 // result.withTab("a")
-
-
 
 export type Route<
     TName extends string,
@@ -176,7 +174,15 @@ export type Route<
     TResolvedSoFar,
     TGlobalHooks,
     TTabs extends string[] = ["index"],
-> = RouteDefinition<TName, TParent, TPath, TResolve, TResolvedSoFar, TGlobalHooks, TTabs> & {
+> = RouteDefinition<
+    TName,
+    TParent,
+    TPath,
+    TResolve,
+    TResolvedSoFar,
+    TGlobalHooks,
+    TTabs
+> & {
     resolve?: (props: {params: ExtractRouteParams<TPath>}) => TResolve;
     tabs?: [...TTabs];
     subroute: <
@@ -201,7 +207,7 @@ export type Route<
         TGlobalHooks,
         TInnerTabs
     >;
-    withTab: WithTab<TTabs, [], {resolved: Awaited<TResolve> & TResolvedSoFar}>,
+    withTab: WithTab<TTabs, [], {resolved: Awaited<TResolve> & TResolvedSoFar}>;
     withComponent: (
         component: React.ComponentType<{
             currentTab: TTabs[number];
@@ -268,7 +274,6 @@ type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<
     ? T
     : never;
 
-
 // TODO: this is probably wrong.
 type Tab<TProps, TGuard = TProps> = {
     options: {
@@ -276,7 +281,7 @@ type Tab<TProps, TGuard = TProps> = {
         guard?: (props: TProps) => TGuard;
     };
     component: React.ComponentType<TProps>;
-}
+};
 
 type TabMap<TTabNames extends string[]> = {
     [K in TTabNames[number]]: Tab<any>;
@@ -293,7 +298,9 @@ interface StaticRouteImplementation<TTabs extends string[]> {
 type RouteImplementation<TTabs extends string[]> = StaticRouteImplementation<TTabs>;
 
 export const matchRoutes = <
-    TRoutes extends Array<RouteDefinition<string, string | null, any, any, any, any, any>>,
+    TRoutes extends Array<
+        RouteDefinition<string, string | null, any, any, any, any, any>
+    >,
 >(
     routes: [...TRoutes],
     path: string,
@@ -330,14 +337,24 @@ interface Locator {
     tab: string;
     params: Record<string, string | number>;
     scenePath: string;
-    routeDefinition: RouteDefinition<string, string | null, string, any, any, any, string[]>;
+    routeDefinition: RouteDefinition<
+        string,
+        string | null,
+        string,
+        any,
+        any,
+        any,
+        string[]
+    >;
     resolved?: any;
     url: string;
     method: "push" | "replace";
 }
 
 export const createRouter = <
-    TRoutes extends Array<RouteDefinition<string, string | null, any, any, any, any, any>>,
+    TRoutes extends Array<
+        RouteDefinition<string, string | null, any, any, any, any, any>
+    >,
 >(
     routes: [...TRoutes],
 ) => {
@@ -406,10 +423,7 @@ export const createRouter = <
             method: target.method ?? "push",
         };
     };
-    const getLocatorFromURL = (
-        path: string,
-        method: "push" | "replace" = "push",
-    ) => {
+    const getLocatorFromURL = (path: string, method: "push" | "replace" = "push") => {
         const match = matchRoutes(routes, path);
 
         if (match == null) {
@@ -437,17 +451,16 @@ export const createRouter = <
         Object.assign(dependencies, resolved);
         const navigationEvent = new Event("resolved");
         window.dispatchEvent(navigationEvent);
-    }
+    };
 
     type ResolveContext = {
-        dependecies: Dependencies,
-    }
+        dependecies: Dependencies;
+    };
 
     const ResolveContext = React.createContext<ResolveContext>(undefined!);
 
     const ResolveProvider = (props: {children: React.ReactNode}) => {
         const [mirror, setMirror] = React.useState(dependencies);
-
 
         React.useEffect(() => {
             const handleResolved = () => setMirror({...dependencies});
@@ -455,12 +468,15 @@ export const createRouter = <
 
             return () => {
                 window.removeEventListener("resolved", handleResolved);
-            }
+            };
         }, []);
 
-        return <ResolveContext.Provider value={{dependecies: mirror}}>{props.children}</ResolveContext.Provider>
-    }
-
+        return (
+            <ResolveContext.Provider value={{dependecies: mirror}}>
+                {props.children}
+            </ResolveContext.Provider>
+        );
+    };
 
     const reverse = <
         TName extends RouteNames,
@@ -495,7 +511,11 @@ export const createRouter = <
             "name",
             TName
         >["definition"]["tabs"][number],
-        TResolve extends DiscriminateUnion<TRoutes[number], "name", TName>["definition"]["_testing"]["resolved"]
+        TResolve extends DiscriminateUnion<
+            TRoutes[number],
+            "name",
+            TName
+        >["definition"]["_testing"]["resolved"],
     >(
         routeNameAndTab: `${TName}.${TTab}`,
         params: TParams,
@@ -513,13 +533,15 @@ export const createRouter = <
         if (target.resolved != null) {
             setResolved({
                 [target.scenePath]: target.resolved,
-            })
-        }
-        else if (source == null || source.scenePath != target.scenePath) {
-            const resolved = await match.definition.resolve({params: target.params, resolved: {}});
+            });
+        } else if (source == null || source.scenePath != target.scenePath) {
+            const resolved = await match.definition.resolve({
+                params: target.params,
+                resolved: {},
+            });
             setResolved({
                 [target.scenePath]: resolved,
-            })
+            });
         }
 
         if (target.method == "replace") {
@@ -530,7 +552,6 @@ export const createRouter = <
         const navigationEvent = new PopStateEvent("navigate");
         window.dispatchEvent(navigationEvent);
     };
-
 
     const Link = <
         TName extends RouteNames,
@@ -544,7 +565,7 @@ export const createRouter = <
         >["definition"]["tabs"][number],
         TResolve extends ReturnType<
             DiscriminateUnion<TRoutes[number], "name", TName>["definition"]["resolve"]
-        >
+        >,
     >(
         props:
             | {
@@ -590,7 +611,11 @@ export const createRouter = <
 
         if (target == null) {
             console.warn(`Invalid <Link> with URL "${props.url ?? ""}"`);
-            return <a className={props.className} href={props.url}>{props.children}</a>
+            return (
+                <a className={props.className} href={props.url}>
+                    {props.children}
+                </a>
+            );
         }
 
         const onClick: React.MouseEventHandler = (event) => {
@@ -611,7 +636,6 @@ export const createRouter = <
             DiscriminateUnion<TRoutes[number], "name", K>["definition"]["tabs"]
         >;
     }) => {
-
         const Loader = (props: {
             match: any;
             locator: Locator;
@@ -628,11 +652,11 @@ export const createRouter = <
             React.useEffect(() => {
                 if (isLoaded == false) {
                     (async () => {
-                        setResolved(
-                            {
-                                [locator.scenePath]: await route.definition.resolve({params}),
-                            }
-                        );
+                        setResolved({
+                            [locator.scenePath]: await route.definition.resolve({
+                                params,
+                            }),
+                        });
                         // setIsLoaded(true);
                     })();
                 }
@@ -646,9 +670,7 @@ export const createRouter = <
                 resolved: currentResolved,
             };
 
-            return (
-                <Component {...componentProps as any} />
-            );
+            return <Component {...(componentProps as any)} />;
         };
         const useRoute = () => {
             const [currentPath, setCurrentPath] = React.useState(location.pathname);
@@ -656,7 +678,7 @@ export const createRouter = <
 
             const match = matchRoutes(routes, currentPath);
 
-            const currentLocator =  getLocatorFromURL(currentPath);
+            const currentLocator = getLocatorFromURL(currentPath);
 
             if (match == null || currentLocator == null) {
                 return null; // return <div><h1>Invalid route</h1></div>;
@@ -671,7 +693,7 @@ export const createRouter = <
 
                 return () => {
                     window.removeEventListener("resolved", handleResolved);
-                }
+                };
             }, []);
 
             React.useEffect(() => {
@@ -682,17 +704,18 @@ export const createRouter = <
 
                 return () => {
                     window.removeEventListener("navigate", onLocationChange);
-                }
+                };
             }, []);
 
             React.useEffect(() => {
                 if (isLoaded == false) {
                     (async () => {
-                        setResolved(
-                            {
-                                [currentLocator.scenePath]: await currentLocator.routeDefinition.definition.resolve({params: currentLocator.params} as any),
-                            }
-                        );
+                        setResolved({
+                            [currentLocator.scenePath]:
+                                await currentLocator.routeDefinition.definition.resolve(
+                                    {params: currentLocator.params} as any,
+                                ),
+                        });
                         // setIsLoaded(true);
                     })();
                 }
@@ -702,29 +725,46 @@ export const createRouter = <
                 return null;
             }
 
-            const implementationForTabs = implementations[match.route.name as RouteNames];
+            const implementationForTabs =
+                implementations[match.route.name as RouteNames];
 
-            const parentImplementation = match.route.definition.parent != null ? implementations[match.route.definition.parent as RouteNames] : null;
-            const parentDefinition = match.route.definition.parent != null ? routes.find(route => route.name == match.route.definition.parent) : null;
+            const parentImplementation =
+                match.route.definition.parent != null
+                    ? implementations[match.route.definition.parent as RouteNames]
+                    : null;
+            const parentDefinition =
+                match.route.definition.parent != null
+                    ? routes.find(
+                          (route) => route.name == match.route.definition.parent,
+                      )
+                    : null;
 
-            const parent = parentDefinition != null ? locator({
-                ...currentLocator as any,
-                route: `${parentDefinition.name}.${parentDefinition.definition.tabs[0]}` as any,
-                resolved: currentResolved,
-            }) : null;
+            const parent =
+                parentDefinition != null
+                    ? locator({
+                          ...(currentLocator as any),
+                          route: `${parentDefinition.name}.${parentDefinition.definition.tabs[0]}` as any,
+                          resolved: currentResolved,
+                      })
+                    : null;
 
             const {route} = match;
             const options = implementationForTabs.options({resolved: currentResolved});
             const actions = implementationForTabs.actions({resolved: currentResolved});
-            const tabs = Object.values<Tab<unknown>>(implementationForTabs.tabs).map((tab) => {
-                const tabLocator = locator({route: `${route.name}.${tab.options.name}`, params: currentLocator.params as any});
+            const tabs = Object.values<Tab<unknown>>(implementationForTabs.tabs).map(
+                (tab) => {
+                    const tabLocator = locator({
+                        route: `${route.name}.${tab.options.name}`,
+                        params: currentLocator.params as any,
+                    });
 
-                return {
-                    locator: tabLocator,
-                    url: tabLocator.url,
-                    name: tab.options.name,
-                }
-            });
+                    return {
+                        locator: tabLocator,
+                        url: tabLocator.url,
+                        name: tab.options.name,
+                    };
+                },
+            );
             // console.log(implementationForTabs);
 
             const mounted = routes.map((route) => {
@@ -745,20 +785,27 @@ export const createRouter = <
                 return (
                     <React.Fragment key={currentLocator.scenePath}>
                         <ResolveProvider>
-                        {match != null && match.route == route && (
-                            <Loader
-                                locator={currentLocator}
-                                match={match}
-                                component={Component}
-                            />
-                        )}
+                            {match != null && match.route == route && (
+                                <Loader
+                                    locator={currentLocator}
+                                    match={match}
+                                    component={Component}
+                                />
+                            )}
                         </ResolveProvider>
                     </React.Fragment>
                 );
             });
 
-            return {view: mounted, options, actions, parent, tabs, key: currentLocator.scenePath};
-        }
+            return {
+                view: mounted,
+                options,
+                actions,
+                parent,
+                tabs,
+                key: currentLocator.scenePath,
+            };
+        };
 
         return {useRoute};
     };
@@ -801,10 +848,14 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
             name: options.name,
             subroute: (definition) => {
                 const innerResolve = async (props: any) => {
-                    const outer = await options.resolve?.(props) ?? {};
+                    const outer = (await options.resolve?.(props)) ?? {};
                     return definition.resolve?.({...props, resolved: outer}) ?? {};
-                }
-                const subrouteDefinition = route({...definition, path: `${options.path}${definition.path}`, resolve: innerResolve}) as any;
+                };
+                const subrouteDefinition = route({
+                    ...definition,
+                    path: `${options.path}${definition.path}`,
+                    resolve: innerResolve,
+                }) as any;
 
                 return {
                     ...subrouteDefinition,
@@ -823,7 +874,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                         component,
                     },
                 };
-                const options =  () => ({title: ""});
+                const options = () => ({title: ""});
 
                 return {
                     options,
@@ -838,7 +889,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                             options,
                             actions,
                             tabs,
-                        }
+                        };
                     },
                     tabs,
                 };
@@ -851,7 +902,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                             name: _definition.name,
                         },
                         component: _component,
-                    }
+                    };
                     tabs[tab.options.name] = tab;
 
                     return {
@@ -865,14 +916,14 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                                     actions,
                                     tabs,
                                 }),
-                            }
+                            };
                         },
                         actions: () => [],
                         options: () => ({title: ""}),
                         tabs,
                         withTab: _withTab,
-                    }
-                }
+                    };
+                };
                 return _withTab(definition, component) as any;
             },
             definition: {

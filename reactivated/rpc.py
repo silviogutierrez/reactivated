@@ -1,31 +1,27 @@
-import re
-from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import render, get_object_or_404
-from django import forms
-from django.urls import path, reverse, URLPattern, include, URLResolver
-from decimal import Decimal
-from django.utils import dateparse, timezone
-from django.db.models import QuerySet
-
 from typing import (
-    Sequence,
-    Tuple,
-    Dict,
-    get_type_hints,
+    TYPE_CHECKING,
     Any,
-    Optional,
+    Callable,
+    Dict,
+    Generic,
     Iterable,
     List,
     NamedTuple,
-    Callable,
-    TypeVar,
+    Optional,
+    Sequence,
+    Tuple,
     Type,
-    Generic,
+    TypeVar,
     Union,
-    TYPE_CHECKING,
-    overload,
     cast,
+    get_type_hints,
+    overload,
 )
+
+from django import forms
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.urls import URLPattern, path
+
 from . import Pick, registry, types
 from .serialization import create_schema, serialize
 
@@ -51,13 +47,26 @@ TForm = TypeVar(
 if TYPE_CHECKING:
     InputOutput = Tuple[Callable[[TForm], None], Callable[[TForm], TResponse]]
 else:
+
     class InputOutput:
         def __class_getitem__(cls: Type["Undefined"], item: Any) -> Any:
             class InputOutputHolder:
                 content = item
+
             return InputOutputHolder
 
-TView = Union[Callable[[THttpRequest, TForm], TResponse], Callable[[THttpRequest], TResponse], Callable[[THttpRequest], InputOutput[TForm, TResponse]]]
+
+TView = Union[
+    Callable[[THttpRequest, TForm], TResponse],
+    Callable[[THttpRequest], TResponse],
+    Callable[[THttpRequest], InputOutput[TForm, TResponse]],
+]
+
+
+class EmptyForm(forms.Form):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        kwargs.pop("instance", None)
+        super().__init__(*args, **kwargs)
 
 
 class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
@@ -125,7 +134,64 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             Callable[[THttpRequest, TFirst, TSecond], TContext]
         ] = None,
     ) -> URLPattern:
-        pass
+        return_type = get_type_hints(view)["return"]
+        return_schema = create_schema(return_type, registry.definitions_registry)
+
+        requires_context = list(get_type_hints(view).values())[1] is not type(None)
+
+        form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get("form")
+        form_schema = create_schema(form_type, registry.definitions_registry)
+        form_class = form_type or EmptyForm
+
+        def wrapped_view(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
+            if self.authentication(request) is False:
+                return HttpResponse("401 Unauthorized", status=401)
+
+            extra_args: Any = {}
+
+            if requires_context is True:
+                context = (
+                    context_provider(request, *args, **kwargs)
+                    if context_provider is not None
+                    else self.context_provider(request, *args, **kwargs)
+                )
+                extra_args["instance"] = context
+            else:
+                context = None
+
+            form = form_class(
+                request.POST if request.method == "POST" else None,
+                **extra_args,
+            )
+
+            if request.method == "POST":
+                if form.is_valid():
+                    response = view(request, context, form) if form_type is not None else view(request, context)  # type: ignore[arg-type, call-arg]
+                    data = serialize(response, return_schema)
+
+                    return JsonResponse(data, safe=False)
+                else:
+                    # TODO: this should be code + message, not just messages.
+                    # But types will then need to be updated.
+                    errors = (
+                        form.errors
+                        if isinstance(form, forms.BaseFormSet)
+                        else {
+                            field_name: [error["message"] for error in field_errors]
+                            for field_name, field_errors in form.errors.get_json_data().items()
+                        }
+                    )
+                    return JsonResponse(errors, status=400, safe=False)
+            else:
+                return HttpResponse("", status=405)
+
+        url_path = (
+            f"{self.url_path}{view.__name__}/"
+            if requires_context is True
+            else f"{self.no_context_url_path}create/"
+        )
+        route = path(url_path, wrapped_view, name=f"rpc_{view.__name__}")
+        return route
 
 
 class RPC(Generic[THttpRequest]):
@@ -140,11 +206,15 @@ class RPC(Generic[THttpRequest]):
             if self.authentication(request) is False:
                 return HttpResponse("401 Unauthorized", status=401)
 
-            return_value = view(request, *args, **kwargs)  # type: ignore[call-arg]
+            return_value = view(request, *args, **kwargs)
             data = serialize(return_value, return_schema)
             return JsonResponse(data, safe=False)
 
-        route = path(f"api/functional-rpc-{view.__name__}/", wrapped_view, name=f"rpc_{view.__name__}")
+        route = path(
+            f"api/functional-rpc-{view.__name__}/",
+            wrapped_view,
+            name=f"rpc_{view.__name__}",
+        )
         return route
 
     def context(

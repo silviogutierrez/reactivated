@@ -152,8 +152,8 @@ compile(types, "_Types").then((ts) => {
         const propsName = templates[name];
         sourceFile.addStatements(`
 
-import ${name}Implementation from "@client/templates/${name}"
-export type ${name}Check = Checker<_Types["${propsName}"], typeof ${name}Implementation>;
+// import ${name}Implementation from "@client/templates/${name}"
+// export type ${name}Check = Checker<_Types["${propsName}"], typeof ${name}Implementation>;
 
 export namespace templates {
     export type ${name} = _Types["${propsName}"];

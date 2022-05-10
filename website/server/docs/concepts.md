@@ -117,7 +117,7 @@ import React from "react";
 import {templates, Context} from "@reactivated";
 
 export default (props: templates.MyTemplate) => {
-    const context = React.useContext(context);
+    const context = React.useContext(Context);
 
     return (
         <div>

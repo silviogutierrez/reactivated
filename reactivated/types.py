@@ -1,6 +1,17 @@
-from typing import Dict, NamedTuple, Tuple, TypedDict, Union
+from typing import Dict, List, Literal, NamedTuple, Optional, Tuple, TypedDict, Union
 
 from django import forms
+
+
+class RPC(TypedDict):
+    params: List[Tuple[str, str]]
+    url: str
+    input: Optional[str]
+    output: str
+    type: Literal["form", "form_set"]
+
+
+RPCRegistry = Dict[str, RPC]
 
 
 class OptgroupMember(NamedTuple):
@@ -44,3 +55,4 @@ class Types(NamedTuple):
     Widget: Widget
     Optgroup: Optgroup
     URLSchema: URLSchema
+    RPCRegistry: RPCRegistry

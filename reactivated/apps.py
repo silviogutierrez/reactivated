@@ -15,6 +15,7 @@ from .serialization.registry import (
     definitions_registry,
     global_types,
     interface_registry,
+    rpc_registry,
     template_registry,
     type_registry,
     value_registry,
@@ -27,7 +28,7 @@ GENERATED_DIRECTORY = f"{settings.BASE_DIR}/node_modules/_reactivated"
 
 def get_urls_schema() -> Dict[str, Any]:
     urlconf = importlib.import_module(settings.ROOT_URLCONF)
-    urlpatterns = urlconf.urlpatterns  # type: ignore[attr-defined]
+    urlpatterns = urlconf.urlpatterns
 
     from django.urls import converters
     from django.urls.resolvers import RoutePattern
@@ -130,6 +131,7 @@ def get_schema() -> str:
         "interfaces": get_interfaces(),
         "types": get_types_schema(),
         "values": get_values(),
+        "rpc": rpc_registry,
     }
     return json.dumps(schema, indent=4)
 

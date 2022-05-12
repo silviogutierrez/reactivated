@@ -85,13 +85,15 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         instance = []
 
         url_args = []
+        self.url_args_as_params = []
         for arg_name, arg_type in get_type_hints(context_provider).items():
             if arg_name in ["request", "return", "queryset"]:
                 continue
             instance.append(arg_name)
             url_args.append(f"<{arg_type.__name__}:{arg_name}>")
+            self.url_args_as_params.append((arg_type.__name__, arg_name))
 
-        self.url_path += "-".join(url_args) + "/"
+        self.url_path += "/".join(url_args) + "/"
 
     @overload
     def process(
@@ -185,18 +187,35 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             else:
                 return HttpResponse("", status=405)
 
+        url_name = f"rpc_{view.__name__}"
         url_path = (
-            f"{self.url_path}{view.__name__}/"
+            f"{self.url_path}rpc_{view.__name__}/"
             if requires_context is True
             else f"{self.no_context_url_path}create/"
         )
-        route = path(url_path, wrapped_view, name=f"rpc_{view.__name__}")
+
+        input_name = f"{url_name}_input"
+        output_name = f"{url_name}_output"
+        registry.type_registry[input_name] = form_class
+        registry.type_registry[output_name] = return_type
+        registry.rpc_registry[url_name] = {
+            "url": f"/{self.no_context_url_path}",
+            "input": input_name,
+            "output": output_name,
+            "params": self.url_args_as_params,
+            "type": "form",
+        }
+        route = path(url_path, wrapped_view, name=url_name)
         return route
 
 
 class RPC(Generic[THttpRequest]):
     def __init__(self, authentication: Callable[[HttpRequest], bool]) -> None:
         self.authentication = authentication
+        self.url_path = "api/functional-rpc/"
+        self.url = f"/{self.url_path}"
+        self.routes: List[URLPattern] = []
+        self.url_args_as_params = []
 
     def __call__(self, view: TView[THttpRequest, TForm, TResponse]) -> URLPattern:
         return_type = get_type_hints(view)["return"]
@@ -210,11 +229,22 @@ class RPC(Generic[THttpRequest]):
             data = serialize(return_value, return_schema)
             return JsonResponse(data, safe=False)
 
-        route = path(
-            f"api/functional-rpc-{view.__name__}/",
-            wrapped_view,
-            name=f"rpc_{view.__name__}",
-        )
+        url_name = f"rpc_{view.__name__}"
+        url_path = f"{self.url_path}rpc_{view.__name__}/"
+
+        # input_name = f"{url_name}_input"
+        input_name = None
+        output_name = f"{url_name}_output"
+        # registry.type_registry[input_name] = None
+        registry.type_registry[output_name] = return_type
+        registry.rpc_registry[url_name] = {
+            "url": f"/{self.url_path}",
+            "input": input_name,
+            "output": output_name,
+            "params": self.url_args_as_params,
+            "type": "form",
+        }
+        route = path(url_path, wrapped_view, name=url_name)
         return route
 
     def context(

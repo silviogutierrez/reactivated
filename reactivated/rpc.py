@@ -196,6 +196,7 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
 
         input_name = f"{url_name}_input"
         output_name = f"{url_name}_output"
+        registry.value_registry[input_name] = form_class
         registry.type_registry[input_name] = form_class
         registry.type_registry[output_name] = return_type
         registry.rpc_registry[url_name] = {

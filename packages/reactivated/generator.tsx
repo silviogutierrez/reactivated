@@ -98,6 +98,13 @@ for (const name of Object.keys(rpc)) {
     }
 
     if (input != null) {
+
+        const property = classDeclaration.addProperty({
+            // isStatic: true,
+            name: input,
+            type: `_Types["${input}"]`,
+            initializer: JSON.stringify(values[input]),
+        });
         functionDeclaration.addParameter({
             name: "input",
             type: `forms.FormOrFormSetValues<_Types["${input}"]>`,

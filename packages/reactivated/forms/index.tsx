@@ -79,6 +79,7 @@ export interface FormHandler<T extends FieldMap> {
     nonFieldErrors: string[] | null;
 
     setValue: <K extends keyof T>(name: K, value: FormValues<T>[K]) => void;
+    setValues: (values: FormValues<T>) => void;
     setErrors: (errors: FormErrors<T>) => void;
     iterate: (
         iterator: Array<Extract<keyof T, string>>,
@@ -311,6 +312,9 @@ export const getFormHandler = <T extends FieldMap>({
         iterate,
         reset,
         setErrors,
+        setValues: (values) => {
+            setValues(() => values);
+        },
         setValue: (fieldName, value) => {
             changeValues(fieldName, (prevValues) => ({
                 ...prevValues,
@@ -325,6 +329,7 @@ export const useForm = <T extends FieldMap>({
     ...options
 }: {
     form: FormLike<T>;
+    initial?: FormValues<T>;
     fieldInterceptor?: (
         fieldName: keyof T,
         field: FieldHandler<T[keyof T]["widget"]>,
@@ -336,7 +341,7 @@ export const useForm = <T extends FieldMap>({
         nextValues: FormValues<T>,
     ) => FormValues<T>;
 }): FormHandler<T> => {
-    const initial = getInitialFormState(form);
+    const initial = options.initial ?? getInitialFormState(form);
     const [values, formSetValues] = React.useState(initial);
     const [errors, setErrors] = React.useState(form.errors);
 

@@ -166,6 +166,15 @@ function myThing<TTabs extends string[] = ["index"]>(options: {
 
 // result.withTab("a")
 
+import {Result} from "./rpc";
+
+type RemoveNulls<T> = {[K in keyof T]: NonNullable<T[K]>};
+
+
+type ExtractResult<T> = T extends Result<any, any> ? RemoveNulls<DiscriminateUnion<T, "type", "success">> : RemoveNulls<T>;
+
+type TryIt<T> = T extends Promise<infer U> ? ExtractResult<U> : ExtractResult<T>;
+
 export type Route<
     TName extends string,
     TParent extends string | null,
@@ -203,20 +212,20 @@ export type Route<
         TName,
         `${TPath}${TInnerPath}`,
         TInnerResolve,
-        Awaited<TInnerResolve> & TResolvedSoFar,
+        TryIt<TInnerResolve> & TResolvedSoFar,
         TGlobalHooks,
         TInnerTabs
     >;
-    withTab: WithTab<TTabs, [], {resolved: Awaited<TResolve> & TResolvedSoFar}>;
+    withTab: WithTab<TTabs, [], {resolved: TryIt<TResolve> & TResolvedSoFar}>;
     withComponent: (
         component: React.ComponentType<{
             currentTab: TTabs[number];
-            resolved: Awaited<TResolve> & TResolvedSoFar;
+            resolved: TryIt<TResolve> & TResolvedSoFar;
         }>,
     ) => {
         withActions: WithActions<{
             currentTab: TTabs[number];
-            resolved: Awaited<TResolve> & TResolvedSoFar;
+            resolved: TryIt<TResolve> & TResolvedSoFar;
         }>;
         actions: () => [];
         options: () => OptionsDefinition;
@@ -256,7 +265,7 @@ type RouteDefinition<
 
         _testing: {
             params: ExtractRouteParams<TPath>;
-            resolved: Awaited<TResolve> & TResolvedSoFar;
+            resolved: TryIt<TResolve> & TResolvedSoFar;
             tabs: TTabs;
             tab: TTabs[number];
             hooks: TGlobalHooks;
@@ -394,7 +403,7 @@ export const createRouter = <
         params: TParams;
         replace?: true;
         method?: "push" | "replace";
-        resolved?: Awaited<TResolve>;
+        resolved?: TryIt<TResolve>;
     }): Locator => {
         const [routeName, tabName] = target.route.split(".");
         const routeDefinition = Object.values(routes).find(
@@ -519,7 +528,7 @@ export const createRouter = <
     >(
         routeNameAndTab: `${TName}.${TTab}`,
         params: TParams,
-        resolved?: Awaited<TResolve>,
+        resolved?: TryIt<TResolve>,
     ) => {
         return transition(
             locator({route: routeNameAndTab, params, resolved, method: "push"}),
@@ -585,7 +594,7 @@ export const createRouter = <
                   method?: never;
                   route: `${TName}.${TTab}`;
                   params: TParams;
-                  resolved?: Awaited<TResolve>;
+                  resolved?: TryIt<TResolve>;
                   children: React.ReactNode;
                   className?: string;
                   onClick?: () => void;
@@ -821,7 +830,7 @@ export const createRouter = <
 
 export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | false) {
     type WithFalseRemoved = TGlobalHooks extends false ? never : TGlobalHooks;
-    type DoesThisWork = Awaited<TGlobalHooks>;
+    type DoesThisWork = TryIt<TGlobalHooks>;
 
     function route<
         TName extends string,
@@ -839,7 +848,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
         null,
         TPath,
         TResolve,
-        Awaited<TResolve> & TResolvedSoFar,
+        TryIt<TResolve> & TResolvedSoFar,
         WithFalseRemoved,
         TTabs
     > {
@@ -1028,7 +1037,8 @@ function tests() {
         name: "first_level_no_resolve",
         path: "",
     }).withComponent((props) => {
-        assert<Equals<unknown, typeof props.resolved>>();
+        // assert<Equals<unknown, typeof props.resolved>>();
+        assert<Equals<RemoveNulls<unknown>, typeof props.resolved>>();
         return <></>;
     });
 

@@ -3,7 +3,9 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-types */
 
+import { current } from "immer";
 import React from "react";
+import { NodeArray } from "typescript";
 
 export type ExtractRouteParams<T> = string extends T
     ? Record<string, string | number>
@@ -76,6 +78,7 @@ type WithTab<TTabs extends string[], TTabsSoFar extends string[], TProps> = {
         withTab: WithTab<TTabs, [...TTabsSoFar, TTab], TProps>;
         withActions: WithActions<TProps>;
         options: () => {title: string};
+        hooks: (props: TProps) => TProps;
         actions: () => [];
         tabs: {
             [K in [...TTabsSoFar, TTab][number]]: {
@@ -182,6 +185,7 @@ export type Route<
     TResolve,
     TResolvedSoFar,
     TGlobalHooks,
+    THooks, // TODO: Not sure THooks is actually needed. Seems to be done at the local function level.
     TTabs extends string[] = ["index"],
 > = RouteDefinition<
     TName,
@@ -190,6 +194,7 @@ export type Route<
     TResolve,
     TResolvedSoFar,
     TGlobalHooks,
+    THooks,
     TTabs
 > & {
     resolve?: (props: {params: ExtractRouteParams<TPath>}) => TResolve;
@@ -214,9 +219,13 @@ export type Route<
         TInnerResolve,
         TryIt<TInnerResolve> & TResolvedSoFar,
         TGlobalHooks,
+        THooks,
         TInnerTabs
     >;
     withTab: WithTab<TTabs, [], {resolved: TryIt<TResolve> & TResolvedSoFar}>;
+    withHooks: <TLocalHooks>(hooks: (props: {resolved: TryIt<TResolve> & TResolvedSoFar}) => TLocalHooks) => {
+        withTab: WithTab<TTabs, [], TLocalHooks & {resolved: TryIt<TResolve> & TResolvedSoFar}>;
+    };
     withComponent: (
         component: React.ComponentType<{
             currentTab: TTabs[number];
@@ -227,6 +236,7 @@ export type Route<
             currentTab: TTabs[number];
             resolved: TryIt<TResolve> & TResolvedSoFar;
         }>;
+        hooks: () => any;
         actions: () => [];
         options: () => OptionsDefinition;
         tabs: {
@@ -247,6 +257,7 @@ type RouteDefinition<
     TResolve,
     TResolvedSoFar,
     TGlobalHooks,
+    THooks,
     TTabs extends string[],
 > = {
     name: TName;
@@ -300,6 +311,7 @@ interface StaticRouteImplementation<TTabs extends string[]> {
     tabs: TabMap<TTabs>;
     actions: (props: any) => ActionsDefinition;
     options: (props: any) => OptionsDefinition;
+    hooks: (props: any) => any;
     // actions: (props: any) => ActionsDefinition;
     // options: SceneOptions<any>;
 }
@@ -308,7 +320,7 @@ type RouteImplementation<TTabs extends string[]> = StaticRouteImplementation<TTa
 
 export const matchRoutes = <
     TRoutes extends Array<
-        RouteDefinition<string, string | null, any, any, any, any, any>
+        RouteDefinition<string, string | null, any, any, any, any, any, any>
     >,
 >(
     routes: [...TRoutes],
@@ -353,6 +365,7 @@ interface Locator {
         any,
         any,
         any,
+        any,
         string[]
     >;
     resolved?: any;
@@ -362,7 +375,7 @@ interface Locator {
 
 export const createRouter = <
     TRoutes extends Array<
-        RouteDefinition<string, string | null, any, any, any, any, any>
+        RouteDefinition<string, string | null, any, any, any, any, any, any>
     >,
 >(
     routes: [...TRoutes],
@@ -647,6 +660,7 @@ export const createRouter = <
     }) => {
         const Loader = (props: {
             match: any;
+            hooks: any;
             locator: Locator;
             component: React.ComponentType;
         }) => {
@@ -676,6 +690,7 @@ export const createRouter = <
             }
 
             const componentProps = {
+                ...props.hooks({resolved: currentResolved}),
                 resolved: currentResolved,
             };
 
@@ -760,6 +775,7 @@ export const createRouter = <
             const {route} = match;
             const options = implementationForTabs.options({resolved: currentResolved});
             const actions = implementationForTabs.actions({resolved: currentResolved});
+            const hooks = implementationForTabs.hooks;
             const tabs = Object.values<Tab<unknown>>(implementationForTabs.tabs).map(
                 (tab) => {
                     const tabLocator = locator({
@@ -798,6 +814,7 @@ export const createRouter = <
                                 <Loader
                                     locator={currentLocator}
                                     match={match}
+                                    hooks={hooks}
                                     component={Component}
                                 />
                             )}
@@ -837,6 +854,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
         TPath extends string,
         TResolve,
         TResolvedSoFar,
+        THooks,
         TTabs extends string[] = ["index"],
     >(options: {
         name: TName;
@@ -850,9 +868,56 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
         TResolve,
         TryIt<TResolve> & TResolvedSoFar,
         WithFalseRemoved,
+        THooks,
         TTabs
     > {
+
+        type BoundRouteUsedForTypes = Route<
+            TName,
+            null,
+            TPath,
+            TResolve,
+            TryIt<TResolve> & TResolvedSoFar,
+            WithFalseRemoved,
+            THooks,
+            TTabs
+        >;
         const tabs = options.tabs ?? (["index"] as TTabs);
+
+        const bindWithTab = (hooks: any): BoundRouteUsedForTypes["withTab"] => (definition, component) => {
+            const tabs: any = {};
+            const _withTab: WithTab<any, any, any> = (_definition, _component) => {
+                const tab = {
+                    options: {
+                        name: _definition.name,
+                    },
+                    component: _component,
+                };
+                tabs[tab.options.name] = tab;
+
+                return {
+                    withActions: (actions) => {
+                        return {
+                            actions,
+                            options: () => ({title: ""}),
+                            tabs,
+                            withOptions: (options) => ({
+                                options,
+                                actions,
+                                tabs,
+                            }),
+                        };
+                    },
+                    actions: () => [],
+                    options: () => ({title: ""}),
+                    hooks,
+                    tabs,
+                    withTab: _withTab,
+                };
+            };
+            return _withTab(definition, component) as any;
+        }
+
         return {
             name: options.name,
             subroute: (definition) => {
@@ -886,6 +951,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                 const options = () => ({title: ""});
 
                 return {
+                    hooks: () => {},
                     options,
                     actions: () => [],
                     withActions: (actions) => {
@@ -903,37 +969,11 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                     tabs,
                 };
             },
-            withTab: (definition, component) => {
-                const tabs: any = {};
-                const _withTab: WithTab<any, any, any> = (_definition, _component) => {
-                    const tab = {
-                        options: {
-                            name: _definition.name,
-                        },
-                        component: _component,
-                    };
-                    tabs[tab.options.name] = tab;
-
-                    return {
-                        withActions: (actions) => {
-                            return {
-                                actions,
-                                options: () => ({title: ""}),
-                                tabs,
-                                withOptions: (options) => ({
-                                    options,
-                                    actions,
-                                    tabs,
-                                }),
-                            };
-                        },
-                        actions: () => [],
-                        options: () => ({title: ""}),
-                        tabs,
-                        withTab: _withTab,
-                    };
-                };
-                return _withTab(definition, component) as any;
+            withTab: bindWithTab({}),
+            withHooks: (hooks) => {
+                return {
+                    withTab: bindWithTab(hooks) as any,
+                }
             },
             definition: {
                 parent: null,

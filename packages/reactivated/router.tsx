@@ -119,6 +119,7 @@ type WithActions<TProps> = {
     (actions: (props: TProps) => ActionsDefinition): {
         actions: typeof actions;
         tabs: TabMap<string[]>;
+        hooks: (props: TProps) => any;
         // withOptions: WithOptions<TProps>;
         options: () => {title: string};
         withOptions: WithOptions<TProps>;
@@ -901,6 +902,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                             actions,
                             options: () => ({title: ""}),
                             tabs,
+                            hooks,
                             withOptions: (options) => ({
                                 options,
                                 actions,
@@ -961,6 +963,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                                 actions,
                                 tabs,
                             }),
+                            hooks: () => {},
                             options,
                             actions,
                             tabs,

@@ -698,36 +698,53 @@ export const createRouter = <
             return <Component {...(componentProps as any)} />;
         };
 
-        const Loaded = ({currentResolved, implementation, parent, match}: {match: any, currentResolved: any, implementation: any, parent: any}) => {
-
+        const Loaded = ({
+            currentResolved,
+            implementation,
+            parent,
+            match,
+            children,
+        }: {
+            match: any;
+            currentResolved: any;
+            implementation: any;
+            parent: any;
+            children: RenderProps;
+        }) => {
             const {route} = match;
             const hooks = implementation.hooks({resolved: currentResolved});
-            const options = implementation.options({...hooks, resolved: currentResolved});
-            const actions = implementation.actions({...hooks, resolved: currentResolved});
-            const tabs = Object.values<Tab<unknown>>(implementation.tabs).map(
-                (tab) => {
-                    const tabLocator = locator({
-                        route: `${route.name}.${tab.options.name}`,
-                        params: match.params,
-                    });
+            const options = implementation.options({
+                ...hooks,
+                resolved: currentResolved,
+            });
+            const actions = implementation.actions({
+                ...hooks,
+                resolved: currentResolved,
+            });
+            const tabs = Object.values<Tab<unknown>>(implementation.tabs).map((tab) => {
+                const tabLocator = locator({
+                    route: `${route.name}.${tab.options.name}`,
+                    params: match.params,
+                });
 
-                    return {
-                        locator: tabLocator,
-                        url: tabLocator.url,
-                        name: tab.options.name,
-                    };
-                },
-            );
+                return {
+                    locator: tabLocator,
+                    url: tabLocator.url,
+                    name: tab.options.name,
+                };
+            });
             const componentProps = {
                 ...hooks,
                 resolved: currentResolved,
-            }
+            };
 
             const Component = (implementation.tabs as any)[match.tab].component;
-            return <Component {...componentProps} />;
-        }
+            const view = <Component {...componentProps} />;
+            return children({view, tabs, actions});
+        };
+        type RenderProps = (props: {view: React.ReactNode, tabs: any[], actions: any[]}) => React.ReactElement;
 
-        const Route = () => {
+        const Route = (props: {children: RenderProps}) => {
             const [currentPath, setCurrentPath] = React.useState(location.pathname);
             const [mirror, setMirror] = React.useState(dependencies);
 
@@ -806,6 +823,7 @@ export const createRouter = <
             return (
                 <Loaded
                     match={match}
+                    children={props.children}
                     currentResolved={currentResolved}
                     implementation={implementationForTabs}
                     parent={parent}

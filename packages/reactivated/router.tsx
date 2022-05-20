@@ -697,7 +697,37 @@ export const createRouter = <
 
             return <Component {...(componentProps as any)} />;
         };
-        const useRoute = () => {
+
+        const Loaded = ({currentResolved, implementation, parent, match}: {match: any, currentResolved: any, implementation: any, parent: any}) => {
+
+            const {route} = match;
+            const hooks = implementation.hooks({resolved: currentResolved});
+            const options = implementation.options({...hooks, resolved: currentResolved});
+            const actions = implementation.actions({...hooks, resolved: currentResolved});
+            const tabs = Object.values<Tab<unknown>>(implementation.tabs).map(
+                (tab) => {
+                    const tabLocator = locator({
+                        route: `${route.name}.${tab.options.name}`,
+                        params: match.params,
+                    });
+
+                    return {
+                        locator: tabLocator,
+                        url: tabLocator.url,
+                        name: tab.options.name,
+                    };
+                },
+            );
+            const componentProps = {
+                ...hooks,
+                resolved: currentResolved,
+            }
+
+            const Component = (implementation.tabs as any)[match.tab].component;
+            return <Component {...componentProps} />;
+        }
+
+        const Route = () => {
             const [currentPath, setCurrentPath] = React.useState(location.pathname);
             const [mirror, setMirror] = React.useState(dependencies);
 
@@ -773,24 +803,15 @@ export const createRouter = <
                       })
                     : null;
 
-            const {route} = match;
-            const options = implementationForTabs.options({resolved: currentResolved});
-            const actions = implementationForTabs.actions({resolved: currentResolved});
-            const hooks = implementationForTabs.hooks;
-            const tabs = Object.values<Tab<unknown>>(implementationForTabs.tabs).map(
-                (tab) => {
-                    const tabLocator = locator({
-                        route: `${route.name}.${tab.options.name}`,
-                        params: currentLocator.params as any,
-                    });
-
-                    return {
-                        locator: tabLocator,
-                        url: tabLocator.url,
-                        name: tab.options.name,
-                    };
-                },
+            return (
+                <Loaded
+                    match={match}
+                    currentResolved={currentResolved}
+                    implementation={implementationForTabs}
+                    parent={parent}
+                />
             );
+            /*
             // console.log(implementationForTabs);
 
             const mounted = routes.map((route) => {
@@ -832,9 +853,10 @@ export const createRouter = <
                 tabs,
                 key: currentLocator.scenePath,
             };
+            */
         };
 
-        return {useRoute};
+        return {Route};
     };
     return {
         router: {

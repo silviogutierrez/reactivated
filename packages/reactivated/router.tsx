@@ -109,6 +109,7 @@ export type OptionsDefinition = {title: string};
 
 type WithOptions<TProps> = {
     (options: (props: TProps) => OptionsDefinition): {
+        hooks: (props: TProps) => any;
         tabs: TabMap<string[]>;
         actions: (props: TProps) => ActionsDefinition;
         options: typeof options;
@@ -600,6 +601,7 @@ export const createRouter = <
                   resolved?: never;
                   children: React.ReactNode;
                   className?: string;
+                  style?: React.CSSProperties;
                   onClick?: () => void;
               }
             | {
@@ -611,6 +613,7 @@ export const createRouter = <
                   resolved?: TryIt<TResolve>;
                   children: React.ReactNode;
                   className?: string;
+                  style?: React.CSSProperties;
                   onClick?: () => void;
               }
             | {
@@ -622,6 +625,7 @@ export const createRouter = <
                   resolved?: never;
                   children: React.ReactNode;
                   className?: string;
+                  style?: React.CSSProperties;
                   onClick?: () => void;
               },
     ) => {
@@ -648,7 +652,7 @@ export const createRouter = <
             void transition(target);
         };
         return (
-            <a className={props.className} href={target.url} onClick={onClick}>
+            <a className={props.className} href={target.url} style={props.style} onClick={onClick}>
                 {props.children}
             </a>
         );
@@ -700,12 +704,14 @@ export const createRouter = <
 
         const Loaded = ({
             currentResolved,
+            currentLocator,
             implementation,
             parent,
             match,
             children,
         }: {
             match: any;
+            currentLocator: Locator;
             currentResolved: any;
             implementation: any;
             parent: any;
@@ -731,6 +737,7 @@ export const createRouter = <
                     locator: tabLocator,
                     url: tabLocator.url,
                     name: tab.options.name,
+                    isActive: tabLocator.url == currentLocator.url,
                 };
             });
             const componentProps = {
@@ -740,9 +747,22 @@ export const createRouter = <
 
             const Component = (implementation.tabs as any)[match.tab].component;
             const view = <Component {...componentProps} />;
-            return children({view, tabs, actions, parent});
+            return children({view, tabs, actions, parent, options});
         };
-        type RenderProps = (props: {view: React.ReactNode, tabs: any[], actions: any[], parent: Locator | null}) => React.ReactElement;
+
+        type PreparedTab = {
+            name: string;
+            locator: Locator;
+            isActive: boolean;
+        }
+
+        type RenderProps = (props: {
+            view: React.ReactNode;
+            tabs: PreparedTab[];
+            actions: any[];
+            parent: Locator | null;
+            options: {title: string};
+        }) => React.ReactElement;
 
         const Route = (props: {children: RenderProps}) => {
             const [currentPath, setCurrentPath] = React.useState(location.pathname);
@@ -822,6 +842,7 @@ export const createRouter = <
 
             return (
                 <Loaded
+                    currentLocator={currentLocator}
                     match={match}
                     children={props.children}
                     currentResolved={currentResolved}
@@ -944,6 +965,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                             tabs,
                             hooks,
                             withOptions: (options) => ({
+                                hooks,
                                 options,
                                 actions,
                                 tabs,
@@ -965,7 +987,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
             subroute: (definition) => {
                 const innerResolve = async (props: any) => {
                     const outer = (await options.resolve?.(props)) ?? {};
-                    const inner = definition.resolve?.({...props, resolved: outer}) ?? {};
+                    const inner = await definition.resolve?.({...props, resolved: outer}) ?? {};
                     return {...outer, ...inner};
                 };
                 const subrouteDefinition = route({
@@ -1000,6 +1022,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                     withActions: (actions) => {
                         return {
                             withOptions: (options) => ({
+                                hooks: () => {},
                                 options,
                                 actions,
                                 tabs,

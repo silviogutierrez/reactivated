@@ -191,7 +191,7 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         url_path = (
             f"{self.url_path}rpc_{view.__name__}/"
             if requires_context is True
-            else f"{self.no_context_url_path}create/"
+            else f"{self.no_context_url_path}rpc_{view.__name__}/"
         )
 
         input_name = f"{url_name}_input"
@@ -203,7 +203,7 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             "url": f"/{self.no_context_url_path}",
             "input": input_name,
             "output": output_name,
-            "params": self.url_args_as_params,
+            "params": self.url_args_as_params if requires_context else [],
             "type": "form",
         }
         route = path(url_path, wrapped_view, name=url_name)

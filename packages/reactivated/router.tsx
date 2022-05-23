@@ -740,9 +740,9 @@ export const createRouter = <
 
             const Component = (implementation.tabs as any)[match.tab].component;
             const view = <Component {...componentProps} />;
-            return children({view, tabs, actions});
+            return children({view, tabs, actions, parent});
         };
-        type RenderProps = (props: {view: React.ReactNode, tabs: any[], actions: any[]}) => React.ReactElement;
+        type RenderProps = (props: {view: React.ReactNode, tabs: any[], actions: any[], parent: Locator | null}) => React.ReactElement;
 
         const Route = (props: {children: RenderProps}) => {
             const [currentPath, setCurrentPath] = React.useState(location.pathname);
@@ -965,7 +965,8 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
             subroute: (definition) => {
                 const innerResolve = async (props: any) => {
                     const outer = (await options.resolve?.(props)) ?? {};
-                    return definition.resolve?.({...props, resolved: outer}) ?? {};
+                    const inner = definition.resolve?.({...props, resolved: outer}) ?? {};
+                    return {...outer, ...inner};
                 };
                 const subrouteDefinition = route({
                     ...definition,

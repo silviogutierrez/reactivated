@@ -324,23 +324,28 @@ export const getFormHandler = <T extends FieldMap>({
     };
 };
 
-export const useForm = <T extends FieldMap>({
-    form,
-    ...options
-}: {
+
+export const useForm = <T extends FieldMap, S extends Array<keyof T> = [], R extends {[P in Exclude<keyof T, S[number]>]: T[P]} = {[P in Exclude<keyof T, S[number]>]: T[P]} >(
+    options
+: {
     form: FormLike<T>;
-    initial?: FormValues<T>;
+    initial?: FormValues<R>;
+    exclude?: [...S];
     fieldInterceptor?: (
-        fieldName: keyof T,
-        field: FieldHandler<T[keyof T]["widget"]>,
-        values: FormValues<T>,
+        fieldName: keyof R,
+        field: FieldHandler<R[keyof R]["widget"]>,
+        values: FormValues<R>,
     ) => typeof field;
     changeInterceptor?: (
-        name: keyof T,
-        prevValues: FormValues<T>,
-        nextValues: FormValues<T>,
-    ) => FormValues<T>;
-}): FormHandler<T> => {
+        name: keyof R,
+        prevValues: FormValues<R>,
+        nextValues: FormValues<R>,
+    ) => FormValues<R>;
+}): FormHandler<R> => {
+    const form = {
+        ...options.form as any as FormLike<R>,
+        iterator: options.form.iterator.filter(field => options.exclude == null || !options.exclude.includes(field))
+    } as any as FormLike<R>;
     const initial = options.initial ?? getInitialFormState(form);
     const [values, formSetValues] = React.useState(initial);
     const [errors, setErrors] = React.useState(form.errors);

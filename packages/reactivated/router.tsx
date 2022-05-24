@@ -747,7 +747,7 @@ export const createRouter = <
 
             const Component = (implementation.tabs as any)[match.tab].component;
             const view = <Component {...componentProps} />;
-            return children({view, tabs, actions, parent, options});
+            return children({view, tabs, locator: currentLocator, actions, parent, options});
         };
 
         type PreparedTab = {
@@ -757,6 +757,7 @@ export const createRouter = <
         }
 
         type RenderProps = (props: {
+            locator: Locator;
             view: React.ReactNode;
             tabs: PreparedTab[];
             actions: any[];

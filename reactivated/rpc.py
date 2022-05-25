@@ -209,6 +209,48 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         route = path(url_path, wrapped_view, name=url_name)
         return route
 
+    # TODO: merge  RPCContext.rpc() with RPC.__call__()  they are virtually
+    # identical. Except wrapped_view here needs to inject the context.
+    # And url in the registry is self.no_context_url_path
+    def rpc(
+        self,
+        view: Union[
+            Callable[[THttpRequest, TContext], TResponse],
+        ],
+    ) -> URLPattern:
+        return_type = get_type_hints(view)["return"]
+        return_schema = create_schema(return_type, registry.definitions_registry)
+
+        def wrapped_view(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
+            if self.authentication(request) is False:
+                return HttpResponse("401 Unauthorized", status=401)
+
+            context = (
+                self.context_provider(request, *args, **kwargs)
+            )
+
+            return_value = view(request, context)
+            data = serialize(return_value, return_schema)
+            return JsonResponse(data, safe=False)
+
+        url_name = f"rpc_{view.__name__}"
+        url_path = f"{self.url_path}rpc_{view.__name__}/"
+
+        # input_name = f"{url_name}_input"
+        input_name = None
+        output_name = f"{url_name}_output"
+        # registry.type_registry[input_name] = None
+        registry.type_registry[output_name] = return_type
+        registry.rpc_registry[url_name] = {
+            "url": f"/{self.no_context_url_path}",
+            "input": input_name,
+            "output": output_name,
+            "params": self.url_args_as_params,
+            "type": "form",
+        }
+        route = path(url_path, wrapped_view, name=url_name)
+        return route
+
 
 class RPC(Generic[THttpRequest]):
     def __init__(self, authentication: Callable[[HttpRequest], bool]) -> None:

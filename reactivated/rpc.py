@@ -264,9 +264,39 @@ class RPC(Generic[THttpRequest]):
         return_type = get_type_hints(view)["return"]
         return_schema = create_schema(return_type, registry.definitions_registry)
 
+        form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get("form") or type(None)
+        form_schema = create_schema(form_type, registry.definitions_registry)
+        form_class = form_type or EmptyForm
+
         def wrapped_view(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
             if self.authentication(request) is False:
                 return HttpResponse("401 Unauthorized", status=401)
+
+            if form_type != type(None):
+                form = form_class(
+                    request.POST if request.method == "POST" else None,
+                )
+
+                if request.method == "POST":
+                    if form.is_valid():
+                        response = view(request, **kwargs, form=form)
+                        data = serialize(response, return_schema)
+
+                        return JsonResponse(data, safe=False)
+                    else:
+                        # TODO: this should be code + message, not just messages.
+                        # But types will then need to be updated.
+                        errors = (
+                            form.errors
+                            if isinstance(form, forms.BaseFormSet)
+                            else {
+                                field_name: [error["message"] for error in field_errors]
+                                for field_name, field_errors in form.errors.get_json_data().items()
+                            }
+                        )
+                        return JsonResponse(errors, status=400, safe=False)
+                else:
+                    return HttpResponse("", status=405)
 
             return_value = view(request, *args, **kwargs)
             data = serialize(return_value, return_schema)
@@ -276,9 +306,14 @@ class RPC(Generic[THttpRequest]):
         url_path = f"{self.url_path}rpc_{view.__name__}/"
 
         # input_name = f"{url_name}_input"
-        input_name = None
+        if form_type != type(None):
+            input_name = f"{url_name}_input"
+            registry.type_registry[input_name] = form_type
+            registry.value_registry[input_name] = form_class
+        else:
+            input_name = None
+
         output_name = f"{url_name}_output"
-        # registry.type_registry[input_name] = None
         registry.type_registry[output_name] = return_type
         registry.rpc_registry[url_name] = {
             "url": f"/{self.url_path}",

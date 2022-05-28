@@ -98,7 +98,6 @@ for (const name of Object.keys(rpc)) {
     }
 
     if (input != null) {
-
         const property = classDeclaration.addProperty({
             // isStatic: true,
             name: input,

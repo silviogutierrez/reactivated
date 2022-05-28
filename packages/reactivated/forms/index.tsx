@@ -324,10 +324,13 @@ export const getFormHandler = <T extends FieldMap>({
     };
 };
 
-
-export const useForm = <T extends FieldMap, S extends Array<keyof T> = [], R extends {[P in Exclude<keyof T, S[number]>]: T[P]} = {[P in Exclude<keyof T, S[number]>]: T[P]} >(
-    options
-: {
+export const useForm = <
+    T extends FieldMap,
+    S extends Array<keyof T> = [],
+    R extends {[P in Exclude<keyof T, S[number]>]: T[P]} = {
+        [P in Exclude<keyof T, S[number]>]: T[P];
+    },
+>(options: {
     form: FormLike<T>;
     initial?: FormValues<R>;
     exclude?: [...S];
@@ -343,8 +346,10 @@ export const useForm = <T extends FieldMap, S extends Array<keyof T> = [], R ext
     ) => FormValues<R>;
 }): FormHandler<R> => {
     const form = {
-        ...options.form as any as FormLike<R>,
-        iterator: options.form.iterator.filter(field => options.exclude == null || !options.exclude.includes(field))
+        ...(options.form as any as FormLike<R>),
+        iterator: options.form.iterator.filter(
+            (field) => options.exclude == null || !options.exclude.includes(field),
+        ),
     } as any as FormLike<R>;
     const initial = options.initial ?? getInitialFormState(form);
     const [values, formSetValues] = React.useState(initial);

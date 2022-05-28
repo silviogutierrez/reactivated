@@ -49,12 +49,12 @@ export async function rpcCall(options: {
     const formData = new FormData();
 
     if (type === "form_set") {
-        formData.append("form_set-INITIAL_FORMS", values.length);
-        formData.append("form_set-TOTAL_FORMS", values.length);
+        formData.append("form-INITIAL_FORMS", values.length);
+        formData.append("form-TOTAL_FORMS", values.length);
         for (const index in values as Array<any>) {
             const formSetForm = values[index];
             Object.keys(formSetForm).forEach((key) =>
-                formData.append(`form_set-${index}-${key}`, formSetForm[key]),
+                formData.append(`form-${index}-${key}`, formSetForm[key]),
             );
         }
     } else {

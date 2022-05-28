@@ -197,7 +197,7 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         input_name = f"{url_name}_input"
         output_name = f"{url_name}_output"
         registry.value_registry[input_name] = form_class
-        registry.type_registry[input_name] = form_class
+        registry.type_registry[input_name] = form_class  # type: ignore[assignment]
         registry.type_registry[output_name] = return_type
         registry.rpc_registry[url_name] = {
             "url": f"/{self.no_context_url_path}",
@@ -225,9 +225,7 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             if self.authentication(request) is False:
                 return HttpResponse("401 Unauthorized", status=401)
 
-            context = (
-                self.context_provider(request, *args, **kwargs)
-            )
+            context = self.context_provider(request, *args, **kwargs)
 
             return_value = view(request, context)
             data = serialize(return_value, return_schema)
@@ -258,13 +256,15 @@ class RPC(Generic[THttpRequest]):
         self.url_path = "api/functional-rpc/"
         self.url = f"/{self.url_path}"
         self.routes: List[URLPattern] = []
-        self.url_args_as_params = []
+        self.url_args_as_params: List[Tuple[str, str]] = []
 
     def __call__(self, view: TView[THttpRequest, TForm, TResponse]) -> URLPattern:
         return_type = get_type_hints(view)["return"]
         return_schema = create_schema(return_type, registry.definitions_registry)
 
-        form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get("form") or type(None)
+        form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get(  # type: ignore[assignment]
+            "form"
+        ) or type(None)
         form_schema = create_schema(form_type, registry.definitions_registry)
         form_class = form_type or EmptyForm
 
@@ -272,14 +272,14 @@ class RPC(Generic[THttpRequest]):
             if self.authentication(request) is False:
                 return HttpResponse("401 Unauthorized", status=401)
 
-            if form_type != type(None):
+            if form_type != type(None):  # type: ignore[comparison-overlap]
                 form = form_class(
                     request.POST if request.method == "POST" else None,
                 )
 
                 if request.method == "POST":
                     if form.is_valid():
-                        response = view(request, **kwargs, form=form)
+                        response = view(request, **kwargs, form=form)  # type: ignore[call-arg]
                         data = serialize(response, return_schema)
 
                         return JsonResponse(data, safe=False)
@@ -306,9 +306,9 @@ class RPC(Generic[THttpRequest]):
         url_path = f"{self.url_path}rpc_{view.__name__}/"
 
         # input_name = f"{url_name}_input"
-        if form_type != type(None):
+        if form_type != type(None):  # type: ignore[comparison-overlap]
             input_name = f"{url_name}_input"
-            registry.type_registry[input_name] = form_type
+            registry.type_registry[input_name] = form_type  # type: ignore[assignment]
             registry.value_registry[input_name] = form_class
         else:
             input_name = None
@@ -320,7 +320,7 @@ class RPC(Generic[THttpRequest]):
             "input": input_name,
             "output": output_name,
             "params": self.url_args_as_params,
-            "type": "form",
+            "type": "form" if issubclass(form_class, forms.BaseForm) else "form_set",
         }
         route = path(url_path, wrapped_view, name=url_name)
         return route

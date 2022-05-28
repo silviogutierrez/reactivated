@@ -125,8 +125,12 @@ def get_values() -> Dict[str, Any]:
 
     for value_name, value in value_registry.items():
         from django import forms
+
         from .serialization import serialize
-        if isinstance(value, type) and issubclass(value, forms.BaseForm):
+
+        if isinstance(value, type) and issubclass(
+            value, (forms.BaseForm, forms.BaseFormSet)
+        ):
             schema = create_schema(value, definitions_registry)
             definitions_registry.update(schema.definitions)
             serialized_values[value_name] = serialize(value(), schema)
@@ -135,7 +139,7 @@ def get_values() -> Dict[str, Any]:
             # print(value)
             # schema, definitions = create_schema(value, definitions_registry)
             # definitions_registry.update(definitions)
-            # serialized_values[value_name] = 
+            # serialized_values[value_name] =
     return serialized_values
 
 

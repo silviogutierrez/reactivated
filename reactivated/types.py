@@ -8,7 +8,7 @@ class RPC(TypedDict):
     url: str
     input: Optional[str]
     output: str
-    type: Literal["form", "form_set"]
+    type: Literal["form", "form_set", "form_group"]
 
 
 RPCRegistry = Dict[str, RPC]

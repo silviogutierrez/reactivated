@@ -787,13 +787,18 @@ export type UnknownFormValues<T extends FieldMap> = {
     [K in keyof T]: unknown;
 };
 
-export type FormOrFormSetValues<T> = T extends FormLike<any>
+// TODO: Should be T extends Record<string, FormLike<any> | FormSetLike<any>>
+// but jsonschema outputs interfaces instead of types. Figure out how to output a type.
+export type FormOrFormSetValues<T> = T extends {tag: "FormGroup"}
+    ? {[K in keyof T]: FormOrFormSetValues<T[K]>}
+    : T extends FormLike<any>
     ? UnknownFormValues<T["fields"]>
     : T extends FormSetLike<any>
     ? Array<UnknownFormValues<T["empty_form"]["fields"]>>
     : never;
 
-export type FormOrFormSetErrors<T> = T extends FormLike<any>
+export type FormOrFormSetErrors<T> = T extends {tag: "FormGroup"} ? {[K in keyof T]: FormOrFormSetErrors<T[K]>} :
+T extends FormLike<any>
     ? NonNullable<T["errors"]>
     : T extends FormSetLike<any>
     ? Array<NonNullable<T["empty_form"]["errors"]>>

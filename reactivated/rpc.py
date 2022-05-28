@@ -6,6 +6,7 @@ from typing import (
     Generic,
     Iterable,
     List,
+    Literal,
     NamedTuple,
     Optional,
     Sequence,
@@ -23,7 +24,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.urls import URLPattern, path
 
 from . import Pick, registry, types
-from .serialization import create_schema, serialize
+from .serialization import create_schema, serialize, named_tuple_schema
 
 THttpRequest = TypeVar("THttpRequest", bound=HttpRequest)
 
@@ -39,9 +40,36 @@ TSubcontext = TypeVar("TSubcontext")
 
 TResponse = TypeVar("TResponse")
 
+class FormGroup:
+    tag: Literal["FormGroup"] = "FormGroup"
+
+    def __init__(self, data: Any = None) -> None:
+        for arg_name, arg_type in get_type_hints(self).items():
+            setattr(self, arg_name, arg_type(data, prefix=arg_name))
+
+
+    @property
+    def errors(self) -> Any:
+        collected = {}
+
+        for arg_name in get_type_hints(self).keys():
+            collected[arg_name] = getattr(self, arg_name).errors
+
+        return collected
+
+
+    def is_valid(self) -> bool:
+        return all([getattr(self, arg_name).is_valid() for arg_name in get_type_hints(self).keys()])
+
+    @classmethod
+    def get_json_schema(Type, definitions: registry.Definitions) -> registry.Thing:
+        return named_tuple_schema(Type, definitions)
+
+
 TForm = TypeVar(
-    "TForm", bound=Union[forms.Form, forms.ModelForm[Any], forms.BaseInlineFormSet]
+    "TForm", bound=Union[forms.Form, forms.ModelForm[Any], forms.BaseFormSet, forms.BaseInlineFormSet, FormGroup]
 )
+
 
 
 if TYPE_CHECKING:
@@ -288,7 +316,7 @@ class RPC(Generic[THttpRequest]):
                         # But types will then need to be updated.
                         errors = (
                             form.errors
-                            if isinstance(form, forms.BaseFormSet)
+                            if isinstance(form, (forms.BaseFormSet, FormGroup))
                             else {
                                 field_name: [error["message"] for error in field_errors]
                                 for field_name, field_errors in form.errors.get_json_data().items()
@@ -320,7 +348,7 @@ class RPC(Generic[THttpRequest]):
             "input": input_name,
             "output": output_name,
             "params": self.url_args_as_params,
-            "type": "form" if issubclass(form_class, forms.BaseForm) else "form_set",
+            "type": "form_group" if issubclass(form_class, FormGroup) else "form" if issubclass(form_class, forms.BaseForm) else "form_set",
         }
         route = path(url_path, wrapped_view, name=url_name)
         return route

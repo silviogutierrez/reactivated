@@ -127,9 +127,10 @@ def get_values() -> Dict[str, Any]:
         from django import forms
 
         from .serialization import serialize
+        from .rpc import FormGroup
 
         if isinstance(value, type) and issubclass(
-            value, (forms.BaseForm, forms.BaseFormSet)
+            value, (forms.BaseForm, forms.BaseFormSet, FormGroup)
         ):
             schema = create_schema(value, definitions_registry)
             definitions_registry.update(schema.definitions)

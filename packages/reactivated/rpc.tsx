@@ -34,11 +34,28 @@ function buildUrl(baseUrl: string, paramsAndIterator: ParamsAndIterator | null) 
     }
 }
 
+const buildValues = (type: "form" | "form_set", formData: FormData, prefix: string | null, values: any) => {
+    if (type === "form_set") {
+        formData.append(`${prefix}-INITIAL_FORMS`, values.length);
+        formData.append(`${prefix}-TOTAL_FORMS`, values.length);
+        for (const index in values as Array<any>) {
+            const formSetForm = values[index];
+            Object.keys(formSetForm).forEach((key) =>
+                formData.append(`${prefix}-${index}-${key}`, formSetForm[key]),
+            );
+        }
+    } else {
+        Object.keys(values).forEach((key) =>
+            formData.append(prefix == null ? key : `${prefix}-${key}`, values[key as keyof typeof values] ?? ""),
+        );
+    }
+}
+
 export async function rpcCall(options: {
     url: string;
     input: {
         values: Record<string, any>;
-        type: "form" | "form_set";
+        type: "form" | "form_set" | "form_group";
     } | null;
     paramsAndIterator: ParamsAndIterator | null;
     name: string | null;
@@ -48,19 +65,21 @@ export async function rpcCall(options: {
 
     const formData = new FormData();
 
-    if (type === "form_set") {
-        formData.append("form-INITIAL_FORMS", values.length);
-        formData.append("form-TOTAL_FORMS", values.length);
-        for (const index in values as Array<any>) {
-            const formSetForm = values[index];
-            Object.keys(formSetForm).forEach((key) =>
-                formData.append(`form-${index}-${key}`, formSetForm[key]),
-            );
-        }
+    if (type === "form_group") {
+        Object.keys(values).map((prefix) => {
+            const formOrFormSet = (values as any)[prefix];
+            if (Array.isArray(formOrFormSet)) {
+                buildValues("form_set", formData, prefix, formOrFormSet)
+            }
+            else {
+                buildValues("form", formData, prefix, formOrFormSet)
+            }
+        })
+    }
+    else if (type === "form_set") {
+        buildValues("form_set", formData, "form", values);
     } else {
-        Object.keys(values).forEach((key) =>
-            formData.append(key, values[key as keyof typeof values] ?? ""),
-        );
+        buildValues("form", formData, null, values)
     }
 
     let urlWithPossibleInstance = buildUrl(url, paramsAndIterator);

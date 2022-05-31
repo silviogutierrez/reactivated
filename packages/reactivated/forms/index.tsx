@@ -1,4 +1,4 @@
-import produce, {castDraft} from "immer";
+import {produce, castDraft} from "immer";
 import {FileInfoResult} from "prettier";
 import React from "react";
 
@@ -117,10 +117,9 @@ export const getInitialFormState = <T extends FieldMap>(form: FormLike<T>) => {
 
 export const getInitialFormSetState = <T extends FieldMap>(
     forms: Array<FormLike<T>>,
+    initial?: FormValues<T>[],
 ) => {
-    return Object.fromEntries(
-        forms.map((form) => [form.prefix, getInitialFormState(form)] as const),
-    );
+    return forms.map((form, index) => initial?.[index] ?? getInitialFormState(form));
 };
 
 export const getInitialFormSetErrors = <T extends FieldMap>(
@@ -588,6 +587,7 @@ export const ManagementForm = <T extends FieldMap>({
 export const useFormSet = <T extends FieldMap>(options: {
     formSet: FormSetLike<T>;
     onAddForm?: (form: FormLike<T>) => void;
+    initial?: FormValues<T>[];
     fieldInterceptor?: (
         fieldName: keyof T,
         field: FieldHandler<T[keyof T]["widget"]>,
@@ -599,14 +599,40 @@ export const useFormSet = <T extends FieldMap>(options: {
         nextValues: FormValues<T>,
     ) => FormValues<T>;
 }) => {
-    const [formSet, setFormSet] = React.useState(options.formSet);
 
-    const initialFormSetState = getInitialFormSetState(options.formSet.forms);
+    const createForm = (index: number) => {
+        return produce(options.formSet.empty_form, (draftState) => {
+            for (const fieldName of draftState.iterator) {
+                const prefix = `${options.formSet.prefix}-${index}`;
+                const field = draftState.fields[fieldName];
+                const htmlName = `${prefix}-${field.name}`;
+                draftState.fields[fieldName].widget.name = htmlName;
+                draftState.fields[fieldName].widget.attrs.id = `id_${htmlName}`;
+                draftState.prefix = prefix;
+            }
+        });
+    }
+
+    const formSetFromInitialValues = produce(options.formSet, (draftState) => {
+        if (options.initial == null) {
+            return;
+        }
+        draftState.total_form_count = options.initial.length;
+        draftState.forms = options.initial.map((_, index) => {
+            return castDraft(createForm(index));
+        })
+        draftState.total_form_count += 1;
+    });
+
+
+    const [formSet, setFormSet] = React.useState(formSetFromInitialValues);
+
+    const initialFormSetState = getInitialFormSetState(formSetFromInitialValues.forms, options.initial);
     const initialFormSetErrors = getInitialFormSetErrors(options.formSet.forms);
     const [values, formSetSetValues] =
-        React.useState<Partial<typeof initialFormSetState>>(initialFormSetState);
+        React.useState<typeof initialFormSetState>(initialFormSetState);
     const [errors, formSetSetErrors] =
-        React.useState<Partial<typeof initialFormSetErrors>>(initialFormSetErrors);
+        React.useState<typeof initialFormSetErrors>(initialFormSetErrors);
 
     const emptyFormValues = getInitialFormState(formSet.empty_form);
 
@@ -615,24 +641,23 @@ export const useFormSet = <T extends FieldMap>(options: {
             form,
             changeInterceptor: options.changeInterceptor,
             fieldInterceptor: options.fieldInterceptor,
-            values: values[form.prefix] ?? emptyFormValues,
-            errors: errors[form.prefix] ?? {},
+            values: values[index] ?? emptyFormValues,
+            errors: errors[index] ?? {},
             setErrors: (nextErrors) => {
                 formSetSetErrors((prevErrors) => ({
                     ...prevErrors,
-                    [form.prefix]: nextErrors,
+                    [index]: nextErrors,
                 }));
             },
             initial: initialFormSetState[index] ?? emptyFormValues,
             setValues: (getValuesToSetFromPrevValues) => {
                 formSetSetValues((prevValues) => {
                     const nextValues = getValuesToSetFromPrevValues(
-                        prevValues[form.prefix] ?? emptyFormValues,
+                        prevValues[index] ?? emptyFormValues,
                     );
-                    return {
-                        ...prevValues,
-                        [form.prefix]: nextValues,
-                    };
+                    return produce(prevValues, (draftState) => {
+                        draftState[index] = castDraft(nextValues);
+                    });
                 });
             },
         });
@@ -640,18 +665,9 @@ export const useFormSet = <T extends FieldMap>(options: {
 
     const addForm = () => {
         const {total_form_count} = formSet;
-        type AdditionalForm = typeof formSet["forms"][number];
 
-        const extraForm = produce(formSet.empty_form, (draftState) => {
-            for (const fieldName of draftState.iterator) {
-                const prefix = `${formSet.prefix}-${formSet.total_form_count}`;
-                const field = draftState.fields[fieldName];
-                const htmlName = `${prefix}-${field.name}`;
-                draftState.fields[fieldName].widget.name = htmlName;
-                draftState.fields[fieldName].widget.attrs.id = `id_${htmlName}`;
-                draftState.prefix = prefix;
-            }
-        });
+        const extraForm = createForm(formSet.total_form_count);
+
         const updated = produce(formSet, (draftState) => {
             draftState.forms.push(castDraft(extraForm));
             draftState.total_form_count += 1;
@@ -790,15 +806,16 @@ export type UnknownFormValues<T extends FieldMap> = {
 // TODO: Should be T extends Record<string, FormLike<any> | FormSetLike<any>>
 // but jsonschema outputs interfaces instead of types. Figure out how to output a type.
 export type FormOrFormSetValues<T> = T extends {tag: "FormGroup"}
-    ? {[K in keyof T]: FormOrFormSetValues<T[K]>}
+    ? Omit<{[K in keyof T]: FormOrFormSetValues<T[K]>}, "tag">
     : T extends FormLike<any>
     ? UnknownFormValues<T["fields"]>
     : T extends FormSetLike<any>
     ? Array<UnknownFormValues<T["empty_form"]["fields"]>>
     : never;
 
-export type FormOrFormSetErrors<T> = T extends {tag: "FormGroup"} ? {[K in keyof T]: FormOrFormSetErrors<T[K]>} :
-T extends FormLike<any>
+export type FormOrFormSetErrors<T> = T extends {tag: "FormGroup"}
+    ? Omit<{[K in keyof T]: FormOrFormSetErrors<T[K]>}, "tag">
+    : T extends FormLike<any>
     ? NonNullable<T["errors"]>
     : T extends FormSetLike<any>
     ? Array<NonNullable<T["empty_form"]["errors"]>>

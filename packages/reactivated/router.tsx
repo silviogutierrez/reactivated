@@ -76,7 +76,7 @@ type WithTab<TTabs extends string[], TTabsSoFar extends string[], TProps> = {
         component: React.ComponentType<TGuardedProps>,
     ): {
         withTab: WithTab<TTabs, [...TTabsSoFar, TTab], TProps>;
-        withActions: WithActions<TProps>;
+        withActions: WithActions<{currentTab: TTabs[number]} & TProps>;
         options: () => {title: string};
         hooks: (props: TProps) => TProps;
         actions: () => [];
@@ -742,6 +742,7 @@ export const createRouter = <
             });
             const actions = implementation.actions({
                 ...hooks,
+                currentTab: currentLocator.tab,
                 resolved: currentResolved,
             });
             const tabs = Object.values<Tab<unknown>>(implementation.tabs).map((tab) => {
@@ -1066,7 +1067,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                     },
                 };
             },
-            withComponent: bindWithComponent(() => ({})),
+            withComponent: bindWithComponent({}),
             withTab: bindWithTab({}),
             withHooks: (hooks) => {
                 return {

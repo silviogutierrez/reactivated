@@ -800,8 +800,10 @@ export const FormSet = <T extends FieldMap<widgets.CoreWidget>>(props: {
 };
 
 export type UnknownFormValues<T extends FieldMap> = {
-    [K in keyof T]: unknown;
-};
+    [K in keyof T]: T[K] extends {enum: unknown}
+        ? T[K]["enum"] | null
+        : unknown;
+}
 
 // TODO: Should be T extends Record<string, FormLike<any> | FormSetLike<any>>
 // but jsonschema outputs interfaces instead of types. Figure out how to output a type.

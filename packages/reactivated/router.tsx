@@ -1067,8 +1067,8 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                     },
                 };
             },
-            withComponent: bindWithComponent({}),
-            withTab: bindWithTab({}),
+            withComponent: bindWithComponent(() => {}),
+            withTab: bindWithTab(() => {}),
             withHooks: (hooks) => {
                 return {
                     withTab: bindWithTab(hooks) as any,

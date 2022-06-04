@@ -67,12 +67,15 @@ export const interpolatePath = (pattern: string, params: Record<string, any>) =>
     );
 };
 
+export interface TabDefinition {
+}
+
 type WithTab<TTabs extends string[], TTabsSoFar extends string[], TProps> = {
     <TTab extends TTabs[number], TGuardedProps = TProps>(
         definition: {
             name: TTab;
             guard?: (props: TProps) => TGuardedProps | false;
-        },
+        } & TabDefinition,
         component: React.ComponentType<TGuardedProps>,
     ): {
         withTab: WithTab<TTabs, [...TTabsSoFar, TTab], TProps>;
@@ -752,6 +755,7 @@ export const createRouter = <
                 });
 
                 return {
+                    ...tab.options,
                     locator: tabLocator,
                     url: tabLocator.url,
                     name: tab.options.name,
@@ -779,7 +783,7 @@ export const createRouter = <
             name: string;
             locator: Locator;
             isActive: boolean;
-        };
+        } & TabDefinition;
 
         type RenderProps = (props: {
             locator: Locator;
@@ -978,6 +982,7 @@ export function routeFactory<TGlobalHooks = never>(hooks?: () => TGlobalHooks | 
                 const _withTab: WithTab<any, any, any> = (_definition, _component) => {
                     const tab = {
                         options: {
+                            ..._definition,
                             name: _definition.name,
                         },
                         component: _component,

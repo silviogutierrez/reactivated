@@ -67,15 +67,20 @@ export const interpolatePath = (pattern: string, params: Record<string, any>) =>
     );
 };
 
-export interface TabDefinition {
+export interface TabDefinition<TProps> {
+    _reactivated_do_not_use: string;
 }
+
+type NormalizeTabAttribute<T> = T extends (props: any) => infer S ? S : T;
+
+type NormalizedTab = {[K in keyof TabDefinition<unknown>]: NormalizeTabAttribute<TabDefinition<unknown>[K]>};
 
 type WithTab<TTabs extends string[], TTabsSoFar extends string[], TProps> = {
     <TTab extends TTabs[number], TGuardedProps = TProps>(
         definition: {
             name: TTab;
             guard?: (props: TProps) => TGuardedProps | false;
-        } & TabDefinition,
+        } & Omit<TabDefinition<TGuardedProps>, "_reactivated_do_not_use">,
         component: React.ComponentType<TGuardedProps>,
     ): {
         withTab: WithTab<TTabs, [...TTabsSoFar, TTab], TProps>;
@@ -754,8 +759,27 @@ export const createRouter = <
                     params: match.params,
                 });
 
+                const executed: Record<string, any> = {};
+
+                for (const uncastedKey of Object.keys(tab.options)) {
+                    const key = uncastedKey as unknown as keyof typeof tab.options;
+                    const option = tab.options[key];
+
+                    if (typeof option == "function") {
+                        executed[key] = option({
+                            ...hooks,
+                            currentTab: currentLocator.tab,
+                            resolved: currentResolved,
+                        });
+                    }
+                    else {
+                        executed[key] = option;
+                    }
+                }
+
                 return {
-                    ...tab.options,
+                    ...executed,
+                    _reactivated_do_not_use: "",
                     locator: tabLocator,
                     url: tabLocator.url,
                     name: tab.options.name,
@@ -783,7 +807,7 @@ export const createRouter = <
             name: string;
             locator: Locator;
             isActive: boolean;
-        } & TabDefinition;
+        } & NormalizedTab;
 
         type RenderProps = (props: {
             locator: Locator;

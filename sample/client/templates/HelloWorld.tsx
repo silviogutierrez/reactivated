@@ -1,9 +1,9 @@
 import React from "react";
 
-import {templates} from "@reactivated";
 import {Layout} from "@client/Layout";
 import {css} from "@linaria/core";
 import {styled} from "@linaria/react";
+import {templates} from "@reactivated";
 
 const Paragraph = styled.p`
     color: #444;
@@ -14,15 +14,17 @@ export default (props: templates.HelloWorld) => {
 
     return (
         <Layout title="Hello world!">
-            <h1
-                className={css`
-                    color: blue;
-                `}
-            >
-                Hello World!
-            </h1>
+            <h1>Hello World!</h1>
             <Paragraph>
-                The best opera is <strong>{props.opera.name}</strong> by{" "}
+                The{" "}
+                <span
+                    className={css`
+                        color: blue;
+                    `}
+                >
+                    best
+                </span>{" "}
+                opera is <strong>{props.opera.name}</strong> by{" "}
                 <strong>{props.opera.composer.name}</strong>.
             </Paragraph>
             {showStyle === false ? (

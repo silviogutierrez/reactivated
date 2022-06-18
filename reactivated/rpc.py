@@ -170,7 +170,7 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         requires_context = list(get_type_hints(view).values())[1] is not type(None)
 
         form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get("form")
-        form_schema = create_schema(form_type, registry.definitions_registry)
+        form_schema = create_schema(form_type or EmptyForm, registry.definitions_registry)
         form_class = form_type or EmptyForm
 
         def wrapped_view(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:

@@ -77,6 +77,7 @@ type Result =
 
 export const render = ({context, props}: {context: any; props: any}): Result => {
     const {Provider, getTemplate} = require("../../node_modules/_reactivated");
+    const {Renderer} = require("../../client/renderer")
 
     try {
         const Template = getTemplate(context);
@@ -85,7 +86,7 @@ export const render = ({context, props}: {context: any; props: any}): Result => 
         const rendered = ReactDOMServer.renderToString(
             <HelmetProvider context={helmetContext}>
                 <Provider value={context}>
-                    <Template {...props} />
+                    <Renderer><Template {...props} /></Renderer>
                 </Provider>
             </HelmetProvider>,
         );

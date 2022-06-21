@@ -506,11 +506,19 @@ export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
                 onChange={field.handler}
             />
         );
+    } else if (field.tag === "django.forms.widgets.PasswordInput") {
+        return (
+            <widgets.TextInput
+                name={field.name}
+                value={field.value}
+                onChange={field.handler}
+                type="password"
+            />
+        );
     } else if (
         field.tag === "django.forms.widgets.TextInput" ||
         field.tag === "django.forms.widgets.DateInput" ||
         field.tag === "django.forms.widgets.URLInput" ||
-        field.tag === "django.forms.widgets.PasswordInput" ||
         field.tag === "django.forms.widgets.EmailInput" ||
         field.tag === "django.forms.widgets.TimeInput" ||
         field.tag === "django.forms.widgets.NumberInput"

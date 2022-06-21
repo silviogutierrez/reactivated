@@ -302,7 +302,8 @@ class RPC(Generic[THttpRequest]):
 
             if form_type != type(None):  # type: ignore[comparison-overlap]
                 form = form_class(
-                    request.POST if request.method == "POST" else None,
+                    # Some forms use positional arguments, like AuthenticationForm
+                    data=request.POST if request.method == "POST" else None,
                 )
 
                 if request.method == "POST":

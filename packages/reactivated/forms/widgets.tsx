@@ -27,10 +27,11 @@ export const TextInput = (props: {
     className?: string;
     value: string | null;
     onChange: (value: string) => void;
+    type?: "text" | "password",
 }) => {
     return (
         <input
-            type="text"
+            type={props.type ?? "text"}
             name={props.name}
             className={props.className}
             value={props.value ?? ""}

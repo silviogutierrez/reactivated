@@ -757,18 +757,20 @@ export const createRouter = <
             children: RenderProps;
         }) => {
             const {route} = match;
-            const [fakeHooks, setHooks] = React.useState(globalHooks[currentLocator.scenePath]);
+            const [, forceUpdate] = React.useState({});
 
-            const hooks = fakeHooks ?? globalHooks[currentLocator.scenePath];
+            const hooks = globalHooks[currentLocator.scenePath];
 
             React.useEffect(() => {
-                const handleHooks = () => setHooks(globalHooks[currentLocator.scenePath]);
+                const handleHooks = () => {
+                    forceUpdate({});
+                }
                 const listener = window.addEventListener("hooks", handleHooks);
 
                 return () => {
                     window.removeEventListener("hooks", handleHooks);
                 };
-            }, []);
+            }, [currentLocator]);
 
             const options = implementation.options({
                 ...hooks,

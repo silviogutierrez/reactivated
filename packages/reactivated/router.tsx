@@ -73,7 +73,11 @@ export interface TabDefinition<TProps> {
 
 type NormalizeTabAttribute<T> = T extends (props: any) => infer S ? S : T;
 
-type NormalizedTab = {[K in keyof TabDefinition<unknown>]: NormalizeTabAttribute<TabDefinition<unknown>[K]>};
+type NormalizedTab = {
+    [K in keyof TabDefinition<unknown>]: NormalizeTabAttribute<
+        TabDefinition<unknown>[K]
+    >;
+};
 
 type WithTab<TTabs extends string[], TTabsSoFar extends string[], TProps> = {
     <TTab extends TTabs[number], TGuardedProps = TProps>(
@@ -688,46 +692,44 @@ export const createRouter = <
             DiscriminateUnion<TRoutes[number], "name", K>["definition"]["tabs"]
         >;
     }) => {
-        const Loader = (props: {
+        const Renderer = ({
+            currentResolved,
+            currentLocator,
+            implementation,
+            parent,
+            match,
+            children,
+        }: {
             match: any;
-            hooks: any;
-            locator: Locator;
-            component: React.ComponentType;
+            currentLocator: Locator;
+            currentResolved: any;
+            implementation: any;
+            parent: any;
+            children: RenderProps;
         }) => {
-            const {dependecies} = React.useContext(ResolveContext);
-            const {locator, component: Component, match} = props;
-            const {route, params} = match;
-            const currentResolved = dependencies[locator.scenePath];
-
-            // const [isLoaded, setIsLoaded] = React.useState(currentResolved != null);
-            const isLoaded = currentResolved != null;
-
-            React.useEffect(() => {
-                if (isLoaded == false) {
-                    (async () => {
-                        setResolved({
-                            [locator.scenePath]: await route.definition.resolve({
-                                params,
-                            }),
-                        });
-                        // setIsLoaded(true);
-                    })();
-                }
-            }, []);
-
-            if (isLoaded == false) {
-                return <div>Loading...</div>;
-            }
-
-            const componentProps = {
-                ...props.hooks({resolved: currentResolved}),
-                resolved: currentResolved,
-            };
-
-            return <Component {...(componentProps as any)} />;
+            return (
+                <>
+                    <Hooks
+                        key={currentLocator.scenePath}
+                        currentResolved={currentResolved}
+                        currentLocator={currentLocator}
+                        implementation={implementation}
+                        parent={parent}
+                        match={match}
+                    />
+                    <LastOne
+                        currentResolved={currentResolved}
+                        currentLocator={currentLocator}
+                        implementation={implementation}
+                        parent={parent}
+                        match={match}
+                        children={children}
+                    />
+                </>
+            );
         };
 
-        const Loaded = ({
+        const LastOne = ({
             currentResolved,
             currentLocator,
             implementation,
@@ -743,7 +745,19 @@ export const createRouter = <
             children: RenderProps;
         }) => {
             const {route} = match;
-            const hooks = implementation.hooks({resolved: currentResolved});
+            const [fakeHooks, setHooks] = React.useState(globalHooks[currentLocator.scenePath]);
+
+            const hooks = fakeHooks ?? globalHooks[currentLocator.scenePath];
+
+            React.useEffect(() => {
+                const handleHooks = () => setHooks(globalHooks[currentLocator.scenePath]);
+                const listener = window.addEventListener("hooks", handleHooks);
+
+                return () => {
+                    window.removeEventListener("hooks", handleHooks);
+                };
+            }, []);
+
             const options = implementation.options({
                 ...hooks,
                 resolved: currentResolved,
@@ -771,8 +785,7 @@ export const createRouter = <
                             currentTab: currentLocator.tab,
                             resolved: currentResolved,
                         });
-                    }
-                    else {
+                    } else {
                         executed[key] = option;
                     }
                 }
@@ -793,14 +806,18 @@ export const createRouter = <
 
             const Component = (implementation.tabs as any)[match.tab].component;
             const view = <Component {...componentProps} />;
-            return children({
-                view,
-                tabs,
-                locator: currentLocator,
-                actions,
-                parent,
-                options,
-            });
+
+            return (
+                    children({
+                        hooks: <></>,
+                        view,
+                        tabs,
+                        locator: currentLocator,
+                        actions,
+                        parent,
+                        options,
+                    })
+            );
         };
 
         type PreparedTab = {
@@ -816,31 +833,11 @@ export const createRouter = <
             actions: any[];
             parent: Locator | null;
             options: {title: string};
+            hooks: any;
         }) => React.ReactElement;
 
         const Route = (props: {children: RenderProps}) => {
             const [currentPath, setCurrentPath] = React.useState(location.pathname);
-            const [mirror, setMirror] = React.useState(dependencies);
-
-            const match = matchRoutes(routes, currentPath);
-
-            const currentLocator = getLocatorFromURL(currentPath);
-
-            if (match == null || currentLocator == null) {
-                return null; // return <div><h1>Invalid route</h1></div>;
-            }
-
-            const currentResolved = mirror[currentLocator.scenePath];
-            const isLoaded = currentResolved != null;
-
-            React.useEffect(() => {
-                const handleResolved = () => setMirror({...dependencies});
-                const listener = window.addEventListener("resolved", handleResolved);
-
-                return () => {
-                    window.removeEventListener("resolved", handleResolved);
-                };
-            }, []);
 
             React.useEffect(() => {
                 const onLocationChange = () => {
@@ -853,22 +850,12 @@ export const createRouter = <
                 };
             }, []);
 
-            React.useEffect(() => {
-                if (isLoaded == false) {
-                    (async () => {
-                        setResolved({
-                            [currentLocator.scenePath]:
-                                await currentLocator.routeDefinition.definition.resolve(
-                                    {params: currentLocator.params} as any,
-                                ),
-                        });
-                        // setIsLoaded(true);
-                    })();
-                }
-            }, []);
+            const match = matchRoutes(routes, currentPath);
 
-            if (isLoaded == false) {
-                return null;
+            const currentLocator = getLocatorFromURL(currentPath);
+
+            if (match == null || currentLocator == null) {
+                return null; // return <div><h1>Invalid route</h1></div>;
             }
 
             const implementationForTabs =
@@ -890,63 +877,100 @@ export const createRouter = <
                     ? locator({
                           ...(currentLocator as any),
                           route: `${parentDefinition.name}.${parentDefinition.definition.tabs[0]}` as any,
-                          resolved: currentResolved,
+                          resolved: dependencies[currentLocator.scenePath],
                       })
                     : null;
 
             return (
-                <Loaded
+                <Loader
                     currentLocator={currentLocator}
                     match={match}
                     children={props.children}
-                    currentResolved={currentResolved}
                     implementation={implementationForTabs}
                     parent={parent}
                 />
             );
-            /*
-            // console.log(implementationForTabs);
+        };
+        const globalHooks: any = {};
 
-            const mounted = routes.map((route) => {
-                if (match.route != route) {
-                    return null;
+        const Hooks = ({
+            currentResolved,
+            currentLocator,
+            implementation,
+            parent,
+            match,
+        }: {
+            match: any;
+            currentLocator: Locator;
+            currentResolved: any;
+            implementation: any;
+            parent: any;
+        }) => {
+            globalHooks[currentLocator.scenePath] = implementation.hooks({resolved: currentResolved});
+
+            React.useEffect(() => {
+                const navigationEvent = new Event("hooks");
+                window.dispatchEvent(navigationEvent);
+            })
+
+            return <></>;
+        };
+
+        const Loader = ({
+            currentLocator,
+            implementation,
+            parent,
+            match,
+            children,
+        }: {
+            match: any;
+            currentLocator: Locator;
+            implementation: any;
+            parent: any;
+            children: RenderProps;
+        }) => {
+            const [mirror, setMirror] = React.useState(dependencies);
+            const currentResolved = mirror[currentLocator.scenePath];
+            const isLoaded = currentResolved != null;
+
+            // TODO: do we need this?
+            React.useEffect(() => {
+                const handleResolved = () => setMirror({...dependencies});
+                const listener = window.addEventListener("resolved", handleResolved);
+
+                return () => {
+                    window.removeEventListener("resolved", handleResolved);
+                };
+            }, []);
+
+            React.useEffect(() => {
+                if (isLoaded == false) {
+                    (async () => {
+                        setResolved({
+                            [currentLocator.scenePath]:
+                                await currentLocator.routeDefinition.definition.resolve(
+                                    {params: currentLocator.params} as any,
+                                ),
+                        });
+                        // setIsLoaded(true);
+                    })();
                 }
+            }, []);
 
-                const implementation = implementations[route.name as RouteNames];
+            if (isLoaded == false) {
+                return <div>Loading...</div>;
+            }
 
-                const Component = (implementation.tabs as any)[match.tab].component;
-                const camelCase = route.name
-                    .toLowerCase()
-                    .replace(/([-_][a-z])/g, (group) =>
-                        group.toUpperCase().replace("-", "").replace("_", ""),
-                    );
-                Component.displayName = camelCase[0].toUpperCase() + camelCase.slice(1);
-
-                return (
-                    <React.Fragment key={currentLocator.scenePath}>
-                        <ResolveProvider>
-                            {match != null && match.route == route && (
-                                <Loader
-                                    locator={currentLocator}
-                                    match={match}
-                                    hooks={hooks}
-                                    component={Component}
-                                />
-                            )}
-                        </ResolveProvider>
-                    </React.Fragment>
-                );
-            });
-
-            return {
-                view: mounted,
-                options,
-                actions,
-                parent,
-                tabs,
-                key: currentLocator.scenePath,
-            };
-            */
+            return (
+                <Renderer
+                    currentResolved={currentResolved}
+                    currentLocator={currentLocator}
+                    match={match}
+                    children={children}
+                    implementation={implementation}
+                    parent={parent}
+                />
+            );
         };
 
         return {Route};

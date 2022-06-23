@@ -599,6 +599,17 @@ export const createRouter = <
         }
         const navigationEvent = new PopStateEvent("navigate");
         window.dispatchEvent(navigationEvent);
+
+        let finishTransition = null;
+
+        const handler = await new Promise<void>((resolve) => {
+            finishTransition = () => resolve();
+            window.addEventListener("navigated", finishTransition);
+        });
+
+        if (finishTransition != null) {
+            window.removeEventListener("navigated", finishTransition);
+        }
     };
 
     const Link = <
@@ -728,7 +739,8 @@ export const createRouter = <
                 </>
             );
         };
-
+        // TODO: https://unsplash.com/blog/calling-react-hooks-conditionally-dynamically-using-render-props/
+        // Look into that for hook mode.
         const LastOne = ({
             currentResolved,
             currentLocator,
@@ -979,6 +991,7 @@ export const createRouter = <
         router: {
             reverse,
             push,
+            transition,
         },
         Link,
         mount,

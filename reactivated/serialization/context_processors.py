@@ -2,9 +2,11 @@ from typing import Any, List, Literal, NamedTuple, Type, get_type_hints
 
 from django.http import HttpRequest
 from django.utils.module_loading import import_string
+from django.contrib.messages.storage.base import Message
 
-from . import Intersection
-from .registry import JSON, Thing
+from . import Intersection, registry, named_tuple_schema, serialize
+from .registry import JSON, Thing, register
+import random
 
 
 class Request(NamedTuple):
@@ -22,15 +24,29 @@ class RequestProcessor(NamedTuple):
     request: Request
 
 
-class Message(NamedTuple):
+@register(Message)
+class MessageType(NamedTuple):
     level_tag: Literal["info", "success", "error", "warning", "debug"]
     message: str
 
     # TODO: should this be removed? Kind of useless.
     level: int
 
-    # TODO: document
-    from_server: bool = True
+    id: int
+
+    @classmethod
+    def get_serialized_value(
+        Proxy: Type["BaseWidget"], value: Any, schema: "Thing"
+    ) -> JSON:
+        serialized = serialize(value, schema, suppress_custom_serializer=True)
+        return {
+            **serialized,
+            "id": random.randint(-1000, -1),
+        }
+
+    @classmethod
+    def get_json_schema(Type, instance: Message, definitions: registry.Definitions) -> registry.Thing:
+        return named_tuple_schema(Type, definitions, exclude=["errors"])
 
 
 class MessagesProcessor(NamedTuple):

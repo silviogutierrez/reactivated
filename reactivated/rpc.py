@@ -121,7 +121,8 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             url_args.append(f"<{arg_type.__name__}:{arg_name}>")
             self.url_args_as_params.append((arg_type.__name__, arg_name))
 
-        self.url_path += "/".join(url_args) + "/"
+        if url_args:
+            self.url_path += "/".join(url_args) + "/"
 
     @overload
     def process(
@@ -357,6 +358,7 @@ class RPC(Generic[THttpRequest]):
     def context(
         self,
         context_provider: Union[
+            Callable[[THttpRequest], TContext],
             Callable[[THttpRequest, TFirst], TContext],
             Callable[[THttpRequest, TFirst, TSecond], TContext],
         ],

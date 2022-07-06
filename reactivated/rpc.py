@@ -124,6 +124,24 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         if url_args:
             self.url_path += "/".join(url_args) + "/"
 
+    def context(
+        self,
+        context_provider: Union[
+            Callable[[THttpRequest, TContext], TSubcontext],
+            Callable[[THttpRequest, TContext, TFirst], TSubcontext],
+            Callable[[THttpRequest, TContext, TFirst, TSecond], TSubcontext],
+        ],
+
+    ) -> "RPCContext[THttpRequest, TSubcontext, TFirst, TSecond, None]":
+        def inner_context_provider(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
+            return context_provider(request, self.context_provider(request, *args, **kwargs))  # type: ignore[call-arg]
+        inner_context_provider.__annotations__ = self.context_provider.__annotations__
+        inner_context_provider.__name__ = context_provider.__name__
+
+        return RPCContext[THttpRequest, TSubcontext, TFirst, TSecond, None](
+            inner_context_provider, self.authentication
+        )
+
     @overload
     def process(
         self,

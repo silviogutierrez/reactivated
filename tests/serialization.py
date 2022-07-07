@@ -14,6 +14,7 @@ from jsonschema import validate
 
 from reactivated import Pick
 from reactivated.serialization import create_schema, serialize
+from reactivated.rpc import FormGroup
 from sample.server.apps.samples import forms, models
 
 
@@ -236,6 +237,32 @@ def test_form():
     serialized_form = serialize(form_with_errors, generated_schema)
     assert "name" in serialized_form.errors
     convert_to_json_and_validate(serialized_form, generated_schema)
+
+
+def test_form_class_not_instance():
+    generated_schema = create_schema(forms.OperaForm, {})
+    serialized = serialize(forms.OperaForm, generated_schema)
+    # Need an actual assertion or snapshot here.
+
+
+def test_form_set_class_not_instance():
+    generated_schema = create_schema(forms.OperaFormSet, {})
+    serialized = serialize(forms.OperaFormSet, generated_schema)
+    # Need an actual assertion or snapshot here.
+
+
+# TODO: Needs to be outside so get_serialized_value can be imported.
+# Also currently not using model choice fields to avoid DB access.
+class OperaFormGroup(FormGroup):
+    operas: forms.OperaFormSet
+    storyboard: forms.StoryboardForm
+
+
+def test_form_group_class_not_instance():
+    generated_schema = create_schema(OperaFormGroup, {})
+    serialized = serialize(OperaFormGroup, generated_schema)
+    convert_to_json_and_validate(serialized, generated_schema)
+    # Need an actual assertion or snapshot here.
 
 
 @pytest.mark.skip

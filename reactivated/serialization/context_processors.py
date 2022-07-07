@@ -45,7 +45,9 @@ class MessageType(NamedTuple):
         }
 
     @classmethod
-    def get_json_schema(Type, instance: Message, definitions: registry.Definitions) -> registry.Thing:
+    def get_json_schema(
+        Type, instance: Message, definitions: registry.Definitions
+    ) -> registry.Thing:
         return named_tuple_schema(Type, definitions, exclude=["errors"])
 
 

@@ -134,7 +134,7 @@ def get_values() -> Dict[str, Any]:
         ):
             schema = create_schema(value, definitions_registry)
             definitions_registry.update(schema.definitions)
-            serialized_values[value_name] = serialize(value(), schema)
+            serialized_values[value_name] = serialize(value, schema)
         else:
             serialized_values[value_name] = value
             # print(value)

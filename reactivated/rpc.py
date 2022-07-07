@@ -40,13 +40,13 @@ TSubcontext = TypeVar("TSubcontext")
 
 TResponse = TypeVar("TResponse")
 
+
 class FormGroup:
     tag: Literal["FormGroup"] = "FormGroup"
 
     def __init__(self, data: Any = None) -> None:
         for arg_name, arg_type in get_type_hints(self).items():
             setattr(self, arg_name, arg_type(data, prefix=arg_name))
-
 
     @property
     def errors(self) -> Any:
@@ -57,19 +57,47 @@ class FormGroup:
 
         return collected
 
-
     def is_valid(self) -> bool:
-        return all([getattr(self, arg_name).is_valid() for arg_name in get_type_hints(self).keys()])
+        return all(
+            [
+                getattr(self, arg_name).is_valid()
+                for arg_name in get_type_hints(self).keys()
+            ]
+        )
 
     @classmethod
     def get_json_schema(Type, definitions: registry.Definitions) -> registry.Thing:
         return named_tuple_schema(Type, definitions, exclude=["errors"])
 
+    @classmethod
+    def get_serialized_value(
+        Type: Type["FormGroup"],
+        class_or_instance: Union[Type["FormGroup"], "FormGroup"],
+        schema: registry.Thing,
+    ) -> registry.JSON:
+        if isinstance(class_or_instance, FormGroup):
+            assert False, "Not yet supported"
+
+        return {
+            **serialize(
+                get_type_hints(class_or_instance),
+                schema,
+                suppress_custom_serializer=True,
+            ),
+            "tag": "FormGroup",
+        }
+
 
 TForm = TypeVar(
-    "TForm", bound=Union[forms.Form, forms.ModelForm[Any], forms.BaseFormSet, forms.BaseInlineFormSet, FormGroup]
+    "TForm",
+    bound=Union[
+        forms.Form,
+        forms.ModelForm[Any],
+        forms.BaseFormSet,
+        forms.BaseInlineFormSet,
+        FormGroup,
+    ],
 )
-
 
 
 if TYPE_CHECKING:
@@ -131,10 +159,12 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             Callable[[THttpRequest, TContext, TFirst], TSubcontext],
             Callable[[THttpRequest, TContext, TFirst, TSecond], TSubcontext],
         ],
-
     ) -> "RPCContext[THttpRequest, TSubcontext, TFirst, TSecond, None]":
-        def inner_context_provider(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
+        def inner_context_provider(
+            request: THttpRequest, *args: Any, **kwargs: Any
+        ) -> Any:
             return context_provider(request, self.context_provider(request, *args, **kwargs))  # type: ignore[call-arg]
+
         inner_context_provider.__annotations__ = self.context_provider.__annotations__
         inner_context_provider.__name__ = context_provider.__name__
 
@@ -189,7 +219,9 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         requires_context = list(get_type_hints(view).values())[1] is not type(None)
 
         form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get("form")
-        form_schema = create_schema(form_type or EmptyForm, registry.definitions_registry)
+        form_schema = create_schema(
+            form_type or EmptyForm, registry.definitions_registry
+        )
         form_class = form_type or EmptyForm
 
         def wrapped_view(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
@@ -311,7 +343,9 @@ class RPC(Generic[THttpRequest]):
 
         form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get(  # type: ignore[assignment]
             "form"
-        ) or type(None)
+        ) or type(
+            None
+        )
         form_schema = create_schema(form_type, registry.definitions_registry)
         form_class = form_type or EmptyForm
 
@@ -322,7 +356,9 @@ class RPC(Generic[THttpRequest]):
             if form_type != type(None):  # type: ignore[comparison-overlap]
                 form = form_class(
                     # Some forms use positional arguments, like AuthenticationForm
-                    data=request.POST if request.method == "POST" else None,
+                    data=request.POST
+                    if request.method == "POST"
+                    else None,
                 )
 
                 if request.method == "POST":
@@ -368,7 +404,11 @@ class RPC(Generic[THttpRequest]):
             "input": input_name,
             "output": output_name,
             "params": self.url_args_as_params,
-            "type": "form_group" if issubclass(form_class, FormGroup) else "form" if issubclass(form_class, forms.BaseForm) else "form_set",
+            "type": "form_group"
+            if issubclass(form_class, FormGroup)
+            else "form"
+            if issubclass(form_class, forms.BaseForm)
+            else "form_set",
         }
         route = path(url_path, wrapped_view, name=url_name)
         return route

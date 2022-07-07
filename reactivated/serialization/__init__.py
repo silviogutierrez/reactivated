@@ -331,8 +331,15 @@ class FormType(NamedTuple):
 
     @classmethod
     def get_serialized_value(
-        Type: Type["FormType"], value: django_forms.BaseForm, schema: Thing
+        Type: Type["FormType"],
+        class_or_instance: Union[Type[django_forms.BaseForm], django_forms.BaseForm],
+        schema: Thing,
     ) -> JSON:
+        value = (
+            class_or_instance
+            if isinstance(class_or_instance, django_forms.BaseForm)
+            else class_or_instance()
+        )
         form = value
         context = form.get_context()  # type: ignore[attr-defined]
 
@@ -455,6 +462,7 @@ class FormSetType(NamedTuple):
             **definitions,
             definition_name: {
                 **form_set_type_definition,
+                "serializer": "reactivated.serialization.FormSetType",
                 "properties": {
                     **form_set_type_definition["properties"],
                     "empty_form": form_type_definition,
@@ -473,6 +481,29 @@ class FormSetType(NamedTuple):
         return Thing(
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
         )
+
+    @classmethod
+    def get_serialized_value(
+        Type: Type["FormSetType"],
+        value: Union[Type[django_forms.BaseFormSet], django_forms.BaseFormSet],
+        schema: Thing,
+    ) -> JSON:
+        if isinstance(value, django_forms.BaseFormSet):
+            return serialize(
+                value,
+                schema,
+                suppress_custom_serializer=True,
+            )
+        else:
+            # Technically this is only for ModelFormSet but it's a no-op for others.
+            instance = value()
+            instance.get_queryset = lambda: []  # type: ignore[attr-defined]
+
+            return serialize(
+                instance,
+                schema,
+                suppress_custom_serializer=True,
+            )
 
 
 class QuerySetType:

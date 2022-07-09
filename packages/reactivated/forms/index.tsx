@@ -528,6 +528,7 @@ export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
                 name={field.name}
                 value={field.value}
                 onChange={field.handler}
+                placeholder={field.widget.attrs.placeholder}
             />
         );
     } else if (field.tag === "django.forms.widgets.Select") {

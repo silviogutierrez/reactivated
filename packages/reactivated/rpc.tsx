@@ -36,12 +36,13 @@ function buildUrl(baseUrl: string, paramsAndIterator: ParamsAndIterator | null) 
 
 const buildValues = (type: "form" | "form_set", formData: FormData, prefix: string | null, values: any) => {
     if (type === "form_set") {
+        // TODO: can initial always be 0?
         formData.append(`${prefix}-INITIAL_FORMS`, values.length);
         formData.append(`${prefix}-TOTAL_FORMS`, values.length);
         for (const index in values as Array<any>) {
             const formSetForm = values[index];
             Object.keys(formSetForm).forEach((key) =>
-                formData.append(`${prefix}-${index}-${key}`, formSetForm[key]),
+                formData.append(`${prefix}-${index}-${key}`, formSetForm[key] ?? ""),
             );
         }
     } else {

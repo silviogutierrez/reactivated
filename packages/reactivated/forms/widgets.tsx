@@ -27,6 +27,7 @@ export const TextInput = (props: {
     className?: string;
     value: string | null;
     onChange: (value: string) => void;
+    placeholder?: string;
     type?: "text" | "password",
 }) => {
     return (
@@ -34,6 +35,7 @@ export const TextInput = (props: {
             type={props.type ?? "text"}
             name={props.name}
             className={props.className}
+            placeholder={props.placeholder}
             value={props.value ?? ""}
             onChange={(event) => props.onChange(event.target.value)}
         />

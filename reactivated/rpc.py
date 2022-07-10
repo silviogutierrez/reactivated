@@ -354,11 +354,16 @@ class RPC(Generic[THttpRequest]):
                 return HttpResponse("401 Unauthorized", status=401)
 
             if form_type != type(None):  # type: ignore[comparison-overlap]
+                form_type_hints = get_type_hints(form_class.__init__)
+                form_kwargs = {"request": request} if issubclass(form_type_hints.get("request", type), HttpRequest) else {}
+
                 form = form_class(
-                    # Some forms use positional arguments, like AuthenticationForm
+                    # Some forms use positional arguments, like AuthenticationForm so
+                    # we can't assume the first argument is the POST data.
                     data=request.POST
                     if request.method == "POST"
                     else None,
+                    **form_kwargs,
                 )
 
                 if request.method == "POST":

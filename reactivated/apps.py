@@ -192,6 +192,7 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
         with open(f"{GENERATED_DIRECTORY}/index.tsx", "r+b") as existing:
             already_generated = existing.read()
 
+            logger.info(f"Client assets hash: {digest}")
             if digest in already_generated:
                 logger.info("Skipping generation as nothing has changed")
                 return

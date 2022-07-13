@@ -35,6 +35,9 @@ function buildUrl(baseUrl: string, paramsAndIterator: ParamsAndIterator | null) 
 }
 
 const buildValues = (type: "form" | "form_set", formData: FormData, prefix: string | null, values: any) => {
+    if (values == null) {
+        return;
+    }
     if (type === "form_set") {
         // TODO: can initial always be 0?
         formData.append(`${prefix}-INITIAL_FORMS`, values.length);

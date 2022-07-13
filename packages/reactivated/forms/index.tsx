@@ -630,7 +630,6 @@ export const useFormSet = <T extends FieldMap>(options: {
         draftState.forms = options.initial.map((_, index) => {
             return castDraft(createForm(index));
         })
-        draftState.total_form_count += 1;
     });
 
 
@@ -822,6 +821,7 @@ export type FormOrFormSetValues<T> = T extends {tag: "FormGroup"}
     ? UnknownFormValues<T["fields"]>
     : T extends FormSetLike<any>
     ? Array<UnknownFormValues<T["empty_form"]["fields"]>>
+    : T extends null ? null
     : never;
 
 export type FormOrFormSetErrors<T> = T extends {tag: "FormGroup"}
@@ -830,4 +830,5 @@ export type FormOrFormSetErrors<T> = T extends {tag: "FormGroup"}
     ? NonNullable<T["errors"]>
     : T extends FormSetLike<any>
     ? Array<NonNullable<T["empty_form"]["errors"]>>
+    : T extends null ? null
     : never;

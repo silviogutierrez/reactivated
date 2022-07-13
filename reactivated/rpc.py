@@ -23,7 +23,7 @@ from django import forms
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.urls import URLPattern, path
 
-from . import Pick, registry, types
+from . import Pick, registry, types, stubs
 from .serialization import create_schema, serialize, named_tuple_schema
 
 THttpRequest = TypeVar("THttpRequest", bound=HttpRequest)
@@ -45,7 +45,20 @@ class FormGroup:
     tag: Literal["FormGroup"] = "FormGroup"
 
     def __init__(self, data: Any = None) -> None:
-        for arg_name, arg_type in get_type_hints(self).items():
+        hints = get_type_hints(type(self))
+
+        without_none = {}
+
+        for hint_name, hint in hints.items():
+            if hint_name == "tag":
+                continue
+
+            if isinstance(hint, stubs._GenericAlias) and hint.__args__[1] is type(None):
+                without_none[hint_name] = hint.__args__[0]
+            else:
+                without_none[hint_name] = hint
+
+        for arg_name, arg_type in without_none.items():
             setattr(self, arg_name, arg_type(data, prefix=arg_name))
 
     @property
@@ -75,12 +88,35 @@ class FormGroup:
         class_or_instance: Union[Type["FormGroup"], "FormGroup"],
         schema: registry.Thing,
     ) -> registry.JSON:
+        # if isinstance(class_or_instance, FormGroup):
+        #     assert False, "Not yet supported"
+
         if isinstance(class_or_instance, FormGroup):
-            assert False, "Not yet supported"
+            return {
+                **serialize(
+                    class_or_instance,
+                    schema,
+                    suppress_custom_serializer=True,
+                ),
+                "tag": "FormGroup",
+            }
+
+        hints = get_type_hints(type(class_or_instance)) if isinstance(class_or_instance, FormGroup) else get_type_hints(class_or_instance)
+
+        without_none = {}
+
+        for hint_name, hint in hints.items():
+            if hint_name == "tag":
+                continue
+
+            if isinstance(hint, stubs._GenericAlias) and hint.__args__[1] is type(None):
+                without_none[hint_name] = hint.__args__[0]
+            else:
+                without_none[hint_name] = hint
 
         return {
             **serialize(
-                get_type_hints(class_or_instance),
+                without_none,
                 schema,
                 suppress_custom_serializer=True,
             ),
@@ -416,6 +452,7 @@ class RPC(Generic[THttpRequest]):
             else "form_set",
         }
         route = path(url_path, wrapped_view, name=url_name)
+        route.foo = view
         return route
 
     def context(

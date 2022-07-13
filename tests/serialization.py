@@ -239,12 +239,14 @@ def test_form():
     convert_to_json_and_validate(serialized_form, generated_schema)
 
 
+@pytest.mark.rpc
 def test_form_class_not_instance():
     generated_schema = create_schema(forms.OperaForm, {})
     serialized = serialize(forms.OperaForm, generated_schema)
     # Need an actual assertion or snapshot here.
 
 
+@pytest.mark.rpc
 def test_form_set_class_not_instance():
     generated_schema = create_schema(forms.OperaFormSet, {})
     serialized = serialize(forms.OperaFormSet, generated_schema)
@@ -254,10 +256,19 @@ def test_form_set_class_not_instance():
 # TODO: Needs to be outside so get_serialized_value can be imported.
 # Also currently not using model choice fields to avoid DB access.
 class OperaFormGroup(FormGroup):
-    operas: forms.OperaFormSet
-    storyboard: forms.StoryboardForm
+    operas: "forms.OperaFormSet"
+    storyboard: Optional["forms.StoryboardForm"]
 
 
+@pytest.mark.django_db
+@pytest.mark.rpc
+def test_form_group_instance():
+    generated_schema = create_schema(OperaFormGroup, {})
+    serialized = serialize(OperaFormGroup(), generated_schema)
+    convert_to_json_and_validate(serialized, generated_schema)
+
+
+@pytest.mark.rpc
 def test_form_group_class_not_instance():
     generated_schema = create_schema(OperaFormGroup, {})
     serialized = serialize(OperaFormGroup, generated_schema)

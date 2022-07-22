@@ -1,6 +1,6 @@
 {
     "name": "reactivated",
-    "version": "1.0.0",
+    "version": "0.25.0",
     "description": "",
     "main": "dist/index2.js",
     "typings": "dist/index.d.ts",

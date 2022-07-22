@@ -47,9 +47,9 @@ jobs:
               run: |
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]
                   then
-                      scripts/release.sh --versioning ${{ github.event.inputs.versioning }}
+                      nix-shell --command "scripts/release.sh --versioning ${{ github.event.inputs.versioning }}"
                   else
-                      scripts/release.sh --snapshot
+                      nix-shell --command "scripts/release.sh --snapshot"
                   fi
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v1

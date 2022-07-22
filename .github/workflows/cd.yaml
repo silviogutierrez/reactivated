@@ -23,30 +23,20 @@ jobs:
             VERSION_TAG: ${{ steps.publish_release.outputs.VERSION_TAG }}
             SNAPSHOT_OR_RELEASE: ${{ steps.publish_release.outputs.SNAPSHOT_OR_RELEASE }}
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v3
               with:
                   fetch-depth: 0
             - uses: cachix/install-nix-action@v15
               with:
                   nix_path: nixpkgs=channel:nixos-unstable
+            - name: Nix requirements
+              run: nix-shell
+            - name: Build
+              run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
             - name: Configure git
               run: |
                   git config --global user.email "silviogutierrez@gmail.com"
                   git config --global user.name "Silvio J. Gutierrez"
-            - uses: actions/setup-node@v1
-              with:
-                  node-version: "16.x"
-                  registry-url: "https://registry.npmjs.org"
-            - uses: actions/setup-python@master
-              with:
-                  python-version: "3.9"
-            - name: Python requirements
-              run: pip install -r requirements.txt
-            - name: Yarn
-              run: |
-                  yarn
-                  yarn --cwd packages/reactivated
-                  yarn --cwd packages/create-django-app
             - name: Publish release
               id: publish_release
               env:

@@ -69,7 +69,10 @@ def test_default_widget(tmp_path):
         assert registry.global_types["Widget"] is registry.DefaultWidgetType
         tsc_process = subprocess.Popen(
             [
-                f"{settings.BASE_DIR}/node_modules/.bin/tsc",
+                "npm",
+                "exec",
+                "tsc",
+                "--",
                 "--noEmit",
                 "--project",
                 tsconfig,
@@ -114,7 +117,10 @@ def test_no_urls(tmp_path):
         assert registry.global_types["Widget"] is registry.DefaultWidgetType
         tsc_process = subprocess.Popen(
             [
-                f"{settings.BASE_DIR}/node_modules/.bin/tsc",
+                "npm",
+                "exec",
+                "tsc",
+                "--",
                 "--noEmit",
                 "--project",
                 tsconfig,

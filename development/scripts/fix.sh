@@ -84,12 +84,12 @@ fi
 
 if [[ -n "${CHANGED_TS_JS_FILES// /}" ]]; then
     # shellcheck disable=SC2086
-    node_modules/.bin/eslint --ignore-path .gitignore --fix $CHANGED_TS_JS_FILES || true
+    npm exec eslint -- --ignore-path .gitignore --fix $CHANGED_TS_JS_FILES || true
 fi
 
 if [[ -n "${CHANGED_PRETTIER_FILES// /}" ]]; then
     # shellcheck disable=SC2086
-    node_modules/.bin/prettier --ignore-path .gitignore $CHANGED_PRETTIER_FILES --write
+    npm exec prettier -- --ignore-path .gitignore $CHANGED_PRETTIER_FILES --write
 fi
 
 if [[ -n "${CHANGED_SH_FILES// /}" ]]; then

@@ -32,8 +32,5 @@ REACTIVATED_PYTHON="$SCRIPT_PATH/../"
 export REACTIVATED_NODE
 export REACTIVATED_PYTHON
 
-# TODO: why does this produce git not found?
-nix-shell --command "yarn --cwd packages/reactivated tsc --outDir $REACTIVATED_NODE"
-
 ./packages/create-django-app/scripts/sync-development.sh
 ./packages/create-django-app/scripts/create-django-app.sh "$PROJECT_NAME"

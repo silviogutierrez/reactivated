@@ -55,20 +55,22 @@ echo "Current version: $CURRENT_VERSION"
 
 python scripts/generate_types.py
 
+npm -w reactivated run build
+
 cd "${PROJECT_ROOT}/packages/reactivated/"
 
 CURRENT_VERSION=$(jq <package.json .version -r)
 
 if [ "$IS_SNAPSHOT" = false ]; then
-    yarn version --no-git-tag-version "--$VERSIONING"
+    npm version --no-git-tag-version "--$VERSIONING"
     NEW_VERSION=$(jq <package.json .version -r)
     SNAPSHOT_OR_RELEASE="latest"
     echo "Release version: $NEW_VERSION"
-    yarn publish
+    npm publish
 
     cd "${PROJECT_ROOT}/packages/create-django-app/"
-    yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
-    yarn publish
+    npm version --no-git-tag-version --new-version "${NEW_VERSION}"
+    npm publish
 
     git commit -am "v${NEW_VERSION}"
     git tag "v${NEW_VERSION}"
@@ -81,12 +83,12 @@ else
     NEW_VERSION="${CURRENT_VERSION}a${GITHUB_RUN_NUMBER}"
     SNAPSHOT_OR_RELEASE="snapshot"
     echo "Snapshot version: $NEW_VERSION"
-    yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
-    yarn publish --tag cd
+    npm version --no-git-tag-version --new-version "${NEW_VERSION}"
+    npm publish --tag cd
 
     cd "${PROJECT_ROOT}/packages/create-django-app/"
-    yarn version --no-git-tag-version --new-version "${NEW_VERSION}"
-    yarn publish --tag cd
+    npm version --no-git-tag-version --new-version "${NEW_VERSION}"
+    npm publish --tag cd
 fi
 echo "Published version $NEW_VERSION to NPM"
 cd "$PROJECT_ROOT"

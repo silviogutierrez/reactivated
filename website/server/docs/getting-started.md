@@ -59,7 +59,7 @@ docker run -itv $PWD:/app silviogutierrez/reactivated install my_app
 ```
 
 The container will take some time to boot the first time, as it will create a
-`virtualenv`, run `yarn` and create an isolated database.
+`virtualenv`, run `npm install` and create an isolated database.
 
 Once done, `cd` into your project, start the container, and start the development
 server.

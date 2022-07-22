@@ -1,1 +1,1 @@
-{"extends": "reactivated/babel.config.js"}
+{"extends": "reactivated/dist/babel.config.js"}

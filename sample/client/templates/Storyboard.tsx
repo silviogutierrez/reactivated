@@ -1,9 +1,14 @@
 import React from "react";
 
-import {CSRFToken, Iterator, templates, interfaces} from "@reactivated";
+import {
+    CSRFToken,
+    Iterator,
+    templates,
+    interfaces,
+    useForm,
+    Widget,
+} from "@reactivated";
 import {Layout} from "@client/Layout";
-
-import {useForm, Widget} from "reactivated/forms";
 
 const SPACING = 2;
 

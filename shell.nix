@@ -1,41 +1,18 @@
-let
-  stableTarball =
-    fetchTarball "https://github.com/NixOS/nixpkgs/archive/8ca77a63599e.tar.gz";
-  unstableTarball =
-    fetchTarball "https://github.com/NixOS/nixpkgs/archive/9bc841fec1c0.tar.gz";
-  pkgs = import stableTarball { };
-  unstable = import unstableTarball { };
-in with pkgs;
+let requirements = import ./requirements.nix;
+
+in with requirements.pkgs;
 
 mkShell {
   buildInputs = [
-    gitAndTools.gh
-    jq
-
-    python39
-    python39Packages.virtualenv
-    nodejs-16_x
-    (yarn.override { nodejs = nodejs-16_x; })
-
-    tmuxp
-
-    ripgrep
-    shellcheck
-    shfmt
-    nixfmt
-
-    postgresql
-
-    # Purely for formatting right now.
-    terraform
+    requirements.production_dependencies
+    requirements.development_dependencies
+    requirements.contributing_dependencies
   ];
-  src = ./scripts/helpers.sh;
   shellHook = ''
-    # Needed to use pip wheels
-    SOURCE_DATE_EPOCH=$(date +%s);
-
-    source $src;
-
-    setup_environment;
+      # Needed for our script below to work.
+      SOURCE_DATE_EPOCH=$(date +%s);
+      npm install
+      source $(npm bin)/setup_environment.sh
+      export DATABASE_NAME="reactivated"
   '';
 }

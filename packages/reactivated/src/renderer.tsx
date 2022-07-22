@@ -76,7 +76,7 @@ type Result =
       };
 
 export const render = ({context, props}: {context: any; props: any}): Result => {
-    const {Provider, getTemplate} = require("../../node_modules/_reactivated");
+    const {Provider, getTemplate} = require("_reactivated/index.tsx");
 
     try {
         const Template = getTemplate(context);

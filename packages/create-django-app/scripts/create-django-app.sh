@@ -1,6 +1,6 @@
 #! /usr/bin/env nix-shell
 #! nix-shell -p jq git nix cacert bash python39 --pure -i bash --keep NIX_PATH --keep REACTIVATED_NODE --keep REACTIVATED_PYTHON --keep IS_DOCKER
-set -e
+set -ex
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 CURRENT_VERSION=$(jq <"$SCRIPT_PATH/../package.json" .version -r)
@@ -30,10 +30,9 @@ sed -i "s/reactivated==\(.*\)/reactivated==$PIP_CURRENT_VERSION/" requirements.t
 
 git init --initial-branch=main
 
-nix-shell --command "yarn init --yes && yarn add reactivated@${CURRENT_VERSION} && git add -A"
+nix-shell --command "npm init --yes && git add -A"
 
-if [ -n "$REACTIVATED_NODE" ]; then
-    nix-shell --command "rm -rf node_modules/reactivated && cp -R $REACTIVATED_NODE node_modules/reactivated"
+if [ -n "$REACTIVATED_PYTHON" ]; then
     nix-shell --command "pip install -e $REACTIVATED_PYTHON"
 fi
 

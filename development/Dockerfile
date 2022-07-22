@@ -15,9 +15,9 @@ COPY requirements.txt requirements.txt
 RUN virtualenv .venv && .venv/bin/pip install -r requirements.txt
 
 COPY package.json .
-COPY yarn.lock .
+COPY package-lock.json .
 
-RUN yarn
+RUN npm install
 
 # RUN rm -rf node_modules/reactivated/*
 # COPY node_modules/reactivated node_modules/reactivated

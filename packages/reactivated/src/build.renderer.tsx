@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import linaria from "@linaria/esbuild";
 import {vanillaExtractPlugin} from "@vanilla-extract/esbuild-plugin";
 import * as esbuild from "esbuild";
@@ -15,7 +17,7 @@ esbuild
     .build({
         stdin: {
             contents: `
-                export {server} from "reactivated/renderer";
+                export {server} from "reactivated/dist/renderer";
             `,
             resolveDir: process.cwd(),
             loader: "ts",
@@ -27,6 +29,10 @@ esbuild
         sourcemap: true,
         target: "es2018",
         preserveSymlinks: true,
+        // Needed so _reactivated is included in renderer.tsx regardless
+        // of the location of reactivated being in the cwd node_modules or
+        // above as in monorepos.
+        nodePaths: [`${process.cwd()}/node_modules`],
         watch:
             production === true
                 ? false

@@ -102,14 +102,14 @@ if [[ $SERVER -eq 1 ]]; then
 fi
 
 if [[ $CLIENT -eq 1 ]]; then
-    # capture_stdout_and_stderr_if_successful yarn jest
+    # capture_stdout_and_stderr_if_successful npm exec jest
 
     if [[ -n "${CHANGED_TS_JS_FILES// /}" ]]; then
         # shellcheck disable=SC2086
-        capture_stdout_and_stderr_if_successful yarn eslint --ignore-path .gitignore $CHANGED_TS_JS_FILES
+        capture_stdout_and_stderr_if_successful npm exec eslint -- --ignore-path .gitignore $CHANGED_TS_JS_FILES
     fi
-    capture_stdout_and_stderr_if_successful yarn prettier --ignore-path .gitignore --check '**/*.{js,jsx,ts,tsx,yaml,json,md}'
-    capture_stdout_and_stderr_if_successful yarn tsc
+    capture_stdout_and_stderr_if_successful npm exec prettier -- --ignore-path .gitignore --check '**/*.{js,jsx,ts,tsx,yaml,json,md}'
+    capture_stdout_and_stderr_if_successful npm exec tsc
 fi
 
 if [[ $INFRASTRUCTURE -eq 1 ]]; then

@@ -179,7 +179,7 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
     # Maybe there's a way to force it to be a single atomic write? I tried
     # open('w+b', buffering=0) but no luck.
     process = subprocess.Popen(
-        ["node", f"{settings.BASE_DIR}/node_modules/reactivated/generator.js"],
+        ["npm", "exec", "generate_client_assets"],
         stdout=subprocess.PIPE,
         stdin=subprocess.PIPE,
         cwd=settings.BASE_DIR,
@@ -187,10 +187,7 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
     out, error = process.communicate(encoded_schema)
 
     constants_process = subprocess.Popen(
-        [
-            "node",
-            f"{settings.BASE_DIR}/node_modules/reactivated/generator/constants.js",
-        ],
+        ["npm", "exec", "generate_client_constants"],
         stdout=subprocess.PIPE,
         stdin=subprocess.PIPE,
         cwd=settings.BASE_DIR,

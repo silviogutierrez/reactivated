@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import linaria from "@linaria/esbuild";
 import {vanillaExtractPlugin} from "@vanilla-extract/esbuild-plugin";
 import * as esbuild from "esbuild";

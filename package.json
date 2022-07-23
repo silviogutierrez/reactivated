@@ -11,6 +11,7 @@
     "dependencies": {},
     "workspaces": [
         "packages/reactivated",
+        "packages/create-django-app",
         "integration",
         "sample",
         "website",

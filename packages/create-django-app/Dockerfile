@@ -13,9 +13,9 @@ ENV PATH="/home/guest/.nix-profile/bin:/reactivated/scripts/:${PATH}"
 ENV REACTIVATED_SOCKET=/tmp/reactivated.sock
 ENV TMPDIR=/tmp
 
-COPY package.json /reactivated/package.json
-COPY scripts/create-django-app.sh /reactivated/scripts/install
-COPY template /reactivated/template
+COPY --chown=guest package.json /reactivated/package.json
+COPY --chown=guest scripts/create-django-app.sh /reactivated/scripts/install
+COPY --chown=guest template /reactivated/template
 
 ENV IS_DOCKER=true
 

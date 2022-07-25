@@ -11,8 +11,11 @@ mkShell {
   shellHook = ''
     # Needed for our script below to work.
     SOURCE_DATE_EPOCH=$(date +%s);
-    npm install
-    source $(npm bin)/setup_environment.sh
     export DATABASE_NAME="reactivated"
+    setup_script="$(npm bin)/setup_environment.sh"
+
+    if [ -f $setup_script ]; then
+       source $setup_script
+    fi
   '';
 }

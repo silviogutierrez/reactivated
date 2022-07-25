@@ -30,10 +30,15 @@ sed -i "s/reactivated==\(.*\)/reactivated==$PIP_CURRENT_VERSION/" requirements.t
 
 git init --initial-branch=main
 
-nix-shell --command "npm init --yes && git add -A"
+nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm init --yes && git add -A"
 
-if [ -n "$REACTIVATED_PYTHON" ]; then
-    nix-shell --command "pip install -e $REACTIVATED_PYTHON"
+# if [ -n "$REACTIVATED_PYTHON" ]; then
+#     nix-shell --command "pip install -e $REACTIVATED_PYTHON"
+# fi
+
+if [ -d "$SCRIPT_PATH/../template/monorepo" ]; then
+    nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install $SCRIPT_PATH/../template/monorepo/node.tgz"
+    nix-shell --command "pip install $SCRIPT_PATH/../template/monorepo/python"
 fi
 
 nix-shell --command "python manage.py generate_client_assets"

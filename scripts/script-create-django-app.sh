@@ -34,14 +34,14 @@ export REACTIVATED_PYTHON
 
 ./packages/create-django-app/scripts/sync-development.sh
 
-rm -rf packages/create-django-app/template/monorepo/
-python setup.py sdist -d packages/create-django-app/template/monorepo/
-mv packages/create-django-app/template/monorepo/*.tar.gz packages/create-django-app/template/monorepo/python.tar.gz
-tar xzf packages/create-django-app/template/monorepo/python.tar.gz -C packages/create-django-app/template/monorepo/
-rm packages/create-django-app/template/monorepo/python.tar.gz
-mv packages/create-django-app/template/monorepo/* packages/create-django-app/template/monorepo/python
+rm -rf packages/create-django-app/monorepo/
+python setup.py sdist -d packages/create-django-app/monorepo/
+mv packages/create-django-app/monorepo/*.tar.gz packages/create-django-app/monorepo/python.tar.gz
+tar xzf packages/create-django-app/monorepo/python.tar.gz -C packages/create-django-app/monorepo/
+rm packages/create-django-app/monorepo/python.tar.gz
+mv packages/create-django-app/monorepo/* packages/create-django-app/monorepo/python
 npm -w reactivated run build
-npm -w reactivated pack --pack-destination packages/create-django-app/template/monorepo/
-mv packages/create-django-app/template/monorepo/*.tgz packages/create-django-app/template/monorepo/node.tgz
+npm -w reactivated pack --pack-destination packages/create-django-app/monorepo/
+mv packages/create-django-app/monorepo/*.tgz packages/create-django-app/monorepo/node.tgz
 
 ./packages/create-django-app/scripts/create-django-app.sh "$PROJECT_NAME"

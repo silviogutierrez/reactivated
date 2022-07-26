@@ -1,6 +1,6 @@
 #! /usr/bin/env nix-shell
 #! nix-shell -p jq git nix cacert bash python39 --pure -i bash --keep NIX_PATH --keep REACTIVATED_NODE --keep REACTIVATED_PYTHON --keep IS_DOCKER
-set -ex
+set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 CURRENT_VERSION=$(jq <"$SCRIPT_PATH/../package.json" .version -r)
@@ -36,18 +36,19 @@ nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = "
 #     nix-shell --command "pip install -e $REACTIVATED_PYTHON"
 # fi
 
-if [ -d "$SCRIPT_PATH/../template/monorepo" ]; then
-    nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install $SCRIPT_PATH/../template/monorepo/node.tgz"
-    nix-shell --command "pip install $SCRIPT_PATH/../template/monorepo/python"
+if [ -d "$SCRIPT_PATH/../monorepo" ]; then
+    nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install $SCRIPT_PATH/../monorepo/node.tgz"
+    nix-shell --command "pip install $SCRIPT_PATH/../monorepo/python"
 fi
 
 nix-shell --command "python manage.py generate_client_assets"
 nix-shell --command "python manage.py migrate"
-nix-shell --command "scripts/fix.sh --all"
 
 commit_message="Initial files"
 
 git add -A
+
+nix-shell --command "scripts/fix.sh --all"
 
 if [ "$HAS_GIT_CONFIGURED" = true ]; then
     git commit -m "$commit_message"

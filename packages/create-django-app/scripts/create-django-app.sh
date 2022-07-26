@@ -32,13 +32,12 @@ git init --initial-branch=main
 
 nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm init --yes && git add -A"
 
-# if [ -n "$REACTIVATED_PYTHON" ]; then
-#     nix-shell --command "pip install -e $REACTIVATED_PYTHON"
-# fi
-
 if [ -d "$SCRIPT_PATH/../monorepo" ]; then
     nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install $SCRIPT_PATH/../monorepo/node.tgz"
     nix-shell --command "pip install $SCRIPT_PATH/../monorepo/python"
+else
+    nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install -E reactivated@${CURRENT_VERSION}"
+    echo "reactivated==$PIP_CURRENT_VERSION" >>requirements.txt
 fi
 
 nix-shell --command "python manage.py generate_client_assets"

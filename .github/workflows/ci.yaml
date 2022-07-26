@@ -46,12 +46,11 @@ jobs:
               run: |
                   git config --global user.email "example@example.com"
                   git config --global user.name "Example"
+            - name: Setup tmate session
+              uses: mxschmitt/action-tmate@v3
             - name: Create test project
               run: |
                   scripts/script-create-django-app.sh --name integration
-            - name: Setup tmate session
-              if: ${{ failure() }}
-              uses: mxschmitt/action-tmate@v3
             - name: Run tests
               run: |
                   cd integration

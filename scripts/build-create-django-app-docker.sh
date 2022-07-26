@@ -1,6 +1,6 @@
 #! /usr/bin/env nix-shell
 #! nix-shell ../shell.nix --pure -i bash --keep NIX_PATH
-set -ex
+set -e
 
 npm -w create-django-app run prepublishOnly
 

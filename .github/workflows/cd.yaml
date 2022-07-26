@@ -41,20 +41,20 @@ jobs:
               run: |
                   git config --global user.email "silviogutierrez@gmail.com"
                   git config --global user.name "Silvio J. Gutierrez"
-             #- name: Publish release
-             #  id: publish_release
-             #  env:
-             #      TWINE_USERNAME: __token__
-             #      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-             #      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-             #      GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
-             #  run: |
-             #      if [ "${{ github.event_name }}" = "workflow_dispatch" ]
-             #      then
-             #          nix-shell --command "scripts/release.sh --versioning ${{ github.event.inputs.versioning }}"
-             #      else
-             #          nix-shell --command "scripts/release.sh --snapshot"
-             #      fi
+            - name: Publish release
+              id: publish_release
+              env:
+                  TWINE_USERNAME: __token__
+                  TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+              run: |
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]
+                  then
+                      nix-shell --command "scripts/release.sh --versioning ${{ github.event.inputs.versioning }}"
+                  else
+                      nix-shell --command "scripts/release.sh --snapshot"
+                  fi
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v1
             - name: Set up Docker Buildx

@@ -16,6 +16,7 @@ ENV TMPDIR=/tmp
 COPY --chown=guest package.json /reactivated/package.json
 COPY --chown=guest scripts/create-django-app.sh /reactivated/scripts/install
 COPY --chown=guest template /reactivated/template
+COPY --chown=guest monorepo* /reactivated/monorepo/
 
 ENV IS_DOCKER=true
 

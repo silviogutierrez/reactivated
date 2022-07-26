@@ -16,11 +16,7 @@ npm -w reactivated run build
 npm -w reactivated pack --pack-destination website_build_context/monorepo/
 mv website_build_context/monorepo/*.tgz website_build_context/monorepo/node.tgz
 cp package-lock.json website_build_context/
-mv website_build_context/monorepo website_build_context/template/monorepo
 
 sed -i s'#-e ..#./monorepo/python#' website_build_context/template/requirements.txt
-# sed -i s'#../requirements#./requirements#' website_build_context/shell.nix
-
-# cd website_build_context/
 
 # /usr/local/bin/docker build -t testing -f website_build_context/Dockerfile website_build_context

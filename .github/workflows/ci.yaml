@@ -109,7 +109,7 @@ jobs:
                   context: website_build_context
                   platforms: linux/amd64,linux/arm64
                   file: website_build_context/Dockerfile
-                  push: true
+                  push: false
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
-                  tags: silviogutierrez/reactivated:${{ steps.publish_release.outputs.VERSION_TAG }},silviogutierrez/reactivated:${{ steps.publish_release.outputs.SNAPSHOT_OR_RELEASE }}
+                  tags: silviogutierrez/reactivated:ci

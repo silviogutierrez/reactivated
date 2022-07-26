@@ -36,6 +36,7 @@ in with pkgs; {
     pkgs.shellcheck
     pkgs.nixfmt
   ];
-  contributing_dependencies = [ pkgs.gitAndTools.gh pkgs.ripgrep pkgs.nix ];
+  contributing_dependencies =
+    [ pkgs.gitAndTools.gh pkgs.ripgrep pkgs.nix pkgs.cacert pkgs.bash ];
 
 }

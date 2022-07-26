@@ -23,4 +23,4 @@ sed -i s'#-e ..#./monorepo/python#' website_build_context/template/requirements.
 
 # cd website_build_context/
 
-/usr/local/bin/docker build -t testing -f website_build_context/Dockerfile website_build_context
+# /usr/local/bin/docker build -t testing -f website_build_context/Dockerfile website_build_context

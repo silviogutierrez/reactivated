@@ -1,0 +1,5 @@
+version = 1
+merge.method = "squash"
+merge.delete_branch_on_merge = true
+merge.message.title = "pull_request_title"
+merge.message.body = "empty"

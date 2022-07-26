@@ -50,9 +50,9 @@ git add -A
 nix-shell --command "scripts/fix.sh --all"
 
 if [ "$HAS_GIT_CONFIGURED" = true ]; then
-    git commit -m "$commit_message"
+    git commit -am "$commit_message"
 else
-    git -c user.email="/dev/null@reactivated.io" -c user.name="Reactivated" commit -m "$commit_message"
+    git -c user.email="/dev/null@reactivated.io" -c user.name="Reactivated" commit -am "$commit_message"
 fi
 
 echo ""

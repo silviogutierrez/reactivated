@@ -4,6 +4,7 @@ RUN mkdir /app
 WORKDIR /app
 
 COPY shell.nix shell.nix
+COPY requirements.nix requirements.nix
 
 RUN mkdir -p /output/store
 RUN nix-env -f shell.nix -i -A buildInputs

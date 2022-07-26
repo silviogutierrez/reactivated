@@ -8,8 +8,8 @@ on:
             - main
 
 jobs:
-    server_tests:
-        name: Server tests
+    unit_tests:
+        name: Unit tests
         runs-on: ubuntu-20.04
         env:
             NIX_BUILD_SHELL: bash
@@ -78,33 +78,38 @@ jobs:
                   cd website
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "scripts/test.sh --all"
-    # docker_tests:
-    #     name: Docker tests
-    #     runs-on: ubuntu-20.04
-    #     steps:
-    #         - uses: actions/checkout@v2.4.0
-    #         - uses: cachix/install-nix-action@v15
-    #           with:
-    #               nix_path: nixpkgs=channel:nixos-unstable
-    #         - name: Setup reactivated
-    #           run: |
-    #               nix-shell --command "yarn --cwd packages/create-django-app && yarn --cwd packages/create-django-app prepublishOnly"
-    #         - name: Set up QEMU
-    #           uses: docker/setup-qemu-action@v1
-    #         - name: Set up Docker Buildx
-    #           uses: docker/setup-buildx-action@v1
-    #         - name: Login to DockerHub
-    #           uses: docker/login-action@v1
-    #           with:
-    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
-    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
-    #         - name: Build and push
-    #           uses: docker/build-push-action@v2
-    #           with:
-    #               context: packages/create-django-app
-    #               platforms: linux/amd64,linux/arm64
-    #               file: packages/create-django-app/Dockerfile
-    #               push: false
-    #               tags: silviogutierrez/reactivated:ci
-    #               cache-from: type=gha
-    #               cache-to: type=gha,mode=max
+    docker_tests:
+        name: Docker tests
+        runs-on: ubuntu-20.04
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - uses: cachix/install-nix-action@v15
+              with:
+                  nix_path: nixpkgs=channel:nixos-unstable
+            - name: Nix requirements
+              run: nix-shell
+            - name: Build
+              run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v1
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v1
+            - name: Login to DockerHub
+              uses: docker/login-action@v1
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: "Prepare docker context"
+              run: scripts/build-create-django-app-docker.sh
+            - name: Build and push
+              uses: docker/build-push-action@v2
+              with:
+                  context: website_build_context
+                  platforms: linux/amd64,linux/arm64
+                  file: website_build_context/Dockerfile
+                  push: true
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+                  tags: silviogutierrez/reactivated:${{ steps.publish_release.outputs.VERSION_TAG }},silviogutierrez/reactivated:${{ steps.publish_release.outputs.SNAPSHOT_OR_RELEASE }}

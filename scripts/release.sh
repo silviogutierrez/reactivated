@@ -62,7 +62,7 @@ cd "${PROJECT_ROOT}/packages/reactivated/"
 CURRENT_VERSION=$(jq <package.json .version -r)
 
 if [ "$IS_SNAPSHOT" = false ]; then
-    npm version --no-git-tag-version "--$VERSIONING"
+    npm version --no-git-tag-version "$VERSIONING"
     NEW_VERSION=$(jq <package.json .version -r)
     SNAPSHOT_OR_RELEASE="latest"
     echo "Release version: $NEW_VERSION"

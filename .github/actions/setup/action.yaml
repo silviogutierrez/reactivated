@@ -1,11 +1,13 @@
-name: 'Setup'
+name: "Setup"
 runs:
-  using: "composite"
-  steps:
-    - uses: cachix/install-nix-action@v15
-    - name: Nix requirements
-      run: nix-shell
-      shell: bash
-    - name: Build
-      run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
-      shell: bash
+    using: "composite"
+    steps:
+        - uses: cachix/install-nix-action@v15
+          with:
+              nix_path: nixpkgs=channel:nixos-unstable
+        - name: Nix requirements
+          run: nix-shell
+          shell: bash
+        - name: Build
+          run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
+          shell: bash

@@ -1,10 +1,8 @@
 import React from "react";
 
-import {CSRFToken, Iterator, templates} from "@reactivated";
+import {CSRFToken, Iterator, ManagementForm, templates, useFormSet} from "@reactivated";
 
 import {css, cx} from "@linaria/core";
-
-import {ManagementForm, useFormSet} from "reactivated/forms";
 
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";

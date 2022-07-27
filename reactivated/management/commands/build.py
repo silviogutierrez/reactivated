@@ -32,15 +32,17 @@ class Command(BaseCommand):
         }
 
         tsc_process = subprocess.Popen(
-            [f"{settings.BASE_DIR}/node_modules/.bin/tsc", "--noEmit"],
+            ["npm", "exec", "tsc", "--", "--noEmit"],
             stdout=subprocess.PIPE,
             env=build_env,
             cwd=settings.BASE_DIR,
         )
         client_process = subprocess.Popen(
             [
-                "node",
-                f"{settings.BASE_DIR}/node_modules/reactivated/build.client.js",
+                "npm",
+                "exec",
+                "build.client.js",
+                "--",
                 *entry_points,
             ],
             stdout=subprocess.PIPE,
@@ -48,7 +50,7 @@ class Command(BaseCommand):
             cwd=settings.BASE_DIR,
         )
         renderer_process = subprocess.Popen(
-            ["node", f"{settings.BASE_DIR}/node_modules/reactivated/build.renderer.js"],
+            ["npm", "exec", "build.renderer.js"],
             stdout=subprocess.PIPE,
             env=build_env,
             cwd=settings.BASE_DIR,
@@ -68,7 +70,10 @@ class Command(BaseCommand):
             for bundle in entry_points:
                 terser_process = subprocess.Popen(
                     [
-                        "node_modules/.bin/terser",
+                        "npm",
+                        "exec",
+                        "terser",
+                        "--",
                         f"{DIST_ROOT}{bundle}.js",
                         f"--source-map=content='{DIST_ROOT}{bundle}.js.map'",
                         "--compress",
@@ -87,7 +92,10 @@ class Command(BaseCommand):
 
             sentry_process = subprocess.Popen(
                 [
-                    f"{settings.BASE_DIR}/node_modules/.bin/sentry-cli",
+                    "npm",
+                    "exec",
+                    "sentry-cli",
+                    "--",
                     "releases",
                     "files",
                     os.environ["TAG_VERSION"],

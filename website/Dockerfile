@@ -4,6 +4,7 @@ RUN mkdir /app
 WORKDIR /app
 
 COPY shell.nix shell.nix
+COPY requirements.nix requirements.nix
 
 RUN mkdir -p /output/store
 RUN nix-env -f shell.nix -i -A buildInputs
@@ -11,13 +12,15 @@ RUN nix-env -f shell.nix -i -A dependencies --profile /output/profile
 RUN cp -va $(nix-store -qR /output/profile) /output/store
 
 COPY requirements.txt requirements.txt
+COPY monorepo* monorepo/
 
 RUN virtualenv .venv && .venv/bin/pip install -r requirements.txt
 
 COPY package.json .
-COPY yarn.lock .
+COPY package-lock.json .
 
-RUN yarn
+RUN npm install
+RUN npm install ./monorepo/node.tgz
 
 # RUN rm -rf node_modules/reactivated/*
 # COPY node_modules/reactivated node_modules/reactivated
@@ -49,6 +52,8 @@ WORKDIR /app
 ENV NODE_ENV production
 
 COPY requirements.txt requirements.txt
+COPY monorepo* monorepo/
+
 RUN virtualenv .venv && .venv/bin/pip install -r requirements.txt
 
 COPY manage.py .

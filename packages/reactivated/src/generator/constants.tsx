@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import fs from "fs";
 
 // Must be above the compile import as get-stdin used by

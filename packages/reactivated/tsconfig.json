@@ -1,30 +1,16 @@
 {
     "compilerOptions": {
-        "types": ["node"],
         "strict": true,
         "sourceMap": true,
         "module": "commonjs",
-        "moduleResolution": "node",
-        "target": "es5",
-        "jsx": "react",
-        // "allowSyntheticDefaultImports": true,
-        "resolveJsonModule": true,
+        "target": "es6",
+        "outDir": "dist",
         "esModuleInterop": true,
-        "lib": [
-            "dom",
-            // "dom.iterable",
-            "es6",
-
-            // "es2016.array.include",
-            // "es2018.promise",
-            // "es2017.object",
-            // We need fromEntries in forms.
-            "es2019.object"
-            // "es2019.array"
-        ],
-        "skipLibCheck": true,
-        "outDir": "./",
-        "declaration": true
+        "declaration": true,
+        "jsx": "react",
+        "baseUrl": ".",
+        "noEmit": false,
+        "skipLibCheck": true
     },
     "include": ["./**/*"],
     "exclude": ["node_modules", "dist/"]

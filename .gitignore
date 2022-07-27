@@ -1,27 +1,13 @@
-*.pyc
-*.sqlite3
-.coverage
-.DS_Store
-.venv
 node_modules
-.mypy_cache
-client/exports.tsx
-server/settings/__init__.py
-dist/
-build/
-lib/
+dist
 *.egg-info
 
-
-website/translated_docs
-website/build/
-website/yarn.lock
-website/node_modules
-website/i18n/*
-sample/client/generated
-development/client/generated
-
+packages/reactivated/src/generated.tsx
+*.pyc
+*.sqlite3
+.DS_Store
+.mypy_cache
 # pytest
 .cache
 
-packages/reactivated/generated.tsx
+.venv

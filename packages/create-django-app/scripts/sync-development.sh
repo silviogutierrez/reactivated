@@ -8,7 +8,9 @@ cd "$SCRIPT_PATH/../"
 rm -rf template
 mkdir template
 rsync -a --filter=':- .gitignore' ../../development/ template/
+cp ../../requirements.nix template
+sed -i s#../requirements#./requirements# template/shell.nix
+sed -i s#../node_modules#./node_modules# template/.eslintrc.json
 rm template/server/settings/__init__.py
 rm template/package.json
-rm template/yarn.lock
 cp template/.gitignore template/gitignore.template

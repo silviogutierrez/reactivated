@@ -15,9 +15,5 @@
     ],
     "scripts": {
         "prepublishOnly": "./scripts/sync-development.sh && tsc"
-    },
-    "devDependencies": {
-        "@types/node": "^14.14.35",
-        "typescript": "^4.5.4"
     }
 }

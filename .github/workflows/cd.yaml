@@ -23,30 +23,25 @@ jobs:
             VERSION_TAG: ${{ steps.publish_release.outputs.VERSION_TAG }}
             SNAPSHOT_OR_RELEASE: ${{ steps.publish_release.outputs.SNAPSHOT_OR_RELEASE }}
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v3
               with:
                   fetch-depth: 0
-            - uses: cachix/install-nix-action@v15
-              with:
-                  nix_path: nixpkgs=channel:nixos-unstable
-            - name: Configure git
-              run: |
-                  git config --global user.email "silviogutierrez@gmail.com"
-                  git config --global user.name "Silvio J. Gutierrez"
+            # currently needed only for .npmrc to have a registry URL.
             - uses: actions/setup-node@v1
               with:
                   node-version: "16.x"
                   registry-url: "https://registry.npmjs.org"
-            - uses: actions/setup-python@master
+            - uses: cachix/install-nix-action@v15
               with:
-                  python-version: "3.9"
-            - name: Python requirements
-              run: pip install -r requirements.txt
-            - name: Yarn
+                  nix_path: nixpkgs=channel:nixos-unstable
+            - name: Nix requirements
+              run: nix-shell
+            - name: Build
+              run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
+            - name: Configure git
               run: |
-                  yarn
-                  yarn --cwd packages/reactivated
-                  yarn --cwd packages/create-django-app
+                  git config --global user.email "silviogutierrez@gmail.com"
+                  git config --global user.name "Silvio J. Gutierrez"
             - name: Publish release
               id: publish_release
               env:
@@ -57,9 +52,9 @@ jobs:
               run: |
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]
                   then
-                      scripts/release.sh --versioning ${{ github.event.inputs.versioning }}
+                      nix-shell --command "scripts/release.sh --versioning ${{ github.event.inputs.versioning }}"
                   else
-                      scripts/release.sh --snapshot
+                      nix-shell --command "scripts/release.sh --snapshot"
                   fi
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v1
@@ -70,12 +65,14 @@ jobs:
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: "Prepare docker context"
+              run: scripts/build-create-django-app-docker.sh
             - name: Build and push
               uses: docker/build-push-action@v2
               with:
-                  context: packages/create-django-app
+                  context: website_build_context
                   platforms: linux/amd64,linux/arm64
-                  file: packages/create-django-app/Dockerfile
+                  file: website_build_context/Dockerfile
                   push: true
                   cache-from: type=gha
                   cache-to: type=gha,mode=max

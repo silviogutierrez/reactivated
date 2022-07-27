@@ -1,6 +1,4 @@
 # This script is meant to be sourced, not run in a subshell.
-set -e
-
 SOURCE_DATE_EPOCH=$(date +%s)
 export SOURCE_DATE_EPOCH
 VIRTUAL_ENV=$PWD/.venv
@@ -21,19 +19,15 @@ if [ ! -d "$VIRTUAL_ENV" ]; then
     fi
 
     NEED_DATABASE=true
-    yarn
+
+    npm install
     rm -rf "$TMP_ENV"
     virtualenv "$VIRTUAL_ENV"
     mkdir "$VIRTUAL_ENV/static"
-    # Impure nix shell has issues with this on international systems since LANG
-    # might be set.
-    # Maybe try LANG= initdb or something to unset it.
     initdb "$POSTGRESQL_DATA"
     pip install -r requirements.txt
 
 fi
-
-set +e
 
 mkdir -p "$TMP_ENV"
 

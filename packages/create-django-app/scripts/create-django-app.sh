@@ -30,25 +30,29 @@ sed -i "s/reactivated==\(.*\)/reactivated==$PIP_CURRENT_VERSION/" requirements.t
 
 git init --initial-branch=main
 
-nix-shell --command "yarn init --yes && yarn add reactivated@${CURRENT_VERSION} && git add -A"
+nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm init --yes && git add -A"
 
-if [ -n "$REACTIVATED_NODE" ]; then
-    nix-shell --command "rm -rf node_modules/reactivated && cp -R $REACTIVATED_NODE node_modules/reactivated"
-    nix-shell --command "pip install -e $REACTIVATED_PYTHON"
+if [ -d "$SCRIPT_PATH/../monorepo" ]; then
+    nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install $SCRIPT_PATH/../monorepo/node.tgz"
+    nix-shell --command "pip install $SCRIPT_PATH/../monorepo/python"
+else
+    nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install -E reactivated@${CURRENT_VERSION}"
+    echo "reactivated==$PIP_CURRENT_VERSION" >>requirements.txt
 fi
 
 nix-shell --command "python manage.py generate_client_assets"
 nix-shell --command "python manage.py migrate"
-nix-shell --command "scripts/fix.sh --all"
 
 commit_message="Initial files"
 
 git add -A
 
+nix-shell --command "scripts/fix.sh --all"
+
 if [ "$HAS_GIT_CONFIGURED" = true ]; then
-    git commit -m "$commit_message"
+    git commit -am "$commit_message"
 else
-    git -c user.email="/dev/null@reactivated.io" -c user.name="Reactivated" commit -m "$commit_message"
+    git -c user.email="/dev/null@reactivated.io" -c user.name="Reactivated" commit -am "$commit_message"
 fi
 
 echo ""

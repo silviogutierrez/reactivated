@@ -4,7 +4,5 @@
     "main": "index.js",
     "author": "Silvio J. Gutierrez <silviogutierrez@gmail.com>",
     "license": "MIT",
-    "dependencies": {
-        "reactivated": "0.22.0-a825"
-    }
+    "dependencies": {}
 }

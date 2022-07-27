@@ -8,7 +8,6 @@
         "@types/react-syntax-highlighter": "^15.5.1",
         "outdent": "^0.8.0",
         "react-markdown": "^8.0.0",
-        "react-syntax-highlighter": "^15.4.5",
-        "reactivated": "0.24.0-a970"
+        "react-syntax-highlighter": "^15.4.5"
     }
 }

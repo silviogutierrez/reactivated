@@ -8,7 +8,7 @@ from django.conf import settings
 
 def start_tsc() -> None:
     tsc_process = subprocess.Popen(
-        ["node_modules/.bin/tsc", "--watch", "--noEmit", "--preserveWatchOutput"],
+        ["npm", "exec", "tsc", "--", "--watch", "--noEmit", "--preserveWatchOutput"],
         # stdout=subprocess.PIPE,
         # stderr=subprocess.PIPE,
         env={**os.environ.copy()},
@@ -21,8 +21,10 @@ def start_client() -> None:
 
     client_process = subprocess.Popen(
         [
-            "node",
-            f"{settings.BASE_DIR}/node_modules/reactivated/build.client.js",
+            "npm",
+            "exec",
+            "build.client.js",
+            "--",
             *entry_points,
         ],
         stdout=subprocess.PIPE,
@@ -35,7 +37,7 @@ def start_renderer() -> None:
     os.environ["REACTIVATED_RENDERER"] = "true"
 
     renderer_process = subprocess.Popen(
-        ["node", f"{settings.BASE_DIR}/node_modules/reactivated/build.renderer.js"],
+        ["npm", "exec", "build.renderer.js"],
         encoding="utf-8",
         stdout=subprocess.PIPE,
         env={

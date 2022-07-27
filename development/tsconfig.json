@@ -11,7 +11,8 @@
         "baseUrl": ".",
         "paths": {
             "@client/*": ["client/*"],
-            "@reactivated": ["node_modules/_reactivated"]
+            "@reactivated": ["node_modules/_reactivated"],
+            "@reactivated/*": ["node_modules/_reactivated/*"]
         }
     },
     "include": ["./client/**/*"]

@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -p nix cacert bash --pure -i bash --keep NIX_PATH
+#! nix-shell ../shell.nix --pure -i bash --keep NIX_PATH
 set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
@@ -32,8 +32,16 @@ REACTIVATED_PYTHON="$SCRIPT_PATH/../"
 export REACTIVATED_NODE
 export REACTIVATED_PYTHON
 
-# TODO: why does this produce git not found?
-nix-shell --command "yarn --cwd packages/reactivated tsc --outDir $REACTIVATED_NODE"
-
 ./packages/create-django-app/scripts/sync-development.sh
+
+rm -rf packages/create-django-app/monorepo/
+python setup.py sdist -d packages/create-django-app/monorepo/
+mv packages/create-django-app/monorepo/*.tar.gz packages/create-django-app/monorepo/python.tar.gz
+tar xzf packages/create-django-app/monorepo/python.tar.gz -C packages/create-django-app/monorepo/
+rm packages/create-django-app/monorepo/python.tar.gz
+mv packages/create-django-app/monorepo/* packages/create-django-app/monorepo/python
+npm -w reactivated run build
+npm -w reactivated pack --pack-destination packages/create-django-app/monorepo/
+mv packages/create-django-app/monorepo/*.tgz packages/create-django-app/monorepo/node.tgz
+
 ./packages/create-django-app/scripts/create-django-app.sh "$PROJECT_NAME"

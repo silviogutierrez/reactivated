@@ -64,17 +64,22 @@ AT_LEAST_ONE_ERROR=0
 cd $PROJECT_ROOT
 
 if [[ $SERVER -eq 1 ]]; then
+    OLD_PATH="$PATH"
+    # Fixes playwright.
+    # See: https://github.com/microsoft/playwright/issues/5501
+    PATH="$VIRTUAL_ENV/bin:/bin:/sbin/:$PATH"
     capture_stdout_and_stderr_if_successful pytest
     capture_stdout_and_stderr_if_successful flake8 .
     capture_stdout_and_stderr_if_successful isort -c .
     capture_stdout_and_stderr_if_successful black . --check
     capture_stdout_and_stderr_if_successful mypy --no-incremental .
+    PATH="$OLD_PATH"
 fi
 
 if [[ $CLIENT -eq 1 ]]; then
     # capture_stdout_and_stderr_if_successful node_modules/.bin/tslint -p packages/reactivated
     # capture_stdout_and_stderr_if_successful node_modules/.bin/tslint -p sample
-    capture_stdout_and_stderr_if_successful node_modules/.bin/prettier --ignore-path .gitignore --check '**/*.{ts,tsx,yaml,json}'
+    capture_stdout_and_stderr_if_successful npm exec -- prettier --ignore-path .gitignore --check '**/*.{ts,tsx,yaml,json}'
 fi
 
 if [[ $E2E -eq 1 ]]; then
@@ -98,7 +103,7 @@ if [[ $INFRASTRUCTURE -eq 1 ]]; then
         capture_stdout_and_stderr_if_successful nixfmt -c $CHANGED_NIX_FILES
     fi
 
-    capture_stdout_and_stderr_if_successful terraform fmt -recursive -check
+    # capture_stdout_and_stderr_if_successful terraform fmt -recursive -check
 fi
 
 cd "$PWD"

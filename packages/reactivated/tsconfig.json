@@ -9,7 +9,7 @@
         "declaration": true,
         "jsx": "react",
         "baseUrl": ".",
-        "noEmit": true,
+        "noEmit": false,
         "skipLibCheck": true
     },
     "include": ["./**/*"],

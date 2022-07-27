@@ -8,8 +8,8 @@ on:
             - main
 
 jobs:
-    unit_tests:
-        name: Unit tests
+    code_tests:
+        name: Code tests
         runs-on: ubuntu-20.04
         env:
             NIX_BUILD_SHELL: bash

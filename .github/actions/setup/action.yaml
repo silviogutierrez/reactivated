@@ -1,0 +1,9 @@
+name: 'Setup'
+runs:
+  using: "composite"
+  steps:
+    - uses: cachix/install-nix-action@v15
+    - name: Nix requirements
+      run: nix-shell
+    - name: Build
+      run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"

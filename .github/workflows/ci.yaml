@@ -17,14 +17,9 @@ jobs:
             - uses: actions/checkout@v3
               with:
                   fetch-depth: 0
-            - uses: cachix/install-nix-action@v15
-            - name: Nix requirements
-              run: nix-shell
-            - name: Build
-              run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
+            - uses: ./.github/actions/setup
             - name: Run tests
-              run: |
-                  nix-shell --command "scripts/test.sh"
+              run: nix-shell --command "scripts/test.sh"
     integration_tests:
         name: Integration tests
         runs-on: ${{ matrix.os }}

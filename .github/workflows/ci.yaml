@@ -22,7 +22,7 @@ jobs:
               run: nix-shell
             - name: Build
               run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
-            - name: Server tests
+            - name: Run tests
               run: |
                   nix-shell --command "scripts/test.sh"
     integration_tests:

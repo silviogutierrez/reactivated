@@ -9,6 +9,12 @@ mkShell {
     requirements.development_dependencies
   ];
   shellHook = ''
-    source $(npm bin)/setup_environment.sh
+    setup_script="$(npm bin)/setup_environment.sh"
+
+    if [ ! -f $setup_script ]; then
+       npm install
+    fi
+
+    source $setup_script
   '';
 }

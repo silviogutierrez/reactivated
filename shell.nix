@@ -9,14 +9,6 @@ mkShell {
     requirements.contributing_dependencies
   ];
   shellHook = ''
-    # Needed for our script below to work.
-    SOURCE_DATE_EPOCH=$(date +%s);
-    export DATABASE_NAME="reactivated"
-    npm install
-    setup_script="$(npm bin)/setup_environment.sh"
-
-    if [ -f $setup_script ]; then
-       source $setup_script
-    fi
+    source "./packages/reactivated/scripts/setup_environment.sh"
   '';
 }

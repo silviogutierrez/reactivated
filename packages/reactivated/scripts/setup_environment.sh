@@ -19,6 +19,7 @@ if [ ! -d "$VIRTUAL_ENV" ]; then
     fi
 
     NEED_DATABASE=true
+
     npm install
     rm -rf "$TMP_ENV"
     virtualenv "$VIRTUAL_ENV"

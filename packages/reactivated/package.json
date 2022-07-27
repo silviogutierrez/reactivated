@@ -2,7 +2,7 @@
     "name": "reactivated",
     "version": "0.25.0",
     "description": "",
-    "main": "dist/index2.js",
+    "main": "dist/index.js",
     "typings": "dist/index.d.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",

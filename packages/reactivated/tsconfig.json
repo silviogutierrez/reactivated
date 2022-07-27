@@ -9,12 +9,8 @@
         "declaration": true,
         "jsx": "react",
         "baseUrl": ".",
-        "skipLibCheck": true,
-        "paths": {
-            "@client/*": ["client/*"],
-            "@reactivated": ["node_modules/_reactivated"],
-            "@reactivated/*": ["node_modules/_reactivated/*"]
-        }
+        "noEmit": true,
+        "skipLibCheck": true
     },
     "include": ["./**/*"],
     "exclude": ["node_modules", "dist/"]

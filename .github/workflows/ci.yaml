@@ -32,7 +32,6 @@ jobs:
               run: |
                   sudo chown -R root:root /tmp/nix-cache
                   sudo cp -RT /tmp/nix-cache/ /nix/
-              uses: mxschmitt/action-tmate@v3
             - name: Run tests
               run: nix-shell --command "echo OK"
             - run: |

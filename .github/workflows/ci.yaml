@@ -10,9 +10,9 @@ on:
 jobs:
     code_tests:
         name: Code tests
-        runs-on: ubuntu-20.04
-        env:
-            NIX_BUILD_SHELL: bash
+        runs-on: ubuntu-22.04
+        # env:
+        #     NIX_BUILD_SHELL: bash
         steps:
             - uses: actions/checkout@v3
               with:
@@ -28,10 +28,7 @@ jobs:
                       .venv
                       node_modules
                       !.venv/postgresql
-                  key: ${{ runner.os }}-nix-cache-bust1
-            - name: Nix requirements
-              run: |
-                  nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })'
+                  key: ${{ runner.os }}-nix-cache-bust2
             - name: Get pip cache dir
               id: pip-cache-dir
               run: |
@@ -42,7 +39,7 @@ jobs:
                   path: |
                       ~/.cache/ms-playwright
                       ${{ steps.pip-cache-dir.outputs.dir }}
-                  key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}-bust1
+                  key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}-bust2
             - name: Get npm cache directory
               id: npm-cache-dir
               run: |
@@ -51,7 +48,7 @@ jobs:
               id: npm-cache
               with:
                   path: ${{ steps.npm-cache-dir.outputs.dir }}
-                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-bust1
+                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-bust2
             - name: Build
               run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
               shell: bash

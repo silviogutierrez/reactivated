@@ -10,7 +10,7 @@ on:
 jobs:
     code_tests:
         name: Code tests
-        runs-on: ubuntu-22.04
+        runs-on: macos-12
         # env:
         #     NIX_BUILD_SHELL: bash
         steps:
@@ -56,7 +56,7 @@ jobs:
                   nix-shell --command "scripts/test.sh"
     integration_tests:
         name: Integration tests
-        runs-on: ubuntu-22.04
+        runs-on: macos-12
         # env:
         #     NIX_BUILD_SHELL: bash
         steps:

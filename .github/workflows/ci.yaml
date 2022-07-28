@@ -28,7 +28,7 @@ jobs:
                       .venv
                       node_modules
                       !.venv/postgresql
-                  key: ${{ runner.os }}-nix-cache
+                  key: ${{ runner.os }}-nix-cache-bust1
             - name: Nix requirements
               run: |
                   nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })'
@@ -36,13 +36,15 @@ jobs:
               id: pip-cache-dir
               if: steps.cache-venv.outputs.cache-hit == 'true'
               run: |
-                  echo "::set-output name=dir::$(.venv/bin/pip cache dir)"
+                  echo "::set-output name=dir::$(pip cache dir)"
             - name: pip cache
               uses: actions/cache@v3
               if: steps.cache-venv.outputs.cache-hit == 'true'
               with:
-                  path: ${{ steps.pip-cache-dir.outputs.dir }}
-                  key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+                  path: |
+                    ~/.cache/ms-playwright
+                    ${{ steps.pip-cache-dir.outputs.dir }}
+                  key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}-bust1
             - name: Get npm cache directory
               id: npm-cache-dir
               run: |
@@ -51,7 +53,7 @@ jobs:
               id: npm-cache
               with:
                   path: ${{ steps.npm-cache-dir.outputs.dir }}
-                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-bust1
             - name: Build
               run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
               shell: bash

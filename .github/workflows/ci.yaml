@@ -34,7 +34,7 @@ jobs:
                   sudo cp -fRT /tmp/nix-cache/ /nix/
                   sudo pkill nix-daemon
             - name: Run tests
-              run: nix-shell --command "echo OK"
+              run: time nix-shell --command "echo OK"
             - run: |
                   sudo cp -r /nix /tmp/nix-cache
                   sudo rm -rf /tmp/nix-cache/var/nix/daemon-socket/socket
@@ -42,8 +42,8 @@ jobs:
                   sudo rm -rf /tmp/nix-cache/var/nix/gc.lock
                   sudo rm -rf /tmp/nix-cache/var/nix/db/big-lock
                   sudo rm -rf /tmp/nix-cache/var/nix/db/reserved
-            - name: Setup tmate session
-              uses: mxschmitt/action-tmate@v3
+                  # - name: Setup tmate session
+                  #   uses: mxschmitt/action-tmate@v3
                 # if: ${{ failure() }}
                   # integration_tests:
                   #     name: Integration tests

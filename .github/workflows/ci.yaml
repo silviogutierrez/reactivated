@@ -29,6 +29,9 @@ jobs:
                       node_modules
                       !.venv/postgresql
                   key: ${{ runner.os }}-nix-cache
+            - name: Nix requirements
+              run: |
+                  nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })'
             - name: Get pip cache dir
               id: pip-cache-dir
               if: steps.cache-venv.outputs.cache-hit == 'true'

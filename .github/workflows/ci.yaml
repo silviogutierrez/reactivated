@@ -11,8 +11,8 @@ jobs:
     code_tests:
         name: Code tests
         runs-on: macos-11
-        env:
-            NIX_BUILD_SHELL: bash
+          # env:
+          #    NIX_BUILD_SHELL: bash
         steps:
             - uses: actions/checkout@v3
               with:
@@ -34,7 +34,7 @@ jobs:
                   sudo cp -fRT /tmp/nix-cache/ /nix/
                   sudo pkill nix-daemon
             - name: Run tests
-              run: nix-shell
+              run: time nix-shell --command "echo OK"
             - run: |
                   sudo cp -r /nix /tmp/nix-cache
                   sudo rm -rf /tmp/nix-cache/var/nix/daemon-socket/socket

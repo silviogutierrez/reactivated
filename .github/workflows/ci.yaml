@@ -22,12 +22,13 @@ jobs:
                   nix_path: nixpkgs=channel:nixos-unstable
             - name: Cache nix env take N+1
               uses: actions/cache@v2
+              id: nix-cache
               with:
                   path: |
                       /tmp/nix-cache
                   key: ${{ runner.os }}-nix-cache
             - name: cache hit
-              if: steps.cache-primes.outputs.cache-hit == 'true'
+              if: steps.nix-cache.outputs.cache-hit == 'true'
               uses: mxschmitt/action-tmate@v3
             - name: Run tests
               run: nix-shell --command "echo OK"

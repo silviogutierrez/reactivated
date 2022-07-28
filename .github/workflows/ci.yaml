@@ -59,6 +59,7 @@ jobs:
             - name: Run tests
               run: |
                   cd website
+                  nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "scripts/test.sh --all"
     docker_tests:
         name: Docker tests

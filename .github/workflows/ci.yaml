@@ -28,7 +28,7 @@ jobs:
                       /tmp/nix-cache
                   key: ${{ runner.os }}-nix-cache
             - name: cache hit
-              if: steps.nix-cache.outputs.cache-hit == 'true'
+              if: steps.nix-cache.outputs.cache-hit == 'fail'
               run: |
                   sudo chown -R root:root /tmp/nix-cache
                   sudo cp -fRT /tmp/nix-cache/ /nix/

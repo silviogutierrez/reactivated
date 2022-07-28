@@ -13,7 +13,7 @@ runs:
                   .venv
                   node_modules
                   !.venv/postgresql
-              key: ${{ runner.os }}-nix-cache-${{ hashFiles('**/requirements.txt')-${{ hashFiles('**/*.nix')
+              key: ${{ runner.os }}-nix-cache-${{ hashFiles('**/requirements.txt')-${{ hashFiles('**/*.nix') }}
         - name: Get pip cache dir
           id: pip-cache-dir
           run: |

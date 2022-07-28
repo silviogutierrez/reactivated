@@ -29,6 +29,9 @@ jobs:
                   key: ${{ runner.os }}-nix-cache
             - name: cache hit
               if: steps.nix-cache.outputs.cache-hit == 'true'
+              run: |
+                  sudo chown -R root:root /tmp/nix-cache
+                  sudo cp -RT /tmp/nix-cache/ /nix/
               uses: mxschmitt/action-tmate@v3
             - name: Run tests
               run: nix-shell --command "echo OK"
@@ -41,7 +44,7 @@ jobs:
                   sudo rm -rf /tmp/nix-cache/var/nix/db/reserved
             - name: Setup tmate session
               uses: mxschmitt/action-tmate@v3
-              if: ${{ failure() }}
+                # if: ${{ failure() }}
                   # integration_tests:
                   #     name: Integration tests
                   #     runs-on: ${{ matrix.os }}

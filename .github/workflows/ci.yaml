@@ -26,7 +26,7 @@ jobs:
               with:
                   path: |
                       /tmp/nix-cache
-                  key: ${{ runner.os }}-nix-cache
+                  key: ${{ runner.os }}-foo-nix-cache
             - name: cache hit
               if: steps.nix-cache.outputs.cache-hit == 'true'
               run: |

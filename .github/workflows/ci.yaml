@@ -29,7 +29,8 @@ jobs:
                       !.venv/postgresql
                   key: ${{ runner.os }}-nix-cache
             - run:
-                  nix-shell --command "echo OK"
+                  nix-shell --command "pip install -r requirements.txt"
+                  nix-shell --command "npm install"
                   # integration_tests:
                   #     name: Integration tests
                   #     runs-on: ${{ matrix.os }}

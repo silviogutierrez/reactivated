@@ -53,7 +53,7 @@ jobs:
                   path: ${{ steps.npm-cache-dir.outputs.dir }}
                   key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
             - name: Build
-              run: nix-shell --command "python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
+              run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
               shell: bash
             - run: |
                   nix-shell --command "scripts/test.sh"

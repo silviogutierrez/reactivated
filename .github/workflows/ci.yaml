@@ -28,7 +28,7 @@ jobs:
                       node_modules
                       !.venv/postgresql
                   key: ${{ runner.os }}-nix-cache
-            - run:
+            - run: |
                   nix-shell --command "pip install -r requirements.txt"
                   nix-shell --command "npm install"
                   # integration_tests:

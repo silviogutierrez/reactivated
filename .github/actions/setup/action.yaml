@@ -24,5 +24,3 @@ runs:
                   !/nix/var/nix/db/big-lock
                   !/nix/var/nix/db/reserved
               key: ${{ runner.os }}-nix-store
-        - name: Setup tmate session
-          uses: mxschmitt/action-tmate@v3

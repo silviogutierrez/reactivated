@@ -34,7 +34,7 @@ jobs:
                   sudo cp -fRT /tmp/nix-cache/ /nix/
                   sudo pkill nix-daemon
             - name: Run tests
-              run: time nix-shell --command "echo OK"
+              run: nix-shell
             - run: |
                   sudo cp -r /nix /tmp/nix-cache
                   sudo rm -rf /tmp/nix-cache/var/nix/daemon-socket/socket

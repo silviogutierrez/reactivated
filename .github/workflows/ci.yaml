@@ -32,7 +32,7 @@ jobs:
               run: |
                   sudo chown -R root:root /tmp/nix-cache
                   # sudo cp -fRT /tmp/nix-cache/ /nix/
-                  sudo rsync -a --exclude /tmp/nix-cache/ /nix/
+                  sudo rsync -a /tmp/nix-cache/ /nix/
                   sudo pkill nix-daemon
             - name: Run tests
               run: time nix-shell --command "echo OK"

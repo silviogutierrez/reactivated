@@ -39,7 +39,7 @@ jobs:
                 #- name: Setup tmate session
                 #uses: mxschmitt/action-tmate@v3
             - run: |
-                  sudo rsync -a --exclude .Trashes --exclude /daemon-socket /nix/ /tmp/nix-cache/
+                  sudo rsync -a --exclude .Trashes --exclude /var/nix/daemon-socket /nix/ /tmp/nix-cache/
                   # sudo rm -rf /tmp/nix-cache/var/nix/daemon-socket/socket
                   sudo rm -rf /tmp/nix-cache/var/nix/userpool
                   sudo rm -rf /tmp/nix-cache/var/nix/gc.lock

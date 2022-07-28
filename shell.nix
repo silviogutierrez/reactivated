@@ -9,6 +9,6 @@ mkShell {
     requirements.contributing_dependencies
   ];
   shellHook = ''
-    source "./packages/reactivated/scripts/setup_environment.sh"
+    # source "./packages/reactivated/scripts/setup_environment.sh"
   '';
 }

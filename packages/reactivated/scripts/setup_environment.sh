@@ -18,15 +18,15 @@ if [ ! -d "$VIRTUAL_ENV" ]; then
         rm "$EXTERNAL_PID"
     fi
 
-    NEED_DATABASE=true
-
-    npm install
     rm -rf "$TMP_ENV"
     virtualenv "$VIRTUAL_ENV"
     mkdir "$VIRTUAL_ENV/static"
-    initdb "$POSTGRESQL_DATA"
     pip install -r requirements.txt
+fi
 
+if [ ! -d "$POSTGRESQL_DATA" ]; then
+    initdb "$POSTGRESQL_DATA"
+    NEED_DATABASE=true
 fi
 
 mkdir -p "$TMP_ENV"

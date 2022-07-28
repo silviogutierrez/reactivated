@@ -28,7 +28,7 @@ jobs:
                       .venv
                       node_modules
                       !.venv/postgresql
-                  key: ${{ runner.os }}-nix-cache-bust2
+                  key: ${{ runner.os }}-nix-cache-bust3
             - name: Get pip cache dir
               id: pip-cache-dir
               run: |
@@ -40,7 +40,7 @@ jobs:
                       ~/.cache/ms-playwright
                       /Users/runner/Library/Caches/ms-playwright
                       ${{ steps.pip-cache-dir.outputs.dir }}
-                  key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}-bust2
+                  key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}-bust3
             - name: Get npm cache directory
               id: npm-cache-dir
               run: |
@@ -49,7 +49,7 @@ jobs:
               id: npm-cache
               with:
                   path: ${{ steps.npm-cache-dir.outputs.dir }}
-                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-bust2
+                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-bust3
             - name: Build
               run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
               shell: bash

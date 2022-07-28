@@ -21,6 +21,7 @@ jobs:
               with:
                   nix_path: nixpkgs=channel:nixos-unstable
             - name: Cache .venv
+              id: cache-venv
               uses: actions/cache@v3
               with:
                   path: |
@@ -28,6 +29,26 @@ jobs:
                       node_modules
                       !.venv/postgresql
                   key: ${{ runner.os }}-nix-cache
+            - name: Get pip cache dir
+              id: pip-cache-dir
+              if: steps.cache-venv.outputs.cache-hit == 'true'
+              run: |
+                  echo "::set-output name=dir::$(.venv/bin/pip cache dir)"
+            - name: pip cache
+              uses: actions/cache@v3
+              if: steps.cache-venv.outputs.cache-hit == 'true'
+              with:
+                  path: ${{ steps.pip-cache-dir.outputs.dir }}
+                  key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+            - name: Get npm cache directory
+              id: npm-cache-dir
+              run: |
+                  echo "::set-output name=dir::$(npm config get cache)"
+            - uses: actions/cache@v3
+              id: npm-cache
+              with:
+                  path: ${{ steps.npm-cache-dir.outputs.dir }}
+                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
             - run: |
                   nix-shell --command "scripts/test.sh"
                   # integration_tests:

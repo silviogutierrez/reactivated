@@ -30,7 +30,7 @@ jobs:
             - name: cache hit
               if: steps.nix-cache.outputs.cache-hit == 'true'
               run: |
-                  sudo chown -R root:root /tmp/nix-cache
+                  sudo chown -R root /tmp/nix-cache
                   # sudo cp -fRT /tmp/nix-cache/ /nix/
                   sudo rsync -a /tmp/nix-cache/ /nix/
                   sudo pkill nix-daemon

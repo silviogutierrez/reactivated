@@ -1,4 +1,5 @@
 {
+    "name": "main",
     "dependencies": {},
     "workspaces": [
         "packages/reactivated",

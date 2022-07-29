@@ -33,7 +33,6 @@ function enable_github_checks() {
         --data-binary "$CHECKS_TO_ENABLE"
 }
 
-IS_SNAPSHOT=false
 VERSIONING="minor"
 
 while [[ "$#" -gt 0 ]]; do
@@ -42,7 +41,6 @@ while [[ "$#" -gt 0 ]]; do
         VERSIONING="$2"
         shift
         ;;
-    --snapshot) IS_SNAPSHOT=true ;;
     *)
         echo "Unknown parameter passed: $1"
         exit 1
@@ -61,7 +59,7 @@ cd "${PROJECT_ROOT}/packages/reactivated/"
 
 CURRENT_VERSION=$(jq <package.json .version -r)
 
-if [ "$IS_SNAPSHOT" = false ]; then
+if [ "$VERSIONING" != "snapshot" ]; then
     npm version --no-git-tag-version "$VERSIONING"
     NEW_VERSION=$(jq <package.json .version -r)
     SNAPSHOT_OR_RELEASE="latest"
@@ -72,6 +70,10 @@ if [ "$IS_SNAPSHOT" = false ]; then
     npm version --no-git-tag-version --new-version "${NEW_VERSION}"
     npm publish
 
+    cd "$PROJECT_ROOT"
+
+    # Need to update the monorepo package-lock.json
+    npm install
     git commit -am "v${NEW_VERSION}"
     git tag "v${NEW_VERSION}"
 
@@ -89,9 +91,9 @@ else
     cd "${PROJECT_ROOT}/packages/create-django-app/"
     npm version --no-git-tag-version --new-version "${NEW_VERSION}"
     npm publish --tag cd
+    cd "$PROJECT_ROOT"
 fi
 echo "Published version $NEW_VERSION to NPM"
-cd "$PROJECT_ROOT"
 
 pip install wheel
 python setup.py sdist bdist_wheel

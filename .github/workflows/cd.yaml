@@ -48,8 +48,16 @@ jobs:
                   then
                       nix-shell --command "scripts/release.sh --versioning ${{ github.event.inputs.versioning }}"
                   else
-                      nix-shell --command "scripts/release.sh --snapshot"
+                      nix-shell --command "scripts/release.sh --versioning snapshot"
                   fi
+            - name: Remove snapshot label
+              if: contains(github.event.pull_request.labels.*.name, 'snapshot')
+              run: |
+                  curl --silent --fail-with-body \
+                      -X DELETE \
+                      -H 'Accept: application/vnd.github.v3+json' \
+                      -H 'Authorization: token ${{ github.token }}' \
+                      'https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/labels/snapshot'
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v1
             - name: Set up Docker Buildx

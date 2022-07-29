@@ -4,10 +4,8 @@ in with requirements.pkgs;
 
 mkShell {
   dependencies = requirements.production_dependencies;
-  buildInputs = [
-    requirements.production_dependencies
-    requirements.development_dependencies
-  ];
+  buildInputs = requirements.production_dependencies
+    ++ requirements.development_dependencies;
   shellHook = ''
     setup_script="$(npm bin)/setup_environment.sh"
 

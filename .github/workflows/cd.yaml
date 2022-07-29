@@ -31,13 +31,7 @@ jobs:
               with:
                   node-version: "16.x"
                   registry-url: "https://registry.npmjs.org"
-            - uses: cachix/install-nix-action@v15
-              with:
-                  nix_path: nixpkgs=channel:nixos-unstable
-            - name: Nix requirements
-              run: nix-shell
-            - name: Build
-              run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
+            - uses: ./.github/actions/setup
             - name: Configure git
               run: |
                   git config --global user.email "silviogutierrez@gmail.com"

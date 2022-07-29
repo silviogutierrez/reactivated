@@ -1,0 +1,42 @@
+name: "Setup"
+runs:
+    using: "composite"
+    steps:
+        - uses: cachix/install-nix-action@v15
+          with:
+              nix_path: nixpkgs=channel:nixos-unstable
+        - name: Cache .venv
+          id: cache-venv
+          uses: actions/cache@v3
+          with:
+              path: |
+                  .venv
+                  node_modules
+                  !.venv/postgresql
+              key: ${{ runner.os }}-nix-cache-${{ hashFiles('**/requirements.txt') }}-${{ hashFiles('**/*.nix') }}
+        - name: Get pip cache dir
+          id: pip-cache-dir
+          run: |
+              echo "::set-output name=dir::$(pip3 cache dir)"
+          shell: bash
+        - name: pip cache
+          uses: actions/cache@v3
+          with:
+              path: |
+                  ~/.cache/ms-playwright
+                  /Users/runner/Library/Caches/ms-playwright
+                  ${{ steps.pip-cache-dir.outputs.dir }}
+              key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        - name: Get npm cache directory
+          id: npm-cache-dir
+          run: |
+              echo "::set-output name=dir::$(npm config get cache)"
+          shell: bash
+        - uses: actions/cache@v3
+          id: npm-cache
+          with:
+              path: ${{ steps.npm-cache-dir.outputs.dir }}
+              key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        - name: Build
+          run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
+          shell: bash

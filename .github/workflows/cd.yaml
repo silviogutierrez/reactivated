@@ -53,7 +53,7 @@ jobs:
             - name: Remove snapshot label
               if: contains(github.event.pull_request.labels.*.name, 'snapshot')
               run: |
-                  curl --silent --fail-with-body \
+                  curl --silent --fail \
                       -X DELETE \
                       -H 'Accept: application/vnd.github.v3+json' \
                       -H 'Authorization: token ${{ github.token }}' \

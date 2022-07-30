@@ -27,6 +27,8 @@ from reactivated import fields, stubs
 from reactivated.models import ComputedRelation
 from reactivated.types import Optgroup
 
+# Register our widgets.
+from . import widgets  # noqa: F401
 from .registry import JSON, PROXIES, Definitions, Schema, Thing, register
 
 FormError = List[str]

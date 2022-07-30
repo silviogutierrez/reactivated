@@ -5,6 +5,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Literal,
     NamedTuple,
     Optional,
     Sequence,
@@ -12,6 +13,7 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    get_type_hints,
 )
 
 from django import forms as django_forms
@@ -19,6 +21,7 @@ from django.forms.widgets import Widget
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 
+from . import registry, serialization, stubs
 from .fields import _GT, EnumChoiceIterator, coerce_to_enum
 from .widgets import Autocomplete as Autocomplete
 
@@ -173,3 +176,90 @@ def autocomplete(view_func: T) -> T:
         return response
 
     return cast(T, wrapped_view)
+
+
+class FormGroup:
+    tag: Literal["FormGroup"] = "FormGroup"
+
+    def __init__(self, data: Any = None) -> None:
+        hints = get_type_hints(type(self))
+
+        without_none = {}
+
+        for hint_name, hint in hints.items():
+            if hint_name == "tag":
+                continue
+
+            if isinstance(hint, stubs._GenericAlias) and hint.__args__[1] is type(None):
+                without_none[hint_name] = hint.__args__[0]
+            else:
+                without_none[hint_name] = hint
+
+        for arg_name, arg_type in without_none.items():
+            setattr(self, arg_name, arg_type(data, prefix=arg_name))
+
+    @property
+    def errors(self) -> Any:
+        collected = {}
+
+        for arg_name in get_type_hints(self).keys():
+            collected[arg_name] = getattr(self, arg_name).errors
+
+        return collected
+
+    def is_valid(self) -> bool:
+        return all(
+            [
+                getattr(self, arg_name).is_valid()
+                for arg_name in get_type_hints(self).keys()
+            ]
+        )
+
+    @classmethod
+    def get_json_schema(Type, definitions: registry.Definitions) -> registry.Thing:
+        return serialization.named_tuple_schema(Type, definitions, exclude=["errors"])
+
+    @classmethod
+    def get_serialized_value(
+        Type: Type["FormGroup"],
+        class_or_instance: Union[Type["FormGroup"], "FormGroup"],
+        schema: registry.Thing,
+    ) -> registry.JSON:
+        # if isinstance(class_or_instance, FormGroup):
+        #     assert False, "Not yet supported"
+
+        if isinstance(class_or_instance, FormGroup):
+            return {
+                **serialization.serialize(
+                    class_or_instance,
+                    schema,
+                    suppress_custom_serializer=True,
+                ),
+                "tag": "FormGroup",
+            }
+
+        hints = (
+            get_type_hints(type(class_or_instance))
+            if isinstance(class_or_instance, FormGroup)
+            else get_type_hints(class_or_instance)
+        )
+
+        without_none = {}
+
+        for hint_name, hint in hints.items():
+            if hint_name == "tag":
+                continue
+
+            if isinstance(hint, stubs._GenericAlias) and hint.__args__[1] is type(None):
+                without_none[hint_name] = hint.__args__[0]
+            else:
+                without_none[hint_name] = hint
+
+        return {
+            **serialization.serialize(
+                without_none,
+                schema,
+                suppress_custom_serializer=True,
+            ),
+            "tag": "FormGroup",
+        }

@@ -24,7 +24,6 @@ from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.utils.module_loading import import_string
 
 from reactivated import fields, stubs
-from reactivated.forms import EnumChoiceField
 from reactivated.models import ComputedRelation
 from reactivated.types import Optgroup
 
@@ -147,6 +146,8 @@ class FieldType(NamedTuple):
         instance: django_forms.Field,
         definitions: Definitions,
     ) -> "Thing":
+        from reactivated.forms import EnumChoiceField
+
         base_schema, definitions = named_tuple_schema(Proxy, definitions)
         widget_schema, definitions = create_schema(instance.widget, definitions)
 

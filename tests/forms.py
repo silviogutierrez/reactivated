@@ -1,8 +1,11 @@
 import pytest
 from django import forms as django_forms
 
+from reactivated import serialization
 from reactivated.forms import FormGroup
 from sample.server.apps.samples import forms, models
+
+from .serialization import convert_to_json_and_validate
 
 
 class ComposerForm(django_forms.ModelForm):
@@ -11,9 +14,13 @@ class ComposerForm(django_forms.ModelForm):
         fields = ["name"]
 
 
+ComposerFormSet = django_forms.formset_factory(ComposerForm)
+
+
 class OperaFormGroup(FormGroup):
     opera: forms.OperaForm
     composer: ComposerForm
+    composers: ComposerFormSet
 
 
 @pytest.mark.django_db
@@ -34,6 +41,33 @@ def test_form_group():
             "opera-composer": composer.id,
             "opera-style": models.Opera.Style.GRAND,
             "composer-name": "John",
+            "composers-0-name": "John",
+            "composers-INITIAL_FORMS": 1,
+            "composers-TOTAL_FORMS": 1,
         }
     )
     assert form_group.is_valid() is True
+
+
+@pytest.mark.django_db
+def test_form_group_instance():
+    generated_schema = serialization.create_schema(OperaFormGroup, {})
+    serialized = serialization.serialize(OperaFormGroup(), generated_schema)
+    convert_to_json_and_validate(serialized, generated_schema)
+
+
+def test_form_group_class_not_instance():
+    generated_schema = serialization.create_schema(OperaFormGroup, {})
+    serialized = serialization.serialize(OperaFormGroup, generated_schema)
+    convert_to_json_and_validate(serialized, generated_schema)
+
+
+def test_form_class_not_instance():
+    generated_schema = serialization.create_schema(forms.OperaForm, {})
+    serialized = serialization.serialize(forms.OperaForm, generated_schema)
+    # Need an actual assertion or snapshot here.
+
+
+def test_form_set_class_not_instance():
+    generated_schema = serialization.create_schema(forms.OperaFormSet, {})
+    serialized = serialization.serialize(forms.OperaFormSet, generated_schema)

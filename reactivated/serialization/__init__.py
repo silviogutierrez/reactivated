@@ -24,10 +24,11 @@ from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.utils.module_loading import import_string
 
 from reactivated import fields, stubs
-from reactivated.forms import EnumChoiceField
 from reactivated.models import ComputedRelation
 from reactivated.types import Optgroup
 
+# Register our widgets.
+from . import widgets  # noqa: F401
 from .registry import JSON, PROXIES, Definitions, Schema, Thing, register
 
 FormError = List[str]
@@ -147,6 +148,8 @@ class FieldType(NamedTuple):
         instance: django_forms.Field,
         definitions: Definitions,
     ) -> "Thing":
+        from reactivated.forms import EnumChoiceField
+
         base_schema, definitions = named_tuple_schema(Proxy, definitions)
         widget_schema, definitions = create_schema(instance.widget, definitions)
 
@@ -331,8 +334,15 @@ class FormType(NamedTuple):
 
     @classmethod
     def get_serialized_value(
-        Type: Type["FormType"], value: django_forms.BaseForm, schema: Thing
+        Type: Type["FormType"],
+        class_or_instance: Union[Type[django_forms.BaseForm], django_forms.BaseForm],
+        schema: Thing,
     ) -> JSON:
+        value = (
+            class_or_instance
+            if isinstance(class_or_instance, django_forms.BaseForm)
+            else class_or_instance()
+        )
         form = value
         context = form.get_context()  # type: ignore[attr-defined]
 
@@ -358,18 +368,6 @@ class FormType(NamedTuple):
         serialized["hidden_fields"] = list(hidden_fields.keys())
         serialized["errors"] = form.errors or None
         return serialized
-
-        """
-        form = value
-
-        return FormType(
-            name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",
-            errors=form.errors or None,
-            fields=fields,
-            iterator=list(fields.keys()),
-            prefix=form.prefix or "",
-        )
-        """
 
 
 @register(django_forms.BaseFormSet)
@@ -473,6 +471,29 @@ class FormSetType(NamedTuple):
         return Thing(
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
         )
+
+    @classmethod
+    def get_serialized_value(
+        Type: Type["FormSetType"],
+        value: Union[Type[django_forms.BaseFormSet], django_forms.BaseFormSet],
+        schema: Thing,
+    ) -> JSON:
+        if isinstance(value, django_forms.BaseFormSet):
+            return serialize(
+                value,
+                schema,
+                suppress_custom_serializer=True,
+            )
+        else:
+            # Technically this is only for ModelFormSet but it's a no-op for others.
+            instance = value()
+            instance.get_queryset = lambda: []  # type: ignore[attr-defined]
+
+            return serialize(
+                instance,
+                schema,
+                suppress_custom_serializer=True,
+            )
 
 
 class QuerySetType:

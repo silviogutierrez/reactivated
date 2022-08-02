@@ -50,24 +50,31 @@ def test_form_group():
 
 
 @pytest.mark.django_db
-def test_form_group_instance():
+def test_form_group_instance(snapshot):
     generated_schema = serialization.create_schema(OperaFormGroup, {})
     serialized = serialization.serialize(OperaFormGroup(), generated_schema)
     convert_to_json_and_validate(serialized, generated_schema)
+    assert generated_schema == snapshot
+    assert serialized == snapshot
 
 
-def test_form_group_class_not_instance():
+def test_form_group_class_not_instance(snapshot):
     generated_schema = serialization.create_schema(OperaFormGroup, {})
     serialized = serialization.serialize(OperaFormGroup, generated_schema)
     convert_to_json_and_validate(serialized, generated_schema)
+    assert generated_schema == snapshot
+    assert serialized == snapshot
 
 
-def test_form_class_not_instance():
+def test_form_class_not_instance(snapshot):
     generated_schema = serialization.create_schema(forms.OperaForm, {})
     serialized = serialization.serialize(forms.OperaForm, generated_schema)
-    # Need an actual assertion or snapshot here.
+    assert generated_schema == snapshot
+    assert serialized == snapshot
 
 
-def test_form_set_class_not_instance():
+def test_form_set_class_not_instance(snapshot):
     generated_schema = serialization.create_schema(forms.OperaFormSet, {})
     serialized = serialization.serialize(forms.OperaFormSet, generated_schema)
+    assert generated_schema == snapshot
+    assert serialized == snapshot

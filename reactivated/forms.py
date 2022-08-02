@@ -190,7 +190,9 @@ class FormGroup:
             if hint_name == "tag":
                 continue
 
-            if isinstance(hint, stubs._GenericAlias) and hint.__args__[1] is type(None):
+            if isinstance(hint, stubs._GenericAlias) and issubclass(
+                hint.__args__[1], type(None)
+            ):
                 without_none[hint_name] = hint.__args__[0]
             else:
                 without_none[hint_name] = hint
@@ -250,7 +252,9 @@ class FormGroup:
             if hint_name == "tag":
                 continue
 
-            if isinstance(hint, stubs._GenericAlias) and hint.__args__[1] is type(None):
+            if isinstance(hint, stubs._GenericAlias) and issubclass(
+                hint.__args__[1], type(None)
+            ):
                 without_none[hint_name] = hint.__args__[0]
             else:
                 without_none[hint_name] = hint

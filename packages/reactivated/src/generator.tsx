@@ -292,7 +292,7 @@ export const CSRFToken = forms.createCSRFToken(Context);
 export const {createRenderer, Iterator} = forms.bindWidgetType<_Types["globals"]["Widget"]>();
 export type FieldHandler = forms.FieldHandler<_Types["globals"]["Widget"]>;
 
-export const {Form, FormSet, Widget} = forms;
+export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = forms;
 `);
 
 // tslint:disable-next-line

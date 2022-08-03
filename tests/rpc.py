@@ -5,6 +5,7 @@ from django import forms
 from django.http import HttpRequest
 from django.urls import reverse
 
+from reactivated import Pick
 from reactivated.rpc import create_rpc
 from sample.server.apps.samples import models
 
@@ -132,3 +133,31 @@ def test_update_opera_with_no_form(client):
     response = client.post(url)
     assert response.status_code == 200
     assert response.json() is True
+
+
+OperaSchema = Pick[models.Opera, "id", "name"]
+
+
+@opera.rpc
+def opera_detail(request: HttpRequest, opera: models.Opera) -> OperaSchema:
+    return opera
+
+
+urlpatterns.append(opera_detail)
+
+
+@pytest.mark.urls("tests.rpc")
+def test_opera_detail(client):
+    url = reverse("rpc_opera_detail", args=[923])
+    expected = {
+        "name": "My Opera Context",
+        "id": 923,
+    }
+
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.json() == expected
+
+    response = client.post(url)
+    assert response.status_code == 200
+    assert response.json() == expected

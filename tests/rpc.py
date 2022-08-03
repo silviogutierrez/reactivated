@@ -1,9 +1,14 @@
+from typing import Dict
+
 import pytest
 from django import forms
 from django.http import HttpRequest
 from django.urls import reverse
 
 from reactivated.rpc import create_rpc
+from sample.server.apps.samples import models
+
+urlpatterns = []
 
 
 class SimpleForm(forms.Form):
@@ -28,15 +33,7 @@ def simple_form(request: HttpRequest, form: SimpleForm) -> bool:
     return True
 
 
-@anonymous_rpc
-def empty_form(request: HttpRequest, form: None) -> bool:
-    return True
-
-
-urlpatterns = [
-    simple_form,
-    empty_form,
-]
+urlpatterns.append(simple_form)
 
 
 @pytest.mark.urls("tests.rpc")
@@ -52,6 +49,14 @@ def test_simple_form(client):
     assert response.json() is True
 
 
+@anonymous_rpc
+def empty_form(request: HttpRequest, form: None) -> bool:
+    return True
+
+
+urlpatterns.append(empty_form)
+
+
 @pytest.mark.urls("tests.rpc")
 def test_empty_form(client):
     url = reverse("rpc_empty_form")
@@ -61,5 +66,69 @@ def test_empty_form(client):
 
     response = client.post(url)
 
+    assert response.status_code == 200
+    assert response.json() is True
+
+
+@anonymous_rpc.context
+def opera(request: HttpRequest, pk: int) -> models.Opera:
+    return models.Opera(pk=pk, name="My Opera Context")
+
+
+class OperaForm(forms.ModelForm[models.Opera]):
+    class Meta:
+        model = models.Opera
+        fields = ["name"]
+
+
+@opera.process
+def update_opera(
+    request: HttpRequest, opera: models.Opera, form: OperaForm
+) -> Dict[str, str]:
+    return {
+        "from_context": opera.pk,
+        "from_form": form.cleaned_data["name"],
+    }
+
+
+urlpatterns.append(update_opera)
+
+
+@pytest.mark.urls("tests.rpc")
+def test_context_model_form(client):
+    url = reverse("rpc_update_opera", args=[923])
+
+    response = client.get(url)
+    assert response.status_code == 405
+
+    response = client.post(url, {})
+    assert response.status_code == 400
+
+    response = client.post(url, {"name": "Hello"})
+    assert response.status_code == 200
+    assert response.json() == {
+        "from_context": "923",
+        "from_form": "Hello",
+    }
+
+
+@opera.process
+def update_opera_with_no_form(
+    request: HttpRequest, opera: models.Opera, form: None
+) -> bool:
+    return True
+
+
+urlpatterns.append(update_opera_with_no_form)
+
+
+@pytest.mark.urls("tests.rpc")
+def test_update_opera_with_no_form(client):
+    url = reverse("rpc_update_opera_with_no_form", args=[923])
+
+    response = client.get(url)
+    assert response.status_code == 405
+
+    response = client.post(url)
     assert response.status_code == 200
     assert response.json() is True

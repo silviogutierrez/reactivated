@@ -171,7 +171,12 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         )
 
         form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get("form")
-        create_schema(form_type or EmptyForm, registry.definitions_registry)
+        is_empty_form = issubclass(form_type, type(None)) is True  # type: ignore[arg-type]
+
+        if form_type is None:
+            assert False, "Missing form argument"
+
+        create_schema(form_type, registry.definitions_registry)
         form_class = form_type or EmptyForm
 
         def wrapped_view(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
@@ -190,10 +195,13 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             else:
                 context = None  # type: ignore[assignment]
 
-            form = form_class(
-                request.POST if request.method == "POST" else None,
-                **extra_args,
-            )
+            if not is_empty_form:
+                form = form_class(
+                    request.POST if request.method == "POST" else None,
+                    **extra_args,
+                )
+            else:
+                form = EmptyForm(data={})
 
             if request.method == "POST":
                 if form.is_valid():
@@ -295,7 +303,7 @@ class RPC(Generic[THttpRequest]):
         return_schema = create_schema(return_type, registry.definitions_registry)
 
         form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get("form")
-        is_empty_form = issubclass(form_type, type(None)) is False  # type: ignore[arg-type]
+        is_empty_form = issubclass(form_type, type(None)) is True  # type: ignore[arg-type]
 
         if form_type is None:
             assert False, "Missing form argument"
@@ -307,7 +315,7 @@ class RPC(Generic[THttpRequest]):
             if self.authentication(request) is False:
                 return HttpResponse("401 Unauthorized", status=401)
 
-            if is_empty_form:
+            if not is_empty_form:
                 form_type_hints = get_type_hints(form_class.__init__)
                 form_kwargs = (
                     {"request": request}
@@ -348,7 +356,7 @@ class RPC(Generic[THttpRequest]):
         url_name = f"rpc_{view.__name__}"
         url_path = f"{self.url_path}rpc_{view.__name__}/"
 
-        if is_empty_form:
+        if not is_empty_form:
             input_name = f"{url_name}_input"
             registry.type_registry[input_name] = form_type  # type: ignore[assignment]
             registry.value_registry[input_name] = form_class

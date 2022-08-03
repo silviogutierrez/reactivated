@@ -6,7 +6,7 @@ from django.http import HttpRequest
 from django.urls import reverse
 
 from reactivated import Pick
-from reactivated.rpc import create_rpc
+from reactivated.rpc import FormGroup, create_rpc
 from sample.server.apps.samples import models
 
 urlpatterns = []
@@ -67,6 +67,48 @@ def test_empty_form(client):
 
     response = client.post(url)
 
+    assert response.status_code == 200
+    assert response.json() is True
+
+
+class FormOne(forms.Form):
+    field = forms.CharField()
+
+
+class FormTwo(forms.Form):
+    another_field = forms.CharField()
+
+
+class FormGroup(FormGroup):
+    first: FormOne
+    second: FormTwo
+
+
+@anonymous_rpc
+def form_group(request: HttpRequest, form: FormGroup) -> bool:
+    return True
+
+
+urlpatterns.append(form_group)
+
+
+@pytest.mark.urls("tests.rpc")
+def test_form_group(client):
+    url = reverse("rpc_form_group")
+
+    response = client.get(url)
+    assert response.status_code == 405
+
+    response = client.post(url, {})
+    assert response.status_code == 400
+    assert response.json() == {
+        "first": {"field": ["This field is required."]},
+        "second": {"another_field": ["This field is required."]},
+    }
+
+    response = client.post(
+        url, {"first-field": "Hello", "second-another_field": "Goodbye"}
+    )
     assert response.status_code == 200
     assert response.json() is True
 

@@ -28,13 +28,19 @@ def simple_form(request: HttpRequest, form: SimpleForm) -> bool:
     return True
 
 
+@anonymous_rpc
+def empty_form(request: HttpRequest, form: None) -> bool:
+    return True
+
+
 urlpatterns = [
     simple_form,
+    empty_form,
 ]
 
 
 @pytest.mark.urls("tests.rpc")
-def test_(client):
+def test_simple_form(client):
     url = reverse("rpc_simple_form")
     response = client.post(url)
 
@@ -42,5 +48,18 @@ def test_(client):
     assert response.json() == {"char_field": ["This field is required."]}
 
     response = client.post(url, {"char_field": "content"})
+    assert response.status_code == 200
+    assert response.json() is True
+
+
+@pytest.mark.urls("tests.rpc")
+def test_empty_form(client):
+    url = reverse("rpc_empty_form")
+
+    response = client.get(url)
+    assert response.status_code == 405
+
+    response = client.post(url)
+
     assert response.status_code == 200
     assert response.json() is True

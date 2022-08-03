@@ -1,0 +1,1 @@
+- [ ] For an action like logout, which has to be post. Do we want: `form: None`, or `form: EmptyForm`. or a specialized action like `@rpc.no_input`?

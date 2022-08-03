@@ -294,11 +294,12 @@ class RPC(Generic[THttpRequest]):
         return_type = get_type_hints(view)["return"]
         return_schema = create_schema(return_type, registry.definitions_registry)
 
-        form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get(  # type: ignore[assignment]
-            "form"
-        ) or type(
-            None
-        )
+        form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get("form")
+        is_empty_form = issubclass(form_type, type(None)) is False  # type: ignore[arg-type]
+
+        if form_type is None:
+            assert False, "Missing form argument"
+
         create_schema(form_type, registry.definitions_registry)
         form_class = form_type or EmptyForm
 
@@ -306,7 +307,7 @@ class RPC(Generic[THttpRequest]):
             if self.authentication(request) is False:
                 return HttpResponse("401 Unauthorized", status=401)
 
-            if issubclass(form_type, type(None)) is False:  # type: ignore[arg-type]
+            if is_empty_form:
                 form_type_hints = get_type_hints(form_class.__init__)
                 form_kwargs = (
                     {"request": request}
@@ -320,37 +321,34 @@ class RPC(Generic[THttpRequest]):
                     data=request.POST if request.method == "POST" else None,
                     **form_kwargs,  # type: ignore
                 )
+            else:
+                form = EmptyForm(data={})
 
-                if request.method == "POST":
-                    if form.is_valid():
-                        response = view(request, **kwargs, form=form)  # type: ignore[call-arg]
-                        data = serialize(response, return_schema)
+            if request.method == "POST":
+                if form.is_valid():
+                    response = view(request, **kwargs, form=form)  # type: ignore[call-arg]
+                    data = serialize(response, return_schema)
 
-                        return JsonResponse(data, safe=False)
-                    else:
-                        # TODO: this should be code + message, not just messages.
-                        # But types will then need to be updated.
-                        errors = (
-                            form.errors
-                            if isinstance(form, (forms.BaseFormSet, FormGroup))
-                            else {
-                                field_name: [error["message"] for error in field_errors]
-                                for field_name, field_errors in form.errors.get_json_data().items()
-                            }
-                        )
-                        return JsonResponse(errors, status=400, safe=False)
+                    return JsonResponse(data, safe=False)
                 else:
-                    return HttpResponse("", status=405)
-
-            return_value = view(request, *args, **kwargs)  # type: ignore[call-arg]
-            data = serialize(return_value, return_schema)
-            return JsonResponse(data, safe=False)
+                    # TODO: this should be code + message, not just messages.
+                    # But types will then need to be updated.
+                    errors = (
+                        form.errors
+                        if isinstance(form, (forms.BaseFormSet, FormGroup))
+                        else {
+                            field_name: [error["message"] for error in field_errors]
+                            for field_name, field_errors in form.errors.get_json_data().items()
+                        }
+                    )
+                    return JsonResponse(errors, status=400, safe=False)
+            else:
+                return HttpResponse("", status=405)
 
         url_name = f"rpc_{view.__name__}"
         url_path = f"{self.url_path}rpc_{view.__name__}/"
 
-        # input_name = f"{url_name}_input"
-        if issubclass(form_type, type(None)):  # type: ignore[arg-type]
+        if is_empty_form:
             input_name = f"{url_name}_input"
             registry.type_registry[input_name] = form_type  # type: ignore[assignment]
             registry.value_registry[input_name] = form_class

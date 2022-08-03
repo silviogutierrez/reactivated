@@ -20,6 +20,7 @@ def test_end_to_end(client, live_server, page):
     registry.interface_registry.clear()
     registry.value_registry.clear()
     registry.definitions_registry.clear()
+    registry.rpc_registry.clear()
 
     call_command("generate_client_assets")
     call_command("build")
@@ -38,6 +39,7 @@ def test_default_widget(tmp_path):
     registry.interface_registry.clear()
     registry.value_registry.clear()
     registry.definitions_registry.clear()
+    registry.rpc_registry.clear()
 
     tsconfig = Path(settings.BASE_DIR) / "tsconfig.pytest.json"
     tsconfig.write_text(
@@ -95,6 +97,7 @@ def test_no_urls(tmp_path):
     registry.interface_registry.clear()
     registry.value_registry.clear()
     registry.definitions_registry.clear()
+    registry.rpc_registry.clear()
 
     tsconfig = Path(settings.BASE_DIR) / "tsconfig.pytest.json"
     tsconfig.write_text(

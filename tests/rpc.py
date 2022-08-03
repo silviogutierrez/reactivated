@@ -43,4 +43,4 @@ def test_(client):
 
     response = client.post(url, {"char_field": "content"})
     assert response.status_code == 200
-    assert response.json() == True
+    assert response.json() is True

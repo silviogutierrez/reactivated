@@ -2,14 +2,11 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
     Generic,
     Iterable,
     List,
     Literal,
-    NamedTuple,
     Optional,
-    Sequence,
     Tuple,
     Type,
     TypeVar,
@@ -23,7 +20,7 @@ from django import forms
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.urls import URLPattern, path
 
-from . import Pick, registry, stubs, types
+from . import registry
 from .forms import FormGroup as FormGroup
 from .serialization import create_schema, serialize
 
@@ -169,12 +166,12 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         return_type = get_type_hints(view)["return"]
         return_schema = create_schema(return_type, registry.definitions_registry)
 
-        requires_context = list(get_type_hints(view).values())[1] is not type(None)
+        requires_context = (
+            issubclass(list(get_type_hints(view).values())[1], type(None)) is False
+        )
 
         form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get("form")
-        form_schema = create_schema(
-            form_type or EmptyForm, registry.definitions_registry
-        )
+        create_schema(form_type or EmptyForm, registry.definitions_registry)
         form_class = form_type or EmptyForm
 
         def wrapped_view(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
@@ -302,14 +299,14 @@ class RPC(Generic[THttpRequest]):
         ) or type(
             None
         )
-        form_schema = create_schema(form_type, registry.definitions_registry)
+        create_schema(form_type, registry.definitions_registry)
         form_class = form_type or EmptyForm
 
         def wrapped_view(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
             if self.authentication(request) is False:
                 return HttpResponse("401 Unauthorized", status=401)
 
-            if form_type != type(None):  # type: ignore[comparison-overlap]
+            if issubclass(form_type, type(None)) is False:  # type: ignore[arg-type]
                 form_type_hints = get_type_hints(form_class.__init__)
                 form_kwargs = (
                     {"request": request}
@@ -353,7 +350,7 @@ class RPC(Generic[THttpRequest]):
         url_path = f"{self.url_path}rpc_{view.__name__}/"
 
         # input_name = f"{url_name}_input"
-        if form_type != type(None):  # type: ignore[comparison-overlap]
+        if issubclass(form_type, type(None)):  # type: ignore[arg-type]
             input_name = f"{url_name}_input"
             registry.type_registry[input_name] = form_type  # type: ignore[assignment]
             registry.value_registry[input_name] = form_class

@@ -34,3 +34,14 @@ class Float:
         definitions: registry.Definitions,
     ) -> registry.Thing:
         return registry.Thing(schema={"type": "number"}, definitions=definitions)
+
+
+@registry.register(str)
+class String:
+    @classmethod
+    def get_json_schema(
+        Proxy: Type["String"],
+        instance: str,
+        definitions: registry.Definitions,
+    ) -> registry.Thing:
+        return registry.Thing(schema={"type": "string"}, definitions=definitions)

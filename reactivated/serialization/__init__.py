@@ -816,14 +816,6 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return Thing(schema={"type": "string"}, definitions={})
     elif issubclass(Type, datetime.date):
         return Thing(schema={"type": "string"}, definitions={})
-    elif issubclass(Type, bool):
-        return Thing(schema={"type": "boolean"}, definitions={})
-    elif issubclass(Type, int):
-        return Thing(schema={"type": "number"}, definitions={})
-    elif issubclass(Type, float):
-        return Thing(schema={"type": "number"}, definitions={})
-    elif issubclass(Type, str):
-        return Thing(schema={"type": "string"}, definitions={})
     elif Type is type(None):  # noqa: E721
         return Thing(schema={"type": "null"}, definitions={})
     elif issubclass(Type, enum.Enum):

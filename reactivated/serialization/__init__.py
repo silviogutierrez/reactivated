@@ -28,6 +28,7 @@ from reactivated.models import ComputedRelation
 from reactivated.types import Optgroup
 
 # Register our widgets.
+from . import builtins  # noqa: F401
 from . import widgets  # noqa: F401
 from .registry import JSON, PROXIES, Definitions, Schema, Thing, register
 

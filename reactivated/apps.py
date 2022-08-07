@@ -10,7 +10,7 @@ from django.conf import settings
 from django.utils.autoreload import file_changed  # type: ignore[attr-defined]
 
 from . import extract_views_from_urlpatterns, types
-from .serialization import create_schema
+from .serialization import create_schema, serialize
 from .serialization.registry import (
     definitions_registry,
     global_types,
@@ -121,7 +121,12 @@ def get_interfaces() -> Dict[str, Tuple[Any]]:
 
 
 def get_values() -> Dict[str, Any]:
-    return value_registry
+    serialized = {}
+
+    for key, value in value_registry.items():
+        generated_schema = create_schema(value, {})
+        serialized[key] = serialize(value, generated_schema)
+    return serialized
 
 
 def get_schema() -> str:

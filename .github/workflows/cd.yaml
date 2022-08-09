@@ -17,11 +17,12 @@ jobs:
     release:
         name: Create releases or snapshot
         runs-on: ubuntu-18.04
-        if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'snapshot')
+        if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'snapshot') || contains(github.event.pull_request.labels.*.name, 'autorelease')
         # Currently unused, we do everything within the same job.
         outputs:
             VERSION_TAG: ${{ steps.publish_release.outputs.VERSION_TAG }}
             SNAPSHOT_OR_RELEASE: ${{ steps.publish_release.outputs.SNAPSHOT_OR_RELEASE }}
+        env:
         steps:
             - uses: actions/checkout@v3
               with:
@@ -47,6 +48,9 @@ jobs:
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]
                   then
                       nix-shell --command "scripts/release.sh --versioning ${{ github.event.inputs.versioning }}"
+                  elif [ "${{ contains(github.event.pull_request.labels.*.name, 'autorelease') }}" = "true" ]
+                  then
+                      nix-shell --command "scripts/release.sh --versioning snapshot"
                   else
                       nix-shell --command "scripts/release.sh --versioning snapshot"
                   fi

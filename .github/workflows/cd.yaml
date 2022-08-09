@@ -49,7 +49,7 @@ jobs:
                       nix-shell --command "scripts/release.sh --versioning ${{ github.event.inputs.versioning }}"
                   elif [ "${{ contains(github.event.pull_request.labels.*.name, 'autorelease') }}" = "true" ]
                   then
-                      nix-shell --command "scripts/release.sh --versioning snapshot"
+                      nix-shell --command "scripts/release.sh --versioning patch"
                   else
                       nix-shell --command "scripts/release.sh --versioning snapshot"
                   fi

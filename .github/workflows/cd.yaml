@@ -22,7 +22,6 @@ jobs:
         outputs:
             VERSION_TAG: ${{ steps.publish_release.outputs.VERSION_TAG }}
             SNAPSHOT_OR_RELEASE: ${{ steps.publish_release.outputs.SNAPSHOT_OR_RELEASE }}
-        env:
         steps:
             - uses: actions/checkout@v3
               with:

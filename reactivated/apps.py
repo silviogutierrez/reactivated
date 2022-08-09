@@ -7,7 +7,6 @@ from typing import Any, Dict, NamedTuple, Tuple
 
 from django.apps import AppConfig
 from django.conf import settings
-from django.utils.autoreload import file_changed  # type: ignore[attr-defined]
 
 from . import extract_views_from_urlpatterns, types
 from .serialization import create_schema, serialize
@@ -123,9 +122,12 @@ def get_interfaces() -> Dict[str, Tuple[Any]]:
 def get_values() -> Dict[str, Any]:
     serialized = {}
 
-    for key, value in value_registry.items():
-        generated_schema = create_schema(value, {})
-        serialized[key] = serialize(value, generated_schema)
+    for key, (value, serialize_as_is) in value_registry.items():
+        if serialize_as_is is True:
+            serialized[key] = value
+        else:
+            generated_schema = create_schema(value, {})
+            serialized[key] = serialize(value, generated_schema)
     return serialized
 
 
@@ -157,7 +159,7 @@ class ReactivatedConfig(AppConfig):
             schema = get_schema()
             generate_schema(schema)
 
-        file_changed.connect(regenerate_schema)
+        # file_changed.connect(regenerate_schema)
 
 
 def generate_schema(schema: str, skip_cache: bool = False) -> None:

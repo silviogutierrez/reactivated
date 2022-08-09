@@ -17,12 +17,12 @@ def test_export_registry():
 
     export(BAR)
 
-    assert value_registry["FOO"] == 1
-    assert value_registry["BAR"] == 2
+    assert value_registry["FOO"] == (1, True)
+    assert value_registry["BAR"] == (2, True)
 
 
 def test_export_complex_types():
-    value_registry["SimpleForm"] = SimpleForm
+    value_registry["SimpleForm"] = [SimpleForm, False]
     generated_schema = serialization.create_schema(SimpleForm, {})
     assert get_values()["SimpleForm"] == serialization.serialize(
         SimpleForm, generated_schema

@@ -269,6 +269,7 @@ import React from "react"
 import createContext from "reactivated/dist/context";
 import * as forms from "reactivated/dist/forms";
 import * as generated from "reactivated/dist/generated";
+import * as rpcUtils from "reactivated/dist/rpc";
 
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
@@ -292,6 +293,7 @@ export const CSRFToken = forms.createCSRFToken(Context);
 export const {createRenderer, Iterator} = forms.bindWidgetType<_Types["globals"]["Widget"]>();
 export type FieldHandler = forms.FieldHandler<_Types["globals"]["Widget"]>;
 
+export {FormHandler} from "reactivated/dist/forms";
 export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = forms;
 `);
 

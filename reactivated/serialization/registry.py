@@ -19,7 +19,7 @@ type_registry: Dict[str, Tuple[Any]] = {}
 global_types: Dict[str, Any] = {"Widget": DefaultWidgetType}
 template_registry: Dict[str, Tuple[Any]] = {}
 interface_registry: Dict[str, Tuple[Any]] = {}
-value_registry: Dict[str, Any] = {}
+value_registry: Dict[str, Tuple[Any, bool]] = {}
 definitions_registry: Dict[Any, Any] = {}
 rpc_registry: types.RPCRegistry = {}
 

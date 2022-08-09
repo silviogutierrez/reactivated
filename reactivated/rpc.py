@@ -233,7 +233,7 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
 
         input_name = f"{url_name}_input"
         output_name = f"{url_name}_output"
-        registry.value_registry[input_name] = form_class
+        registry.value_registry[input_name] = (form_class, False)
         registry.type_registry[input_name] = form_class  # type: ignore[assignment]
         registry.type_registry[output_name] = return_type
         registry.rpc_registry[url_name] = {
@@ -359,7 +359,7 @@ class RPC(Generic[THttpRequest]):
         if not is_empty_form:
             input_name = f"{url_name}_input"
             registry.type_registry[input_name] = form_type  # type: ignore[assignment]
-            registry.value_registry[input_name] = form_class
+            registry.value_registry[input_name] = (form_class, False)
         else:
             input_name = None  # type: ignore[assignment]
 

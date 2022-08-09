@@ -17,7 +17,7 @@ jobs:
     release:
         name: Create releases or snapshot
         runs-on: ubuntu-18.04
-        if: github.event_name != "pull_request" || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'autorelease')) || (github.event_name == 'pull_request' && github.event.pull_request.merged == false && contains(github.event.pull_request.labels.*.name, 'snapshot'))
+        if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'autorelease')) || (github.event_name == 'pull_request' && github.event.pull_request.merged == false && contains(github.event.pull_request.labels.*.name, 'snapshot'))
         # Currently unused, we do everything within the same job.
         outputs:
             VERSION_TAG: ${{ steps.publish_release.outputs.VERSION_TAG }}

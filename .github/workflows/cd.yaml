@@ -47,7 +47,7 @@ jobs:
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]
                   then
                       nix-shell --command "scripts/release.sh --versioning ${{ github.event.inputs.versioning }}"
-                  elif [ "${{ github.event.pull_request.merged }}" = "true" && "${{ contains(github.event.pull_request.labels.*.name, 'autorelease') }}" = "true" ]
+                  elif [ "${{ github.event.pull_request.merged }}" = "true" ] && [ "${{ contains(github.event.pull_request.labels.*.name, 'autorelease') }}" = "true" ]
                   then
                       nix-shell --command "scripts/release.sh --versioning patch"
                   else

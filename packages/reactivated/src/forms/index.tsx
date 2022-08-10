@@ -331,7 +331,7 @@ export const useForm = <
     },
 >(options: {
     form: FormLike<T>;
-    initial?: FormValues<R>;
+    initial?: Partial<FormValues<R>>;
     exclude?: [...S];
     fieldInterceptor?: (
         fieldName: keyof R,
@@ -350,7 +350,7 @@ export const useForm = <
             (field) => options.exclude == null || !options.exclude.includes(field),
         ),
     } as any as FormLike<R>;
-    const initial = options.initial ?? getInitialFormState(form);
+    const initial = {...getInitialFormState(form), ...options.initial};
     const [values, formSetValues] = React.useState(initial);
     const [errors, setErrors] = React.useState(form.errors);
 

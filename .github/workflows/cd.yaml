@@ -12,7 +12,7 @@ on:
     pull_request:
         branches:
             - main
-        types: [labeled, opened, synchronize, reopened]
+        types: [labeled, opened, synchronize, reopened, closed]
 jobs:
     release:
         name: Create releases or snapshot

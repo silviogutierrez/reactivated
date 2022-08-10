@@ -40,6 +40,9 @@ urlpatterns.append(simple_form)
 @pytest.mark.urls("tests.rpc")
 def test_simple_form(client):
     url = reverse("rpc_simple_form")
+    response = client.get(url)
+    assert response.status_code == 405
+
     response = client.post(url)
 
     assert response.status_code == 400

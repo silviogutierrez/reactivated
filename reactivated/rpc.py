@@ -231,10 +231,14 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             else f"{self.no_context_url_path}rpc_{view.__name__}/"
         )
 
-        input_name = f"{url_name}_input"
+        if not is_empty_form:
+            input_name = f"{url_name}_input"
+            registry.value_registry[input_name] = (form_class, False)
+            registry.type_registry[input_name] = form_class  # type: ignore[assignment]
+        else:
+            input_name = None  # type: ignore[assignment]
+
         output_name = f"{url_name}_output"
-        registry.value_registry[input_name] = (form_class, False)
-        registry.type_registry[input_name] = form_class  # type: ignore[assignment]
         registry.type_registry[output_name] = return_type
         registry.rpc_registry[url_name] = {
             "url": f"/{self.no_context_url_path}",
@@ -303,10 +307,11 @@ class RPC(Generic[THttpRequest]):
         return_schema = create_schema(return_type, registry.definitions_registry)
 
         form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get("form")
-        is_empty_form = issubclass(form_type, type(None)) is True  # type: ignore[arg-type]
 
         if form_type is None:
             assert False, "Missing form argument"
+
+        is_empty_form = issubclass(form_type, type(None)) is True
 
         create_schema(form_type, registry.definitions_registry)
         form_class = form_type or EmptyForm

@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, cast
 
 import pytest
 from django import forms
@@ -22,7 +22,7 @@ class SpecializedHttpRequest(HttpRequest):
 
 special_rpc = create_rpc(
     lambda request: cast(SpecializedHttpRequest, request)
-    if request.is_authenticated
+    if request.user.is_authenticated
     else False
 )
 
@@ -82,13 +82,13 @@ class FormTwo(forms.Form):
     another_field = forms.CharField()
 
 
-class FormGroup(FormGroup):
+class SimpleFormGroup(FormGroup):
     first: FormOne
     second: FormTwo
 
 
 @anonymous_rpc
-def form_group(request: HttpRequest, form: FormGroup) -> bool:
+def form_group(request: HttpRequest, form: SimpleFormGroup) -> bool:
     return True
 
 

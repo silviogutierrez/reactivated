@@ -4,7 +4,7 @@ module.exports = {
     parserOptions: {
         project: ["./tsconfig.json"],
     },
-    plugins: ["@typescript-eslint"],
+    plugins: ["@typescript-eslint", "unused-imports"],
     settings: {
         react: {
             version: "detect",
@@ -78,8 +78,9 @@ module.exports = {
         "react-hooks/exhaustive-deps": "off",
 
         // Typescript overrides from recommended
-        "@typescript-eslint/no-unused-vars": "error",
-
+        "@typescript-eslint/no-unused-vars": "off",
+        "unused-imports/no-unused-imports": "error",
+        "unused-imports/no-unused-vars": "error",
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
 

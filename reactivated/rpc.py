@@ -46,6 +46,7 @@ TForm = TypeVar(
         forms.BaseFormSet,
         forms.BaseInlineFormSet,
         FormGroup,
+        None,
     ],
 )
 

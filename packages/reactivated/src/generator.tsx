@@ -56,7 +56,7 @@ const classDeclaration = sourceFile.addClass({
 });
 
 classDeclaration.addConstructor({
-    parameters: [{name: "fetcher", type: "typeof fetch", scope: Scope.Private}],
+    parameters: [{name: "requester", type: "rpcUtils.Requester", scope: Scope.Public}],
 });
 
 for (const name of Object.keys(rpc)) {
@@ -144,7 +144,7 @@ for (const name of Object.keys(rpc)) {
         ],
     });
     functionDeclaration.setBodyText(
-        `${functionDeclaration.getBodyText()} return rpcUtils.rpcCall(options)`,
+        `${functionDeclaration.getBodyText()} return rpcUtils.rpcCall(this.requester, options)`,
     );
     /*
 
@@ -264,7 +264,7 @@ if (Object.keys(urls).length !== 0) {
 }
 
 sourceFile.addStatements(`
-export const rpc = new RPC(typeof window != "undefined" ? fetch : null as any);
+export const rpc = new RPC(typeof window != "undefined" ? rpcUtils.defaultRequester : null as any);
 import React from "react"
 import createContext from "reactivated/dist/context";
 import * as forms from "reactivated/dist/forms";

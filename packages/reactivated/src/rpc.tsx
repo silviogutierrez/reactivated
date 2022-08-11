@@ -34,6 +34,49 @@ function buildUrl(baseUrl: string, paramsAndIterator: ParamsAndIterator | null) 
     }
 }
 
+export type RequesterResult =
+    | {type: "invalid"; errors: any}
+    | {type: "success"; data: any}
+    | {type: "exception"; exception: unknown};
+
+export type Requester = (url: string, payload: FormData) => Promise<RequesterResult>;
+
+export const defaultRequester: Requester = async (url, payload) => {
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            body: payload,
+            headers: {
+                Accept: "application/json",
+                "X-CSRFToken":
+                    getCookieFromCookieString("csrftoken", document.cookie) ?? "",
+            },
+        });
+
+        if (response.status === 200) {
+            return {
+                type: "success",
+                data: await response.json(),
+            };
+        } else if (response.status === 400) {
+            return {
+                type: "invalid",
+                errors: await response.json(),
+            };
+        }
+    } catch (error) {
+        return {
+            type: "exception",
+            exception: error,
+        };
+    }
+
+    return {
+        type: "exception",
+        exception: null,
+    };
+};
+
 const buildValues = (
     type: "form" | "form_set",
     formData: FormData,
@@ -63,15 +106,18 @@ const buildValues = (
     }
 };
 
-export async function rpcCall(options: {
-    url: string;
-    input: {
-        values: Record<string, any>;
-        type: "form" | "form_set" | "form_group";
-    } | null;
-    paramsAndIterator: ParamsAndIterator | null;
-    name: string | null;
-}): Promise<Result<any, any>> {
+export async function rpcCall(
+    requester: Requester,
+    options: {
+        url: string;
+        input: {
+            values: Record<string, any>;
+            type: "form" | "form_set" | "form_group";
+        } | null;
+        paramsAndIterator: ParamsAndIterator | null;
+        name: string | null;
+    },
+): Promise<Result<any, any>> {
     const {url, input, paramsAndIterator, name} = options;
     const {type, values} = input != null ? input : {type: "", values: {}};
 
@@ -98,36 +144,9 @@ export async function rpcCall(options: {
         urlWithPossibleInstance = urlWithPossibleInstance.concat(`${name}/`);
     }
 
-    try {
-        const response = await fetch(urlWithPossibleInstance, {
-            method: "POST",
-            body: formData,
-            headers: {
-                Accept: "application/json",
-                "X-CSRFToken":
-                    getCookieFromCookieString("csrftoken", document.cookie) ?? "",
-            },
-        });
+    const result = await requester(urlWithPossibleInstance, formData);
 
-        if (response.status === 200) {
-            return {
-                type: "success",
-                data: await response.json(),
-            };
-        } else if (response.status === 400) {
-            return {
-                type: "invalid",
-                errors: await response.json(),
-            };
-        }
-
-        throw new Error("Unknown status code");
-    } catch (exception: unknown) {
-        return {
-            type: "exception",
-            exception,
-        };
-    }
+    return result;
 }
 
 export type Result<TSuccess, TInvalid> =

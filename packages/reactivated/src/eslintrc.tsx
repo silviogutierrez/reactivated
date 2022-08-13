@@ -84,6 +84,10 @@ module.exports = {
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
 
+        // For when we do RPC calls and forget to call await on the promise
+        // to check against a null return.
+        "@typescript-eslint/no-unnecessary-condition": "error",
+
         // We use empty callbacks that are no-ops sometimes.
         "@typescript-eslint/no-empty-function": ["error", {allow: ["arrowFunctions"]}],
 

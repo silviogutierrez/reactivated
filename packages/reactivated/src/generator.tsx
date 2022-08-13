@@ -55,16 +55,25 @@ const classDeclaration = sourceFile.addClass({
     isExported: true,
 });
 
-classDeclaration.addConstructor({
+const rpcConstructor = classDeclaration.addConstructor({
     parameters: [{name: "requester", type: "rpcUtils.Requester", scope: Scope.Public}],
 });
+
+let rpcConstructorBody = "";
 
 for (const name of Object.keys(rpc)) {
     const {url, input, output, type, params} = rpc[name];
     const functionDeclaration = classDeclaration.addMethod({
         name,
     });
+
+    rpcConstructorBody += `this.${name} = (this.${name} as any).bind(this);\n`;
     functionDeclaration.setIsAsync(true);
+
+    functionDeclaration.addParameter({
+        name: "this",
+        type: "void",
+    });
 
     let bodyText = "";
     const initializer = {
@@ -144,7 +153,7 @@ for (const name of Object.keys(rpc)) {
         ],
     });
     functionDeclaration.setBodyText(
-        `${functionDeclaration.getBodyText()} return rpcUtils.rpcCall(this.requester, options)`,
+        `${functionDeclaration.getBodyText()} return rpcUtils.rpcCall((this as any).requester, options)`,
     );
     /*
 
@@ -187,6 +196,7 @@ for (const name of Object.keys(rpc)) {
      functionDeclaration.setIsAsync(true);
      */
 }
+rpcConstructor.setBodyText(rpcConstructorBody);
 
 if (Object.keys(urls).length !== 0) {
     sourceFile.addVariableStatement({

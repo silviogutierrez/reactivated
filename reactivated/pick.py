@@ -1,4 +1,5 @@
 from __future__ import annotations
+import inspect
 
 from typing import (
     Any,
@@ -17,7 +18,7 @@ from django.db import models
 
 from .models import ComputedRelation
 from .serialization import ComputedField, FieldDescriptor, create_schema
-from .serialization.registry import Definitions, JSONSchema, Thing
+from .serialization.registry import Definitions, JSONSchema, Thing, global_types
 
 FieldSegment = Tuple[str, bool, bool]
 
@@ -197,10 +198,44 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
 
 class BasePickHolder:
     model_class: Type[models.Model]
+    module: Any
     fields: List[str] = []
 
     @classmethod
+    def get_name(cls: Type[BasePickHolder]) -> Optional[str]:
+        for var_name, var_val in inspect.getmembers(cls.module):
+            if isinstance(var_val, type) and issubclass(var_val, BasePickHolder) and var_val.module == cls.module and var_val.fields == cls.fields and var_val.model_class is cls.model_class:
+                return var_name
+        return None
+
+    @classmethod
     def get_json_schema(cls: Type[BasePickHolder], definitions: Definitions) -> Thing:
+        name = cls.get_name()
+        definition_name = f"{cls.module.__name__}.{name}"
+        ref = {"$ref": f"#/definitions/{definition_name}"}
+
+        if definition_name in definitions:
+            return Thing(
+                schema=ref, definitions=definitions
+            )
+
+        if "schemas" not in global_types:
+            global_types["schemas"] = {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [],
+                "properties": {},
+            }
+
+        global_types["schemas"] = {
+            **global_types["schemas"],
+            "required": [*global_types["schemas"]["required"], definition_name],
+            "properties": {
+                **global_types["schemas"]["properties"],
+                definition_name: ref,
+            }
+        }
+
         schema = {
             "type": "object",
             "additionalProperties": False,
@@ -230,7 +265,13 @@ class BasePickHolder:
             reference["properties"][target_name] = field_schema.schema
             reference["required"].append(target_name)
 
-        return Thing(schema=schema, definitions=definitions)
+        return Thing(
+            schema=ref,
+            definitions={
+                **definitions,
+                definition_name: schema,
+            },
+        )
 
 
 class Pick:
@@ -256,8 +297,12 @@ class Pick:
             else:
                 assert False, f"Unsupported pick property {field_or_literal}"
 
+        frm = inspect.stack()[1]
+        mod = inspect.getmodule(frm[0])
+
         class PickHolder(BasePickHolder):
             model_class = meta_model
             fields = flattened_fields
+            module = mod
 
         return PickHolder

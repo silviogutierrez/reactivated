@@ -115,7 +115,7 @@ export async function rpcCall(
             type: "form" | "form_set" | "form_group";
         } | null;
         paramsAndIterator: ParamsAndIterator | null;
-        name: string | null;
+        name: string;
     },
 ): Promise<Result<any, any>> {
     const {url, input, paramsAndIterator, name} = options;
@@ -146,19 +146,36 @@ export async function rpcCall(
 
     const result = await requester(urlWithPossibleInstance, formData);
 
-    return result;
+    const request: Request = {
+        url: urlWithPossibleInstance,
+        params: paramsAndIterator?.params,
+        name: name,
+        data: formData,
+    };
+
+    return {...result, request};
 }
+
+type Request = {
+    url: string;
+    params: unknown;
+    name: string;
+    data: FormData;
+};
 
 export type Result<TSuccess, TInvalid> =
     | {
           type: "success";
           data: TSuccess;
+          request: Request;
       }
     | {
           type: "invalid";
           errors: TInvalid;
+          request: Request;
       }
     | {
           type: "exception";
           exception: unknown;
+          request: Request;
       };

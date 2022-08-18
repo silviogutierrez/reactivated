@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 import enum
-from typing import Any, List, Literal, NamedTuple, Optional, Tuple, Type
+from typing import Any, List, Literal, NamedTuple, Optional, Tuple, Type, get_type_hints
 
 import pytest
 import simplejson
@@ -1192,3 +1192,23 @@ def test_form_and_fields():
     }
     field_schema = create_schema(Form.base_fields["boolean_field"], schema.definitions)
     convert_to_json_and_validate(serialized["fields"]["boolean_field"], field_schema)
+
+
+NamedPick = Pick[models.Opera, "name"]
+
+
+class Holder:
+    unnamed_pick1: Pick[models.Opera, "id", "name"]
+    unnamed_pick2: Pick[models.Opera, "name", "id"]
+
+
+def test_pick_name_and_deduplication(settings):
+    # Note we purposely set the app name to the parent dir so that this file is
+    # treated as a file inside the app tests.
+    settings.INSTALLED_APPS = ["tests"]
+    assert NamedPick.get_name() == "tests.serialization.Opera"
+    assert get_type_hints(Holder)["unnamed_pick1"].get_name() is None
+    assert (
+        get_type_hints(Holder)["unnamed_pick1"].get_auto_name()
+        == get_type_hints(Holder)["unnamed_pick2"].get_auto_name()
+    )

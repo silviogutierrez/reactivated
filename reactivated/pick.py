@@ -22,7 +22,7 @@ from django.db import models
 from .models import ComputedRelation
 from .serialization import ComputedField, FieldDescriptor, create_schema
 from .serialization.registry import (
-    DefaultSchemaType,
+    DefaultModelsType,
     Definitions,
     JSONSchema,
     Thing,
@@ -244,30 +244,31 @@ class BasePickHolder:
 
     @classmethod
     def get_json_schema(cls: Type[BasePickHolder], definitions: Definitions) -> Thing:
-        possible_name = cls.get_name()
+        explicit_name = cls.get_name()
 
-        definition_name = possible_name or cls.get_auto_name()
+        definition_name = explicit_name or cls.get_auto_name()
         ref = {"$ref": f"#/definitions/{definition_name}"}
 
         if definition_name in definitions:
             return Thing(schema=ref, definitions=definitions)
 
-        if global_types["schemas"] is DefaultSchemaType:
-            global_types["schemas"] = {
+        if global_types["models"] is DefaultModelsType:
+            global_types["models"] = {
                 "type": "object",
                 "additionalProperties": False,
                 "required": [],
                 "properties": {},
             }
 
-        global_types["schemas"] = {
-            **global_types["schemas"],
-            "required": [*global_types["schemas"]["required"], definition_name],
-            "properties": {
-                **global_types["schemas"]["properties"],
-                definition_name: ref,
-            },
-        }
+        if explicit_name is not None:
+            global_types["models"] = {
+                **global_types["models"],
+                "required": [*global_types["models"]["required"], definition_name],
+                "properties": {
+                    **global_types["models"]["properties"],
+                    definition_name: ref,
+                },
+            }
 
         schema = {
             "type": "object",

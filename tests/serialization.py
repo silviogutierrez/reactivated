@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 import enum
-from typing import Any, List, Literal, NamedTuple, Optional, Tuple, Type
+from typing import Any, List, Literal, NamedTuple, Optional, Tuple, Type, get_type_hints
 
 import pytest
 import simplejson
@@ -152,7 +152,8 @@ def test_serialization():
     # only tests. Moreover, all other type tests are in tests/types.py.
     assert generated_schema.definitions["tests.serialization.Foo"]["properties"][
         "pick_computed_foreign_key"
-    ] == {
+    ] == {"$ref": "#/definitions/Composer_0a7e472ea2"}
+    assert generated_schema.definitions["Composer_0a7e472ea2"] == {
         "additionalProperties": False,
         "properties": {
             "main_opera": {
@@ -165,9 +166,13 @@ def test_serialization():
         "required": ["main_opera"],
         "type": "object",
     }
+
     assert generated_schema.definitions["tests.serialization.Foo"]["properties"][
         "pick_computed_null_foreign_key"
     ] == {
+        "$ref": "#/definitions/Composer_d4f73efbd8",
+    }
+    assert generated_schema.definitions["Composer_d4f73efbd8"] == {
         "additionalProperties": False,
         "properties": {
             "favorite_opera": {
@@ -370,7 +375,13 @@ def test_override_pick_types(settings):
             apps = test_apps
 
     Picked = Pick[TestModel, "forced_nullable", "forced_non_nullable", "forced_none"]
-    assert create_schema(Picked, {}).schema == {
+    schema = create_schema(Picked, {})
+    assert schema.schema == {
+        "$ref": "#/definitions/test_override_pick_types.<locals>.TestModel_fdae93dc88",
+    }
+    assert schema.definitions[
+        "test_override_pick_types.<locals>.TestModel_fdae93dc88"
+    ] == {
         "type": "object",
         "additionalProperties": False,
         "properties": {
@@ -404,7 +415,14 @@ def test_deferred_evaluation_of_types(settings):
 
     Picked = Pick[TestModel, "bar", "deferred_field"]
 
-    assert create_schema(Picked, {}).schema == {
+    schema = create_schema(Picked, {})
+
+    assert schema.schema == {
+        "$ref": "#/definitions/test_deferred_evaluation_of_types.<locals>.TestModel_53f578dd7a"
+    }
+    assert schema.definitions[
+        "test_deferred_evaluation_of_types.<locals>.TestModel_53f578dd7a"
+    ] == {
         "type": "object",
         "additionalProperties": False,
         "properties": {
@@ -1174,3 +1192,23 @@ def test_form_and_fields():
     }
     field_schema = create_schema(Form.base_fields["boolean_field"], schema.definitions)
     convert_to_json_and_validate(serialized["fields"]["boolean_field"], field_schema)
+
+
+NamedPick = Pick[models.Opera, "name"]
+
+
+class Holder:
+    unnamed_pick1: Pick[models.Opera, "id", "name"]
+    unnamed_pick2: Pick[models.Opera, "name", "id"]
+
+
+def test_pick_name_and_deduplication(settings):
+    # Note we purposely set the app name to the parent dir so that this file is
+    # treated as a file inside the app tests.
+    settings.INSTALLED_APPS = ["tests"]
+    assert NamedPick.get_name() == "tests.serialization.Opera"
+    assert get_type_hints(Holder)["unnamed_pick1"].get_name() is None
+    assert (
+        get_type_hints(Holder)["unnamed_pick1"].get_auto_name()
+        == get_type_hints(Holder)["unnamed_pick2"].get_auto_name()
+    )

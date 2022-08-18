@@ -302,6 +302,7 @@ export const CSRFToken = forms.createCSRFToken(Context);
 
 export const {createRenderer, Iterator} = forms.bindWidgetType<_Types["globals"]["Widget"]>();
 export type FieldHandler = forms.FieldHandler<_Types["globals"]["Widget"]>;
+export type models = _Types["globals"]["models"];
 
 export {FormHandler} from "reactivated/dist/forms";
 export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = forms;

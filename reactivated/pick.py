@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import hashlib
+import inspect
+from types import ModuleType
 from typing import (
     Any,
     List,
@@ -12,12 +15,19 @@ from typing import (
     get_type_hints,
 )
 
+from django.apps import apps
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
 from .models import ComputedRelation
 from .serialization import ComputedField, FieldDescriptor, create_schema
-from .serialization.registry import Definitions, JSONSchema, Thing
+from .serialization.registry import (
+    DefaultModelsType,
+    Definitions,
+    JSONSchema,
+    Thing,
+    global_types,
+)
 
 FieldSegment = Tuple[str, bool, bool]
 
@@ -197,10 +207,69 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
 
 class BasePickHolder:
     model_class: Type[models.Model]
+    module: ModuleType
     fields: List[str] = []
 
     @classmethod
+    def get_name(cls: Type[BasePickHolder]) -> Optional[str]:
+        pick_name: Optional[str] = None
+
+        for var_name, var_val in inspect.getmembers(cls.module):
+            if (
+                isinstance(var_val, type)
+                and issubclass(var_val, BasePickHolder)
+                and var_val.module == cls.module
+                and var_val.fields == cls.fields
+                and var_val.model_class is cls.model_class
+            ):
+                pick_name = var_name
+
+        if pick_name is None:
+            return None
+
+        for app_config in apps.get_app_configs():
+            if app_config.name in cls.module.__name__:
+                relative_module = cls.module.__name__.replace(f"{app_config.name}.", "")
+                return f"{app_config.label}.{relative_module}.{pick_name}"
+
+        return None
+
+    @classmethod
+    def get_auto_name(cls: Type[BasePickHolder]) -> str:
+        model_name = f"{cls.model_class.__module__}.{cls.model_class.__qualname__}"
+        fields = "_".join(sorted(cls.fields))
+        unhashed = f"{model_name}{fields}"
+        hash = hashlib.sha1(unhashed.encode("UTF-8")).hexdigest()[:10]
+        return f"{cls.model_class.__qualname__}_{hash}"
+
+    @classmethod
     def get_json_schema(cls: Type[BasePickHolder], definitions: Definitions) -> Thing:
+        explicit_name = cls.get_name()
+
+        definition_name = explicit_name or cls.get_auto_name()
+        ref = {"$ref": f"#/definitions/{definition_name}"}
+
+        if definition_name in definitions:
+            return Thing(schema=ref, definitions=definitions)
+
+        if global_types["models"] is DefaultModelsType:
+            global_types["models"] = {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [],
+                "properties": {},
+            }
+
+        if explicit_name is not None:
+            global_types["models"] = {
+                **global_types["models"],
+                "required": [*global_types["models"]["required"], definition_name],
+                "properties": {
+                    **global_types["models"]["properties"],
+                    definition_name: ref,
+                },
+            }
+
         schema = {
             "type": "object",
             "additionalProperties": False,
@@ -230,7 +299,13 @@ class BasePickHolder:
             reference["properties"][target_name] = field_schema.schema
             reference["required"].append(target_name)
 
-        return Thing(schema=schema, definitions=definitions)
+        return Thing(
+            schema=ref,
+            definitions={
+                **definitions,
+                definition_name: schema,
+            },
+        )
 
 
 class Pick:
@@ -256,8 +331,12 @@ class Pick:
             else:
                 assert False, f"Unsupported pick property {field_or_literal}"
 
+        frm = inspect.stack()[1]
+        mod = inspect.getmodule(frm[0])
+
         class PickHolder(BasePickHolder):
             model_class = meta_model
             fields = flattened_fields
+            module = mod  # type: ignore[assignment]
 
         return PickHolder

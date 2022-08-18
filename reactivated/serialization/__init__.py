@@ -446,18 +446,14 @@ class FormSetType(NamedTuple):
             f"{FormSetType.__module__}.{FormSetType.__qualname__}"
         ]
 
-        form_type_definition = form_type_schema.definitions[
-            f"{FormSetForm.__module__}.{FormSetForm.__qualname__}"
-        ]
-
         definitions = {
             **definitions,
             definition_name: {
                 **form_set_type_definition,
                 "properties": {
                     **form_set_type_definition["properties"],
-                    "empty_form": form_type_definition,
-                    "forms": {"type": "array", "items": form_type_definition},
+                    "empty_form": form_type_schema.schema,
+                    "forms": {"type": "array", "items": form_type_schema.schema},
                     "management_form": management_form_schema,
                 },
                 "required": [

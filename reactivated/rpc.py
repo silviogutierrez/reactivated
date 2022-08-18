@@ -198,8 +198,14 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         form_class = form_type or EmptyForm
 
         def wrapped_view(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
-            if self.authentication(request) is False:
-                return HttpResponse("401 Unauthorized", status=401)
+            authentication_check = self.authentication(request)
+
+            if authentication_check is False:
+                return JsonResponse("UNAUTHORIZED", status=401, safe=False)
+            elif isinstance(authentication_check, enum.Enum):
+                return JsonResponse(authentication_check.name, status=403, safe=False)
+
+            request = authentication_check
 
             extra_args: Any = {}
 
@@ -281,8 +287,14 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         return_schema = create_schema(return_type, registry.definitions_registry)
 
         def wrapped_view(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
-            if self.authentication(request) is False:
-                return HttpResponse("401 Unauthorized", status=401)
+            authentication_check = self.authentication(request)
+
+            if authentication_check is False:
+                return JsonResponse("UNAUTHORIZED", status=401, safe=False)
+            elif isinstance(authentication_check, enum.Enum):
+                return JsonResponse(authentication_check.name, status=403, safe=False)
+
+            request = authentication_check
 
             context = self.context_provider(request, *args, **kwargs)  # type: ignore[call-arg]
 
@@ -343,6 +355,8 @@ class RPC(Generic[THttpRequest]):
                 return JsonResponse("UNAUTHORIZED", status=401, safe=False)
             elif isinstance(authentication_check, enum.Enum):
                 return JsonResponse(authentication_check.name, status=403, safe=False)
+
+            request = authentication_check
 
             if not is_empty_form:
                 form_type_hints = get_type_hints(form_class.__init__)

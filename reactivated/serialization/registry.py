@@ -13,10 +13,13 @@ from typing import (
 from reactivated import utils
 
 DefaultWidgetType = {"tsType": 'generated.Types["Widget"]'}
-
+DefaultSchemaType = {"type": "null"}
 
 type_registry: Dict[str, Tuple[Any]] = {}
-global_types: Dict[str, Any] = {"Widget": DefaultWidgetType}
+global_types: Dict[str, Any] = {
+    "Widget": DefaultWidgetType,
+    "schemas": DefaultSchemaType,
+}
 template_registry: Dict[str, Tuple[Any]] = {}
 interface_registry: Dict[str, Tuple[Any]] = {}
 value_registry: Dict[str, Any] = {}

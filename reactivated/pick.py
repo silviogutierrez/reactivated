@@ -21,7 +21,13 @@ from django.db import models
 
 from .models import ComputedRelation
 from .serialization import ComputedField, FieldDescriptor, create_schema
-from .serialization.registry import Definitions, JSONSchema, Thing, global_types
+from .serialization.registry import (
+    DefaultSchemaType,
+    Definitions,
+    JSONSchema,
+    Thing,
+    global_types,
+)
 
 FieldSegment = Tuple[str, bool, bool]
 
@@ -246,7 +252,7 @@ class BasePickHolder:
         if definition_name in definitions:
             return Thing(schema=ref, definitions=definitions)
 
-        if "schemas" not in global_types:
+        if global_types["schemas"] is DefaultSchemaType:
             global_types["schemas"] = {
                 "type": "object",
                 "additionalProperties": False,

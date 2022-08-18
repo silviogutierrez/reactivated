@@ -152,7 +152,8 @@ def test_serialization():
     # only tests. Moreover, all other type tests are in tests/types.py.
     assert generated_schema.definitions["tests.serialization.Foo"]["properties"][
         "pick_computed_foreign_key"
-    ] == {
+    ] == {"$ref": "#/definitions/Composer_0a7e472ea2"}
+    assert generated_schema.definitions["Composer_0a7e472ea2"] == {
         "additionalProperties": False,
         "properties": {
             "main_opera": {
@@ -165,9 +166,13 @@ def test_serialization():
         "required": ["main_opera"],
         "type": "object",
     }
+
     assert generated_schema.definitions["tests.serialization.Foo"]["properties"][
         "pick_computed_null_foreign_key"
     ] == {
+        "$ref": "#/definitions/Composer_d4f73efbd8",
+    }
+    assert generated_schema.definitions["Composer_d4f73efbd8"] == {
         "additionalProperties": False,
         "properties": {
             "favorite_opera": {
@@ -370,7 +375,13 @@ def test_override_pick_types(settings):
             apps = test_apps
 
     Picked = Pick[TestModel, "forced_nullable", "forced_non_nullable", "forced_none"]
-    assert create_schema(Picked, {}).schema == {
+    schema = create_schema(Picked, {})
+    assert schema.schema == {
+        "$ref": "#/definitions/test_override_pick_types.<locals>.TestModel_fdae93dc88",
+    }
+    assert schema.definitions[
+        "test_override_pick_types.<locals>.TestModel_fdae93dc88"
+    ] == {
         "type": "object",
         "additionalProperties": False,
         "properties": {
@@ -404,7 +415,14 @@ def test_deferred_evaluation_of_types(settings):
 
     Picked = Pick[TestModel, "bar", "deferred_field"]
 
-    assert create_schema(Picked, {}).schema == {
+    schema = create_schema(Picked, {})
+
+    assert schema.schema == {
+        "$ref": "#/definitions/test_deferred_evaluation_of_types.<locals>.TestModel_53f578dd7a"
+    }
+    assert schema.definitions[
+        "test_deferred_evaluation_of_types.<locals>.TestModel_53f578dd7a"
+    ] == {
         "type": "object",
         "additionalProperties": False,
         "properties": {

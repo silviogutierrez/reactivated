@@ -90,6 +90,11 @@ def get_types_schema() -> Any:
 
     type_registry["Context"] = create_context_processor_type(context_processors)
 
+    if "RPCPermission" not in type_registry:
+        type_registry["RPCPermission"] = None  # type: ignore[assignment]
+
+    type_registry["Context"] = create_context_processor_type(context_processors)
+
     ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore[misc]
     parent_schema, definitions = create_schema(ParentTuple, definitions_registry)
     definitions_registry.update(definitions)

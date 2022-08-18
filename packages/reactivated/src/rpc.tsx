@@ -37,6 +37,8 @@ function buildUrl(baseUrl: string, paramsAndIterator: ParamsAndIterator | null) 
 export type RequesterResult =
     | {type: "invalid"; errors: any}
     | {type: "success"; data: any}
+    | {type: "denied"; reason: any}
+    | {type: "unauthorized"}
     | {type: "exception"; exception: unknown};
 
 export type Requester = (url: string, payload: FormData) => Promise<RequesterResult>;
@@ -62,6 +64,15 @@ export const defaultRequester: Requester = async (url, payload) => {
             return {
                 type: "invalid",
                 errors: await response.json(),
+            };
+        } else if (response.status === 401) {
+            return {
+                type: "unauthorized",
+            };
+        } else if (response.status === 403) {
+            return {
+                type: "denied",
+                reason: response.json(),
             };
         }
     } catch (error) {
@@ -117,7 +128,7 @@ export async function rpcCall(
         paramsAndIterator: ParamsAndIterator | null;
         name: string;
     },
-): Promise<Result<any, any>> {
+): Promise<Result<any, any, any>> {
     const {url, input, paramsAndIterator, name} = options;
     const {type, values} = input != null ? input : {type: "", values: {}};
 
@@ -163,7 +174,7 @@ type Request = {
     data: FormData;
 };
 
-export type Result<TSuccess, TInvalid> =
+export type Result<TSuccess, TInvalid, TDenied> =
     | {
           type: "success";
           data: TSuccess;
@@ -172,6 +183,15 @@ export type Result<TSuccess, TInvalid> =
     | {
           type: "invalid";
           errors: TInvalid;
+          request: Request;
+      }
+    | {
+          type: "denied";
+          reason: TDenied;
+          request: Request;
+      }
+    | {
+          type: "unauthorized";
           request: Request;
       }
     | {

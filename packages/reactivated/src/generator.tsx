@@ -120,7 +120,7 @@ for (const name of Object.keys(rpc)) {
             type: `forms.FormOrFormSetValues<_Types["${input}"]>`,
         });
         functionDeclaration.setReturnType(
-            `Promise<rpcUtils.Result<_Types["${output}"], forms.FormOrFormSetErrors<_Types["${input}"]>>>`,
+            `Promise<rpcUtils.Result<_Types["${output}"], forms.FormOrFormSetErrors<_Types["${input}"]>, _Types["RPCPermission"]>>`,
         );
         Object.assign(initializer, {
             input: Writers.object({
@@ -131,7 +131,7 @@ for (const name of Object.keys(rpc)) {
         });
     } else {
         functionDeclaration.setReturnType(
-            `Promise<rpcUtils.Result<_Types["${output}"], null>>`,
+            `Promise<rpcUtils.Result<_Types["${output}"], null, _Types["RPCPermission"]>>`,
         );
         Object.assign(initializer, {input: "null"});
     }
@@ -283,6 +283,8 @@ import * as rpcUtils from "reactivated/dist/rpc";
 
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
+
+export type Result<TSuccess, TInvalid> = rpcUtils.Result<TSuccess, TInvalid, _Types["RPCPermission"]>;
 
 export const {Context, Provider, getServerData} = createContext<_Types["Context"]>();
 

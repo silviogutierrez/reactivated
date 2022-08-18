@@ -1,4 +1,5 @@
-from typing import Dict, cast
+import enum
+from typing import Dict, Literal, Union, cast
 
 import pytest
 from django import forms
@@ -6,7 +7,7 @@ from django.http import HttpRequest
 from django.urls import reverse
 
 from reactivated import Pick
-from reactivated.rpc import FormGroup, create_rpc
+from reactivated.rpc import FormGroup, RPCRequest, create_rpc
 from sample.server.apps.samples import models
 
 urlpatterns = []
@@ -206,3 +207,51 @@ def test_opera_detail(client):
     response = client.post(url)
     assert response.status_code == 200
     assert response.json() == expected
+
+
+class Permissions(enum.Enum):
+    BECAUSE_I_SAID_SO = "BECAUSE_I_SAID_SO"
+
+
+@create_rpc
+def denied_rpc(request: HttpRequest) -> RPCRequest[HttpRequest, Permissions]:
+    return Permissions.BECAUSE_I_SAID_SO
+
+
+@denied_rpc
+def denied(request: HttpRequest, form: None) -> bool:
+    return True
+
+
+urlpatterns.append(denied)
+
+
+@pytest.mark.urls("tests.rpc")
+def test_denied(client):
+    url = reverse("rpc_denied")
+
+    response = client.post(url)
+    assert response.status_code == 403
+    assert response.json() == "BECAUSE_I_SAID_SO"
+
+
+@create_rpc
+def unauthorized_rpc(request: HttpRequest) -> Union[HttpRequest, Literal[False]]:
+    return False
+
+
+@unauthorized_rpc
+def unauthorized(request: HttpRequest, form: None) -> bool:
+    return True
+
+
+urlpatterns.append(unauthorized)
+
+
+@pytest.mark.urls("tests.rpc")
+def test_unauthorized(client):
+    url = reverse("rpc_unauthorized")
+
+    response = client.post(url)
+    assert response.status_code == 401
+    assert response.json() == "UNAUTHORIZED"

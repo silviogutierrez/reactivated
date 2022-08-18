@@ -1,3 +1,4 @@
+import enum
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -28,6 +29,8 @@ THttpRequest = TypeVar("THttpRequest", bound=HttpRequest)
 
 TQuerySet = TypeVar("TQuerySet", bound=Union[Iterable[Any], None])
 
+TPermission = TypeVar("TPermission", bound=enum.Enum)
+
 TFirst = TypeVar("TFirst")
 
 TSecond = TypeVar("TSecond")
@@ -53,10 +56,22 @@ TForm = TypeVar(
 
 if TYPE_CHECKING:
     InputOutput = Tuple[Callable[[TForm], None], Callable[[TForm], TResponse]]
+    RPCRequest = Union[THttpRequest, TPermission, Literal[False]]
 else:
 
+    class RPCRequest:
+        def __class_getitem__(cls: Type["RPCRequest"], item: Any) -> Any:
+            class RPCRequestHolder:
+                permissions = item[1]
+
+            if "RPCPermission" in registry.type_registry:
+                assert False
+            else:
+                registry.type_registry["RPCPermission"] = item[1]
+            return RPCRequestHolder
+
     class InputOutput:
-        def __class_getitem__(cls: Type["Undefined"], item: Any) -> Any:
+        def __class_getitem__(cls: Type["InputOutput"], item: Any) -> Any:
             class InputOutputHolder:
                 content = item
 
@@ -80,7 +95,9 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
     def __init__(
         self,
         context_provider: Callable[[THttpRequest, TFirst, TSecond], TContext],
-        authentication: Callable[[HttpRequest], Union[THttpRequest, Literal[False]]],
+        authentication: Callable[
+            [HttpRequest], Union[THttpRequest, enum.Enum, Literal[False]]
+        ],
     ) -> None:
         self.context_provider = context_provider
         self.authentication = authentication
@@ -295,7 +312,9 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
 class RPC(Generic[THttpRequest]):
     def __init__(
         self,
-        authentication: Callable[[HttpRequest], Union[THttpRequest, Literal[False]]],
+        authentication: Callable[
+            [HttpRequest], Union[THttpRequest, enum.Enum, Literal[False]]
+        ],
     ) -> None:
         self.authentication = authentication
         self.url_path = "api/functional-rpc/"
@@ -318,8 +337,12 @@ class RPC(Generic[THttpRequest]):
         form_class = form_type or EmptyForm
 
         def wrapped_view(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
-            if self.authentication(request) is False:
-                return HttpResponse("401 Unauthorized", status=401)
+            authentication_check = self.authentication(request)
+
+            if authentication_check is False:
+                return JsonResponse("UNAUTHORIZED", status=401, safe=False)
+            elif isinstance(authentication_check, enum.Enum):
+                return JsonResponse(authentication_check.name, status=403, safe=False)
 
             if not is_empty_form:
                 form_type_hints = get_type_hints(form_class.__init__)
@@ -405,6 +428,8 @@ class RPC(Generic[THttpRequest]):
 
 
 def create_rpc(
-    authentication: Callable[[HttpRequest], Union[THttpRequest, Literal[False]]]
+    authentication: Callable[
+        [HttpRequest], Union[THttpRequest, enum.Enum, Literal[False]]
+    ]
 ) -> RPC[THttpRequest]:
     return RPC[THttpRequest](authentication)

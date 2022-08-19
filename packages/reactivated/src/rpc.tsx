@@ -41,12 +41,12 @@ export type RequesterResult =
     | {type: "unauthorized"}
     | {type: "exception"; exception: unknown};
 
-export type Requester = (url: string, payload: FormData) => Promise<RequesterResult>;
+export type Requester = (url: string, payload: FormData | null) => Promise<RequesterResult>;
 
 export const defaultRequester: Requester = async (url, payload) => {
     try {
         const response = await fetch(url, {
-            method: "POST",
+            method: payload == null ? "GET" : "POST",
             body: payload,
             headers: {
                 Accept: "application/json",
@@ -155,7 +155,7 @@ export async function rpcCall(
         urlWithPossibleInstance = urlWithPossibleInstance.concat(`${name}/`);
     }
 
-    const result = await requester(urlWithPossibleInstance, formData);
+    const result = await requester(urlWithPossibleInstance, input == null ? null : formData);
 
     const request: Request = {
         url: urlWithPossibleInstance,

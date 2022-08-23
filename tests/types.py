@@ -577,8 +577,12 @@ def test_context_processor_type():
             "serializer": "reactivated.serialization.context_processors.Request",
             "type": "object",
             "additionalProperties": False,
-            "properties": {"path": {"type": "string"}, "url": {"type": "string"}},
-            "required": ["path", "url"],
+            "properties": {
+                "path": {"type": "string"},
+                "url": {"type": "string"},
+                "csp_nonce": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+            },
+            "required": ["path", "url", "csp_nonce"],
         },
         "reactivated.serialization.context_processors.RequestProcessor": {
             "serializer": None,

@@ -30,12 +30,15 @@ export const renderPage = ({
     helmet: HelmetServerState;
     context: any;
     props: any;
-}) =>
-    `
+}) => {
+    const scriptNonce = context.request.csp_nonce
+        ? `nonce="${context.request.csp_nonce}"`
+        : "";
+    return `
 <!DOCTYPE html>
 <html ${helmet.htmlAttributes.toString()}>
     <head>
-        <script>
+        <script ${scriptNonce}>
             // These go first because scripts below need them.
             // WARNING: See the following for security issues around embedding JSON in HTML:
             // http://redux.js.org/recipes/ServerRendering.html#security-considerations
@@ -60,8 +63,8 @@ export const renderPage = ({
     <body ${helmet.bodyAttributes.toString()}>
         <div id="root">${html}</div>
     </body>
-</html>
-`;
+</html>`;
+};
 
 const PATHS = ["/", "/form/"];
 

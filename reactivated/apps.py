@@ -132,6 +132,7 @@ def get_values() -> Dict[str, Any]:
             serialized[key] = value
         else:
             generated_schema = create_schema(value, {})
+            generated_schema.definitions["is_static_context"] = True  # type: ignore[index]
             serialized[key] = serialize(value, generated_schema)
     return serialized
 

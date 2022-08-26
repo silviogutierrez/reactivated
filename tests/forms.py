@@ -78,3 +78,19 @@ def test_form_set_class_not_instance(snapshot):
     serialized = serialization.serialize(forms.OperaFormSet, generated_schema)
     assert generated_schema == snapshot
     assert serialized == snapshot
+
+
+class FormWithModel(django_forms.Form):
+    model_choice = django_forms.ModelChoiceField(queryset=models.Opera.objects.all())
+
+
+def test_model_choice_fields_without_db_access_failure(snapshot):
+    generated_schema = serialization.create_schema(FormWithModel, {})
+    with pytest.raises(BaseException, match="Database access not allowed"):
+        serialization.serialize(FormWithModel, generated_schema)
+
+
+def test_model_choice_fields_without_db_access_passing(snapshot):
+    generated_schema = serialization.create_schema(FormWithModel, {})
+    generated_schema.definitions["is_static_context"] = True
+    serialization.serialize(FormWithModel, generated_schema)

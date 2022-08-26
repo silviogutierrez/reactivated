@@ -125,7 +125,7 @@ export const getInitialFormSetState = <T extends FieldMap>(
 export const getInitialFormSetErrors = <T extends FieldMap>(
     forms: Array<FormLike<T>>,
 ) => {
-    return Object.fromEntries(forms.map((form) => [form.prefix, form.errors] as const));
+    return forms.map((form, index) => form.errors);
 };
 
 export const getFormHandler = <T extends FieldMap>({

@@ -344,6 +344,14 @@ class FormType(NamedTuple):
             if isinstance(class_or_instance, django_forms.BaseForm)
             else class_or_instance()
         )
+
+        for field in value:
+            if (
+                isinstance(field.field, django_forms.ModelChoiceField)
+                and schema.definitions.get("is_static_context") is True  # type: ignore[comparison-overlap]
+            ):
+                field.field.queryset = field.field.queryset.none()
+
         form = value
         context = form.get_context()  # type: ignore[attr-defined]
 

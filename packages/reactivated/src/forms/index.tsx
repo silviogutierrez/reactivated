@@ -686,7 +686,38 @@ export const useFormSet = <T extends FieldMap>(options: {
         options.onAddForm?.(extraForm);
     };
 
-    return {schema: formSet, values, forms, addForm};
+    const clear = () => {
+        setFormSet(
+            produce(formSet, (draftState) => {
+                formSetSetValues([]);
+                draftState.forms = [];
+                draftState.total_form_count = 0;
+            }),
+        );
+    };
+
+    const setFormsAndValues = (values: FormValues<T>[]) => {
+        formSetSetValues(values);
+
+        const updated = produce(formSet, (draftState) => {
+            draftState.total_form_count = values.length;
+            draftState.forms = values.map((_, index) => {
+                return castDraft(createForm(index));
+            });
+        });
+        setFormSet(updated);
+    };
+
+    return {
+        schema: formSet,
+        values,
+        forms,
+        addForm,
+        clear,
+        setFormsAndValues,
+        setErrors: formSetSetErrors,
+        setValues: formSetSetValues,
+    };
 };
 
 export const bindWidgetType = <W extends WidgetLike>() => {

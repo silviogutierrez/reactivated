@@ -184,11 +184,9 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         return_type = get_type_hints(view)["return"]
         return_schema = create_schema(return_type, registry.definitions_registry)
 
-        requires_context = (
-            issubclass(list(get_type_hints(view).values())[1], type(None)) is False
-        )
-
         form_type: Optional[Type[forms.BaseForm]] = get_type_hints(view).get("form")
+        context_type = list(get_type_hints(view).values())[1]
+
         is_empty_form = issubclass(form_type, type(None)) is True  # type: ignore[arg-type]
 
         if form_type is None:
@@ -196,6 +194,13 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
 
         create_schema(form_type, registry.definitions_registry)
         form_class = form_type or EmptyForm
+
+        requires_context = issubclass(context_type, type(None)) is False
+        requires_instance = (
+            requires_context
+            and issubclass(form_class, forms.ModelForm)
+            and issubclass(form_class.Meta.model, context_type)  # type: ignore[attr-defined]
+        )
 
         def wrapped_view(request: THttpRequest, *args: Any, **kwargs: Any) -> Any:
             authentication_check = self.authentication(request)
@@ -215,7 +220,9 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
                     if context_provider is not None
                     else self.context_provider(request, *args, **kwargs)  # type: ignore[call-arg]
                 )
-                extra_args["instance"] = context
+
+                if requires_instance:
+                    extra_args["instance"] = context
             else:
                 context = None  # type: ignore[assignment]
 
@@ -229,7 +236,19 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
 
             if request.method == "POST":
                 if form.is_valid():
-                    response = view(request, context, form) if form_type is not None else view(request, context)  # type: ignore[arg-type, call-arg]
+                    try:
+                        response = view(request, context, form) if form_type is not None else view(request, context)  # type: ignore[arg-type, call-arg]
+                    except forms.ValidationError as error:
+
+                        if hasattr(error, "error_dict"):
+                            return JsonResponse(
+                                error.message_dict, status=400, safe=False
+                            )
+                        else:
+                            return JsonResponse(
+                                {"__all__": [error.message]}, status=400, safe=False
+                            )
+
                     data = serialize(response, return_schema)
 
                     return JsonResponse(data, safe=False)

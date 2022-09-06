@@ -160,6 +160,34 @@ def test_context_model_form(client):
 
 
 @opera.process
+def validation_error(
+    request: HttpRequest, opera: models.Opera, form: OperaForm
+) -> None:
+    if form.cleaned_data["name"] == "trigger field error":
+        raise forms.ValidationError({"name": "field error"})
+
+    if form.cleaned_data["name"] == "trigger non field error":
+        raise forms.ValidationError("non field error")
+    # raise forms.ValidationError("Non field error")
+
+
+urlpatterns.append(validation_error)
+
+
+@pytest.mark.urls("tests.rpc")
+def test_rpc_validation_error(client):
+    url = reverse("rpc_validation_error", args=[923])
+
+    response = client.post(url, {"name": "trigger field error"})
+    assert response.status_code == 400
+    assert response.json()["name"] == ["field error"]
+
+    response = client.post(url, {"name": "trigger non field error"})
+    assert response.status_code == 400
+    assert response.json()["__all__"] == ["non field error"]
+
+
+@opera.process
 def update_opera_with_no_form(
     request: HttpRequest, opera: models.Opera, form: None
 ) -> bool:

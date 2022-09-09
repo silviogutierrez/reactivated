@@ -856,7 +856,7 @@ export type FormOrFormSetValues<T> = T extends {tag: "FormGroup"}
     : never;
 
 export type FormOrFormSetErrors<T> = T extends {tag: "FormGroup"}
-    ? Omit<{[K in keyof T]: FormOrFormSetErrors<T[K]>}, "tag">
+    ? Omit<{[K in keyof T]?: FormOrFormSetErrors<T[K]>}, "tag">
     : T extends FormLike<any>
     ? NonNullable<T["errors"]>
     : T extends FormSetLike<any>

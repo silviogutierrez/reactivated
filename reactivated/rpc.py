@@ -396,7 +396,17 @@ class RPC(Generic[THttpRequest]):
 
             if request.method == "POST":
                 if form.is_valid():
-                    response = view(request, **kwargs, form=form)  # type: ignore[call-arg]
+                    try:
+                        response = view(request, **kwargs, form=form)  # type: ignore[call-arg]
+                    except forms.ValidationError as error:
+                        if hasattr(error, "error_dict"):
+                            return JsonResponse(
+                                error.message_dict, status=400, safe=False
+                            )
+                        else:
+                            return JsonResponse(
+                                {"__all__": [error.message]}, status=400, safe=False
+                            )
                     data = serialize(response, return_schema)
 
                     return JsonResponse(data, safe=False)

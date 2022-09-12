@@ -227,9 +227,15 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
                 context = None  # type: ignore[assignment]
 
             if not is_empty_form:
+                form_type_hints = get_type_hints(form_class.__init__)
+                form_kwargs = extra_args | (
+                    {"request": request}
+                    if issubclass(form_type_hints.get("request", type), HttpRequest)
+                    else {}
+                )
                 form = form_class(
-                    request.POST if request.method == "POST" else None,
-                    **extra_args,
+                    data=request.POST if request.method == "POST" else None,
+                    **form_kwargs,
                 )
             else:
                 form = EmptyForm(data={})

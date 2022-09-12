@@ -294,7 +294,11 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             "input": input_name,
             "output": output_name,
             "params": self.url_args_as_params if requires_context else [],
-            "type": "form",
+            "type": "form_group"
+            if issubclass(form_class, FormGroup)
+            else "form"
+            if issubclass(form_class, forms.BaseForm)
+            else "form_set",
         }
         route = path(url_path, wrapped_view, name=url_name)
         return route

@@ -263,7 +263,7 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
                     # But types will then need to be updated.
                     errors = (
                         form.errors
-                        if isinstance(form, forms.BaseFormSet)
+                        if isinstance(form, (forms.BaseFormSet, FormGroup))
                         else {
                             field_name: [error["message"] for error in field_errors]
                             for field_name, field_errors in form.errors.get_json_data().items()

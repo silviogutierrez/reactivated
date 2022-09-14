@@ -45,6 +45,16 @@ esbuild
             // Redux persist needs this.
             global: "{}",
         },
+        loader: {
+            ".gif": "file",
+            ".jpeg": "file",
+            ".jpg": "file",
+            ".png": "file",
+            ".svg": "file",
+            ".ttf": "file",
+            ".woff": "file",
+            ".woff2": "file",
+        },
         plugins: [
             ImportGlobPlugin(),
             // We manually pass in identifiers because the client is not

@@ -2,7 +2,18 @@ from __future__ import annotations
 
 import datetime
 import enum
-from typing import Any, List, Literal, NamedTuple, Optional, Tuple, Type, get_type_hints
+from typing import (
+    Any,
+    List,
+    Literal,
+    NamedTuple,
+    Optional,
+    Tuple,
+    Type,
+    TypedDict,
+    Union,
+    get_type_hints,
+)
 
 import pytest
 import simplejson
@@ -1212,3 +1223,41 @@ def test_pick_name_and_deduplication(settings):
         get_type_hints(Holder)["unnamed_pick1"].get_auto_name()
         == get_type_hints(Holder)["unnamed_pick2"].get_auto_name()
     )
+
+
+def test_tagged_union():
+    class One(TypedDict):
+        tag: Literal["one"]
+        something: int
+
+    class Two(TypedDict):
+        tag: Literal["two"]
+        another: bool
+
+    TaggedUnion = Union[One, Two, None]
+    schema = create_schema(TaggedUnion, {})
+    assert serialize({"tag": "one", "something": 5}, schema) == {
+        "tag": "one",
+        "something": 5,
+    }
+
+    assert serialize({"tag": "two", "another": True}, schema) == {
+        "tag": "two",
+        "another": True,
+    }
+
+    assert serialize(None, schema) is None
+
+
+def test_simple_union():
+    schema = create_schema(Union[datetime.date, str, None], {})
+    assert schema.schema == {'anyOf': [{'type': 'string'}, {'type': 'string'}, {'type': 'null'}]}
+    assert serialize(None, schema) is None
+
+
+def test_invalid_union():
+    class Foo(NamedTuple):
+        pass
+
+    with pytest.raises(AssertionError, match="Invalid union"):
+        create_schema(Union[Foo, str, None], {})

@@ -563,6 +563,83 @@ def field_descriptor_schema(
     return create_schema(FieldSchemaWithPossibleNull, definitions)
 
 
+class UnionType(NamedTuple):
+    @classmethod
+    def get_json_schema(
+        Proxy: Type["UnionType"], Type: stubs._GenericAlias, definitions: Definitions
+    ) -> "Thing":
+        subschemas: Sequence[Schema] = ()
+        for subtype in Type.__args__:
+            subschema = create_schema(subtype, definitions=definitions)
+            subschemas = [*subschemas, subschema.schema]
+            definitions = {**definitions, **subschema.definitions}
+
+        if (
+            set([*Type.__args__]).issubset({datetime.date, int, bool, str, type(None)})
+            or len(Type.__args__) == 2
+            and issubclass(Type.__args__[1], type(None))
+        ):
+            return Thing(
+                schema={
+                    "anyOf": subschemas,
+                },
+                definitions=definitions,
+            )
+        try:
+            all_schemas = [
+                Thing(schema=any_of_schema, definitions=definitions)
+                for any_of_schema in subschemas
+                if any_of_schema.get("type") != "null"
+            ]
+            keys = set.intersection(
+                *[
+                    set(
+                        [
+                            key
+                            for key in schema.dereference()["properties"].keys()
+                            if "enum" in schema.dereference()["properties"][key]
+                        ]
+                    )
+                    for schema in all_schemas
+                ]
+            )
+            assert len(keys) == 1
+            discriminant = keys.pop()
+            mapping = {
+                schema.dereference()["properties"][discriminant]["enum"][
+                    0
+                ]: schema.schema
+                for schema in all_schemas
+            }
+
+            return Thing(
+                schema={
+                    "anyOf": subschemas,
+                    "serializer": "reactivated.serialization.UnionType",
+                    "_reactivated_tagged_union_discriminant": discriminant,
+                    "_reactivated_tagged_union_mapping": mapping,
+                },
+                definitions=definitions,
+            )
+        except KeyError:
+            assert (
+                False
+            ), f"Invalid union type {Type}. Only union of simple primitives or tagged TypedDict are support."
+
+    @classmethod
+    def get_serialized_value(
+        Type: Type["UnionType"], value: Any, schema: Thing
+    ) -> JSON:
+        discriminant = schema.schema["_reactivated_tagged_union_discriminant"]
+        mapping = schema.schema["_reactivated_tagged_union_mapping"]
+        discriminant_value = value.get(discriminant)
+
+        return serialize(
+            value,
+            Thing(schema=mapping[discriminant_value], definitions=schema.definitions),
+        )
+
+
 def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) -> Thing:
     subschemas: Sequence[Schema]
 
@@ -594,14 +671,7 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
             definitions=definitions,
         )
     elif Type.__origin__ == Union:
-        subschemas = ()
-
-        for subtype in Type.__args__:
-            subschema = create_schema(subtype, definitions=definitions)
-            subschemas = [*subschemas, subschema.schema]
-            definitions = {**definitions, **subschema.definitions}
-
-        return Thing(schema={"anyOf": subschemas}, definitions=definitions)
+        return UnionType.get_json_schema(Type, definitions)
     elif Type.__origin__ == list:
         subschema = create_schema(Type.__args__[0], definitions=definitions)
         return Thing(

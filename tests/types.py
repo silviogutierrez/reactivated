@@ -538,7 +538,7 @@ def sample_unannotated_context_processor():
     pass
 
 
-def test_context_processor_type():
+def test_context_processor_type(snapshot):
     with pytest.raises(AssertionError, match="No annotations found"):
         ContextProcessorType = create_context_processor_type(
             ["tests.types.sample_unannotated_context_processor"]
@@ -565,57 +565,4 @@ def test_context_processor_type():
             {"$ref": "#/definitions/tests.types.SampleContextTwo"},
         ]
     }
-    assert definitions == {
-        "reactivated.serialization.context_processors.BaseContext": {
-            "serializer": None,
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {"template_name": {"type": "string"}},
-            "required": ["template_name"],
-        },
-        "reactivated.serialization.context_processors.Request": {
-            "serializer": "reactivated.serialization.context_processors.Request",
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {"path": {"type": "string"}, "url": {"type": "string"}},
-            "required": ["path", "url"],
-        },
-        "reactivated.serialization.context_processors.RequestProcessor": {
-            "serializer": None,
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {
-                "request": {
-                    "$ref": "#/definitions/reactivated.serialization.context_processors.Request"
-                }
-            },
-            "required": ["request"],
-        },
-        "tests.types.ComplexType": {
-            "serializer": None,
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {
-                "required": {"type": "number"},
-                "optional": {"anyOf": [{"type": "boolean"}, {"type": "null"}]},
-            },
-            "required": ["required", "optional"],
-        },
-        "tests.types.SampleContextOne": {
-            "serializer": None,
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {
-                "complex": {"$ref": "#/definitions/tests.types.ComplexType"},
-                "boolean": {"type": "boolean"},
-            },
-            "required": ["complex", "boolean"],
-        },
-        "tests.types.SampleContextTwo": {
-            "serializer": None,
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {"number": {"type": "number"}},
-            "required": ["number"],
-        },
-    }
+    assert definitions == snapshot

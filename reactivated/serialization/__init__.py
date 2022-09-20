@@ -21,6 +21,7 @@ from django import forms as django_forms
 from django.conf import settings
 from django.db import models
 from django.db.models.fields.reverse_related import ForeignObjectRel
+from django.forms.models import ModelChoiceIteratorValue  # type: ignore
 from django.utils.module_loading import import_string
 
 from reactivated import fields, stubs
@@ -568,29 +569,57 @@ class UnionType(NamedTuple):
     def get_json_schema(
         Proxy: Type["UnionType"], Type: stubs._GenericAlias, definitions: Definitions
     ) -> "Thing":
-        subschemas: Sequence[Schema] = ()
+        from reactivated.pick import BasePickHolder
+
+        class_mapping = {}
+        subschemas: Sequence[Thing] = ()
+        typed_dicts = []
+        none_subschema = None
+
         for subtype in Type.__args__:
             subschema = create_schema(subtype, definitions=definitions)
-            subschemas = [*subschemas, subschema.schema]
             definitions = {**definitions, **subschema.definitions}
 
-        if (
-            set([*Type.__args__]).issubset({datetime.date, int, bool, str, type(None)})
-            or len(Type.__args__) == 2
-            and issubclass(Type.__args__[1], type(None))
-        ):
-            return Thing(
-                schema={
-                    "anyOf": subschemas,
-                },
-                definitions=definitions,
-            )
-        try:
-            all_schemas = [
-                Thing(schema=any_of_schema, definitions=definitions)
-                for any_of_schema in subschemas
-                if any_of_schema.get("type") != "null"
-            ]
+            if subtype is type(None):  # noqa: E721
+                none_subschema = subschema
+                continue
+
+            subschemas = [*subschemas, subschema]
+
+            subtype_class: Any
+
+            if isinstance(subtype, type) and issubclass(subtype, BasePickHolder):
+                subtype_class = subtype.model_class
+            elif isinstance(subtype, stubs._GenericAlias) and subtype.__origin__ in (
+                list,
+                tuple,
+            ):
+                subtype_class = subtype.__origin__
+            elif type(subtype) == stubs._TypedDictMeta:
+                subtype_class = dict
+                typed_dicts.append(subschema)
+            else:
+                subtype_class = subtype
+
+            class_mapping[
+                f"{subtype_class.__module__}.{subtype_class.__qualname__}"
+            ] = subschema.schema
+
+        all_subschemas = [subschema.schema for subschema in subschemas]
+
+        if none_subschema:
+            all_subschemas.append(none_subschema.schema)
+
+        schema = {
+            "anyOf": all_subschemas,
+            "serializer": "reactivated.serialization.UnionType",
+        }
+
+        if len(typed_dicts) > 1 and len(subschemas) != len(typed_dicts):
+            assert (
+                False
+            ), "Unions with TypedDict must have only TypedDict members and a discriminant"
+        elif len(typed_dicts) > 1:
             keys = set.intersection(
                 *[
                     set(
@@ -600,44 +629,64 @@ class UnionType(NamedTuple):
                             if "enum" in schema.dereference()["properties"][key]
                         ]
                     )
-                    for schema in all_schemas
+                    for schema in subschemas
                 ]
             )
-            assert len(keys) == 1
+
+            if len(keys) != 1:
+                assert False, "Tagged unions must have a single discriminant property"
+
             discriminant = keys.pop()
             mapping = {
                 schema.dereference()["properties"][discriminant]["enum"][
                     0
                 ]: schema.schema
-                for schema in all_schemas
+                for schema in subschemas
             }
+            schema["_reactivated_tagged_union_discriminant"] = discriminant
+            schema["_reactivated_tagged_union_mapping"] = mapping
+        else:
+            schema["_reactivated_union"] = class_mapping
 
-            return Thing(
-                schema={
-                    "anyOf": subschemas,
-                    "serializer": "reactivated.serialization.UnionType",
-                    "_reactivated_tagged_union_discriminant": discriminant,
-                    "_reactivated_tagged_union_mapping": mapping,
-                },
-                definitions=definitions,
-            )
-        except KeyError:
-            assert (
-                False
-            ), f"Invalid union type {Type}. Only union of simple primitives or tagged TypedDict are support."
+        return Thing(
+            schema=schema,
+            definitions=definitions,
+        )
 
     @classmethod
     def get_serialized_value(
         Type: Type["UnionType"], value: Any, schema: Thing
     ) -> JSON:
-        discriminant = schema.schema["_reactivated_tagged_union_discriminant"]
-        mapping = schema.schema["_reactivated_tagged_union_mapping"]
-        discriminant_value = value.get(discriminant)
+        if isinstance(value, fields.EnumChoice):
+            return str(value)
+        elif isinstance(value, ModelChoiceIteratorValue):
+            return str(value.value)
 
-        return serialize(
-            value,
-            Thing(schema=mapping[discriminant_value], definitions=schema.definitions),
-        )
+        if discriminant := schema.schema.get(
+            "_reactivated_tagged_union_discriminant", None
+        ):
+            mapping = schema.schema["_reactivated_tagged_union_mapping"]
+            discriminant_value = value.get(discriminant)
+
+            return serialize(
+                value,
+                Thing(
+                    schema=mapping[discriminant_value], definitions=schema.definitions
+                ),
+            )
+        else:
+            for subtype_path, subtype_schema in schema.schema[
+                "_reactivated_union"
+            ].items():
+                subtype_class = import_string(subtype_path)
+
+                if type(value) == subtype_class:
+                    return serialize(
+                        value,
+                        Thing(schema=subtype_schema, definitions=schema.definitions),
+                    )
+
+            assert False, "Invariant in union serialization"
 
 
 def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) -> Thing:
@@ -911,10 +960,13 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     assert False, f"Unsupported type {Type}"
 
 
-def object_serializer(value: object, schema: Thing) -> JSON:
+def object_serializer(value: object, schema: Thing, exclude: List[str] = []) -> JSON:
     representation = {}
 
     for field_name, field_schema in schema.schema["properties"].items():
+        if field_name in exclude:
+            continue
+
         if (
             isinstance(value, Mapping)
             and field_name not in value

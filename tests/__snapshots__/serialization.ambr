@@ -1,0 +1,710 @@
+# name: test_form_and_fields
+  dict({
+    'help_text': None,
+    'label': 'Date field',
+    'name': 'date_field',
+    'widget': dict({
+      'attrs': dict({
+        'id': 'id_date_field',
+        'required': True,
+      }),
+      'is_hidden': False,
+      'name': 'date_field',
+      'required': True,
+      'subwidgets': list([
+        dict({
+          'attrs': dict({
+            'id': 'id_date_field_month',
+            'required': True,
+          }),
+          'is_hidden': False,
+          'name': 'date_field_month',
+          'optgroups': list([
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'January',
+                  'name': 'date_field_month',
+                  'selected': True,
+                  'value': 1.0,
+                }),
+              ]),
+              0.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'February',
+                  'name': 'date_field_month',
+                  'selected': False,
+                  'value': 2.0,
+                }),
+              ]),
+              1.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'March',
+                  'name': 'date_field_month',
+                  'selected': False,
+                  'value': 3.0,
+                }),
+              ]),
+              2.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'April',
+                  'name': 'date_field_month',
+                  'selected': False,
+                  'value': 4.0,
+                }),
+              ]),
+              3.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'May',
+                  'name': 'date_field_month',
+                  'selected': False,
+                  'value': 5.0,
+                }),
+              ]),
+              4.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'June',
+                  'name': 'date_field_month',
+                  'selected': False,
+                  'value': 6.0,
+                }),
+              ]),
+              5.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'July',
+                  'name': 'date_field_month',
+                  'selected': False,
+                  'value': 7.0,
+                }),
+              ]),
+              6.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'August',
+                  'name': 'date_field_month',
+                  'selected': False,
+                  'value': 8.0,
+                }),
+              ]),
+              7.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'September',
+                  'name': 'date_field_month',
+                  'selected': False,
+                  'value': 9.0,
+                }),
+              ]),
+              8.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'October',
+                  'name': 'date_field_month',
+                  'selected': False,
+                  'value': 10.0,
+                }),
+              ]),
+              9.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'November',
+                  'name': 'date_field_month',
+                  'selected': False,
+                  'value': 11.0,
+                }),
+              ]),
+              10.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'December',
+                  'name': 'date_field_month',
+                  'selected': False,
+                  'value': 12.0,
+                }),
+              ]),
+              11.0,
+            ]),
+          ]),
+          'required': False,
+          'tag': 'django.forms.widgets.Select',
+          'template_name': 'django/forms/widgets/select.html',
+          'value': '1',
+        }),
+        dict({
+          'attrs': dict({
+            'id': 'id_date_field_day',
+            'required': True,
+          }),
+          'is_hidden': False,
+          'name': 'date_field_day',
+          'optgroups': list([
+            list([
+              None,
+              list([
+                dict({
+                  'label': '1',
+                  'name': 'date_field_day',
+                  'selected': True,
+                  'value': 1.0,
+                }),
+              ]),
+              0.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '2',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 2.0,
+                }),
+              ]),
+              1.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '3',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 3.0,
+                }),
+              ]),
+              2.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '4',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 4.0,
+                }),
+              ]),
+              3.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '5',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 5.0,
+                }),
+              ]),
+              4.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '6',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 6.0,
+                }),
+              ]),
+              5.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '7',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 7.0,
+                }),
+              ]),
+              6.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '8',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 8.0,
+                }),
+              ]),
+              7.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '9',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 9.0,
+                }),
+              ]),
+              8.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '10',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 10.0,
+                }),
+              ]),
+              9.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '11',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 11.0,
+                }),
+              ]),
+              10.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '12',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 12.0,
+                }),
+              ]),
+              11.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '13',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 13.0,
+                }),
+              ]),
+              12.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '14',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 14.0,
+                }),
+              ]),
+              13.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '15',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 15.0,
+                }),
+              ]),
+              14.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '16',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 16.0,
+                }),
+              ]),
+              15.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '17',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 17.0,
+                }),
+              ]),
+              16.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '18',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 18.0,
+                }),
+              ]),
+              17.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '19',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 19.0,
+                }),
+              ]),
+              18.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '20',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 20.0,
+                }),
+              ]),
+              19.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '21',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 21.0,
+                }),
+              ]),
+              20.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '22',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 22.0,
+                }),
+              ]),
+              21.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '23',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 23.0,
+                }),
+              ]),
+              22.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '24',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 24.0,
+                }),
+              ]),
+              23.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '25',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 25.0,
+                }),
+              ]),
+              24.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '26',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 26.0,
+                }),
+              ]),
+              25.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '27',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 27.0,
+                }),
+              ]),
+              26.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '28',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 28.0,
+                }),
+              ]),
+              27.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '29',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 29.0,
+                }),
+              ]),
+              28.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '30',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 30.0,
+                }),
+              ]),
+              29.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '31',
+                  'name': 'date_field_day',
+                  'selected': False,
+                  'value': 31.0,
+                }),
+              ]),
+              30.0,
+            ]),
+          ]),
+          'required': False,
+          'tag': 'django.forms.widgets.Select',
+          'template_name': 'django/forms/widgets/select.html',
+          'value': '1',
+        }),
+        dict({
+          'attrs': dict({
+            'id': 'id_date_field_year',
+            'required': True,
+          }),
+          'is_hidden': False,
+          'name': 'date_field_year',
+          'optgroups': list([
+            list([
+              None,
+              list([
+                dict({
+                  'label': '2000',
+                  'name': 'date_field_year',
+                  'selected': False,
+                  'value': 2000.0,
+                }),
+              ]),
+              0.0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': '2001',
+                  'name': 'date_field_year',
+                  'selected': False,
+                  'value': 2001.0,
+                }),
+              ]),
+              1.0,
+            ]),
+          ]),
+          'required': False,
+          'tag': 'django.forms.widgets.Select',
+          'template_name': 'django/forms/widgets/select.html',
+          'value': '2015',
+        }),
+      ]),
+      'tag': 'django.forms.widgets.SelectDateWidget',
+      'template_name': 'django/forms/widgets/select_date.html',
+      'value': dict({
+        'day': 1,
+        'month': 1,
+        'year': 2015,
+      }),
+    }),
+  })
+# ---
+# name: test_form_and_fields.1
+  dict({
+    'help_text': None,
+    'label': 'Date time field',
+    'name': 'date_time_field',
+    'widget': dict({
+      'attrs': dict({
+        'id': 'id_date_time_field',
+        'required': True,
+      }),
+      'is_hidden': False,
+      'name': 'date_time_field',
+      'required': True,
+      'subwidgets': list([
+        dict({
+          'attrs': dict({
+            'id': 'id_date_time_field_0',
+            'required': True,
+          }),
+          'is_hidden': False,
+          'name': 'date_time_field_0',
+          'required': False,
+          'tag': 'django.forms.widgets.DateInput',
+          'template_name': 'django/forms/widgets/date.html',
+          'type': 'text',
+          'value': None,
+        }),
+        dict({
+          'attrs': dict({
+            'id': 'id_date_time_field_1',
+            'required': True,
+          }),
+          'is_hidden': False,
+          'name': 'date_time_field_1',
+          'required': False,
+          'tag': 'django.forms.widgets.TimeInput',
+          'template_name': 'django/forms/widgets/time.html',
+          'type': 'text',
+          'value': None,
+        }),
+      ]),
+      'tag': 'django.forms.widgets.SplitDateTimeWidget',
+      'template_name': 'django/forms/widgets/splitdatetime.html',
+      'value': None,
+    }),
+  })
+# ---
+# name: test_form_and_fields.2
+  dict({
+    'help_text': 'Not blank',
+    'label': 'Boolean field',
+    'name': 'boolean_field',
+    'widget': dict({
+      'attrs': dict({
+        'checked': True,
+        'id': 'id_boolean_field',
+        'required': True,
+      }),
+      'is_hidden': False,
+      'name': 'boolean_field',
+      'required': True,
+      'tag': 'django.forms.widgets.CheckboxInput',
+      'template_name': 'django/forms/widgets/checkbox.html',
+      'type': 'checkbox',
+      'value': True,
+    }),
+  })
+# ---
+# name: test_override_pick_types
+  dict({
+    'additionalProperties': False,
+    'properties': dict({
+      'forced_non_nullable': dict({
+        'type': 'number',
+      }),
+      'forced_none': dict({
+        'type': 'null',
+      }),
+      'forced_nullable': dict({
+        '_reactivated_union': dict({
+          'builtins.int': dict({
+            'type': 'number',
+          }),
+        }),
+        'anyOf': list([
+          dict({
+            'type': 'number',
+          }),
+          dict({
+            'type': 'null',
+          }),
+        ]),
+        'serializer': 'reactivated.serialization.UnionType',
+      }),
+    }),
+    'required': list([
+      'forced_nullable',
+      'forced_non_nullable',
+      'forced_none',
+    ]),
+    'type': 'object',
+  })
+# ---

@@ -16,6 +16,22 @@
     'reactivated.serialization.context_processors.Request': dict({
       'additionalProperties': False,
       'properties': dict({
+        'csp_nonce': dict({
+          '_reactivated_union': dict({
+            'builtins.str': dict({
+              'type': 'string',
+            }),
+          }),
+          'anyOf': list([
+            dict({
+              'type': 'string',
+            }),
+            dict({
+              'type': 'null',
+            }),
+          ]),
+          'serializer': 'reactivated.serialization.UnionType',
+        }),
         'path': dict({
           'type': 'string',
         }),
@@ -26,6 +42,7 @@
       'required': list([
         'path',
         'url',
+        'csp_nonce',
       ]),
       'serializer': 'reactivated.serialization.context_processors.Request',
       'type': 'object',

@@ -1,9 +1,9 @@
-from typing import Any, List, Literal, NamedTuple, Type, get_type_hints
+from typing import Any, List, Literal, NamedTuple, Optional, Type, get_type_hints
 
 from django.http import HttpRequest
 from django.utils.module_loading import import_string
 
-from . import Intersection
+from . import Intersection, serialize
 from .registry import JSON, Thing
 
 
@@ -11,11 +11,20 @@ class Request(NamedTuple):
     path: str
     url: str
 
+    # If django-csp is in use, include the CSP nonce for the request
+    # See https://django-csp.readthedocs.io/en/latest/nonce.html#using-the-generated-csp-nonce
+    csp_nonce: Optional[str]
+
     @classmethod
     def get_serialized_value(
         Type: Type["Request"], value: HttpRequest, schema: Thing
     ) -> JSON:
-        return {"path": value.path, "url": value.build_absolute_uri()}
+        serialized = serialize(value, schema, suppress_custom_serializer=True)
+
+        return {
+            **serialized,
+            "url": value.build_absolute_uri(),
+        }
 
 
 class RequestProcessor(NamedTuple):

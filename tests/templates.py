@@ -85,8 +85,21 @@ def test_render_template_with_no_renderer(rf, settings):
         "context": {
             "template_name": "MyTemplate",
             "messages": [],
-            "request": {"path": "/", "url": "http://testserver/"},
+            "request": {"path": "/", "url": "http://testserver/", "csp_nonce": None},
             "csrf_token": "CLOBBERED",
         },
         "props": {"foo": 1.0},
     }
+
+
+def test_csp_nonce(rf, settings):
+    settings.REACTIVATED_SERVER = None
+    request = rf.get("/")
+    request.csp_nonce = 567  # To ensure casting is working
+
+    @template
+    class MyTemplate(NamedTuple):
+        foo: int
+
+    rendered = simplejson.loads(MyTemplate(foo=1).render(request).rendered_content)
+    assert rendered["context"]["request"]["csp_nonce"] == "567"

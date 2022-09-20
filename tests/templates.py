@@ -95,7 +95,7 @@ def test_render_template_with_no_renderer(rf, settings):
 def test_csp_nonce(rf, settings):
     settings.REACTIVATED_SERVER = None
     request = rf.get("/")
-    request.csp_nonce = 567  # To ensure casting is working
+    request.csp_nonce = "567"
 
     @template
     class MyTemplate(NamedTuple):

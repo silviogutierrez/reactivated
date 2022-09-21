@@ -363,18 +363,16 @@ def test_custom_schema(settings):
     create_schema(CustomField, {}) == ({"type": "string"}, {})
 
 
-def test_enum_field_descriptor():
+def test_enum_field_descriptor(snapshot):
+    descriptor = EnumField(enum=EnumType, null=True)
+    schema, definitions = create_schema(descriptor, {})
+    assert schema == snapshot
+    assert definitions == snapshot
+
     descriptor = EnumField(enum=EnumType)
-    assert create_schema(descriptor, {}) == (
-        {"$ref": "#/definitions/tests.types.EnumType"},
-        {
-            "tests.types.EnumType": {
-                "type": "string",
-                "enum": ["ONE", "TWO", "CHUNK"],
-                "serializer": "reactivated.serialization.EnumMemberType",
-            }
-        },
-    )
+    schema, definitions = create_schema(descriptor, {})
+    assert schema == snapshot
+    assert definitions == snapshot
 
 
 def test_get_field_descriptor():

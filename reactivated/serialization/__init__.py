@@ -38,14 +38,6 @@ FormError = List[str]
 FormErrors = Dict[str, FormError]
 
 
-# TODO: can we handle other field types somewhat like this and widgets?
-@register(models.BigAutoField)
-class BigAutoField:
-    @classmethod
-    def get_json_schema(Type, instance, definitions):  # type: ignore[no-untyped-def]
-        return field_descriptor_schema(models.IntegerField(), definitions)
-
-
 class ComputedField(NamedTuple):
     name: str
     annotation: Any
@@ -90,7 +82,9 @@ class ForeignKeyType:
 
     @classmethod
     def get_json_schema(
-        Type: Type["ForeignKeyType"], definitions: Definitions
+        Proxy: Type["ForeignKeyType"],
+        Type: "models.ForeignKey[Any, Any]",
+        definitions: Definitions,
     ) -> "Thing":
         return Thing(
             schema={
@@ -521,47 +515,58 @@ class Serializer(Protocol):
         ...
 
 
-def field_descriptor_schema(
-    Type: "models.Field[Any, Any]", definitions: Definitions
-) -> Thing:
-    mapping = {
-        models.CharField: lambda field: str,
-        models.BooleanField: lambda field: bool,
-        models.TextField: lambda field: str,
-        models.ForeignKey: lambda field: ForeignKeyType,
-        models.AutoField: lambda field: int,
-        models.DateField: lambda field: datetime.date,
-        models.DateTimeField: lambda field: datetime.datetime,
-        models.EmailField: lambda field: str,
-        models.UUIDField: lambda field: str,
-        models.IntegerField: lambda field: int,
-        models.PositiveIntegerField: lambda field: int,
-        models.DecimalField: lambda field: str,
-        fields.EnumField: lambda field: field.enum,
-    }
+register(models.BigAutoField)(int)
 
-    try:
-        import django_extensions.db.fields  # type: ignore[import]
+register(models.AutoField)(int)
 
-        mapping = {
-            **mapping,
-            django_extensions.db.fields.ShortUUIDField: lambda field: str,
-        }
-    except ImportError:
-        pass
+register(models.CharField)(str)
 
-    mapped_type_callable = mapping.get(Type.__class__)
-    assert (
-        mapped_type_callable is not None
-    ), f"Unsupported model field type {Type.__class__}. This should probably silently return None and allow a custom handler to support the field."
+register(models.TextField)(str)
 
-    mapped_type = mapped_type_callable(Type)  # type: ignore[no-untyped-call]
+register(models.BooleanField)(bool)
 
-    FieldSchemaWithPossibleNull = (
-        Union[mapped_type, None] if Type.null is True else mapped_type
-    )
+register(models.ForeignKey)(ForeignKeyType)
 
-    return create_schema(FieldSchemaWithPossibleNull, definitions)
+register(models.DateField)(datetime.date)
+
+register(models.DateTimeField)(datetime.datetime)
+
+register(models.EmailField)(str)
+
+register(models.UUIDField)(str)
+
+register(models.IntegerField)(int)
+
+register(models.PositiveIntegerField)(int)
+
+register(models.DecimalField)(str)
+
+
+@register(fields._EnumField)
+class EnumFieldType:
+    @classmethod
+    def get_json_schema(
+        Proxy: Type["EnumFieldType"],
+        Type: fields._EnumField[Any, Any],
+        definitions: Definitions,
+    ) -> "Thing":
+        return create_schema(Type.enum, definitions)
+
+
+# if TYPE_CHECKING is False:
+#     try:
+#         import django_extensions.db.fields  # type: ignore[import]
+#         register(django_extensions.db.fields.ShortUUIDField)(str)
+#     except ImportError:
+#         pass
+#
+
+# def field_descriptor_schema(
+#     Type: "models.Field[Any, Any]", definitions: Definitions
+# ) -> Thing:
+#     FieldSchemaWithPossibleNull = stubs._GenericAlias(origin=Union, params=(Type, None) if Type.null is True else (Type,))
+#
+#     return create_schema(FieldSchemaWithPossibleNull, definitions)
 
 
 class UnionType(NamedTuple):
@@ -915,14 +920,29 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     type_class = Type if isinstance(Type, type) else Type.__class__
 
     try:
-        return PROXIES[type_class].get_json_schema(Type, definitions)  # type: ignore
+        proxy = PROXIES[type_class]
+
+        if callable(getattr(proxy, "get_json_schema", None)):
+            proxy_schema = proxy.get_json_schema(Type, definitions)
+        else:
+            proxy_schema = create_schema(proxy, definitions)
+
+        if isinstance(Type, models.Field) and Type.null is True:
+            return Thing(
+                schema={"anyOf": [proxy_schema.schema, {"type": "null"}]},
+                definitions=proxy_schema.definitions,
+            )
+        else:
+            return proxy_schema  # type: ignore[no-any-return]
     except KeyError:
         pass
 
     if isinstance(Type, stubs._GenericAlias):
         return generic_alias_schema(Type, definitions)
     elif isinstance(Type, models.Field):
-        return field_descriptor_schema(Type, definitions)
+        pass
+        # assert False, f"Unsupported type {Type.__class__}"
+    # return field_descriptor_schema(Type, definitions)
     elif Type == Any:
         return Thing(schema={}, definitions=definitions)
     elif callable(getattr(Type, "get_json_schema", None)):

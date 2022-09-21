@@ -122,3 +122,46 @@
     }),
   })
 # ---
+# name: test_enum_field_descriptor
+  dict({
+    'anyOf': list([
+      dict({
+        '$ref': '#/definitions/tests.types.EnumType',
+      }),
+      dict({
+        'type': 'null',
+      }),
+    ]),
+  })
+# ---
+# name: test_enum_field_descriptor.1
+  dict({
+    'tests.types.EnumType': dict({
+      'enum': list([
+        'ONE',
+        'TWO',
+        'CHUNK',
+      ]),
+      'serializer': 'reactivated.serialization.EnumMemberType',
+      'type': 'string',
+    }),
+  })
+# ---
+# name: test_enum_field_descriptor.2
+  dict({
+    '$ref': '#/definitions/tests.types.EnumType',
+  })
+# ---
+# name: test_enum_field_descriptor.3
+  dict({
+    'tests.types.EnumType': dict({
+      'enum': list([
+        'ONE',
+        'TWO',
+        'CHUNK',
+      ]),
+      'serializer': 'reactivated.serialization.EnumMemberType',
+      'type': 'string',
+    }),
+  })
+# ---

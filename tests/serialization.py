@@ -121,6 +121,15 @@ def convert_to_json_and_validate(instance, schema):
 
 
 @pytest.mark.django_db
+def test_foreign_key_id():
+    composer = models.Composer.objects.create(name="Wagner")
+    opera = models.Opera.objects.create(name="Götterdämmerung", composer=composer)
+    schema = create_schema(Pick[models.Opera, "composer"], {})
+
+    assert serialize(opera, schema) == {"composer": composer.id}
+
+
+@pytest.mark.django_db
 def test_serialization():
     continent = models.Continent.objects.create(name="Europe")
     birth_country = models.Country.objects.create(name="Germany", continent=continent)
@@ -579,7 +588,8 @@ def test_simple_union():
 
 
 def test_pick_union():
-    schema = create_schema(Union[NamedPick, int, None], {})
+    schema = create_schema(Union[List[int], NamedPick, int, None], {})
     assert serialize(models.Opera(name="My Opera"), schema) == {"name": "My Opera"}
     assert serialize(10, schema) == 10.0
     assert serialize(None, schema) is None
+    assert serialize([1, 2, 3], schema) == [1, 2, 3]

@@ -61,9 +61,49 @@ def export(var: Any) -> None:
     """See: https://stackoverflow.com/a/18425523"""
     callers_local_vars = inspect.currentframe().f_back.f_locals.items()  # type: ignore[union-attr]
     name = [var_name for var_name, var_val in callers_local_vars if var_val is var][0]
-    # var.__reactivated_serialize_as_is = True
 
     registry.value_registry.update({name: (var, True)})
+
+
+# def export_type(var: Any) -> None:
+#     from django.apps import apps
+#     callers_local_vars = inspect.currentframe().f_back.f_locals.items()  # type: ignore[union-attr]
+#     name = [var_name for var_name, var_val in callers_local_vars if var_val is var][0]
+#
+#     frm = inspect.stack()[1]
+#     mod = inspect.getmodule(frm[0])
+#     pick_name = name
+#
+#     definition_name = None
+#
+#     for app_config in apps.get_app_configs():
+#         if app_config.name in mod.__name__:
+#             relative_module = mod.__name__.replace(f"{app_config.name}.", "")
+#             definition_name = f"{app_config.label}.{relative_module}.{pick_name}"
+#             break
+#     else:
+#         assert False, "Could not determine name for export"
+#
+#     from .serialization import create_schema
+#
+#     schema  = create_schema(var, {})
+#
+#     if registry.global_types["models"] is registry.DefaultModelsType:
+#         registry.global_types["models"] = {
+#             "type": "object",
+#             "additionalProperties": False,
+#             "required": [],
+#             "properties": {},
+#         }
+#
+#     registry.global_types["models"] = {
+#         **registry.global_types["models"],
+#         "required": [*registry.global_types["models"]["required"], definition_name],
+#         "properties": {
+#             **registry.global_types["models"]["properties"],
+#             definition_name: schema.schema,
+#         },
+#     }
 
 
 _SingleSerializable = Union[

@@ -574,6 +574,21 @@ def test_tagged_union():
     assert serialize(None, schema) is None
 
 
+class Parent(NamedTuple):
+    foo: str
+
+
+class Child(Parent):
+    pass
+
+
+def test_union_with_inheritance():
+    schema = create_schema(Union[Parent, bool, int], {})
+    assert serialize(5, schema) == 5
+    assert serialize(True, schema) is True
+    assert serialize(Parent(foo="one"), schema)
+
+
 def test_simple_union():
     schema = create_schema(
         Union[datetime.date, List[str], Tuple[int, str], int, str, bool, None], {}

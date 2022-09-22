@@ -24,7 +24,7 @@ from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.forms.models import ModelChoiceIteratorValue  # type: ignore
 from django.utils.module_loading import import_string
 
-from reactivated import fields, stubs
+from reactivated import fields, stubs, utils
 from reactivated.models import ComputedRelation
 from reactivated.types import Optgroup
 
@@ -680,18 +680,23 @@ class UnionType(NamedTuple):
                 ),
             )
         else:
+            lookup = utils.ClassLookupDict({})
+
             for subtype_path, subtype_schema in schema.schema[
                 "_reactivated_union"
             ].items():
                 subtype_class = import_string(subtype_path)
+                lookup[subtype_class] = Thing(
+                    schema=subtype_schema, definitions=schema.definitions
+                )
 
-                if type(value) == subtype_class:
-                    return serialize(
-                        value,
-                        Thing(schema=subtype_schema, definitions=schema.definitions),
-                    )
-
-            assert False, "Invariant in union serialization"
+            try:
+                return serialize(
+                    value,
+                    lookup[type(value)],
+                )
+            except KeyError:
+                assert False, "Invariant in union serialization"
 
 
 def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) -> Thing:

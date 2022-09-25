@@ -3,11 +3,11 @@ from typing import Dict, Literal, Union, cast
 
 import pytest
 from django import forms
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponseRedirect
 from django.urls import reverse
 
 from reactivated import Pick
-from reactivated.rpc import FormGroup, RPCRequest, create_rpc
+from reactivated.rpc import EmptyForm, FormGroup, RPCRequest, RPCResponse, create_rpc
 from sample.server.apps.samples import models
 
 urlpatterns = []
@@ -52,6 +52,24 @@ def test_simple_form(client):
     response = client.post(url, {"char_field": "content"})
     assert response.status_code == 200
     assert response.json() is True
+
+
+@anonymous_rpc
+def non_ajax_redirect(request: HttpRequest, form: EmptyForm) -> RPCResponse[bool]:
+    if True:
+        return HttpResponseRedirect("/")
+    return False
+
+
+urlpatterns.append(non_ajax_redirect)
+
+
+@pytest.mark.urls("tests.rpc")
+def test_non_ajax_redirect(client):
+    url = reverse("rpc_non_ajax_redirect")
+
+    response = client.post(url)
+    assert isinstance(response, HttpResponseRedirect)
 
 
 @anonymous_rpc

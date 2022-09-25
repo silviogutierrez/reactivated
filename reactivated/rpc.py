@@ -57,7 +57,15 @@ TForm = TypeVar(
 if TYPE_CHECKING:
     InputOutput = Tuple[Callable[[TForm], None], Callable[[TForm], TResponse]]
     RPCRequest = Union[THttpRequest, TPermission, Literal[False]]
+    RPCResponse = Union[TResponse, HttpResponse]
 else:
+
+    class RPCResponse:
+        def __class_getitem__(cls: Type["RPCResponse"], item: Any) -> Any:
+            if item is None:
+                return type(None)
+
+            return item
 
     class RPCRequest:
         def __class_getitem__(cls: Type["RPCRequest"], item: Any) -> Any:
@@ -408,6 +416,10 @@ class RPC(Generic[THttpRequest]):
                 if form.is_valid():
                     try:
                         response = view(request, **kwargs, form=form)  # type: ignore[call-arg]
+
+                        if isinstance(response, HttpResponse):
+                            return response
+
                     except forms.ValidationError as error:
                         if hasattr(error, "error_dict"):
                             return JsonResponse(

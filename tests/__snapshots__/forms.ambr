@@ -20,19 +20,16 @@
             'enum': list([
               'django.forms.widgets.CheckboxInput',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/checkbox.html',
             ]),
-            'type': 'string',
           }),
           'type': dict({
             'enum': list([
               'checkbox',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             'type': 'boolean',
@@ -96,13 +93,11 @@
             'enum': list([
               'django.forms.widgets.Select',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/select.html',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             '_reactivated_union': dict({
@@ -153,19 +148,16 @@
             'enum': list([
               'django.forms.widgets.TextInput',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/text.html',
             ]),
-            'type': 'string',
           }),
           'type': dict({
             'enum': list([
               'text',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             '_reactivated_union': dict({
@@ -388,13 +380,11 @@
             'enum': list([
               'reactivated.widgets.Autocomplete',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'reactivated/autocomplete',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             'items': dict({
@@ -1110,19 +1100,16 @@
             'enum': list([
               'django.forms.widgets.CheckboxInput',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/checkbox.html',
             ]),
-            'type': 'string',
           }),
           'type': dict({
             'enum': list([
               'checkbox',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             'type': 'boolean',
@@ -1160,19 +1147,16 @@
             'enum': list([
               'django.forms.widgets.HiddenInput',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/hidden.html',
             ]),
-            'type': 'string',
           }),
           'type': dict({
             'enum': list([
               'hidden',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             '_reactivated_union': dict({
@@ -1249,13 +1233,11 @@
             'enum': list([
               'django.forms.widgets.Select',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/select.html',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             '_reactivated_union': dict({
@@ -1306,19 +1288,16 @@
             'enum': list([
               'django.forms.widgets.TextInput',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/text.html',
             ]),
-            'type': 'string',
           }),
           'type': dict({
             'enum': list([
               'text',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             '_reactivated_union': dict({
@@ -1585,13 +1564,11 @@
             'enum': list([
               'reactivated.widgets.Autocomplete',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'reactivated/autocomplete',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             'items': dict({
@@ -1997,7 +1974,6 @@
             'enum': list([
               'FormGroup',
             ]),
-            'type': 'string',
           }),
         }),
         'required': list([
@@ -2628,19 +2604,16 @@
             'enum': list([
               'django.forms.widgets.CheckboxInput',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/checkbox.html',
             ]),
-            'type': 'string',
           }),
           'type': dict({
             'enum': list([
               'checkbox',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             'type': 'boolean',
@@ -2678,19 +2651,16 @@
             'enum': list([
               'django.forms.widgets.HiddenInput',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/hidden.html',
             ]),
-            'type': 'string',
           }),
           'type': dict({
             'enum': list([
               'hidden',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             '_reactivated_union': dict({
@@ -2767,13 +2737,11 @@
             'enum': list([
               'django.forms.widgets.Select',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/select.html',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             '_reactivated_union': dict({
@@ -2824,19 +2792,16 @@
             'enum': list([
               'django.forms.widgets.TextInput',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/text.html',
             ]),
-            'type': 'string',
           }),
           'type': dict({
             'enum': list([
               'text',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             '_reactivated_union': dict({
@@ -3103,13 +3068,11 @@
             'enum': list([
               'reactivated.widgets.Autocomplete',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'reactivated/autocomplete',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             'items': dict({
@@ -3515,7 +3478,6 @@
             'enum': list([
               'FormGroup',
             ]),
-            'type': 'string',
           }),
         }),
         'required': list([
@@ -4146,19 +4108,16 @@
             'enum': list([
               'django.forms.widgets.CheckboxInput',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/checkbox.html',
             ]),
-            'type': 'string',
           }),
           'type': dict({
             'enum': list([
               'checkbox',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             'type': 'boolean',
@@ -4196,19 +4155,16 @@
             'enum': list([
               'django.forms.widgets.HiddenInput',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/hidden.html',
             ]),
-            'type': 'string',
           }),
           'type': dict({
             'enum': list([
               'hidden',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             '_reactivated_union': dict({
@@ -4549,13 +4505,11 @@
             'enum': list([
               'django.forms.widgets.Select',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/select.html',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             '_reactivated_union': dict({
@@ -4606,19 +4560,16 @@
             'enum': list([
               'django.forms.widgets.TextInput',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'django/forms/widgets/text.html',
             ]),
-            'type': 'string',
           }),
           'type': dict({
             'enum': list([
               'text',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             '_reactivated_union': dict({
@@ -4885,13 +4836,11 @@
             'enum': list([
               'reactivated.widgets.Autocomplete',
             ]),
-            'type': 'string',
           }),
           'template_name': dict({
             'enum': list([
               'reactivated/autocomplete',
             ]),
-            'type': 'string',
           }),
           'value': dict({
             'items': dict({

@@ -752,8 +752,14 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
         # TODO: is a multi-Literal really this simple? Only if it's the same type.
         # Mixed types would have to be a Union of enums.
 
+        for arg in Type.__args__:
+            if not isinstance(arg, (type(None), int, str, float, bool)):
+                assert (
+                    False
+                ), f"Unsupported Literal {Type}. Only simple members are supported."
+
         return Thing(
-            schema={"type": "string", "enum": list(Type.__args__)},
+            schema={"enum": list(Type.__args__)},
             definitions=definitions,
         )
     elif Type.__origin__ == type and issubclass(

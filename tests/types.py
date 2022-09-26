@@ -132,17 +132,25 @@ def test_enum_does_not_clobber_enum_type():
 
 
 def test_literal():
-    schema = create_schema(Literal["hello"], {})
+    schema = create_schema(Literal[Literal["nested"], "hello", True, None], {})
     assert schema == (
         {
-            "type": "string",
             "enum": [
+                "nested",
                 "hello",
+                True,
+                None,
             ],
         },
         {},
     )
     convert_to_json_and_validate("hello", schema)
+
+    class Illegal:
+        pass
+
+    with pytest.raises(AssertionError, match="Unsupported"):
+        create_schema(Literal[Illegal], {})
 
 
 def test_typed_dict():

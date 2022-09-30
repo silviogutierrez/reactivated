@@ -581,6 +581,9 @@ class UnionType(NamedTuple):
         typed_dicts = []
         none_subschema = None
 
+        # TODO: This should check that every member is uniquely addressable.
+        # Because if you have a Union[Tuple[Literal[True], SomeTypedDict], # Tuple[Literal[False], str]]
+        # Then it will serialize both second members as strings.
         for subtype in Type.__args__:
             subschema = create_schema(subtype, definitions=definitions)
             definitions = {**definitions, **subschema.definitions}
@@ -606,9 +609,9 @@ class UnionType(NamedTuple):
             else:
                 subtype_class = subtype
 
-            class_mapping[
-                f"{subtype_class.__module__}.{subtype_class.__qualname__}"
-            ] = subschema.schema
+            subtype_name = f"{subtype_class.__module__}.{subtype_class.__qualname__}"
+
+            class_mapping[subtype_name] = subschema.schema
 
         all_subschemas = [subschema.schema for subschema in subschemas]
 
@@ -650,6 +653,8 @@ class UnionType(NamedTuple):
             }
             schema["_reactivated_tagged_union_discriminant"] = discriminant
             schema["_reactivated_tagged_union_mapping"] = mapping
+        elif len(class_mapping.keys()) != len(subschemas):
+            assert False, f"Every item in a union must be uniquely serializable {Type}"
         else:
             schema["_reactivated_union"] = class_mapping
 

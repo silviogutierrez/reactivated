@@ -574,6 +574,11 @@ def test_tagged_union():
     assert serialize(None, schema) is None
 
 
+def test_invalid_union():
+    with pytest.raises(AssertionError, match="must be uniquely"):
+        create_schema(Union[Tuple[Literal[True]], Tuple[Literal[False]]], {})
+
+
 class Parent(NamedTuple):
     foo: str
 

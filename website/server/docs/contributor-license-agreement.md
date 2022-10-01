@@ -1,8 +1,8 @@
 # Contributor License Agreement
 
-This Contributor License Agreement (**“Agreement”** ) is agreed to by the party signing
-below (**“You”** ), and conveys certain license rights to Reactivated LLC and its
-affiliates (**“Reactivated”** ) for Your contributions to Reactivated open source
+This Contributor License Agreement (**“Agreement”**) is agreed to by the party signing
+below (**“You”**), and conveys certain license rights to Reactivated LLC and its
+affiliates (**“Reactivated”**) for Your contributions to Reactivated open source
 projects. This Agreement is effective as of the latest signature date below.
 
 ## 1. Definitions.

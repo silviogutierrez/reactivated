@@ -1,6 +1,6 @@
-# Contribution License Agreement
+# Contributor License Agreement
 
-This Contribution License Agreement (**“Agreement”** ) is agreed to by the party signing
+This Contributor License Agreement (**“Agreement”** ) is agreed to by the party signing
 below (**“You”** ), and conveys certain license rights to Reactivated LLC and its
 affiliates (**“Reactivated”** ) for Your contributions to Reactivated open source
 projects. This Agreement is effective as of the latest signature date below.
@@ -105,12 +105,11 @@ information that You submit with Your Submission.
 
 ## 9. Governing Law/Jurisdiction
 
-This Agreement is governed by the laws of the State of Washington, and the parties
-consent to exclusive jurisdiction and venue in the federal courts sitting in King
-County, Washington, unless no federal subject matter jurisdiction exists, in which case
-the parties consent to exclusive jurisdiction and venue in the Superior Court of King
-County, Washington. The parties waive all defenses of lack of personal jurisdiction and
-forum non-conveniens.
+This Agreement is governed by the laws of the State of Delaware, and the parties consent
+to exclusive jurisdiction and venue in the federal courts sitting in New Castle County,
+Delaware, unless no federal subject matter jurisdiction exists, in which case the
+parties consent to exclusive jurisdiction and venue in New Castle County, Delaware. The
+parties waive all defenses of lack of personal jurisdiction and forum non-conveniens.
 
 ## 10. Entire Agreement/Assignment
 

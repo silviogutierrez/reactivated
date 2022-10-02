@@ -10,7 +10,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: "Check Contributor License Agreement"
-              if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA. If applicable, I have obtained permission from my employer.') || github.event_name == 'pull_request_target'
+              if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA. If applicable, I have secured permission from my employer.') || github.event_name == 'pull_request_target'
               uses: silviogutierrez/github-action@with-extra-context
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -20,7 +20,7 @@ jobs:
                   path-to-document: "https://www.reactivated.io/contributor-license-agreement/"
                   branch: "main"
                   allowlist: dependabot[bot]
-                  custom-pr-sign-comment: "I have read the CLA Document and I hereby sign the CLA. If applicable, I have obtained permission from my employer."
+                  custom-pr-sign-comment: "I have read the CLA Document and I hereby sign the CLA. If applicable, I have secured permission from my employer."
                   remote-organization-name: getreactivated
                   remote-repository-name: contributor-license-agreement
                   signed-commit-message: "$contributorName has signed the CLA in $owner/$repo#$pullRequestNo"

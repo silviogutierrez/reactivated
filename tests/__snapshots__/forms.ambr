@@ -763,7 +763,7 @@
                   'value': 'VERISMO',
                 }),
               ]),
-              0.0,
+              0,
             ]),
             list([
               None,
@@ -775,7 +775,7 @@
                   'value': 'BUFFA',
                 }),
               ]),
-              1.0,
+              1,
             ]),
             list([
               None,
@@ -787,7 +787,7 @@
                   'value': 'GRAND',
                 }),
               ]),
-              2.0,
+              2,
             ]),
           ]),
           'required': True,
@@ -2089,7 +2089,7 @@
           'prefix': 'form-0',
         }),
       ]),
-      'initial_form_count': 0.0,
+      'initial_form_count': 0,
       'management_form': dict({
         'errors': None,
         'fields': dict({
@@ -2177,12 +2177,12 @@
         'name': 'django.forms.formsets.ManagementForm',
         'prefix': 'form',
       }),
-      'max_num': 1000.0,
-      'min_num': 0.0,
+      'max_num': 1000,
+      'min_num': 0,
       'non_form_errors': list([
       ]),
       'prefix': 'form',
-      'total_form_count': 1.0,
+      'total_form_count': 1,
     }),
     'opera': dict({
       'errors': None,
@@ -2265,7 +2265,7 @@
                     'value': 'VERISMO',
                   }),
                 ]),
-                0.0,
+                0,
               ]),
               list([
                 None,
@@ -2277,7 +2277,7 @@
                     'value': 'BUFFA',
                   }),
                 ]),
-                1.0,
+                1,
               ]),
               list([
                 None,
@@ -2289,7 +2289,7 @@
                     'value': 'GRAND',
                   }),
                 ]),
-                2.0,
+                2,
               ]),
             ]),
             'required': True,
@@ -3593,7 +3593,7 @@
           'prefix': 'composers-0',
         }),
       ]),
-      'initial_form_count': 0.0,
+      'initial_form_count': 0,
       'management_form': dict({
         'errors': None,
         'fields': dict({
@@ -3681,12 +3681,12 @@
         'name': 'django.forms.formsets.ManagementForm',
         'prefix': 'composers',
       }),
-      'max_num': 1000.0,
-      'min_num': 0.0,
+      'max_num': 1000,
+      'min_num': 0,
       'non_form_errors': list([
       ]),
       'prefix': 'composers',
-      'total_form_count': 1.0,
+      'total_form_count': 1,
     }),
     'opera': dict({
       'errors': None,
@@ -3769,7 +3769,7 @@
                     'value': 'VERISMO',
                   }),
                 ]),
-                0.0,
+                0,
               ]),
               list([
                 None,
@@ -3781,7 +3781,7 @@
                     'value': 'BUFFA',
                   }),
                 ]),
-                1.0,
+                1,
               ]),
               list([
                 None,
@@ -3793,7 +3793,7 @@
                     'value': 'GRAND',
                   }),
                 ]),
-                2.0,
+                2,
               ]),
             ]),
             'required': True,
@@ -5010,7 +5010,7 @@
                     'value': 'VERISMO',
                   }),
                 ]),
-                0.0,
+                0,
               ]),
               list([
                 None,
@@ -5022,7 +5022,7 @@
                     'value': 'BUFFA',
                   }),
                 ]),
-                1.0,
+                1,
               ]),
               list([
                 None,
@@ -5034,7 +5034,7 @@
                     'value': 'GRAND',
                   }),
                 ]),
-                2.0,
+                2,
               ]),
             ]),
             'required': True,
@@ -5154,7 +5154,7 @@
                       'value': 'VERISMO',
                     }),
                   ]),
-                  0.0,
+                  0,
                 ]),
                 list([
                   None,
@@ -5166,7 +5166,7 @@
                       'value': 'BUFFA',
                     }),
                   ]),
-                  1.0,
+                  1,
                 ]),
                 list([
                   None,
@@ -5178,7 +5178,7 @@
                       'value': 'GRAND',
                     }),
                   ]),
-                  2.0,
+                  2,
                 ]),
               ]),
               'required': True,
@@ -5202,7 +5202,7 @@
         'prefix': 'form-0',
       }),
     ]),
-    'initial_form_count': 0.0,
+    'initial_form_count': 0,
     'management_form': dict({
       'errors': None,
       'fields': dict({
@@ -5290,11 +5290,11 @@
       'name': 'django.forms.formsets.ManagementForm',
       'prefix': 'form',
     }),
-    'max_num': 1000.0,
-    'min_num': 1.0,
+    'max_num': 1000,
+    'min_num': 1,
     'non_form_errors': list([
     ]),
     'prefix': 'form',
-    'total_form_count': 1.0,
+    'total_form_count': 1,
   })
 # ---

@@ -1068,7 +1068,7 @@ SERIALIZERS: Dict[str, Serializer] = {
     "object": object_serializer,
     "string": lambda value, schema: str(value),
     "boolean": lambda value, schema: bool(value),
-    "number": lambda value, schema: float(value),
+    "number": lambda value, schema: value,
     "array": array_serializer,
     "null": lambda value, schema: None,
 }

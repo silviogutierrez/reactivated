@@ -85,6 +85,7 @@ Next to `manage.py` in `BASE_DIR`, create the following structure:
 -   BASE_DIR
     -   manage.py
     -   .babelrc.json
+    -   tsconfig.json
     -   client
         -   index.tsx
         -   templates
@@ -93,7 +94,32 @@ Next to `manage.py` in `BASE_DIR`, create the following structure:
 Add the following code to `.babelrc.json`:
 
 ```json
-{"extends": "reactivated/babel.config.js"}
+{"extends": "reactivated/dist/babel.config.js"}
+```
+
+Add the following code to `tsconfig.json`:
+
+```json
+{
+    "compilerOptions": {
+        "strict": true,
+        "sourceMap": true,
+        "noEmit": true,
+        "module": "commonjs",
+        "target": "es6",
+        "esModuleInterop": true,
+        "allowJs": true,
+        "jsx": "react",
+        "baseUrl": ".",
+        "skipLibCheck": true,
+        "paths": {
+            "@client/*": ["client/*"],
+            "@reactivated": ["node_modules/_reactivated"],
+            "@reactivated/*": ["node_modules/_reactivated/*"]
+        }
+    },
+    "include": ["./client/**/*"]
+}
 ```
 
 And the following code to `client/index.tsx`:

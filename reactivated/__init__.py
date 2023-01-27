@@ -208,7 +208,6 @@ class TypeHint(abc.ABC):
 
 
 def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> Any:
-
     if isinstance(Type, _GenericAlias):
         if Type.__origin__ == tuple:
             *tuple_args, last_arg = Type.__args__
@@ -268,7 +267,6 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
                 field_schema = create_schema(SubType, definitions, ref=ref)
 
                 if field_schema is not None:
-
                     required.append(field_name)
                     properties[field_name] = field_schema
 

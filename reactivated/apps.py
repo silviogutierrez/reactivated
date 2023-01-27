@@ -171,6 +171,7 @@ class ReactivatedConfig(AppConfig):
 
             schema = get_schema()
             generate_schema(schema)
+            processes.start_config_build()
             processes.start_tsc()
             processes.start_client()
             processes.start_renderer()

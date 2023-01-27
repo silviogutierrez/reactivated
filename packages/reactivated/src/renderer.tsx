@@ -12,6 +12,9 @@ import {
 } from "react-helmet-async";
 
 import {Settings} from "./models";
+import {loadConfig} from "./config";
+
+const config = loadConfig();
 
 // TODO: WHAT DOES THIS NEED TO BE? Even 100k was super fragile and a 10 choice field broke it.
 export const BODY_SIZE_LIMIT = "100000000k";
@@ -91,7 +94,7 @@ export const render = async ({
         const rendered = ReactDOMServer.renderToString(
             <HelmetProvider context={helmetContext}>
                 <Provider value={context}>
-                    <Template {...props} />
+                    {config.renderPage(<Template {...props} />)}
                 </Provider>
             </HelmetProvider>,
         );

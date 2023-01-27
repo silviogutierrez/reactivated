@@ -5,6 +5,8 @@ from typing import Any
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from ...config import build_client_config, client_config_src_path
+
 DIST_ROOT = "static/dist/"
 
 
@@ -30,6 +32,14 @@ class Command(BaseCommand):
             **os.environ.copy(),
             "NODE_ENV": "production",
         }
+
+        client_config_process = build_client_config(stdout=subprocess.PIPE)
+        if client_config_process is not None:
+            client_config_process.communicate()
+            if client_config_process.returncode != 0:
+                raise CommandError(
+                    f"TypeScript error. Failed to compile {client_config_src_path}"
+                )
 
         tsc_process = subprocess.Popen(
             ["npm", "exec", "tsc", "--", "--noEmit"],

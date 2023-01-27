@@ -8,6 +8,8 @@ import http from "http";
 import fs from "fs";
 import path from "path";
 import {createRequire} from "module";
+import produce from "immer";
+import {loadConfig} from "./config";
 
 let server: http.Server | null = null;
 
@@ -28,53 +30,55 @@ const restartServer = async () => {
     server = require(CACHE_KEY).server;
 };
 
-esbuild
-    .context({
-        stdin: {
-            contents: `
-                export {server, currentTime} from "reactivated/dist/renderer";
-            `,
-            resolveDir: process.cwd(),
-            loader: "ts",
-        },
-        minify: production,
-        bundle: true,
-        platform: "node",
-        outfile: "./node_modules/_reactivated/renderer.js",
-        sourcemap: true,
-        target: "es2018",
-        preserveSymlinks: true,
-        // Needed so _reactivated is included in renderer.tsx regardless
-        // of the location of reactivated being in the cwd node_modules or
-        // above as in monorepos.
-        nodePaths: [`${process.cwd()}/node_modules`],
-        plugins: [
-            // ESM imports make this weird.
-            (ImportGlobPlugin as unknown as {default: () => esbuild.Plugin}).default(),
-            // We manually pass in identifiers because the client is not
-            // minified by esbuild but the renderer is, so class names could
-            // differ.
-            // Instead of set it manually instead of relying on minification
-            // settings.
-            vanillaExtractPlugin({identifiers}),
-            linaria({sourceMap: true}),
-            {
-                name: "restartServer",
-                setup: (build) => {
-                    if (production === false) {
-                        build.onEnd((result) => {
-                            restartServer();
-                        });
-                    }
-                },
+const defaultConfig: Readonly<esbuild.BuildOptions> = {
+    stdin: {
+        contents: `
+            export {server, currentTime} from "reactivated/dist/renderer";
+        `,
+        resolveDir: process.cwd(),
+        loader: "ts",
+    },
+    minify: production,
+    bundle: true,
+    platform: "node",
+    outfile: "./node_modules/_reactivated/renderer.js",
+    sourcemap: true,
+    target: "es2018",
+    preserveSymlinks: true,
+    // Needed so _reactivated is included in renderer.tsx regardless
+    // of the location of reactivated being in the cwd node_modules or
+    // above as in monorepos.
+    nodePaths: [`${process.cwd()}/node_modules`],
+    plugins: [
+        // ESM imports make this weird.
+        (ImportGlobPlugin as unknown as {default: () => esbuild.Plugin}).default(),
+        // We manually pass in identifiers because the client is not
+        // minified by esbuild but the renderer is, so class names could
+        // differ.
+        // Instead of set it manually instead of relying on minification
+        // settings.
+        vanillaExtractPlugin({identifiers}),
+        linaria({sourceMap: true}),
+        {
+            name: "restartServer",
+            setup: (build) => {
+                if (production === false) {
+                    build.onEnd((result) => {
+                        restartServer();
+                    });
+                }
             },
-        ],
-    })
-    .then(async (context) => {
-        if (production === false) {
-            context.watch();
-        } else {
-            await context.rebuild();
-            process.exit();
-        }
-    });
+        },
+    ],
+};
+
+const finalConfig = produce(defaultConfig, loadConfig().rendererBuildConfig);
+
+esbuild.context(finalConfig).then(async (context) => {
+    if (production === false) {
+        context.watch();
+    } else {
+        await context.rebuild();
+        process.exit();
+    }
+});

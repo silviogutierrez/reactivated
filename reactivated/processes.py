@@ -4,6 +4,23 @@ import re
 import subprocess
 
 from django.conf import settings
+from .config import build_client_config
+
+
+def start_config_build() -> None:
+    # Other processes depend on this, so block until the build to completes
+    # once, then start the background watcher
+    tsc_process = build_client_config(watch=False, stdout=subprocess.PIPE)
+    if tsc_process is None:
+        # Custom project config must not exist
+        return
+    tsc_process.communicate()
+    if tsc_process.returncode != 0:
+        raise RuntimeError(
+            f"TypeScript error. Failed to compile {client_config_src_path}"
+        )
+    tsc_process = build_client_config(watch=True)
+    atexit.register(lambda: tsc_process.terminate())
 
 
 def start_tsc() -> None:

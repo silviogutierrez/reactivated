@@ -18,6 +18,8 @@ requests==2.22.0
 simplejson==3.16.0
 twine==2.0.0
 
+# Pinned greenlet for now due to nix issues.
+greenlet==1.1.3.post0
 playwright==1.17.2
 pytest-playwright==0.2.2
 

@@ -21,6 +21,7 @@ from django import forms as django_forms
 from django.apps.registry import Apps
 from django.db.models import IntegerField, Model
 from django.forms.models import ModelChoiceIteratorValue
+from django.utils.translation import gettext, gettext_lazy
 from jsonschema import validate
 
 from reactivated import Pick
@@ -592,6 +593,12 @@ def test_union_with_inheritance():
     assert serialize(5, schema) == 5
     assert serialize(True, schema) is True
     assert serialize(Parent(foo="one"), schema)
+
+
+def test_union_with_translated_string():
+    schema = create_schema(Union[Parent, str, None], {})
+    assert serialize(gettext("translated"), schema) == "translated"
+    assert serialize(gettext_lazy("lazy translated"), schema) == "lazy translated"
 
 
 def test_simple_union():

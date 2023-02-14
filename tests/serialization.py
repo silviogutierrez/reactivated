@@ -229,6 +229,15 @@ def test_serialization():
     convert_to_json_and_validate(serialized, generated_schema)
 
 
+def test_serialization_of_relationships_without_ok():
+    # https://docs.djangoproject.com/en/4.1/releases/4.1/#reverse-foreign-key-changes-for-unsaved-model-instances
+    instance = models.Composer(name="Wagner")
+    assert instance.pk is None
+
+    generated_schema = create_schema(Pick[models.Composer, "operas.name"], {})
+    assert serialize(instance, generated_schema) == {"operas": []}
+
+
 @pytest.mark.skip
 def test_form():
     generated_schema = create_schema(forms.OperaForm, {})

@@ -476,12 +476,20 @@ class QuerySetType:
     def get_serialized_value(
         Type: Type["QuerySetType"], value: "models.QuerySet[Any]", schema: Thing
     ) -> JSON:
+        # Detect if this is a related manager
+        # See https://docs.djangoproject.com/en/4.1/releases/4.1/#reverse-foreign-key-changes-for-unsaved-model-instances
+        queryset = (
+            value.model.objects.none()
+            if hasattr(value, "instance") and value.instance.pk is None  # type: ignore[attr-defined]
+            else value.all()
+        )
+
         return [
             serialize(
                 item,
                 Thing(schema=schema.schema["items"], definitions=schema.definitions),
             )
-            for item in value.all()
+            for item in queryset
         ]
 
 

@@ -16,7 +16,7 @@ on:
 jobs:
     release:
         name: Create releases or snapshot
-        runs-on: ubuntu-18.04
+        runs-on: ubuntu-22.04
         if: github.event_name != 'pull_request_target' || (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'autorelease')) || (github.event_name == 'pull_request_target' && github.event.pull_request.merged == false && contains(github.event.pull_request.labels.*.name, 'snapshot'))
         # Currently unused, we do everything within the same job.
         outputs:

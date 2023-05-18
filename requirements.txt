@@ -15,7 +15,7 @@ mypy==0.910
 pytest-django==3.5.1
 pytest-mypy-plugins==1.9.2
 pytest==6.2.5
-requests==2.22.0
+requests==2.25.0
 simplejson==3.16.0
 twine==2.0.0
 

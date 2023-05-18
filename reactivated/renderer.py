@@ -97,6 +97,7 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
     socket = urllib.parse.quote_plus(address)
 
     response = session.post(f"http+unix://{socket}", headers=headers, data=data)
+    print(response)
 
     if response.status_code == 200:
         return response.text  # type: ignore[no-any-return]

@@ -1,0 +1,8 @@
+{
+    "name": "development",
+    "version": "1.0.0",
+    "main": "index.js",
+    "author": "Silvio J. Gutierrez <silviogutierrez@gmail.com>",
+    "license": "MIT",
+    "dependencies": {}
+}

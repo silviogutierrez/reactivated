@@ -625,7 +625,7 @@ export const useFormSet = <T extends FieldMap>(options: {
 
     const addForm = () => {
         const {total_form_count} = formSet;
-        type AdditionalForm = typeof formSet["forms"][number];
+        type AdditionalForm = (typeof formSet)["forms"][number];
 
         const extraForm = produce(formSet.empty_form, (draftState) => {
             for (const fieldName of draftState.iterator) {

@@ -147,7 +147,7 @@ export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = form
 `);
 
 // tslint:disable-next-line
-compile(types, "_Types").then((ts) => {
+compile(types, "this is unused").then((ts) => {
     process.stdout.write("/* eslint-disable */\n");
     process.stdout.write(ts);
 

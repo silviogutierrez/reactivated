@@ -17,8 +17,7 @@
         "build.renderer.js": "./dist/build.renderer.js"
     },
     "license": "ISC",
-    "dependencies": {
-    },
+    "dependencies": {},
     "peerDependencies": {
         "@babel/core": "^7.16.7",
         "@babel/preset-react": "^7.17.12",

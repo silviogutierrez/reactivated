@@ -61,6 +61,7 @@ def test_named_tuple():
                 "required": ["first", "second", "third", "fourth_as_property"],
                 "serializer": None,
                 "type": "object",
+                "title": "tests.types.NamedTupleType",
             }
         },
     )
@@ -119,6 +120,7 @@ def test_enum_type():
                 "required": ["first", "second", "third", "fourth_as_property"],
                 "serializer": None,
                 "type": "object",
+                "title": "tests.types.NamedTupleType",
             },
         },
     )
@@ -159,6 +161,7 @@ def test_typed_dict():
                 "required": ["first", "second", "third"],
                 "serializer": None,
                 "type": "object",
+                "title": "tests.types.TypedDictType",
             }
         },
     )
@@ -572,6 +575,7 @@ def test_context_processor_type():
             "additionalProperties": False,
             "properties": {"template_name": {"type": "string"}},
             "required": ["template_name"],
+            "title": "reactivated.serialization.context_processors.BaseContext",
         },
         "reactivated.serialization.context_processors.Request": {
             "serializer": "reactivated.serialization.context_processors.Request",
@@ -583,6 +587,7 @@ def test_context_processor_type():
                 "csp_nonce": {"anyOf": [{"type": "string"}, {"type": "null"}]},
             },
             "required": ["path", "url", "csp_nonce"],
+            "title": "reactivated.serialization.context_processors.Request",
         },
         "reactivated.serialization.context_processors.RequestProcessor": {
             "serializer": None,
@@ -594,6 +599,7 @@ def test_context_processor_type():
                 }
             },
             "required": ["request"],
+            "title": "reactivated.serialization.context_processors.RequestProcessor",
         },
         "tests.types.ComplexType": {
             "serializer": None,
@@ -604,6 +610,7 @@ def test_context_processor_type():
                 "optional": {"anyOf": [{"type": "boolean"}, {"type": "null"}]},
             },
             "required": ["required", "optional"],
+            "title": "tests.types.ComplexType",
         },
         "tests.types.SampleContextOne": {
             "serializer": None,
@@ -614,6 +621,7 @@ def test_context_processor_type():
                 "boolean": {"type": "boolean"},
             },
             "required": ["complex", "boolean"],
+            "title": "tests.types.SampleContextOne",
         },
         "tests.types.SampleContextTwo": {
             "serializer": None,
@@ -621,5 +629,6 @@ def test_context_processor_type():
             "additionalProperties": False,
             "properties": {"number": {"type": "number"}},
             "required": ["number"],
+            "title": "tests.types.SampleContextTwo",
         },
     }

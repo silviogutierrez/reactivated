@@ -9,15 +9,11 @@ types_schema = create_schema(Types, {})
 
 schema = simplejson.dumps(
     {
-        "title": "Types",
         "definitions": types_schema.definitions,
         **types_schema.dereference(),
+        "title": "Types",
     }
 )
-
-import pprint
-
-pprint.pprint(simplejson.loads(schema))
 
 encoded_schema = schema.encode()
 

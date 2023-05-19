@@ -15,6 +15,10 @@ schema = simplejson.dumps(
     }
 )
 
+import pprint
+
+pprint.pprint(simplejson.loads(schema))
+
 encoded_schema = schema.encode()
 
 process = subprocess.Popen(

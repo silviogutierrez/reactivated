@@ -757,6 +757,7 @@ def named_tuple_schema(
                 "additionalProperties": False,
                 "properties": properties,
                 "required": required,
+                "title": definition_name,
             },
         },
     )

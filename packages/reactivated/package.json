@@ -47,5 +47,10 @@
         "terser": "^5.10.0",
         "ts-morph": "^18.0.0",
         "typescript": "^5.0.4"
+    },
+    "dependencies": {
+        "@babel/core": "^7.21.8",
+        "@babel/preset-react": "^7.18.6",
+        "@babel/preset-typescript": "^7.21.5"
     }
 }

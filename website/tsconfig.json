@@ -9,6 +9,7 @@
         "allowJs": true,
         "jsx": "react",
         "baseUrl": ".",
+        "skipLibCheck": true,
         "paths": {
             "@client/*": ["client/*"],
             "@reactivated": ["node_modules/_reactivated"]

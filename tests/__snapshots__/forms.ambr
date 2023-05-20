@@ -46,6 +46,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.CheckboxInput',
+        'title': 'django.forms.widgets.CheckboxInput',
         'type': 'object',
       }),
       'django.forms.widgets.Select': dict({
@@ -127,6 +128,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.Select',
+        'title': 'django.forms.widgets.Select',
         'type': 'object',
       }),
       'django.forms.widgets.TextInput': dict({
@@ -187,6 +189,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.TextInput',
+        'title': 'django.forms.widgets.TextInput',
         'type': 'object',
       }),
       'reactivated.serialization.FieldType': dict({
@@ -221,6 +224,7 @@
           'help_text',
         ]),
         'serializer': 'reactivated.serialization.FieldType',
+        'title': 'reactivated.serialization.FieldType',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.BaseWidgetAttrs': dict({
@@ -243,6 +247,7 @@
           'id',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.BaseWidgetAttrs',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.CheckAttrs': dict({
@@ -268,6 +273,7 @@
           'id',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.CheckAttrs',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.MaxLengthAttrs': dict({
@@ -293,6 +299,7 @@
           'id',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.MaxLengthAttrs',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.OptgroupMember': dict({
@@ -343,6 +350,7 @@
           'selected',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.OptgroupMember',
         'type': 'object',
       }),
       'reactivated.widgets.Autocomplete': dict({
@@ -404,6 +412,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.widgets.AutocompleteType',
+        'title': 'reactivated.widgets.Autocomplete',
         'type': 'object',
       }),
       'reactivated.widgets.AutocompleteSelected': dict({
@@ -437,6 +446,7 @@
           'label',
         ]),
         'serializer': None,
+        'title': 'reactivated.widgets.AutocompleteSelected',
         'type': 'object',
       }),
       'sample.server.apps.samples.forms.OperaForm': dict({
@@ -869,6 +879,7 @@
           'management_form',
         ]),
         'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
         'type': 'object',
       }),
       'django.forms.formsets.ManagementForm': dict({
@@ -1126,6 +1137,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.CheckboxInput',
+        'title': 'django.forms.widgets.CheckboxInput',
         'type': 'object',
       }),
       'django.forms.widgets.HiddenInput': dict({
@@ -1186,6 +1198,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.HiddenInput',
+        'title': 'django.forms.widgets.HiddenInput',
         'type': 'object',
       }),
       'django.forms.widgets.Select': dict({
@@ -1267,6 +1280,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.Select',
+        'title': 'django.forms.widgets.Select',
         'type': 'object',
       }),
       'django.forms.widgets.TextInput': dict({
@@ -1327,6 +1341,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.TextInput',
+        'title': 'django.forms.widgets.TextInput',
         'type': 'object',
       }),
       'reactivated.serialization.FieldType': dict({
@@ -1361,6 +1376,7 @@
           'help_text',
         ]),
         'serializer': 'reactivated.serialization.FieldType',
+        'title': 'reactivated.serialization.FieldType',
         'type': 'object',
       }),
       'reactivated.serialization.FormSetType': dict({
@@ -1405,6 +1421,7 @@
           'prefix',
         ]),
         'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.BaseWidgetAttrs': dict({
@@ -1427,6 +1444,7 @@
           'id',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.BaseWidgetAttrs',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.CheckAttrs': dict({
@@ -1452,6 +1470,7 @@
           'id',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.CheckAttrs',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.MaxLengthAttrs': dict({
@@ -1477,6 +1496,7 @@
           'id',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.MaxLengthAttrs',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.OptgroupMember': dict({
@@ -1527,6 +1547,7 @@
           'selected',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.OptgroupMember',
         'type': 'object',
       }),
       'reactivated.widgets.Autocomplete': dict({
@@ -1588,6 +1609,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.widgets.AutocompleteType',
+        'title': 'reactivated.widgets.Autocomplete',
         'type': 'object',
       }),
       'reactivated.widgets.AutocompleteSelected': dict({
@@ -1621,6 +1643,7 @@
           'label',
         ]),
         'serializer': None,
+        'title': 'reactivated.widgets.AutocompleteSelected',
         'type': 'object',
       }),
       'sample.server.apps.samples.forms.OperaForm': dict({
@@ -1983,6 +2006,7 @@
           'composers',
         ]),
         'serializer': 'tests.forms.OperaFormGroup',
+        'title': 'tests.forms.OperaFormGroup',
         'type': 'object',
       }),
     }),
@@ -2373,6 +2397,7 @@
           'management_form',
         ]),
         'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
         'type': 'object',
       }),
       'django.forms.formsets.ManagementForm': dict({
@@ -2630,6 +2655,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.CheckboxInput',
+        'title': 'django.forms.widgets.CheckboxInput',
         'type': 'object',
       }),
       'django.forms.widgets.HiddenInput': dict({
@@ -2690,6 +2716,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.HiddenInput',
+        'title': 'django.forms.widgets.HiddenInput',
         'type': 'object',
       }),
       'django.forms.widgets.Select': dict({
@@ -2771,6 +2798,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.Select',
+        'title': 'django.forms.widgets.Select',
         'type': 'object',
       }),
       'django.forms.widgets.TextInput': dict({
@@ -2831,6 +2859,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.TextInput',
+        'title': 'django.forms.widgets.TextInput',
         'type': 'object',
       }),
       'reactivated.serialization.FieldType': dict({
@@ -2865,6 +2894,7 @@
           'help_text',
         ]),
         'serializer': 'reactivated.serialization.FieldType',
+        'title': 'reactivated.serialization.FieldType',
         'type': 'object',
       }),
       'reactivated.serialization.FormSetType': dict({
@@ -2909,6 +2939,7 @@
           'prefix',
         ]),
         'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.BaseWidgetAttrs': dict({
@@ -2931,6 +2962,7 @@
           'id',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.BaseWidgetAttrs',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.CheckAttrs': dict({
@@ -2956,6 +2988,7 @@
           'id',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.CheckAttrs',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.MaxLengthAttrs': dict({
@@ -2981,6 +3014,7 @@
           'id',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.MaxLengthAttrs',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.OptgroupMember': dict({
@@ -3031,6 +3065,7 @@
           'selected',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.OptgroupMember',
         'type': 'object',
       }),
       'reactivated.widgets.Autocomplete': dict({
@@ -3092,6 +3127,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.widgets.AutocompleteType',
+        'title': 'reactivated.widgets.Autocomplete',
         'type': 'object',
       }),
       'reactivated.widgets.AutocompleteSelected': dict({
@@ -3125,6 +3161,7 @@
           'label',
         ]),
         'serializer': None,
+        'title': 'reactivated.widgets.AutocompleteSelected',
         'type': 'object',
       }),
       'sample.server.apps.samples.forms.OperaForm': dict({
@@ -3487,6 +3524,7 @@
           'composers',
         ]),
         'serializer': 'tests.forms.OperaFormGroup',
+        'title': 'tests.forms.OperaFormGroup',
         'type': 'object',
       }),
     }),
@@ -4087,6 +4125,7 @@
           'management_form',
         ]),
         'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
         'type': 'object',
       }),
       'django.forms.widgets.CheckboxInput': dict({
@@ -4134,6 +4173,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.CheckboxInput',
+        'title': 'django.forms.widgets.CheckboxInput',
         'type': 'object',
       }),
       'django.forms.widgets.HiddenInput': dict({
@@ -4194,6 +4234,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.HiddenInput',
+        'title': 'django.forms.widgets.HiddenInput',
         'type': 'object',
       }),
       'django.forms.widgets.OperaForm': dict({
@@ -4539,6 +4580,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.Select',
+        'title': 'django.forms.widgets.Select',
         'type': 'object',
       }),
       'django.forms.widgets.TextInput': dict({
@@ -4599,6 +4641,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.serialization.widgets.TextInput',
+        'title': 'django.forms.widgets.TextInput',
         'type': 'object',
       }),
       'reactivated.serialization.FieldType': dict({
@@ -4633,6 +4676,7 @@
           'help_text',
         ]),
         'serializer': 'reactivated.serialization.FieldType',
+        'title': 'reactivated.serialization.FieldType',
         'type': 'object',
       }),
       'reactivated.serialization.FormSetType': dict({
@@ -4677,6 +4721,7 @@
           'prefix',
         ]),
         'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.BaseWidgetAttrs': dict({
@@ -4699,6 +4744,7 @@
           'id',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.BaseWidgetAttrs',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.CheckAttrs': dict({
@@ -4724,6 +4770,7 @@
           'id',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.CheckAttrs',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.MaxLengthAttrs': dict({
@@ -4749,6 +4796,7 @@
           'id',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.MaxLengthAttrs',
         'type': 'object',
       }),
       'reactivated.serialization.widgets.OptgroupMember': dict({
@@ -4799,6 +4847,7 @@
           'selected',
         ]),
         'serializer': None,
+        'title': 'reactivated.serialization.widgets.OptgroupMember',
         'type': 'object',
       }),
       'reactivated.widgets.Autocomplete': dict({
@@ -4860,6 +4909,7 @@
           'tag',
         ]),
         'serializer': 'reactivated.widgets.AutocompleteType',
+        'title': 'reactivated.widgets.Autocomplete',
         'type': 'object',
       }),
       'reactivated.widgets.AutocompleteSelected': dict({
@@ -4893,6 +4943,7 @@
           'label',
         ]),
         'serializer': None,
+        'title': 'reactivated.widgets.AutocompleteSelected',
         'type': 'object',
       }),
       'sample.server.apps.samples.models.Opera.Style': dict({

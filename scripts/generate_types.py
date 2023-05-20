@@ -9,9 +9,9 @@ types_schema = create_schema(Types, {})
 
 schema = simplejson.dumps(
     {
-        "title": "Types",
         "definitions": types_schema.definitions,
         **types_schema.dereference(),
+        "title": "Types",
     }
 )
 

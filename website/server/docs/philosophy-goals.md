@@ -35,7 +35,7 @@ Reactivated makes this trivial. But we sprinkle dynamic behavior only when neces
 
 ### All roads lead to types
 
-Save yourself a hard lesson. Any sufficiently dynamically-typed large project contains
+Save yourself a hard lesson. Any sufficiently large, dynamically-typed project contains
 an ad hoc, informally-specified, bug-ridden type-system using unit tests and assertions.
 
 Use types from the start. They document your code. They catch bugs.

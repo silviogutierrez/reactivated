@@ -11,6 +11,7 @@
         'template_name',
       ]),
       'serializer': None,
+      'title': 'reactivated.serialization.context_processors.BaseContext',
       'type': 'object',
     }),
     'reactivated.serialization.context_processors.Request': dict({
@@ -45,6 +46,7 @@
         'csp_nonce',
       ]),
       'serializer': 'reactivated.serialization.context_processors.Request',
+      'title': 'reactivated.serialization.context_processors.Request',
       'type': 'object',
     }),
     'reactivated.serialization.context_processors.RequestProcessor': dict({
@@ -58,6 +60,7 @@
         'request',
       ]),
       'serializer': None,
+      'title': 'reactivated.serialization.context_processors.RequestProcessor',
       'type': 'object',
     }),
     'tests.types.ComplexType': dict({
@@ -88,6 +91,7 @@
         'optional',
       ]),
       'serializer': None,
+      'title': 'tests.types.ComplexType',
       'type': 'object',
     }),
     'tests.types.SampleContextOne': dict({
@@ -105,6 +109,7 @@
         'boolean',
       ]),
       'serializer': None,
+      'title': 'tests.types.SampleContextOne',
       'type': 'object',
     }),
     'tests.types.SampleContextTwo': dict({
@@ -118,6 +123,7 @@
         'number',
       ]),
       'serializer': None,
+      'title': 'tests.types.SampleContextTwo',
       'type': 'object',
     }),
   })

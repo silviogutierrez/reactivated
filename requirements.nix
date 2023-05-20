@@ -2,9 +2,8 @@ let
   pkgs = import
     (fetchTarball "https://github.com/NixOS/nixpkgs/archive/65fae659e31.tar.gz")
     { };
-  unstable = import
-    (fetchTarball "https://github.com/NixOS/nixpkgs/archive/65fae659e31.tar.gz")
-    { };
+  unstable = import (fetchTarball
+    "https://github.com/NixOS/nixpkgs/archive/f80ac848e3d6.tar.gz") { };
 
 in with pkgs; {
   inherit pkgs;
@@ -36,7 +35,6 @@ in with pkgs; {
     pkgs.shellcheck
     pkgs.nixfmt
   ];
-  contributing_dependencies =
-    [ pkgs.gitAndTools.gh pkgs.ripgrep pkgs.nix pkgs.cacert pkgs.bash ];
+  contributing_dependencies = [ pkgs.gitAndTools.gh pkgs.ripgrep pkgs.bash ];
 
 }

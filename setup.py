@@ -22,6 +22,7 @@ setuptools.setup(
     data_files=[('""', ["packages/reactivated/package.json"])],
     scripts=[],
     install_requires=[
+        "requests==2.25.0",
         "requests-unixsocket==0.3.0",
         "mypy>=0.910",
         "simplejson>=3.16.0",

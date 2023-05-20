@@ -9,23 +9,38 @@ on:
     push:
         branches:
             - main
-    pull_request:
+    pull_request_target:
         branches:
             - main
         types: [labeled, opened, synchronize, reopened, closed]
 jobs:
     release:
         name: Create releases or snapshot
-        runs-on: ubuntu-18.04
-        if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'autorelease')) || (github.event_name == 'pull_request' && github.event.pull_request.merged == false && contains(github.event.pull_request.labels.*.name, 'snapshot'))
+        runs-on: ubuntu-22.04
+        if: github.event_name != 'pull_request_target' || (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'autorelease')) || (github.event_name == 'pull_request_target' && github.event.pull_request.merged == false && contains(github.event.pull_request.labels.*.name, 'snapshot'))
         # Currently unused, we do everything within the same job.
         outputs:
             VERSION_TAG: ${{ steps.publish_release.outputs.VERSION_TAG }}
             SNAPSHOT_OR_RELEASE: ${{ steps.publish_release.outputs.SNAPSHOT_OR_RELEASE }}
         steps:
+            - name: Remove snapshot label
+              if: contains(github.event.pull_request.labels.*.name, 'snapshot')
+              run: |
+                  curl --silent --fail \
+                      -X DELETE \
+                      -H 'Accept: application/vnd.github.v3+json' \
+                      -H 'Authorization: token ${{ github.token }}' \
+                      'https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/labels/snapshot'
             - uses: actions/checkout@v3
+              if: github.event_name != 'pull_request_target'
               with:
                   fetch-depth: 0
+            - uses: actions/checkout@v3
+              if: github.event_name == 'pull_request_target'
+              with:
+                  fetch-depth: 0
+                  # See: https://github.com/actions/checkout/issues/518
+                  ref: "refs/pull/${{ github.event.number }}/merge"
             # currently needed only for .npmrc to have a registry URL.
             - uses: actions/setup-node@v1
               with:
@@ -53,14 +68,6 @@ jobs:
                   else
                       nix-shell --command "scripts/release.sh --versioning snapshot"
                   fi
-            - name: Remove snapshot label
-              if: contains(github.event.pull_request.labels.*.name, 'snapshot')
-              run: |
-                  curl --silent --fail \
-                      -X DELETE \
-                      -H 'Accept: application/vnd.github.v3+json' \
-                      -H 'Authorization: token ${{ github.token }}' \
-                      'https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/labels/snapshot'
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v1
             - name: Set up Docker Buildx

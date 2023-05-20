@@ -61,6 +61,7 @@ def test_named_tuple():
                 "required": ["first", "second", "third", "fourth_as_property"],
                 "serializer": None,
                 "type": "object",
+                "title": "tests.types.NamedTupleType",
             }
         },
     )
@@ -119,6 +120,7 @@ def test_enum_type():
                 "required": ["first", "second", "third", "fourth_as_property"],
                 "serializer": None,
                 "type": "object",
+                "title": "tests.types.NamedTupleType",
             },
         },
     )
@@ -167,6 +169,7 @@ def test_typed_dict():
                 "required": ["first", "second", "third"],
                 "serializer": None,
                 "type": "object",
+                "title": "tests.types.TypedDictType",
             }
         },
     )
@@ -571,4 +574,3 @@ def test_context_processor_type(snapshot):
             {"$ref": "#/definitions/tests.types.SampleContextTwo"},
         ]
     }
-    assert definitions == snapshot

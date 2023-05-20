@@ -1,0 +1,167 @@
+# name: test_context_processor_type
+  dict({
+    'reactivated.serialization.context_processors.BaseContext': dict({
+      'additionalProperties': False,
+      'properties': dict({
+        'template_name': dict({
+          'type': 'string',
+        }),
+      }),
+      'required': list([
+        'template_name',
+      ]),
+      'serializer': None,
+      'type': 'object',
+    }),
+    'reactivated.serialization.context_processors.Request': dict({
+      'additionalProperties': False,
+      'properties': dict({
+        'csp_nonce': dict({
+          '_reactivated_union': dict({
+            'builtins.str': dict({
+              'type': 'string',
+            }),
+          }),
+          'anyOf': list([
+            dict({
+              'type': 'string',
+            }),
+            dict({
+              'type': 'null',
+            }),
+          ]),
+          'serializer': 'reactivated.serialization.UnionType',
+        }),
+        'path': dict({
+          'type': 'string',
+        }),
+        'url': dict({
+          'type': 'string',
+        }),
+      }),
+      'required': list([
+        'path',
+        'url',
+        'csp_nonce',
+      ]),
+      'serializer': 'reactivated.serialization.context_processors.Request',
+      'type': 'object',
+    }),
+    'reactivated.serialization.context_processors.RequestProcessor': dict({
+      'additionalProperties': False,
+      'properties': dict({
+        'request': dict({
+          '$ref': '#/definitions/reactivated.serialization.context_processors.Request',
+        }),
+      }),
+      'required': list([
+        'request',
+      ]),
+      'serializer': None,
+      'type': 'object',
+    }),
+    'tests.types.ComplexType': dict({
+      'additionalProperties': False,
+      'properties': dict({
+        'optional': dict({
+          '_reactivated_union': dict({
+            'builtins.bool': dict({
+              'type': 'boolean',
+            }),
+          }),
+          'anyOf': list([
+            dict({
+              'type': 'boolean',
+            }),
+            dict({
+              'type': 'null',
+            }),
+          ]),
+          'serializer': 'reactivated.serialization.UnionType',
+        }),
+        'required': dict({
+          'type': 'number',
+        }),
+      }),
+      'required': list([
+        'required',
+        'optional',
+      ]),
+      'serializer': None,
+      'type': 'object',
+    }),
+    'tests.types.SampleContextOne': dict({
+      'additionalProperties': False,
+      'properties': dict({
+        'boolean': dict({
+          'type': 'boolean',
+        }),
+        'complex': dict({
+          '$ref': '#/definitions/tests.types.ComplexType',
+        }),
+      }),
+      'required': list([
+        'complex',
+        'boolean',
+      ]),
+      'serializer': None,
+      'type': 'object',
+    }),
+    'tests.types.SampleContextTwo': dict({
+      'additionalProperties': False,
+      'properties': dict({
+        'number': dict({
+          'type': 'number',
+        }),
+      }),
+      'required': list([
+        'number',
+      ]),
+      'serializer': None,
+      'type': 'object',
+    }),
+  })
+# ---
+# name: test_enum_field_descriptor
+  dict({
+    'anyOf': list([
+      dict({
+        '$ref': '#/definitions/tests.types.EnumType',
+      }),
+      dict({
+        'type': 'null',
+      }),
+    ]),
+  })
+# ---
+# name: test_enum_field_descriptor.1
+  dict({
+    'tests.types.EnumType': dict({
+      'enum': list([
+        'ONE',
+        'TWO',
+        'CHUNK',
+      ]),
+      'serializer': 'reactivated.serialization.EnumMemberType',
+      'type': 'string',
+    }),
+  })
+# ---
+# name: test_enum_field_descriptor.2
+  dict({
+    '$ref': '#/definitions/tests.types.EnumType',
+  })
+# ---
+# name: test_enum_field_descriptor.3
+  dict({
+    'tests.types.EnumType': dict({
+      'enum': list([
+        'ONE',
+        'TWO',
+        'CHUNK',
+      ]),
+      'serializer': 'reactivated.serialization.EnumMemberType',
+      'type': 'string',
+    }),
+  })
+# ---

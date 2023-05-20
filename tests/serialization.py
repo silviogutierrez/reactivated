@@ -2,7 +2,18 @@ from __future__ import annotations
 
 import datetime
 import enum
-from typing import Any, List, Literal, NamedTuple, Optional, Tuple, Type, get_type_hints
+from typing import (
+    Any,
+    List,
+    Literal,
+    NamedTuple,
+    Optional,
+    Tuple,
+    Type,
+    TypedDict,
+    Union,
+    get_type_hints,
+)
 
 import pytest
 import simplejson
@@ -10,6 +21,7 @@ from django import forms as django_forms
 from django.apps.registry import Apps
 from django.db.models import IntegerField, Model
 from django.forms.models import ModelChoiceIteratorValue
+from django.utils.translation import gettext, gettext_lazy
 from jsonschema import validate
 
 from reactivated import Pick
@@ -107,6 +119,15 @@ def convert_to_json_and_validate(instance, schema):
     validate(
         instance=converted, schema={"definitions": merged_definitions, **merged_schema}
     )
+
+
+@pytest.mark.django_db
+def test_foreign_key_id():
+    composer = models.Composer.objects.create(name="Wagner")
+    opera = models.Opera.objects.create(name="Götterdämmerung", composer=composer)
+    schema = create_schema(Pick[models.Opera, "composer"], {})
+
+    assert serialize(opera, schema) == {"composer": composer.id}
 
 
 @pytest.mark.django_db
@@ -311,9 +332,7 @@ def test_form_with_model_choice_iterator_value():
     generated_schema = create_schema(forms.ComposerForm, {})
     form = forms.ComposerForm()
     serialized_form = serialize(form, generated_schema)
-    import pprint
 
-    pprint.pprint(generated_schema.dereference())
     convert_to_json_and_validate(serialized_form, generated_schema)
     assert serialized_form["fields"]["countries"]["widget"]["optgroups"][0][1][0][
         "value"
@@ -362,7 +381,7 @@ def test_typed_choices_non_enum(settings):
     }
 
 
-def test_override_pick_types(settings):
+def test_override_pick_types(settings, snapshot):
     settings.INSTALLED_APPS = ["tests.serialization"]
     test_apps = Apps(settings.INSTALLED_APPS)
 
@@ -379,18 +398,10 @@ def test_override_pick_types(settings):
     assert schema.schema == {
         "$ref": "#/definitions/test_override_pick_types.<locals>.TestModel_fdae93dc88",
     }
-    assert schema.definitions[
-        "test_override_pick_types.<locals>.TestModel_fdae93dc88"
-    ] == {
-        "type": "object",
-        "additionalProperties": False,
-        "properties": {
-            "forced_nullable": {"anyOf": [{"type": "number"}, {"type": "null"}]},
-            "forced_non_nullable": {"type": "number"},
-            "forced_none": {"type": "null"},
-        },
-        "required": ["forced_nullable", "forced_non_nullable", "forced_none"],
-    }
+    assert (
+        schema.definitions["test_override_pick_types.<locals>.TestModel_fdae93dc88"]
+        == snapshot
+    )
 
 
 def test_deferred_evaluation_of_types(settings):
@@ -442,7 +453,7 @@ def test_pick_reverse_relationship():
     assert create_schema(Pick[models.Composer, "operas.name"], {})
 
 
-def test_form_and_fields():
+def test_form_and_fields(snapshot):
     date = datetime.date(2015, 1, 1)
     Form = forms.StoryboardForm
 
@@ -499,697 +510,18 @@ def test_form_and_fields():
     field_schema = create_schema(Form.base_fields["integer_field"], schema.definitions)
     convert_to_json_and_validate(serialized["fields"]["integer_field"], field_schema)
 
-    assert serialized["fields"]["date_field"] == {
-        "help_text": None,
-        "label": "Date field",
-        "name": "date_field",
-        "widget": {
-            "attrs": {
-                # "disabled": None,
-                "id": "id_date_field",
-                # "placeholder": None,
-                "required": True,
-            },
-            "is_hidden": False,
-            "name": "date_field",
-            "required": True,
-            "subwidgets": [
-                {
-                    "attrs": {
-                        # "disabled": None,
-                        "id": "id_date_field_month",
-                        # "placeholder": None,
-                        "required": True,
-                    },
-                    "is_hidden": False,
-                    "name": "date_field_month",
-                    "optgroups": [
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "January",
-                                    "name": "date_field_month",
-                                    "selected": True,
-                                    "value": "1",
-                                }
-                            ],
-                            0.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "February",
-                                    "name": "date_field_month",
-                                    "selected": False,
-                                    "value": "2",
-                                }
-                            ],
-                            1.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "March",
-                                    "name": "date_field_month",
-                                    "selected": False,
-                                    "value": "3",
-                                }
-                            ],
-                            2.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "April",
-                                    "name": "date_field_month",
-                                    "selected": False,
-                                    "value": "4",
-                                }
-                            ],
-                            3.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "May",
-                                    "name": "date_field_month",
-                                    "selected": False,
-                                    "value": "5",
-                                }
-                            ],
-                            4.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "June",
-                                    "name": "date_field_month",
-                                    "selected": False,
-                                    "value": "6",
-                                }
-                            ],
-                            5.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "July",
-                                    "name": "date_field_month",
-                                    "selected": False,
-                                    "value": "7",
-                                }
-                            ],
-                            6.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "August",
-                                    "name": "date_field_month",
-                                    "selected": False,
-                                    "value": "8",
-                                }
-                            ],
-                            7.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "September",
-                                    "name": "date_field_month",
-                                    "selected": False,
-                                    "value": "9",
-                                }
-                            ],
-                            8.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "October",
-                                    "name": "date_field_month",
-                                    "selected": False,
-                                    "value": "10",
-                                }
-                            ],
-                            9.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "November",
-                                    "name": "date_field_month",
-                                    "selected": False,
-                                    "value": "11",
-                                }
-                            ],
-                            10.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "December",
-                                    "name": "date_field_month",
-                                    "selected": False,
-                                    "value": "12",
-                                }
-                            ],
-                            11.0,
-                        ],
-                    ],
-                    "required": False,
-                    "tag": "django.forms.widgets.Select",
-                    "template_name": "django/forms/widgets/select.html",
-                    "value": "1",
-                },
-                {
-                    "attrs": {
-                        # "disabled": None,
-                        "id": "id_date_field_day",
-                        # "placeholder": None,
-                        "required": True,
-                    },
-                    "is_hidden": False,
-                    "name": "date_field_day",
-                    "optgroups": [
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "1",
-                                    "name": "date_field_day",
-                                    "selected": True,
-                                    "value": "1",
-                                }
-                            ],
-                            0.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "2",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "2",
-                                }
-                            ],
-                            1.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "3",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "3",
-                                }
-                            ],
-                            2.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "4",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "4",
-                                }
-                            ],
-                            3.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "5",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "5",
-                                }
-                            ],
-                            4.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "6",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "6",
-                                }
-                            ],
-                            5.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "7",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "7",
-                                }
-                            ],
-                            6.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "8",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "8",
-                                }
-                            ],
-                            7.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "9",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "9",
-                                }
-                            ],
-                            8.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "10",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "10",
-                                }
-                            ],
-                            9.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "11",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "11",
-                                }
-                            ],
-                            10.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "12",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "12",
-                                }
-                            ],
-                            11.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "13",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "13",
-                                }
-                            ],
-                            12.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "14",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "14",
-                                }
-                            ],
-                            13.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "15",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "15",
-                                }
-                            ],
-                            14.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "16",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "16",
-                                }
-                            ],
-                            15.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "17",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "17",
-                                }
-                            ],
-                            16.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "18",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "18",
-                                }
-                            ],
-                            17.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "19",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "19",
-                                }
-                            ],
-                            18.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "20",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "20",
-                                }
-                            ],
-                            19.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "21",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "21",
-                                }
-                            ],
-                            20.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "22",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "22",
-                                }
-                            ],
-                            21.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "23",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "23",
-                                }
-                            ],
-                            22.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "24",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "24",
-                                }
-                            ],
-                            23.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "25",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "25",
-                                }
-                            ],
-                            24.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "26",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "26",
-                                }
-                            ],
-                            25.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "27",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "27",
-                                }
-                            ],
-                            26.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "28",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "28",
-                                }
-                            ],
-                            27.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "29",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "29",
-                                }
-                            ],
-                            28.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "30",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "30",
-                                }
-                            ],
-                            29.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "31",
-                                    "name": "date_field_day",
-                                    "selected": False,
-                                    "value": "31",
-                                }
-                            ],
-                            30.0,
-                        ],
-                    ],
-                    "required": False,
-                    "tag": "django.forms.widgets.Select",
-                    "template_name": "django/forms/widgets/select.html",
-                    "value": "1",
-                },
-                {
-                    "attrs": {
-                        # "disabled": None,
-                        "id": "id_date_field_year",
-                        # "placeholder": None,
-                        "required": True,
-                    },
-                    "is_hidden": False,
-                    "name": "date_field_year",
-                    "optgroups": [
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "2000",
-                                    "name": "date_field_year",
-                                    "selected": False,
-                                    "value": "2000",
-                                }
-                            ],
-                            0.0,
-                        ],
-                        [
-                            None,
-                            [
-                                {
-                                    "label": "2001",
-                                    "name": "date_field_year",
-                                    "selected": False,
-                                    "value": "2001",
-                                }
-                            ],
-                            1.0,
-                        ],
-                    ],
-                    "required": False,
-                    "tag": "django.forms.widgets.Select",
-                    "template_name": "django/forms/widgets/select.html",
-                    "value": "2015",
-                },
-            ],
-            "tag": "django.forms.widgets.SelectDateWidget",
-            "template_name": "django/forms/widgets/select_date.html",
-            "value": {"year": 2015, "month": 1, "day": 1},
-        },
-    }
+    assert serialized["fields"]["date_field"] == snapshot
+
     field_schema = create_schema(Form.base_fields["date_field"], schema.definitions)
     convert_to_json_and_validate(serialized["fields"]["date_field"], field_schema)
 
-    assert serialized["fields"]["date_time_field"] == {
-        "help_text": None,
-        "label": "Date time field",
-        "name": "date_time_field",
-        "widget": {
-            "attrs": {
-                # "disabled": None,
-                "id": "id_date_time_field",
-                # "placeholder": None,
-                "required": True,
-            },
-            "is_hidden": False,
-            "name": "date_time_field",
-            "required": True,
-            "subwidgets": [
-                {
-                    "attrs": {
-                        # "disabled": None,
-                        # "format": None,
-                        "id": "id_date_time_field_0",
-                        # "placeholder": None,
-                        "required": True,
-                    },
-                    "is_hidden": False,
-                    "name": "date_time_field_0",
-                    "required": False,
-                    "tag": "django.forms.widgets.DateInput",
-                    "template_name": "django/forms/widgets/date.html",
-                    "type": "text",
-                    "value": None,
-                },
-                {
-                    "attrs": {
-                        # "disabled": None,
-                        # "format": None,
-                        "id": "id_date_time_field_1",
-                        # "placeholder": None,
-                        "required": True,
-                    },
-                    "is_hidden": False,
-                    "name": "date_time_field_1",
-                    "required": False,
-                    "tag": "django.forms.widgets.TimeInput",
-                    "template_name": "django/forms/widgets/time.html",
-                    "type": "text",
-                    "value": None,
-                },
-            ],
-            "tag": "django.forms.widgets.SplitDateTimeWidget",
-            "template_name": "django/forms/widgets/splitdatetime.html",
-            "value": None,
-        },
-    }
+    assert serialized["fields"]["date_time_field"] == snapshot
     field_schema = create_schema(
         Form.base_fields["date_time_field"], schema.definitions
     )
     convert_to_json_and_validate(serialized["fields"]["date_time_field"], field_schema)
 
-    assert serialized["fields"]["boolean_field"] == {
-        "name": "boolean_field",
-        "label": "Boolean field",
-        "help_text": "Not blank",
-        "widget": {
-            "template_name": "django/forms/widgets/checkbox.html",
-            "name": "boolean_field",
-            "is_hidden": False,
-            "required": True,
-            "value": True,
-            "attrs": {
-                "id": "id_boolean_field",
-                # "disabled": None,
-                "required": True,
-                # "placeholder": None,
-                "checked": True,
-            },
-            "type": "checkbox",
-            "tag": "django.forms.widgets.CheckboxInput",
-        },
-    }
+    assert serialized["fields"]["boolean_field"] == snapshot
     field_schema = create_schema(Form.base_fields["boolean_field"], schema.definitions)
     convert_to_json_and_validate(serialized["fields"]["boolean_field"], field_schema)
 
@@ -1212,3 +544,79 @@ def test_pick_name_and_deduplication(settings):
         get_type_hints(Holder)["unnamed_pick1"].get_auto_name()
         == get_type_hints(Holder)["unnamed_pick2"].get_auto_name()
     )
+
+
+def test_tagged_union():
+    class One(TypedDict):
+        tag: Literal["one"]
+        something: int
+
+    class Two(TypedDict):
+        tag: Literal["two"]
+        another: bool
+
+    InvalidUnion = Union[One, Two, int]
+
+    with pytest.raises(AssertionError, match="must have only"):
+        create_schema(InvalidUnion, {})
+
+    TaggedUnion = Union[One, Two, None]
+    schema = create_schema(TaggedUnion, {})
+    assert serialize({"tag": "one", "something": 5}, schema) == {
+        "tag": "one",
+        "something": 5,
+    }
+
+    assert serialize({"tag": "two", "another": True}, schema) == {
+        "tag": "two",
+        "another": True,
+    }
+
+    assert serialize(None, schema) is None
+
+
+def test_invalid_union():
+    with pytest.raises(AssertionError, match="must be uniquely"):
+        create_schema(Union[Tuple[Literal[True]], Tuple[Literal[False]]], {})
+
+
+class Parent(NamedTuple):
+    foo: str
+
+
+class Child(Parent):
+    pass
+
+
+def test_union_with_inheritance():
+    schema = create_schema(Union[Parent, bool, int], {})
+    assert serialize(5, schema) == 5
+    assert serialize(True, schema) is True
+    assert serialize(Parent(foo="one"), schema)
+
+
+def test_union_with_translated_string():
+    schema = create_schema(Union[Parent, str, None], {})
+    assert serialize(gettext("translated"), schema) == "translated"
+    assert serialize(gettext_lazy("lazy translated"), schema) == "lazy translated"
+
+
+def test_simple_union():
+    schema = create_schema(
+        Union[datetime.date, List[str], Tuple[int, str], int, str, bool, None], {}
+    )
+    # assert schema.schema == {'anyOf': [{'type': 'string'}, {'type': 'string'}, {'type': 'null'}]}
+    assert serialize(None, schema) is None
+    assert serialize(10, schema) == 10.0
+    assert serialize(datetime.date(2022, 1, 2), schema) == "2022-01-02"
+    assert serialize(["1", "2", "3"], schema) == ["1", "2", "3"]
+    assert serialize((5, "hello"), schema) == [5, "hello"]
+    assert serialize(True, schema) is True
+
+
+def test_pick_union():
+    schema = create_schema(Union[List[int], NamedPick, int, None], {})
+    assert serialize(models.Opera(name="My Opera"), schema) == {"name": "My Opera"}
+    assert serialize(10, schema) == 10.0
+    assert serialize(None, schema) is None
+    assert serialize([1, 2, 3], schema) == [1, 2, 3]

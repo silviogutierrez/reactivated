@@ -1,4 +1,4 @@
-import produce, {castDraft} from "immer";
+import {produce, castDraft} from "immer";
 import {FileInfoResult} from "prettier";
 import React from "react";
 
@@ -79,6 +79,7 @@ export interface FormHandler<T extends FieldMap> {
     nonFieldErrors: string[] | null;
 
     setValue: <K extends keyof T>(name: K, value: FormValues<T>[K]) => void;
+    setValues: (values: FormValues<T>) => void;
     setErrors: (errors: FormErrors<T>) => void;
     iterate: (
         iterator: Array<Extract<keyof T, string>>,
@@ -116,16 +117,15 @@ export const getInitialFormState = <T extends FieldMap>(form: FormLike<T>) => {
 
 export const getInitialFormSetState = <T extends FieldMap>(
     forms: Array<FormLike<T>>,
+    initial?: FormValues<T>[],
 ) => {
-    return Object.fromEntries(
-        forms.map((form) => [form.prefix, getInitialFormState(form)] as const),
-    );
+    return forms.map((form, index) => initial?.[index] ?? getInitialFormState(form));
 };
 
 export const getInitialFormSetErrors = <T extends FieldMap>(
     forms: Array<FormLike<T>>,
 ) => {
-    return Object.fromEntries(forms.map((form) => [form.prefix, form.errors] as const));
+    return forms.map((form, index) => form.errors);
 };
 
 export const getFormHandler = <T extends FieldMap>({
@@ -311,6 +311,9 @@ export const getFormHandler = <T extends FieldMap>({
         iterate,
         reset,
         setErrors,
+        setValues: (values) => {
+            setValues(() => values);
+        },
         setValue: (fieldName, value) => {
             changeValues(fieldName, (prevValues) => ({
                 ...prevValues,
@@ -320,23 +323,34 @@ export const getFormHandler = <T extends FieldMap>({
     };
 };
 
-export const useForm = <T extends FieldMap>({
-    form,
-    ...options
-}: {
+export const useForm = <
+    T extends FieldMap,
+    S extends Array<keyof T> = [],
+    R extends {[P in Exclude<keyof T, S[number]>]: T[P]} = {
+        [P in Exclude<keyof T, S[number]>]: T[P];
+    },
+>(options: {
     form: FormLike<T>;
+    initial?: Partial<FormValues<R>>;
+    exclude?: [...S];
     fieldInterceptor?: (
-        fieldName: keyof T,
-        field: FieldHandler<T[keyof T]["widget"]>,
-        values: FormValues<T>,
+        fieldName: keyof R,
+        field: FieldHandler<R[keyof R]["widget"]>,
+        values: FormValues<R>,
     ) => typeof field;
     changeInterceptor?: (
-        name: keyof T,
-        prevValues: FormValues<T>,
-        nextValues: FormValues<T>,
-    ) => FormValues<T>;
-}): FormHandler<T> => {
-    const initial = getInitialFormState(form);
+        name: keyof R,
+        prevValues: FormValues<R>,
+        nextValues: FormValues<R>,
+    ) => FormValues<R>;
+}): FormHandler<R> => {
+    const form = {
+        ...(options.form as any as FormLike<R>),
+        iterator: options.form.iterator.filter(
+            (field) => options.exclude == null || !options.exclude.includes(field),
+        ),
+    } as any as FormLike<R>;
+    const initial = {...getInitialFormState(form), ...options.initial};
     const [values, formSetValues] = React.useState(initial);
     const [errors, setErrors] = React.useState(form.errors);
 
@@ -492,11 +506,19 @@ export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
                 onChange={field.handler}
             />
         );
+    } else if (field.tag === "django.forms.widgets.PasswordInput") {
+        return (
+            <widgets.TextInput
+                name={field.name}
+                value={field.value}
+                onChange={field.handler}
+                type="password"
+            />
+        );
     } else if (
         field.tag === "django.forms.widgets.TextInput" ||
         field.tag === "django.forms.widgets.DateInput" ||
         field.tag === "django.forms.widgets.URLInput" ||
-        field.tag === "django.forms.widgets.PasswordInput" ||
         field.tag === "django.forms.widgets.EmailInput" ||
         field.tag === "django.forms.widgets.TimeInput" ||
         field.tag === "django.forms.widgets.NumberInput"
@@ -506,6 +528,7 @@ export const Widget = (props: {field: FieldHandler<widgets.CoreWidget>}) => {
                 name={field.name}
                 value={field.value}
                 onChange={field.handler}
+                placeholder={field.widget.attrs.placeholder}
             />
         );
     } else if (field.tag === "django.forms.widgets.Select") {
@@ -573,6 +596,7 @@ export const ManagementForm = <T extends FieldMap>({
 export const useFormSet = <T extends FieldMap>(options: {
     formSet: FormSetLike<T>;
     onAddForm?: (form: FormLike<T>) => void;
+    initial?: FormValues<T>[];
     fieldInterceptor?: (
         fieldName: keyof T,
         field: FieldHandler<T[keyof T]["widget"]>,
@@ -584,14 +608,40 @@ export const useFormSet = <T extends FieldMap>(options: {
         nextValues: FormValues<T>,
     ) => FormValues<T>;
 }) => {
-    const [formSet, setFormSet] = React.useState(options.formSet);
+    const createForm = (index: number) => {
+        return produce(options.formSet.empty_form, (draftState) => {
+            for (const fieldName of draftState.iterator) {
+                const prefix = `${options.formSet.prefix}-${index}`;
+                const field = draftState.fields[fieldName];
+                const htmlName = `${prefix}-${field.name}`;
+                draftState.fields[fieldName].widget.name = htmlName;
+                draftState.fields[fieldName].widget.attrs.id = `id_${htmlName}`;
+                draftState.prefix = prefix;
+            }
+        });
+    };
 
-    const initialFormSetState = getInitialFormSetState(options.formSet.forms);
+    const formSetFromInitialValues = produce(options.formSet, (draftState) => {
+        if (options.initial == null) {
+            return;
+        }
+        draftState.total_form_count = options.initial.length;
+        draftState.forms = options.initial.map((_, index) => {
+            return castDraft(createForm(index));
+        });
+    });
+
+    const [formSet, setFormSet] = React.useState(formSetFromInitialValues);
+
+    const initialFormSetState = getInitialFormSetState(
+        formSetFromInitialValues.forms,
+        options.initial,
+    );
     const initialFormSetErrors = getInitialFormSetErrors(options.formSet.forms);
     const [values, formSetSetValues] =
-        React.useState<Partial<typeof initialFormSetState>>(initialFormSetState);
+        React.useState<typeof initialFormSetState>(initialFormSetState);
     const [errors, formSetSetErrors] =
-        React.useState<Partial<typeof initialFormSetErrors>>(initialFormSetErrors);
+        React.useState<typeof initialFormSetErrors>(initialFormSetErrors);
 
     const emptyFormValues = getInitialFormState(formSet.empty_form);
 
@@ -600,24 +650,23 @@ export const useFormSet = <T extends FieldMap>(options: {
             form,
             changeInterceptor: options.changeInterceptor,
             fieldInterceptor: options.fieldInterceptor,
-            values: values[form.prefix] ?? emptyFormValues,
-            errors: errors[form.prefix] ?? {},
+            values: values[index] ?? emptyFormValues,
+            errors: errors[index] ?? {},
             setErrors: (nextErrors) => {
                 formSetSetErrors((prevErrors) => ({
                     ...prevErrors,
-                    [form.prefix]: nextErrors,
+                    [index]: nextErrors,
                 }));
             },
             initial: initialFormSetState[index] ?? emptyFormValues,
             setValues: (getValuesToSetFromPrevValues) => {
                 formSetSetValues((prevValues) => {
                     const nextValues = getValuesToSetFromPrevValues(
-                        prevValues[form.prefix] ?? emptyFormValues,
+                        prevValues[index] ?? emptyFormValues,
                     );
-                    return {
-                        ...prevValues,
-                        [form.prefix]: nextValues,
-                    };
+                    return produce(prevValues, (draftState) => {
+                        draftState[index] = castDraft(nextValues);
+                    });
                 });
             },
         });
@@ -625,18 +674,9 @@ export const useFormSet = <T extends FieldMap>(options: {
 
     const addForm = () => {
         const {total_form_count} = formSet;
-        type AdditionalForm = (typeof formSet)["forms"][number];
 
-        const extraForm = produce(formSet.empty_form, (draftState) => {
-            for (const fieldName of draftState.iterator) {
-                const prefix = `${formSet.prefix}-${formSet.total_form_count}`;
-                const field = draftState.fields[fieldName];
-                const htmlName = `${prefix}-${field.name}`;
-                draftState.fields[fieldName].widget.name = htmlName;
-                draftState.fields[fieldName].widget.attrs.id = `id_${htmlName}`;
-                draftState.prefix = prefix;
-            }
-        });
+        const extraForm = createForm(formSet.total_form_count);
+
         const updated = produce(formSet, (draftState) => {
             draftState.forms.push(castDraft(extraForm));
             draftState.total_form_count += 1;
@@ -646,7 +686,38 @@ export const useFormSet = <T extends FieldMap>(options: {
         options.onAddForm?.(extraForm);
     };
 
-    return {schema: formSet, values, forms, addForm};
+    const clear = () => {
+        setFormSet(
+            produce(formSet, (draftState) => {
+                formSetSetValues([]);
+                draftState.forms = [];
+                draftState.total_form_count = 0;
+            }),
+        );
+    };
+
+    const setFormsAndValues = (values: FormValues<T>[]) => {
+        formSetSetValues(values);
+
+        const updated = produce(formSet, (draftState) => {
+            draftState.total_form_count = values.length;
+            draftState.forms = values.map((_, index) => {
+                return castDraft(createForm(index));
+            });
+        });
+        setFormSet(updated);
+    };
+
+    return {
+        schema: formSet,
+        values,
+        forms,
+        addForm,
+        clear,
+        setFormsAndValues,
+        setErrors: formSetSetErrors,
+        setValues: formSetSetValues,
+    };
 };
 
 export const bindWidgetType = <W extends WidgetLike>() => {
@@ -767,3 +838,29 @@ export const FormSet = <T extends FieldMap<widgets.CoreWidget>>(props: {
         </>
     );
 };
+
+export type UnknownFormValues<T extends FieldMap> = {
+    [K in keyof T]: T[K] extends {enum: unknown} ? T[K]["enum"] | null : unknown;
+};
+
+// TODO: Should be T extends Record<string, FormLike<any> | FormSetLike<any>>
+// but jsonschema outputs interfaces instead of types. Figure out how to output a type.
+export type FormOrFormSetValues<T> = T extends {tag: "FormGroup"}
+    ? Omit<{[K in keyof T]: FormOrFormSetValues<T[K]>}, "tag">
+    : T extends FormLike<any>
+    ? UnknownFormValues<T["fields"]>
+    : T extends FormSetLike<any>
+    ? Array<UnknownFormValues<T["empty_form"]["fields"]>>
+    : T extends null
+    ? null
+    : never;
+
+export type FormOrFormSetErrors<T> = T extends {tag: "FormGroup"}
+    ? Omit<{[K in keyof T]?: FormOrFormSetErrors<T[K]>}, "tag">
+    : T extends FormLike<any>
+    ? NonNullable<T["errors"]>
+    : T extends FormSetLike<any>
+    ? Array<NonNullable<T["empty_form"]["errors"]>>
+    : T extends null
+    ? null
+    : never;

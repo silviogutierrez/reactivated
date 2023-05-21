@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import linaria from "@linaria/esbuild";
+import linaria from "./linaria";
 import {vanillaExtractPlugin} from "@vanilla-extract/esbuild-plugin";
 import * as esbuild from "esbuild";
 import ImportGlobPlugin from "esbuild-plugin-import-glob";
@@ -52,7 +52,7 @@ esbuild
             vanillaExtractPlugin({identifiers}),
             linaria({sourceMap: true}),
             {
-                name: 'restartServer',
+                name: "restartServer",
                 setup: (build) => {
                     if (production === false) {
                         build.onEnd((result) => {
@@ -60,13 +60,13 @@ esbuild
                         });
                     }
                 },
-            }
+            },
         ],
-    }).then(async context => {
+    })
+    .then(async (context) => {
         if (production === false) {
             context.watch();
-        }
-        else {
+        } else {
             await context.rebuild();
             process.exit();
         }

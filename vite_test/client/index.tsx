@@ -1,20 +1,22 @@
 import React from "react";
 import {createRoot} from "react-dom/client";
 import {HelmetProvider} from "react-helmet-async";
-// import "./index.css"
-// import "./index.css"
-
-import otherStyles from "./index.css?inline";
-console.log(otherStyles);
+import "./index.css"
+// import {getServerData} from "@reactivated"
 
 const root = createRoot(document.getElementById("root")!);
 
-import HomePage from "./templates/HomePage";
+const props: any = (window as any).__PRELOADED_PROPS__;
+const context: any = (window as any).__PRELOADED_CONTEXT__;
+console.log(context.template_name);
+
+// @ts-ignore
+const templates = import.meta.glob('@client/templates/*.tsx', {eager: true})
+const Template = templates[`/client/templates/${context.template_name}.tsx`].default;
 
 root.render(
     <HelmetProvider>
-        <style>{otherStyles}</style>
-        <HomePage />
+        <Template {...props} />
     </HelmetProvider>,
 );
 

@@ -108,6 +108,7 @@ def get_types_schema() -> Any:
                 },
             },
         },
+        "title": "_Types",
     }
 
 

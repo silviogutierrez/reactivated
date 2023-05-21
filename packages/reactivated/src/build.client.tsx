@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import linaria from "@linaria/esbuild";
+import linaria from "./linaria";
 import {vanillaExtractPlugin} from "@vanilla-extract/esbuild-plugin";
 import * as esbuild from "esbuild";
 import ImportGlobPlugin from "esbuild-plugin-import-glob";
@@ -21,7 +21,7 @@ const env = {
 };
 
 esbuild
-    .build({
+    .context({
         entryPoints,
         bundle: true,
         // We use terser to minify because esbuild breaks safari sourcemaps.
@@ -34,7 +34,6 @@ esbuild
         sourcemap: true,
         target: "es2018",
         preserveSymlinks: true,
-        watch: production === false,
         external: ["moment", "@client/generated/images"],
         define: {
             // You need both. The one from the stringified JSON is not picked
@@ -66,4 +65,11 @@ esbuild
             linaria({sourceMap: true, esbuildOptions: {sourcemap: "inline"}}),
         ],
     })
-    .catch(() => process.exit(1));
+    .then(async (context) => {
+        if (production === false) {
+            context.watch();
+        } else {
+            await context.rebuild();
+            process.exit();
+        }
+    });

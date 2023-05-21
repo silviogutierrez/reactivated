@@ -7,12 +7,16 @@ import linaria from "@linaria/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [vanillaExtractPlugin(), linaria({
-      include: ['**/*.{ts,tsx}'],
-      babelOptions: {
-        presets: ['@babel/preset-typescript', '@babel/preset-react'],
-      },
-    }), react()],
+    plugins: [
+        vanillaExtractPlugin(),
+        linaria({
+            include: ["**/*.{ts,tsx}"],
+            babelOptions: {
+                presets: ["@babel/preset-typescript", "@babel/preset-react"],
+            },
+        }),
+        react(),
+    ],
     server: {
         proxy: {},
     },

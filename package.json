@@ -1,7 +1,6 @@
 {
     "name": "main",
-    "dependencies": {
-    },
+    "dependencies": {},
     "workspaces": [
         "packages/reactivated",
         "packages/create-django-app",

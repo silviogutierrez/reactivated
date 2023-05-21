@@ -1,6 +1,8 @@
 {
     "name": "main",
-    "dependencies": {},
+    "dependencies": {
+        "@vanilla-extract/vite-plugin": "^3.8.2"
+    },
     "workspaces": [
         "packages/reactivated",
         "packages/create-django-app",

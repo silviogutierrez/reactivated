@@ -2,6 +2,7 @@ import atexit
 import os
 import re
 import subprocess
+import socket
 
 from django.conf import settings
 
@@ -17,19 +18,25 @@ def start_tsc() -> None:
 
 
 def start_client() -> None:
+    sock = socket.socket()
+    sock.bind(('', 0))
+    free_port = str(sock.getsockname()[1])
+
     entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
 
     client_process = subprocess.Popen(
         [
             "npm",
             "exec",
-            "build.client.js",
+            "vite",
             "--",
-            *entry_points,
+            "--port",
+            free_port,
         ],
         stdout=subprocess.PIPE,
         env={**os.environ.copy()},
     )
+    os.environ["REACTIVATED_CLIENT_PORT"] = free_port
     atexit.register(lambda: client_process.terminate())
 
 

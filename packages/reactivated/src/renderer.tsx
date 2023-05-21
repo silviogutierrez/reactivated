@@ -15,6 +15,9 @@ import {
 // co-located with the running process.
 const REACTIVATED_CLIENT_ROOT = process.env.REACTIVATED_CLIENT_ROOT ?? `../client`;
 
+export const REACTIVATED_CLIENT_PORT =
+    process.env.REACTIVATED_CLIENT_PORT ?? null;
+
 import {Settings} from "./models";
 
 // TODO: WHAT DOES THIS NEED TO BE? Even 100k was super fragile and a 10 choice field broke it.
@@ -50,6 +53,17 @@ export const renderPage = ({
                 /</g,
                 "\\u003c",
             )}
+        </script>
+
+        <script type="module" src="http://localhost:${REACTIVATED_CLIENT_PORT}/@vite/client"></script>
+        <script type="module" src="http://localhost:${REACTIVATED_CLIENT_PORT}/client/index.tsx"></script>
+
+        <script type="module">
+          import RefreshRuntime from 'http://localhost:${REACTIVATED_CLIENT_PORT}/@react-refresh'
+          RefreshRuntime.injectIntoGlobalHook(window)
+          window.$RefreshReg$ = () => {}
+          window.$RefreshSig$ = () => (type) => type
+          window.__vite_plugin_react_preamble_installed__ = true
         </script>
 
         ${helmet.base.toString()}

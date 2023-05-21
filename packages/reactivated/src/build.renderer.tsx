@@ -13,8 +13,17 @@ const CACHE_KEY = `${process.cwd()}/node_modules/_reactivated/renderer.js`;
 const production = process.env.NODE_ENV === "production";
 const identifiers = production ? "short" : "debug";
 
+const restartServer = () => {
+    if (server != null) {
+        server.close();
+    }
+
+    delete require.cache[CACHE_KEY];
+    server = require(CACHE_KEY).server;
+};
+
 esbuild
-    .build({
+    .context({
         stdin: {
             contents: `
                 export {server} from "reactivated/dist/renderer";
@@ -33,14 +42,6 @@ esbuild
         // of the location of reactivated being in the cwd node_modules or
         // above as in monorepos.
         nodePaths: [`${process.cwd()}/node_modules`],
-        watch:
-            production === true
-                ? false
-                : {
-                      onRebuild: () => {
-                          restartServer();
-                      },
-                  },
         plugins: [
             ImportGlobPlugin(),
             // We manually pass in identifiers because the client is not
@@ -50,20 +51,23 @@ esbuild
             // settings.
             vanillaExtractPlugin({identifiers}),
             linaria({sourceMap: true}),
+            {
+                name: 'restartServer',
+                setup: (build) => {
+                    if (production === false) {
+                        build.onEnd((result) => {
+                            restartServer();
+                        });
+                    }
+                },
+            }
         ],
-    })
-    .then(() => {
+    }).then(async context => {
         if (production === false) {
-            restartServer();
+            context.watch();
         }
-    })
-    .catch(() => process.exit(1));
-
-const restartServer = () => {
-    if (server != null) {
-        server.close();
-    }
-
-    delete require.cache[CACHE_KEY];
-    server = require(CACHE_KEY).server;
-};
+        else {
+            await context.rebuild();
+            process.exit();
+        }
+    });

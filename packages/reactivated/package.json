@@ -37,7 +37,7 @@
         "@vanilla-extract/recipes": "^0.4.0",
         "@vanilla-extract/sprinkles": "^1.6.0",
         "babel-plugin-module-resolver": "^5.0.0",
-        "esbuild": "^0.15.16",
+        "esbuild": "^0.17.19",
         "esbuild-plugin-import-glob": "^0.1.1",
         "eslint": "^8.40.0",
         "eslint-config-prettier": "^8.8.0",

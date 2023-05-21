@@ -1,8 +1,6 @@
 {
     "name": "main",
     "dependencies": {
-        "@linaria/vite": "^4.2.11",
-        "@vanilla-extract/vite-plugin": "^3.8.2"
     },
     "workspaces": [
         "packages/reactivated",

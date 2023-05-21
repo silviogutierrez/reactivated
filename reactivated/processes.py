@@ -1,8 +1,8 @@
 import atexit
 import os
 import re
-import subprocess
 import socket
+import subprocess
 
 from django.conf import settings
 
@@ -19,7 +19,7 @@ def start_tsc() -> None:
 
 def start_client() -> None:
     sock = socket.socket()
-    sock.bind(('', 0))
+    sock.bind(("", 0))
     free_port = str(sock.getsockname()[1])
 
     entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])

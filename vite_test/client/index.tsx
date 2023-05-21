@@ -4,7 +4,7 @@ import {HelmetProvider} from "react-helmet-async";
 // import "./index.css"
 // import "./index.css"
 
-import otherStyles from './index.css?inline' 
+import otherStyles from "./index.css?inline";
 console.log(otherStyles);
 
 const root = createRoot(document.getElementById("root")!);
@@ -14,7 +14,7 @@ import HomePage from "./templates/HomePage";
 root.render(
     <HelmetProvider>
         <style>{otherStyles}</style>
-        <HomePage /> 
+        <HomePage />
     </HelmetProvider>,
 );
 

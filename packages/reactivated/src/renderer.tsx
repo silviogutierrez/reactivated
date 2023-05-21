@@ -15,8 +15,7 @@ import {
 // co-located with the running process.
 const REACTIVATED_CLIENT_ROOT = process.env.REACTIVATED_CLIENT_ROOT ?? `../client`;
 
-export const REACTIVATED_CLIENT_PORT =
-    process.env.REACTIVATED_CLIENT_PORT ?? null;
+export const REACTIVATED_CLIENT_PORT = process.env.REACTIVATED_CLIENT_PORT ?? null;
 
 import {Settings} from "./models";
 

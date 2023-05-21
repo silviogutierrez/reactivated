@@ -1,9 +1,6 @@
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect
-from django.utils import timezone
-from django.utils.version import get_docs_version
 
-from . import forms, models, templates
+from . import templates
 
 
 def home_page(request: HttpRequest) -> HttpResponse:

@@ -11,10 +11,6 @@ import {
     HelmetServerState,
 } from "react-helmet-async";
 
-// Useful when running e2e tests or the like, where the output is not
-// co-located with the running process.
-const REACTIVATED_CLIENT_ROOT = process.env.REACTIVATED_CLIENT_ROOT ?? `../client`;
-
 import {Settings} from "./models";
 
 // TODO: WHAT DOES THIS NEED TO BE? Even 100k was super fragile and a 10 choice field broke it.

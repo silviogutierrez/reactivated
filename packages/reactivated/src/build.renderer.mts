@@ -6,6 +6,8 @@ import * as esbuild from "esbuild";
 import ImportGlobPlugin from "esbuild-plugin-import-glob";
 import http from "http";
 import fs from "fs";
+import path from "path";
+import {createRequire} from "module";
 
 let server: http.Server | null = null;
 
@@ -18,17 +20,19 @@ const restartServer = async () => {
         server.close();
     }
 
-    const now = Date.now();
-    // delete require.cache[CACHE_KEY];
-    // @ts-ignore
-    server = (await import(`${CACHE_KEY}?${now}`)).server;
+    const modulePath = path.resolve(CACHE_KEY);
+
+    // https://ar.al/2021/02/22/cache-busting-in-node.js-dynamic-esm-imports/
+    const require = createRequire(import.meta.url);
+    delete require.cache[CACHE_KEY];
+    server = require(CACHE_KEY);
 };
 
 esbuild
     .context({
         stdin: {
             contents: `
-                export {server} from "reactivated/dist/renderer";
+                export {server, currentTime} from "reactivated/dist/renderer";
             `,
             resolveDir: process.cwd(),
             loader: "ts",

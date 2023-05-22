@@ -64,7 +64,6 @@ esbuild
                     if (production === false) {
                         build.onEnd((result: any) => {
                             restartServer();
-                            process.exit();
                         });
                     }
                 },

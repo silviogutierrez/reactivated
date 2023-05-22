@@ -55,8 +55,8 @@ esbuild
             ".woff2": "file",
         },
         plugins: [
-            // @ts-ignore
-            ImportGlobPlugin.default(),
+            // ESM imports make this weird.
+            (ImportGlobPlugin as unknown as {default: () => esbuild.Plugin}).default(),
             // We manually pass in identifiers because the client is not
             // minified by esbuild but the renderer is, so class names could
             // differ.

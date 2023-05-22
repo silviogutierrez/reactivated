@@ -25,7 +25,7 @@ const restartServer = async () => {
     // https://ar.al/2021/02/22/cache-busting-in-node.js-dynamic-esm-imports/
     const require = createRequire(import.meta.url);
     delete require.cache[CACHE_KEY];
-    server = require(CACHE_KEY);
+    server = require(CACHE_KEY).server;
 };
 
 esbuild

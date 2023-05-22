@@ -56,13 +56,18 @@ jobs:
                   TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+                  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
               run: |
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]
                   then
                       nix-shell --command "scripts/release.sh --versioning ${{ github.event.inputs.versioning }}"
+                      cd website
+                      scripts/deploy.sh
                   elif [ "${{ github.event.pull_request.merged }}" = "true" ] && [ "${{ contains(github.event.pull_request.labels.*.name, 'autorelease') }}" = "true" ]
                   then
                       nix-shell --command "scripts/release.sh --versioning patch"
+                      cd website
+                      scripts/deploy.sh
                   else
                       nix-shell --command "scripts/release.sh --versioning snapshot"
                   fi

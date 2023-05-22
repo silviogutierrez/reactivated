@@ -55,10 +55,13 @@ jobs:
                   fetch-depth: 0
             - uses: ./.github/actions/setup
             - name: Run tests
+              env:
+                  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
               run: |
                   cd website
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "scripts/test.sh --all"
+                  scripts/deploy.sh --build-only
     docker_tests:
         name: Docker tests
         runs-on: ubuntu-22.04

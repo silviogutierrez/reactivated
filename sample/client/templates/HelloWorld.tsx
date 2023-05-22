@@ -14,7 +14,7 @@ export default (props: templates.HelloWorld) => {
 
     return (
         <Layout title="Hello world!">
-            <h1>Hello World 50!</h1>
+            <h1>Hello World!</h1>
             <Paragraph>
                 The{" "}
                 <span

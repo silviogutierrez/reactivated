@@ -44,8 +44,8 @@ def patched_restart_with_reloader() -> None:
 
     schema = get_schema()
     generate_schema(schema)
-    # processes.start_tsc()
-    # processes.start_client()
+    processes.start_tsc()
+    processes.start_client()
     processes.start_renderer()
     original_restart_with_reloader()
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import linaria from "./linaria";
+import linaria from "./linaria.mjs";
 import {vanillaExtractPlugin} from "@vanilla-extract/esbuild-plugin";
 import * as esbuild from "esbuild";
 import ImportGlobPlugin from "esbuild-plugin-import-glob";
@@ -55,7 +55,8 @@ esbuild
             ".woff2": "file",
         },
         plugins: [
-            ImportGlobPlugin(),
+            // @ts-ignore
+            ImportGlobPlugin.default(),
             // We manually pass in identifiers because the client is not
             // minified by esbuild but the renderer is, so class names could
             // differ.

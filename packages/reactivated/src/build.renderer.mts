@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import linaria from "./linaria";
+import linaria from "./linaria.mjs";
 import {vanillaExtractPlugin} from "@vanilla-extract/esbuild-plugin";
 import * as esbuild from "esbuild";
 import ImportGlobPlugin from "esbuild-plugin-import-glob";
 import http from "http";
-import fs = require("fs");
+import fs from "fs";
 
 let server: http.Server | null = null;
 
@@ -13,13 +13,15 @@ const CACHE_KEY = `${process.cwd()}/node_modules/_reactivated/renderer.js`;
 const production = process.env.NODE_ENV === "production";
 const identifiers = production ? "short" : "debug";
 
-const restartServer = () => {
+const restartServer = async () => {
     if (server != null) {
         server.close();
     }
 
-    delete require.cache[CACHE_KEY];
-    server = require(CACHE_KEY).server;
+    const now = Date.now();
+    // delete require.cache[CACHE_KEY];
+    // @ts-ignore
+    server = (await import(`${CACHE_KEY}?${now}`)).server;
 };
 
 esbuild
@@ -43,7 +45,8 @@ esbuild
         // above as in monorepos.
         nodePaths: [`${process.cwd()}/node_modules`],
         plugins: [
-            ImportGlobPlugin(),
+            // @ts-ignore
+            ImportGlobPlugin.default(),
             // We manually pass in identifiers because the client is not
             // minified by esbuild but the renderer is, so class names could
             // differ.
@@ -53,9 +56,9 @@ esbuild
             linaria({sourceMap: true}),
             {
                 name: "restartServer",
-                setup: (build) => {
+                setup: (build: any) => {
                     if (production === false) {
-                        build.onEnd((result) => {
+                        build.onEnd((result: any) => {
                             restartServer();
                         });
                     }

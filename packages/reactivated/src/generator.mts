@@ -7,7 +7,8 @@ import * as generated from "./generated";
 // json-schema-to-typescript messes up the descriptor even if unused.
 const stdinBuffer = fs.readFileSync(0);
 
-import {compile} from "json-schema-to-typescript";
+const {compile} = await import("json-schema-to-typescript");
+
 import {
     Project,
     SourceFile,

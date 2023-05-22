@@ -23,7 +23,7 @@ def start_client() -> None:
         [
             "npm",
             "exec",
-            "build.client.js",
+            "build.client",
             "--",
             *entry_points,
         ],
@@ -37,7 +37,7 @@ def start_renderer() -> None:
     os.environ["REACTIVATED_RENDERER"] = "true"
 
     renderer_process = subprocess.Popen(
-        ["npm", "exec", "build.renderer.js"],
+        ["npm", "exec", "build.renderer"],
         encoding="utf-8",
         stdout=subprocess.PIPE,
         env={

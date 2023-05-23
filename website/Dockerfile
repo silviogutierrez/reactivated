@@ -25,7 +25,6 @@ RUN npm install ./monorepo/node.tgz
 # RUN rm -rf node_modules/reactivated/*
 # COPY node_modules/reactivated node_modules/reactivated
 
-COPY .babelrc.json .
 COPY manage.py .
 COPY server server
 COPY static static

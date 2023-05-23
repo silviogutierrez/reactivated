@@ -11,10 +11,6 @@ import {
     HelmetServerState,
 } from "react-helmet-async";
 
-// Useful when running e2e tests or the like, where the output is not
-// co-located with the running process.
-const REACTIVATED_CLIENT_ROOT = process.env.REACTIVATED_CLIENT_ROOT ?? `../client`;
-
 import {Settings} from "./models";
 
 // TODO: WHAT DOES THIS NEED TO BE? Even 100k was super fragile and a 10 choice field broke it.
@@ -78,8 +74,15 @@ type Result =
           error: any;
       };
 
-export const render = ({context, props}: {context: any; props: any}): Result => {
-    const {Provider, getTemplate} = require("_reactivated/index.tsx");
+export const render = async ({
+    context,
+    props,
+}: {
+    context: any;
+    props: any;
+}): Promise<Result> => {
+    // @ts-ignore
+    const {Provider, getTemplate} = await import("_reactivated/index.tsx");
 
     try {
         const Template = getTemplate(context);
@@ -136,8 +139,8 @@ export const server = http.createServer((req, res) => {
     req.on("data", (chunk) => {
         body = Buffer.concat([body, chunk as Buffer]);
     });
-    req.on("end", () => {
-        const result = serverRender(body);
+    req.on("end", async () => {
+        const result = await serverRender(body);
 
         if (result.status === "success") {
             res.writeHead(OK_RESPONSE, {"Content-Type": "text/html; charset=utf-8"});

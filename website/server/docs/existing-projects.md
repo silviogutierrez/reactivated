@@ -84,17 +84,10 @@ Next to `manage.py` in `BASE_DIR`, create the following structure:
 ```
 -   BASE_DIR
     -   manage.py
-    -   .babelrc.json
     -   tsconfig.json
     -   client
         -   index.tsx
         -   templates
-```
-
-Add the following code to `.babelrc.json`:
-
-```json
-{"extends": "reactivated/dist/babel.config.js"}
 ```
 
 Add the following code to `tsconfig.json`:

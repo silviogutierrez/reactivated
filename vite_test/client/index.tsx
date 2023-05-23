@@ -1,14 +1,13 @@
 import React from "react";
+
 import {createRoot} from "react-dom/client";
+import {Provider, getServerData} from "@reactivated";
 import {HelmetProvider} from "react-helmet-async";
-import "./index.css";
-// import {getServerData} from "@reactivated"
+
+import "@client/index.css";
 
 const root = createRoot(document.getElementById("root")!);
-
-const props: any = (window as any).__PRELOADED_PROPS__;
-const context: any = (window as any).__PRELOADED_CONTEXT__;
-console.log(context.template_name);
+const {props, context} = getServerData();
 
 // @ts-ignore
 const templates = import.meta.glob("@client/templates/*.tsx", {eager: true});
@@ -16,7 +15,9 @@ const Template = templates[`/client/templates/${context.template_name}.tsx`].def
 
 root.render(
     <HelmetProvider>
-        <Template {...props} />
+        <Provider value={context}>
+            <Template {...props} />
+        </Provider>
     </HelmetProvider>,
 );
 

@@ -30,6 +30,7 @@ def start_client() -> None:
             "exec",
             "vite",
             "--",
+            "--force",
             "--port",
             free_port,
         ],

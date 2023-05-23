@@ -864,3 +864,17 @@ export type FormOrFormSetErrors<T> = T extends {tag: "FormGroup"}
     : T extends null
     ? null
     : never;
+
+// Used by Joy, but unsure what this is for.
+export const getValue = (optgroup: Optgroup) => {
+    const rawValue = optgroup[1][0].value;
+
+    if (rawValue == null) {
+        return "";
+    } else if (rawValue === true) {
+        return "True";
+    } else if (rawValue === false) {
+        return "False";
+    }
+    return rawValue;
+};

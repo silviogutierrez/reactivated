@@ -103,12 +103,30 @@ export default function linaria({
                     code += `/*# sourceMappingURL=data:application/json;base64,${esbuildMap}*/`;
                 }
 
+                const babelOptions = {
+                    presets: [
+                        ["@babel/preset-env", {targets: {node: "v12.13.0"}}],
+                        ["@babel/preset-typescript", {allowNamespaces: true}],
+                    ],
+                    plugins: [
+                        [
+                            "module-resolver",
+                            {
+                                root: ["./"],
+                                alias: {
+                                    "@client": "./client",
+                                },
+                            },
+                        ],
+                    ],
+                };
+
                 const result = await transform(
                     code,
                     {
                         filename: args.path,
                         preprocessor,
-                        pluginOptions: rest,
+                        pluginOptions: {...rest, babelOptions},
                     },
                     asyncResolve,
                 );

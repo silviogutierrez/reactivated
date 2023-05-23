@@ -11,11 +11,15 @@ on:
             - main
     pull_request_target:
         types: [labeled, opened, synchronize, reopened, closed]
+    pull_request:
+        types: [labeled, opened, synchronize, reopened, closed]
+        branches:
+            - main
 jobs:
     release:
         name: Create releases or snapshot
         runs-on: ubuntu-22.04
-        if: github.event_name != 'pull_request_target' || (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'autorelease')) || (github.event_name == 'pull_request_target' && github.event.pull_request.merged == false && contains(github.event.pull_request.labels.*.name, 'snapshot'))
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'autorelease')) || (github.event_name == 'pull_request_target' && github.event.pull_request.merged == false && contains(github.event.pull_request.labels.*.name, 'snapshot'))
         # Currently unused, we do everything within the same job.
         outputs:
             VERSION_TAG: ${{ steps.publish_release.outputs.VERSION_TAG }}
@@ -30,7 +34,7 @@ jobs:
                       -H 'Authorization: token ${{ github.token }}' \
                       'https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/labels/snapshot'
             - uses: actions/checkout@v3
-              if: github.event_name != 'pull_request_target'
+              if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
               with:
                   fetch-depth: 0
             - uses: actions/checkout@v3

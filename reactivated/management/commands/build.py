@@ -41,7 +41,7 @@ class Command(BaseCommand):
             [
                 "npm",
                 "exec",
-                "build.client.js",
+                "build.client",
                 "--",
                 *entry_points,
             ],
@@ -50,7 +50,7 @@ class Command(BaseCommand):
             cwd=settings.BASE_DIR,
         )
         renderer_process = subprocess.Popen(
-            ["npm", "exec", "build.renderer.js"],
+            ["npm", "exec", "build.renderer"],
             stdout=subprocess.PIPE,
             env=build_env,
             cwd=settings.BASE_DIR,

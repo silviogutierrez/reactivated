@@ -4,6 +4,7 @@ import {Layout} from "@client/Layout";
 import {css} from "@linaria/core";
 import {styled} from "@linaria/react";
 import {templates} from "@reactivated";
+import * as styles from "@client/styles";
 
 const Paragraph = styled.p`
     color: #444;
@@ -16,15 +17,8 @@ export default (props: templates.HelloWorld) => {
         <Layout title="Hello world!">
             <h1>Hello World!</h1>
             <Paragraph>
-                The{" "}
-                <span
-                    className={css`
-                        color: blue;
-                    `}
-                >
-                    best
-                </span>{" "}
-                opera is <strong>{props.opera.name}</strong> by{" "}
+                The <span className={styles.testing}>best</span> opera is{" "}
+                <strong>{props.opera.name}</strong> by{" "}
                 <strong>{props.opera.composer.name}</strong>.
             </Paragraph>
             {showStyle === false ? (
@@ -33,7 +27,15 @@ export default (props: templates.HelloWorld) => {
                     <a href="#" onClick={() => setShowStyle(true)}>
                         here
                     </a>{" "}
-                    to see what style of opera it is.
+                    to see what{" "}
+                    <span
+                        className={css`
+                            ${styles.more()}
+                        `}
+                    >
+                        style
+                    </span>{" "}
+                    of opera it is.
                 </Paragraph>
             ) : (
                 <Paragraph>

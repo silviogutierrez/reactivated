@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
-import linaria from "./linaria";
+import linaria from "./linaria.mjs";
 import {vanillaExtractPlugin} from "@vanilla-extract/esbuild-plugin";
 import * as esbuild from "esbuild";
 import ImportGlobPlugin from "esbuild-plugin-import-glob";
 import http from "http";
-import fs = require("fs");
+import fs from "fs";
+import path from "path";
+import {createRequire} from "module";
 
 let server: http.Server | null = null;
 
@@ -13,11 +15,15 @@ const CACHE_KEY = `${process.cwd()}/node_modules/_reactivated/renderer.js`;
 const production = process.env.NODE_ENV === "production";
 const identifiers = production ? "short" : "debug";
 
-const restartServer = () => {
+const restartServer = async () => {
     if (server != null) {
         server.close();
     }
 
+    const modulePath = path.resolve(CACHE_KEY);
+
+    // https://ar.al/2021/02/22/cache-busting-in-node.js-dynamic-esm-imports/
+    const require = createRequire(import.meta.url);
     delete require.cache[CACHE_KEY];
     server = require(CACHE_KEY).server;
 };
@@ -26,7 +32,7 @@ esbuild
     .context({
         stdin: {
             contents: `
-                export {server} from "reactivated/dist/renderer";
+                export {server, currentTime} from "reactivated/dist/renderer";
             `,
             resolveDir: process.cwd(),
             loader: "ts",
@@ -43,7 +49,8 @@ esbuild
         // above as in monorepos.
         nodePaths: [`${process.cwd()}/node_modules`],
         plugins: [
-            ImportGlobPlugin(),
+            // ESM imports make this weird.
+            (ImportGlobPlugin as unknown as {default: () => esbuild.Plugin}).default(),
             // We manually pass in identifiers because the client is not
             // minified by esbuild but the renderer is, so class names could
             // differ.

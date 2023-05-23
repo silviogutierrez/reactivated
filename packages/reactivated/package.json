@@ -1,8 +1,14 @@
 {
     "name": "reactivated",
-    "version": "0.30.0",
+    "version": "0.30.1",
     "description": "",
-    "main": "dist/index.js",
+    "exports": {
+        ".": "./dist/index.js",
+        "./dist/renderer": "./dist/renderer.js",
+        "./dist/forms": "./dist/forms/index.js",
+        "./dist/context": "./dist/context.js",
+        "./dist/babel.config.js": "./dist/babel.config.js"
+    },
     "typings": "dist/index.d.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,10 +17,10 @@
     "author": "",
     "bin": {
         "setup_environment.sh": "./scripts/setup_environment.sh",
-        "generate_client_assets": "./dist/generator.js",
-        "generate_client_constants": "./dist/generator/constants.js",
-        "build.client.js": "./dist/build.client.js",
-        "build.renderer.js": "./dist/build.renderer.js"
+        "generate_client_assets": "./dist/generator.mjs",
+        "generate_client_constants": "./dist/generator/constants.mjs",
+        "build.client": "./dist/build.client.mjs",
+        "build.renderer": "./dist/build.renderer.mjs"
     },
     "license": "ISC",
     "peerDependencies": {

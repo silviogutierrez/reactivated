@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell ../shell.nix --pure -i bash
+#! nix-shell ../shell.nix --pure -i bash --keep FLY_API_TOKEN
 set -e
 
 # Ensure we are logged in.

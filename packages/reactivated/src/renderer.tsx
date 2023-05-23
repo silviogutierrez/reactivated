@@ -50,9 +50,6 @@ export const renderPage = ({
             )}
         </script>
 
-        <script type="module" src="http://localhost:${REACTIVATED_CLIENT_PORT}/@vite/client"></script>
-        <script type="module" src="http://localhost:${REACTIVATED_CLIENT_PORT}/client/index.tsx"></script>
-
         <script type="module">
           import RefreshRuntime from 'http://localhost:${REACTIVATED_CLIENT_PORT}/@react-refresh'
           RefreshRuntime.injectIntoGlobalHook(window)
@@ -60,6 +57,9 @@ export const renderPage = ({
           window.$RefreshSig$ = () => (type) => type
           window.__vite_plugin_react_preamble_installed__ = true
         </script>
+
+        <script type="module" src="http://localhost:${REACTIVATED_CLIENT_PORT}/@vite/client"></script>
+        <script type="module" src="http://localhost:${REACTIVATED_CLIENT_PORT}/client/index.tsx"></script>
 
         ${helmet.base.toString()}
         ${helmet.link.toString()}
@@ -95,17 +95,15 @@ export const render = async ({
     props: any;
 }): Promise<Result> => {
     // @ts-ignore
-    const {Provider, getTemplate} = await import("_reactivated/index.tsx");
+    const {getSSRTemplate} = await import("_reactivated/index.tsx");
 
     try {
-        const Template = getTemplate(context);
+        const Template = getSSRTemplate(context);
         const helmetContext = {} as FilledContext;
 
         const rendered = ReactDOMServer.renderToString(
             <HelmetProvider context={helmetContext}>
-                <Provider value={context}>
-                    <Template {...props} />
-                </Provider>
+                <Template {...props} />
             </HelmetProvider>,
         );
 

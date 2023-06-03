@@ -210,7 +210,7 @@ export default (props: templates.PollComments) => {
 };
 ```
 
-You'll notice this will work with our without JavaScript enabled. Moreover, data is
+You'll notice this will work with or without JavaScript enabled. Moreover, data is
 reloaded with a single request.
 
 You can use our [setup script](/documentation/get-started/) to try out the full example

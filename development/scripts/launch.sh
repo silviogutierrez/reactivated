@@ -44,7 +44,7 @@ flyctl deploy --remote-only
 # TODO: do we need this too? thanks to the retry above it seems to be fine.
 # flyctl ssh establish personal override
 # sleep 30
-flyctl ssh console --command "sh migrate.sh"
+flyctl ssh console --command "sh /migrate.sh"
 
 # shellcheck disable=SC2015
 for _ in 1 2 3 4 5 6 7 8 9 10; do curl -s "$URL" >/dev/null && break || sleep 30; done

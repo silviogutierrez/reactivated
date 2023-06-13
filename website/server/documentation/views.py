@@ -1,3 +1,5 @@
+from typing import Optional
+
 import requests
 from django.conf import settings
 from django.core.cache import cache
@@ -42,8 +44,8 @@ def home_page(request: HttpRequest) -> HttpResponse:
     return templates.HomePage(stars=stars).render(request)
 
 
-def install(request: HttpRequest) -> HttpResponse:
-    latest_tag = cache.get_or_set("tag", get_latest_tag)
+def install(request: HttpRequest, *, tag: Optional[str] = None) -> HttpResponse:
+    tag = tag or cache.get_or_set("tag", get_latest_tag)
 
     return HttpResponse(
         """
@@ -65,7 +67,7 @@ mkShell {
   '';
 }
     """
-        % latest_tag
+        % tag
     )
 
 

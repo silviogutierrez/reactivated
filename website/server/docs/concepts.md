@@ -213,8 +213,8 @@ export default (props: templates.PollComments) => {
 You'll notice this will work with or without JavaScript enabled. Moreover, data is
 reloaded with a single request.
 
-You can use our [setup script](/documentation/get-started/) to try out the full example
-and review the code.
+You can use our [setup script](/documentation/getting-started/) to try out the full
+example and review the code.
 
 In the future, Reactivated will provide higher-level helpers to streamline this process
 but this should illustrate the general flow.

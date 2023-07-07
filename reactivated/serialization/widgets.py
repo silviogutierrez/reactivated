@@ -151,14 +151,14 @@ class BaseWidget(NamedTuple):
     def get_serialized_value(
         Proxy: Type["BaseWidget"], value: Any, schema: "Thing"
     ) -> JSON:
-        from . import serialize
+        from . import object_serializer
 
         widget_class = value.__class__
         context = value if isinstance(value, dict) else value._reactivated_get_context()
 
         # TODO: exclude value, and do it manually by calling get_value()
         # So call named_tuple serialized directly instead of serialize()
-        serialized = serialize(context, schema, suppress_custom_serializer=True)
+        serialized = object_serializer(context, schema, exclude=["value"])
         serialized["tag"] = f"{widget_class.__module__}.{widget_class.__qualname__}"
         serialized["value"] = Proxy.coerce_value(context)
 
@@ -288,6 +288,7 @@ class Textarea(BaseWidget):
 class Select(BaseWidget):
     template_name: Literal["django/forms/widgets/select.html"]
     optgroups: List[Optgroup]
+    value: Union[str, None]
 
     @staticmethod
     def coerce_value(context: Any) -> Any:

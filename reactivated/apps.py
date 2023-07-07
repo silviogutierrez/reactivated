@@ -7,14 +7,14 @@ from typing import Any, Dict, NamedTuple, Tuple
 
 from django.apps import AppConfig
 from django.conf import settings
-from django.utils.autoreload import file_changed  # type: ignore[attr-defined]
 
 from . import extract_views_from_urlpatterns, types
-from .serialization import create_schema
+from .serialization import create_schema, serialize
 from .serialization.registry import (
     definitions_registry,
     global_types,
     interface_registry,
+    rpc_registry,
     template_registry,
     type_registry,
     value_registry,
@@ -90,6 +90,11 @@ def get_types_schema() -> Any:
 
     type_registry["Context"] = create_context_processor_type(context_processors)
 
+    if "RPCPermission" not in type_registry:
+        type_registry["RPCPermission"] = None  # type: ignore[assignment]
+
+    type_registry["Context"] = create_context_processor_type(context_processors)
+
     ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore[misc]
     parent_schema, definitions = create_schema(ParentTuple, definitions_registry)
     definitions_registry.update(definitions)
@@ -121,11 +126,21 @@ def get_interfaces() -> Dict[str, Tuple[Any]]:
 
 
 def get_values() -> Dict[str, Any]:
-    return value_registry
+    serialized = {}
+
+    for key, (value, serialize_as_is) in value_registry.items():
+        if serialize_as_is is True:
+            serialized[key] = value
+        else:
+            generated_schema = create_schema(value, {})
+            generated_schema.definitions["is_static_context"] = True  # type: ignore[index]
+            serialized[key] = serialize(value, generated_schema)
+    return serialized
 
 
 def get_schema() -> str:
     schema = {
+        "rpc": rpc_registry,
         "urls": get_urls_schema(),
         "templates": get_templates(),
         "interfaces": get_interfaces(),
@@ -151,7 +166,7 @@ class ReactivatedConfig(AppConfig):
             schema = get_schema()
             generate_schema(schema)
 
-        file_changed.connect(regenerate_schema)
+        # file_changed.connect(regenerate_schema)
 
 
 def generate_schema(schema: str, skip_cache: bool = False) -> None:

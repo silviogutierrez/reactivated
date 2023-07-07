@@ -10,7 +10,9 @@ const stdinBuffer = fs.readFileSync(0);
 const {compile} = await import("json-schema-to-typescript");
 
 import {
+    CodeBlockWriter,
     Project,
+    Scope,
     SourceFile,
     StructureKind,
     SyntaxKind,
@@ -20,7 +22,16 @@ import {
 } from "ts-morph";
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
-const {urls: possibleEmptyUrls, templates, interfaces, types, values} = schema;
+const {
+    urls: possibleEmptyUrls,
+    templates,
+    interfaces,
+    rpc: uncastedRpc,
+    types,
+    values,
+} = schema;
+
+const rpc: generated.Types["RPCRegistry"] = uncastedRpc;
 
 const urls: generated.Types["URLSchema"] = {
     ...possibleEmptyUrls,
@@ -39,6 +50,154 @@ const urls: generated.Types["URLSchema"] = {
 const project = new Project();
 
 const sourceFile = project.createSourceFile("");
+
+const classDeclaration = sourceFile.addClass({
+    name: "RPC",
+    isExported: true,
+});
+
+const rpcConstructor = classDeclaration.addConstructor({
+    parameters: [{name: "requester", type: "rpcUtils.Requester", scope: Scope.Public}],
+});
+
+let rpcConstructorBody = "";
+
+for (const name of Object.keys(rpc)) {
+    const {url, input, output, type, params} = rpc[name];
+    const functionDeclaration = classDeclaration.addMethod({
+        name,
+    });
+
+    rpcConstructorBody += `this.${name} = (this.${name} as any).bind(this);\n`;
+    functionDeclaration.setIsAsync(true);
+
+    functionDeclaration.addParameter({
+        name: "this",
+        type: "void",
+    });
+
+    let bodyText = "";
+    const initializer = {
+        url: (writer: CodeBlockWriter) => writer.quote(url),
+        name: (writer: CodeBlockWriter) => writer.quote(name),
+    };
+
+    if (params.length >= 1) {
+        const paramsInterface = functionDeclaration.addInterface({
+            name: "WILL_BE_STRIPPED",
+        });
+
+        const iterator = [];
+        for (const [paramType, paramName] of params) {
+            paramsInterface.addProperty({name: paramName, type: "string | number"});
+            iterator.push(paramName);
+        }
+        functionDeclaration.addParameter({
+            name: "params",
+            type: paramsInterface.getText().replace("interface WILL_BE_STRIPPED", ""),
+        });
+
+        Object.assign(initializer, {
+            paramsAndIterator: Writers.object({
+                iterator: JSON.stringify(iterator),
+                params: "params",
+            }),
+        });
+        // Otherwise our interface will be inserted.
+        functionDeclaration.setBodyText("");
+    } else {
+        Object.assign(initializer, {paramsAndIterator: "null"});
+    }
+
+    if (input != null) {
+        const property = classDeclaration.addProperty({
+            // isStatic: true,
+            name: input,
+            type: `_Types["${input}"]`,
+            initializer: JSON.stringify(values[input]),
+        });
+        functionDeclaration.addParameter({
+            name: "input",
+            type: `forms.FormOrFormSetValues<_Types["${input}"]>`,
+        });
+        functionDeclaration.setReturnType(
+            `Promise<rpcUtils.Result<_Types["${output}"], forms.FormOrFormSetErrors<_Types["${input}"]>, _Types["RPCPermission"]>>`,
+        );
+        Object.assign(initializer, {
+            input: Writers.object({
+                values: "input",
+                type: (writer: CodeBlockWriter) =>
+                    writer.quote(type).write(" as const"),
+            }),
+        });
+    } else {
+        functionDeclaration.setReturnType(
+            `Promise<rpcUtils.Result<_Types["${output}"], null, _Types["RPCPermission"]>>`,
+        );
+        Object.assign(initializer, {input: "null"});
+    }
+
+    functionDeclaration.addVariableStatement({
+        declarationKind: VariableDeclarationKind.Const,
+        declarations: [
+            {
+                name: "options",
+                initializer: Writers.object(initializer),
+                /*
+                    x: 123,
+                    y: (writer) => writer.quote("abc"),
+                    z: Writers.object({
+                        one: (writer) => writer.quote("1"),
+                    }),
+                    */
+            },
+        ],
+    });
+    functionDeclaration.setBodyText(
+        `${functionDeclaration.getBodyText()} return rpcUtils.rpcCall((this as any).requester, options)`,
+    );
+    /*
+
+    if (input != null) {
+        functionDeclaration.addParameter({
+            name: "input",
+            type: `forms.FormOrFormSetValues<_Types["${input}"]>`,
+        });
+        bodyText = bodyText.concat(`
+        const input = ${JSON.stringify({
+            type: "form",
+        })};
+        }
+        `);
+    }
+    else {
+    }
+    */
+
+    /*
+     if (instance.length === 1) {
+        functionDeclaration.addParameter({name: "instance", type: `string | number`});
+        functionDeclaration.setBodyText(`return rpcUtils.rpcCall("${url}", input, "${type}", instance)`);
+     }
+     else if (instance.length >= 2) {
+        const instanceInterface = functionDeclaration.addInterface({name: "WILL_BE_STRIPPED"});
+
+        for (const instanceArg of instance) {
+            instanceInterface.addProperty({name: instanceArg, type: "string | number"});
+        }
+        functionDeclaration.addParameter({name: "instance", type: instanceInterface.getText().replace("interface WILL_BE_STRIPPED", "")});
+        functionDeclaration.setBodyText(`const iterator = ${JSON.stringify(instance)}; return rpcUtils.rpcCall("${url}", input, "${type}", {iterator, params: instance})`);
+     }
+     else {
+        functionDeclaration.setBodyText(`return rpcUtils.rpcCall("${url}", input, "${type}")`);
+     }
+
+     functionDeclaration.addParameter({name: "input", type: `forms.FormOrFormSetValues<_Types["${input}"]>`});
+     functionDeclaration.setReturnType(`Promise<rpcUtils.Result<_Types["${output}"], forms.FormOrFormSetErrors<_Types["${input}"]>>>`);
+     functionDeclaration.setIsAsync(true);
+     */
+}
+rpcConstructor.setBodyText(rpcConstructorBody);
 
 if (Object.keys(urls).length !== 0) {
     sourceFile.addVariableStatement({
@@ -116,13 +275,17 @@ if (Object.keys(urls).length !== 0) {
 }
 
 sourceFile.addStatements(`
+export const rpc = new RPC(typeof window != "undefined" ? rpcUtils.defaultRequester : null as any);
 import React from "react"
 import createContext from "reactivated/dist/context";
 import * as forms from "reactivated/dist/forms";
 import * as generated from "reactivated/dist/generated";
+import * as rpcUtils from "reactivated/dist/rpc";
 
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
+
+export type Result<TSuccess, TInvalid> = rpcUtils.Result<TSuccess, TInvalid, _Types["RPCPermission"]>;
 
 export const {Context, Provider, getServerData} = createContext<_Types["Context"]>();
 
@@ -144,6 +307,7 @@ export const {createRenderer, Iterator} = forms.bindWidgetType<_Types["globals"]
 export type FieldHandler = forms.FieldHandler<_Types["globals"]["Widget"]>;
 export type models = _Types["globals"]["models"];
 
+export {FormHandler} from "reactivated/dist/forms";
 export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = forms;
 `);
 
@@ -152,9 +316,11 @@ compile(types, "this is unused").then((ts) => {
     process.stdout.write("/* eslint-disable */\n");
     process.stdout.write(ts);
 
-    for (const name of Object.keys(templates)) {
-        const propsName = templates[name];
-        sourceFile.addStatements(`
+    if (!fs.existsSync("./reactivated-skip-template-check")) {
+        for (const name of Object.keys(templates)) {
+            const propsName = templates[name];
+
+            sourceFile.addStatements(`
 
 import ${name}Implementation from "@client/templates/${name}"
 export type ${name}Check = Checker<_Types["${propsName}"], typeof ${name}Implementation>;
@@ -165,6 +331,7 @@ export namespace templates {
 
 
         `);
+        }
     }
 
     for (const name of Object.keys(interfaces)) {

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Sequence
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Manager
+from django.utils.functional import Promise
 
 if TYPE_CHECKING:
     from reactivated.backend import JSX
@@ -68,6 +69,21 @@ class ClassLookupDict:
 
     def __getitem__(self, key: Any) -> Any:
         base_class = key
+
+        # Handle lazy translated strings, as could come from say labels,
+        # verbose names, etc.
+
+        # Useful when a Union is typed as Union[str, somethingelse] but
+        # actually receives a proxy at runtime.
+        if issubclass(base_class, Promise):
+            if getattr(base_class, "_delegate_text", False):
+                base_class = str
+            else:
+                assert (
+                    False
+                ), "Unsupported proxy / lazy promise type. See django/utils/functional.py"
+
+        # DRF uses this, we do not.
         # if hasattr(key, "_proxy_class"):
         #     # Deal with proxy classes. Ie. BoundField behaves as if it
         #     # is a Field instance when using ClassLookupDict.

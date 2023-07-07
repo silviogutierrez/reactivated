@@ -134,17 +134,25 @@ def test_enum_does_not_clobber_enum_type():
 
 
 def test_literal():
-    schema = create_schema(Literal["hello"], {})
+    schema = create_schema(Literal[Literal["nested"], "hello", True, None], {})
     assert schema == (
         {
-            "type": "string",
             "enum": [
+                "nested",
                 "hello",
+                True,
+                None,
             ],
         },
         {},
     )
     convert_to_json_and_validate("hello", schema)
+
+    class Illegal:
+        pass
+
+    with pytest.raises(AssertionError, match="Unsupported"):
+        create_schema(Literal[Illegal], {})
 
 
 def test_typed_dict():
@@ -366,18 +374,16 @@ def test_custom_schema(settings):
     create_schema(CustomField, {}) == ({"type": "string"}, {})
 
 
-def test_enum_field_descriptor():
+def test_enum_field_descriptor(snapshot):
+    descriptor = EnumField(enum=EnumType, null=True)
+    schema, definitions = create_schema(descriptor, {})
+    assert schema == snapshot
+    assert definitions == snapshot
+
     descriptor = EnumField(enum=EnumType)
-    assert create_schema(descriptor, {}) == (
-        {"$ref": "#/definitions/tests.types.EnumType"},
-        {
-            "tests.types.EnumType": {
-                "type": "string",
-                "enum": ["ONE", "TWO", "CHUNK"],
-                "serializer": "reactivated.serialization.EnumMemberType",
-            }
-        },
-    )
+    schema, definitions = create_schema(descriptor, {})
+    assert schema == snapshot
+    assert definitions == snapshot
 
 
 def test_get_field_descriptor():
@@ -541,7 +547,7 @@ def sample_unannotated_context_processor():
     pass
 
 
-def test_context_processor_type():
+def test_context_processor_type(snapshot):
     with pytest.raises(AssertionError, match="No annotations found"):
         ContextProcessorType = create_context_processor_type(
             ["tests.types.sample_unannotated_context_processor"]
@@ -568,67 +574,4 @@ def test_context_processor_type():
             {"$ref": "#/definitions/tests.types.SampleContextTwo"},
         ]
     }
-    assert definitions == {
-        "reactivated.serialization.context_processors.BaseContext": {
-            "serializer": None,
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {"template_name": {"type": "string"}},
-            "required": ["template_name"],
-            "title": "reactivated.serialization.context_processors.BaseContext",
-        },
-        "reactivated.serialization.context_processors.Request": {
-            "serializer": "reactivated.serialization.context_processors.Request",
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {
-                "path": {"type": "string"},
-                "url": {"type": "string"},
-                "csp_nonce": {"anyOf": [{"type": "string"}, {"type": "null"}]},
-            },
-            "required": ["path", "url", "csp_nonce"],
-            "title": "reactivated.serialization.context_processors.Request",
-        },
-        "reactivated.serialization.context_processors.RequestProcessor": {
-            "serializer": None,
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {
-                "request": {
-                    "$ref": "#/definitions/reactivated.serialization.context_processors.Request"
-                }
-            },
-            "required": ["request"],
-            "title": "reactivated.serialization.context_processors.RequestProcessor",
-        },
-        "tests.types.ComplexType": {
-            "serializer": None,
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {
-                "required": {"type": "number"},
-                "optional": {"anyOf": [{"type": "boolean"}, {"type": "null"}]},
-            },
-            "required": ["required", "optional"],
-            "title": "tests.types.ComplexType",
-        },
-        "tests.types.SampleContextOne": {
-            "serializer": None,
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {
-                "complex": {"$ref": "#/definitions/tests.types.ComplexType"},
-                "boolean": {"type": "boolean"},
-            },
-            "required": ["complex", "boolean"],
-            "title": "tests.types.SampleContextOne",
-        },
-        "tests.types.SampleContextTwo": {
-            "serializer": None,
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {"number": {"type": "number"}},
-            "required": ["number"],
-            "title": "tests.types.SampleContextTwo",
-        },
-    }
+    assert definitions == snapshot

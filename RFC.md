@@ -1,0 +1,2 @@
+- [ ] For an action like logout, which has to be post. Do we want: `form: None`, or `form: EmptyForm`. or a specialized action like `@rpc.no_input`?
+- [ ] Do we want RPC to be a class that you import and instantiate if you need to customize? Or configure with a global? Pros of import: clean, no mutation. Cons: you need a file called `@client/rpc` or something to put it in. Cons of config: hard to find where it is.

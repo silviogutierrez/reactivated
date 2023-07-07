@@ -4,10 +4,12 @@ from reactivated import Pick, template
 
 from . import forms, models
 
+Opera = Pick[models.Opera, "name", "composer.name", "style"]
+
 
 @template
 class HelloWorld(NamedTuple):
-    opera: Pick[models.Opera, "name", "composer.name", "style"]
+    opera: Opera
 
 
 @template

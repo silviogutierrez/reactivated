@@ -186,6 +186,7 @@ def test_serialization():
         },
         "required": ["main_opera"],
         "type": "object",
+        "title": "Composer_0a7e472ea2",
     }
 
     assert generated_schema.definitions["tests.serialization.Foo"]["properties"][
@@ -210,6 +211,7 @@ def test_serialization():
         },
         "required": ["favorite_opera"],
         "type": "object",
+        "title": "Composer_d4f73efbd8",
     }
 
     serialized = serialize(instance, generated_schema)
@@ -444,6 +446,7 @@ def test_deferred_evaluation_of_types(settings):
             "deferred_field": {"type": "boolean"},
         },
         "required": ["bar", "deferred_field"],
+        "title": "test_deferred_evaluation_of_types.<locals>.TestModel_53f578dd7a",
     }
 
 

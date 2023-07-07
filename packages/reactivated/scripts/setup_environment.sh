@@ -5,11 +5,7 @@ VIRTUAL_ENV=$PWD/.venv
 PATH=$VIRTUAL_ENV/bin:$PATH
 POSTGRESQL_DATA="$VIRTUAL_ENV/postgresql"
 POSTGRESQL_LOGS="$VIRTUAL_ENV/postgresql/logs.txt"
-
-# On MacOS, people may run this in /tmp which is actually /private/tmp.
-# To prevent issues with the hash changing for $VIRTUAL_ENV depending on
-# $PWD returning /tmp or /private/tmp, we resolve with readlink.
-TMP_ENV="$TMPDIR/reactivated/$(readlink -f "$VIRTUAL_ENV" | md5sum | awk '{print $1}')"
+TMP_ENV="$TMPDIR/reactivated/$(echo "$VIRTUAL_ENV" | md5sum | awk '{print $1}')"
 
 export PGPORT=1
 export PGDATABASE="database"

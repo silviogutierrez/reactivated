@@ -4,7 +4,6 @@ from reactivated import Pick, template
 
 from . import forms, models
 
-
 Opera = Pick[models.Opera, "name", "composer.name", "style"]
 
 

@@ -705,6 +705,7 @@
       'forced_non_nullable',
       'forced_none',
     ]),
+    'title': 'test_override_pick_types.<locals>.TestModel_fdae93dc88',
     'type': 'object',
   })
 # ---

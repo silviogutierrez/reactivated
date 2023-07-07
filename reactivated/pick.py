@@ -275,6 +275,7 @@ class BasePickHolder:
             "additionalProperties": False,
             "properties": {},
             "required": [],
+            "title": definition_name,
         }
 
         for field_name in cls.fields:

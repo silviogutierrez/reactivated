@@ -1,4 +1,5 @@
 # This script is meant to be sourced, not run in a subshell.
+set -x
 SOURCE_DATE_EPOCH=$(date +%s)
 export SOURCE_DATE_EPOCH
 VIRTUAL_ENV=$PWD/.venv

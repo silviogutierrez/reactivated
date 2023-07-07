@@ -97,8 +97,10 @@ def template(cls: Type[T]) -> Type[T]:
             )
             return response
 
-    Augmented.register()
+    Augmented.__qualname__ = cls.__qualname__
     Augmented.__name__ = cls.__name__
+    Augmented.__module__ = cls.__module__
+    Augmented.register()
     return Augmented
 
 
@@ -181,6 +183,8 @@ def interface(cls: Type[T]) -> Type[T]:
         def as_json(self, request: HttpRequest) -> JsonResponse:
             return JsonResponse(self.get_serialized())
 
-    Augmented.register()
+    Augmented.__qualname__ = cls.__qualname__
     Augmented.__name__ = cls.__name__
+    Augmented.__module__ = cls.__module__
+    Augmented.register()
     return Augmented

@@ -1,7 +1,7 @@
 # This script is meant to be sourced, not run in a subshell.
 SOURCE_DATE_EPOCH=$(date +%s)
 export SOURCE_DATE_EPOCH
-VIRTUAL_ENV=$PWD/.venv
+export VIRTUAL_ENV=$PWD/.venv
 PATH=$VIRTUAL_ENV/bin:$PATH
 POSTGRESQL_DATA="$VIRTUAL_ENV/postgresql"
 POSTGRESQL_LOGS="$VIRTUAL_ENV/postgresql/logs.txt"

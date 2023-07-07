@@ -21,26 +21,21 @@ from django import forms as django_forms
 from django.conf import settings
 from django.db import models
 from django.db.models.fields.reverse_related import ForeignObjectRel
+from django.forms.models import ModelChoiceIteratorValue  # type: ignore
 from django.utils.module_loading import import_string
 
-from reactivated import fields, stubs
-from reactivated.forms import EnumChoiceField
+from reactivated import fields, stubs, utils
 from reactivated.models import ComputedRelation
 from reactivated.types import Optgroup
 
+# Register our widgets.
+from . import builtins  # noqa: F401
+from . import widgets  # noqa: F401
 from .registry import JSON, PROXIES, Definitions, Schema, Thing, register
 
 FormError = List[str]
 
 FormErrors = Dict[str, FormError]
-
-
-# TODO: can we handle other field types somewhat like this and widgets?
-@register(models.BigAutoField)
-class BigAutoField:
-    @classmethod
-    def get_json_schema(Type, instance, definitions):  # type: ignore[no-untyped-def]
-        return field_descriptor_schema(models.IntegerField(), definitions)
 
 
 class ComputedField(NamedTuple):
@@ -87,7 +82,9 @@ class ForeignKeyType:
 
     @classmethod
     def get_json_schema(
-        Type: Type["ForeignKeyType"], definitions: Definitions
+        Proxy: Type["ForeignKeyType"],
+        Type: "models.ForeignKey[Any, Any]",
+        definitions: Definitions,
     ) -> "Thing":
         return Thing(
             schema={
@@ -147,6 +144,8 @@ class FieldType(NamedTuple):
         instance: django_forms.Field,
         definitions: Definitions,
     ) -> "Thing":
+        from reactivated.forms import EnumChoiceField
+
         base_schema, definitions = named_tuple_schema(Proxy, definitions)
         widget_schema, definitions = create_schema(instance.widget, definitions)
 
@@ -331,8 +330,23 @@ class FormType(NamedTuple):
 
     @classmethod
     def get_serialized_value(
-        Type: Type["FormType"], value: django_forms.BaseForm, schema: Thing
+        Type: Type["FormType"],
+        class_or_instance: Union[Type[django_forms.BaseForm], django_forms.BaseForm],
+        schema: Thing,
     ) -> JSON:
+        value = (
+            class_or_instance
+            if isinstance(class_or_instance, django_forms.BaseForm)
+            else class_or_instance()
+        )
+
+        for field in value:
+            if (
+                isinstance(field.field, django_forms.ModelChoiceField)
+                and schema.definitions.get("is_static_context") is True  # type: ignore[comparison-overlap]
+            ):
+                field.field.queryset = field.field.queryset.none()
+
         form = value
         context = form.get_context()  # type: ignore[attr-defined]
 
@@ -358,18 +372,6 @@ class FormType(NamedTuple):
         serialized["hidden_fields"] = list(hidden_fields.keys())
         serialized["errors"] = form.errors or None
         return serialized
-
-        """
-        form = value
-
-        return FormType(
-            name=f"{value.__class__.__module__}.{value.__class__.__qualname__}",
-            errors=form.errors or None,
-            fields=fields,
-            iterator=list(fields.keys()),
-            prefix=form.prefix or "",
-        )
-        """
 
 
 @register(django_forms.BaseFormSet)
@@ -470,6 +472,29 @@ class FormSetType(NamedTuple):
             schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
         )
 
+    @classmethod
+    def get_serialized_value(
+        Type: Type["FormSetType"],
+        value: Union[Type[django_forms.BaseFormSet], django_forms.BaseFormSet],
+        schema: Thing,
+    ) -> JSON:
+        if isinstance(value, django_forms.BaseFormSet):
+            return serialize(
+                value,
+                schema,
+                suppress_custom_serializer=True,
+            )
+        else:
+            # Technically this is only for ModelFormSet but it's a no-op for others.
+            instance = value()
+            instance.get_queryset = lambda: []  # type: ignore[attr-defined]
+
+            return serialize(
+                instance,
+                schema,
+                suppress_custom_serializer=True,
+            )
+
 
 class QuerySetType:
     @classmethod
@@ -490,47 +515,193 @@ class Serializer(Protocol):
         ...
 
 
-def field_descriptor_schema(
-    Type: "models.Field[Any, Any]", definitions: Definitions
-) -> Thing:
-    mapping = {
-        models.CharField: lambda field: str,
-        models.BooleanField: lambda field: bool,
-        models.TextField: lambda field: str,
-        models.ForeignKey: lambda field: ForeignKeyType,
-        models.AutoField: lambda field: int,
-        models.DateField: lambda field: datetime.date,
-        models.DateTimeField: lambda field: datetime.datetime,
-        models.EmailField: lambda field: str,
-        models.UUIDField: lambda field: str,
-        models.IntegerField: lambda field: int,
-        models.PositiveIntegerField: lambda field: int,
-        models.DecimalField: lambda field: str,
-        fields.EnumField: lambda field: field.enum,
-    }
+register(models.BigAutoField)(int)
 
-    try:
-        import django_extensions.db.fields  # type: ignore[import]
+register(models.AutoField)(int)
 
-        mapping = {
-            **mapping,
-            django_extensions.db.fields.ShortUUIDField: lambda field: str,
+register(models.CharField)(str)
+
+register(models.TextField)(str)
+
+register(models.BooleanField)(bool)
+
+register(models.ForeignKey)(ForeignKeyType)
+
+register(models.DateField)(datetime.date)
+
+register(models.DateTimeField)(datetime.datetime)
+
+register(models.EmailField)(str)
+
+register(models.UUIDField)(str)
+
+register(models.IntegerField)(int)
+
+register(models.PositiveIntegerField)(int)
+
+register(models.DecimalField)(str)
+
+
+@register(fields._EnumField)
+class EnumFieldType:
+    @classmethod
+    def get_json_schema(
+        Proxy: Type["EnumFieldType"],
+        Type: fields._EnumField[Any, Any],
+        definitions: Definitions,
+    ) -> "Thing":
+        return create_schema(Type.enum, definitions)
+
+
+# if TYPE_CHECKING is False:
+#     try:
+#         import django_extensions.db.fields  # type: ignore[import]
+#         register(django_extensions.db.fields.ShortUUIDField)(str)
+#     except ImportError:
+#         pass
+#
+
+# def field_descriptor_schema(
+#     Type: "models.Field[Any, Any]", definitions: Definitions
+# ) -> Thing:
+#     FieldSchemaWithPossibleNull = stubs._GenericAlias(origin=Union, params=(Type, None) if Type.null is True else (Type,))
+#
+#     return create_schema(FieldSchemaWithPossibleNull, definitions)
+
+
+class UnionType(NamedTuple):
+    @classmethod
+    def get_json_schema(
+        Proxy: Type["UnionType"], Type: stubs._GenericAlias, definitions: Definitions
+    ) -> "Thing":
+        from reactivated.pick import BasePickHolder
+
+        class_mapping = {}
+        subschemas: Sequence[Thing] = ()
+        typed_dicts = []
+        none_subschema = None
+
+        # TODO: This should check that every member is uniquely addressable.
+        # Because if you have a Union[Tuple[Literal[True], SomeTypedDict], # Tuple[Literal[False], str]]
+        # Then it will serialize both second members as strings.
+        for subtype in Type.__args__:
+            subschema = create_schema(subtype, definitions=definitions)
+            definitions = {**definitions, **subschema.definitions}
+
+            if subtype is type(None):  # noqa: E721
+                none_subschema = subschema
+                continue
+
+            subschemas = [*subschemas, subschema]
+
+            subtype_class: Any
+
+            if isinstance(subtype, type) and issubclass(subtype, BasePickHolder):
+                subtype_class = subtype.model_class
+            elif isinstance(subtype, stubs._GenericAlias) and subtype.__origin__ in (
+                list,
+                tuple,
+            ):
+                subtype_class = subtype.__origin__
+            elif type(subtype) == stubs._TypedDictMeta:
+                subtype_class = dict
+                typed_dicts.append(subschema)
+            else:
+                subtype_class = subtype
+
+            subtype_name = f"{subtype_class.__module__}.{subtype_class.__qualname__}"
+
+            class_mapping[subtype_name] = subschema.schema
+
+        all_subschemas = [subschema.schema for subschema in subschemas]
+
+        if none_subschema:
+            all_subschemas.append(none_subschema.schema)
+
+        schema = {
+            "anyOf": all_subschemas,
+            "serializer": "reactivated.serialization.UnionType",
         }
-    except ImportError:
-        pass
 
-    mapped_type_callable = mapping.get(Type.__class__)
-    assert (
-        mapped_type_callable is not None
-    ), f"Unsupported model field type {Type.__class__}. This should probably silently return None and allow a custom handler to support the field."
+        if len(typed_dicts) > 1 and len(subschemas) != len(typed_dicts):
+            assert (
+                False
+            ), "Unions with TypedDict must have only TypedDict members and a discriminant"
+        elif len(typed_dicts) > 1:
+            keys = set.intersection(
+                *[
+                    set(
+                        [
+                            key
+                            for key in schema.dereference()["properties"].keys()
+                            if "enum" in schema.dereference()["properties"][key]
+                        ]
+                    )
+                    for schema in subschemas
+                ]
+            )
 
-    mapped_type = mapped_type_callable(Type)  # type: ignore[no-untyped-call]
+            if len(keys) != 1:
+                assert False, "Tagged unions must have a single discriminant property"
 
-    FieldSchemaWithPossibleNull = (
-        Union[mapped_type, None] if Type.null is True else mapped_type
-    )
+            discriminant = keys.pop()
+            mapping = {
+                schema.dereference()["properties"][discriminant]["enum"][
+                    0
+                ]: schema.schema
+                for schema in subschemas
+            }
+            schema["_reactivated_tagged_union_discriminant"] = discriminant
+            schema["_reactivated_tagged_union_mapping"] = mapping
+        elif len(class_mapping.keys()) != len(subschemas):
+            assert False, f"Every item in a union must be uniquely serializable {Type}"
+        else:
+            schema["_reactivated_union"] = class_mapping
 
-    return create_schema(FieldSchemaWithPossibleNull, definitions)
+        return Thing(
+            schema=schema,
+            definitions=definitions,
+        )
+
+    @classmethod
+    def get_serialized_value(
+        Type: Type["UnionType"], value: Any, schema: Thing
+    ) -> JSON:
+        if isinstance(value, fields.EnumChoice):
+            return str(value)
+        elif isinstance(value, ModelChoiceIteratorValue):
+            return str(value.value)
+
+        if discriminant := schema.schema.get(
+            "_reactivated_tagged_union_discriminant", None
+        ):
+            mapping = schema.schema["_reactivated_tagged_union_mapping"]
+            discriminant_value = value.get(discriminant)
+
+            return serialize(
+                value,
+                Thing(
+                    schema=mapping[discriminant_value], definitions=schema.definitions
+                ),
+            )
+        else:
+            lookup = utils.ClassLookupDict({})
+
+            for subtype_path, subtype_schema in schema.schema[
+                "_reactivated_union"
+            ].items():
+                subtype_class = import_string(subtype_path)
+                lookup[subtype_class] = Thing(
+                    schema=subtype_schema, definitions=schema.definitions
+                )
+
+            try:
+                return serialize(
+                    value,
+                    lookup[type(value)],
+                )
+            except KeyError:
+                assert False, "Invariant in union serialization"
 
 
 def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) -> Thing:
@@ -564,14 +735,7 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
             definitions=definitions,
         )
     elif Type.__origin__ == Union:
-        subschemas = ()
-
-        for subtype in Type.__args__:
-            subschema = create_schema(subtype, definitions=definitions)
-            subschemas = [*subschemas, subschema.schema]
-            definitions = {**definitions, **subschema.definitions}
-
-        return Thing(schema={"anyOf": subschemas}, definitions=definitions)
+        return UnionType.get_json_schema(Type, definitions)
     elif Type.__origin__ == list:
         subschema = create_schema(Type.__args__[0], definitions=definitions)
         return Thing(
@@ -593,8 +757,14 @@ def generic_alias_schema(Type: stubs._GenericAlias, definitions: Definitions) ->
         # TODO: is a multi-Literal really this simple? Only if it's the same type.
         # Mixed types would have to be a Union of enums.
 
+        for arg in Type.__args__:
+            if not isinstance(arg, (type(None), int, str, float, bool)):
+                assert (
+                    False
+                ), f"Unsupported Literal {Type}. Only simple members are supported."
+
         return Thing(
-            schema={"type": "string", "enum": list(Type.__args__)},
+            schema={"enum": list(Type.__args__)},
             definitions=definitions,
         )
     elif Type.__origin__ == type and issubclass(
@@ -767,14 +937,29 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     type_class = Type if isinstance(Type, type) else Type.__class__
 
     try:
-        return PROXIES[type_class].get_json_schema(Type, definitions)  # type: ignore
+        proxy = PROXIES[type_class]
+
+        if callable(getattr(proxy, "get_json_schema", None)):
+            proxy_schema = proxy.get_json_schema(Type, definitions)
+        else:
+            proxy_schema = create_schema(proxy, definitions)
+
+        if isinstance(Type, models.Field) and Type.null is True:
+            return Thing(
+                schema={"anyOf": [proxy_schema.schema, {"type": "null"}]},
+                definitions=proxy_schema.definitions,
+            )
+        else:
+            return proxy_schema  # type: ignore[no-any-return]
     except KeyError:
         pass
 
     if isinstance(Type, stubs._GenericAlias):
         return generic_alias_schema(Type, definitions)
     elif isinstance(Type, models.Field):
-        return field_descriptor_schema(Type, definitions)
+        pass
+        # assert False, f"Unsupported type {Type.__class__}"
+    # return field_descriptor_schema(Type, definitions)
     elif Type == Any:
         return Thing(schema={}, definitions=definitions)
     elif callable(getattr(Type, "get_json_schema", None)):
@@ -790,14 +975,6 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     elif issubclass(Type, datetime.datetime):
         return Thing(schema={"type": "string"}, definitions={})
     elif issubclass(Type, datetime.date):
-        return Thing(schema={"type": "string"}, definitions={})
-    elif issubclass(Type, bool):
-        return Thing(schema={"type": "boolean"}, definitions={})
-    elif issubclass(Type, int):
-        return Thing(schema={"type": "number"}, definitions={})
-    elif issubclass(Type, float):
-        return Thing(schema={"type": "number"}, definitions={})
-    elif issubclass(Type, str):
         return Thing(schema={"type": "string"}, definitions={})
     elif Type is type(None):  # noqa: E721
         return Thing(schema={"type": "null"}, definitions={})
@@ -820,10 +997,13 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     assert False, f"Unsupported type {Type}"
 
 
-def object_serializer(value: object, schema: Thing) -> JSON:
+def object_serializer(value: object, schema: Thing, exclude: List[str] = []) -> JSON:
     representation = {}
 
     for field_name, field_schema in schema.schema["properties"].items():
+        if field_name in exclude:
+            continue
+
         if (
             isinstance(value, Mapping)
             and field_name not in value
@@ -889,7 +1069,7 @@ SERIALIZERS: Dict[str, Serializer] = {
     "object": object_serializer,
     "string": lambda value, schema: str(value),
     "boolean": lambda value, schema: bool(value),
-    "number": lambda value, schema: float(value),
+    "number": lambda value, schema: value,
     "array": array_serializer,
     "null": lambda value, schema: None,
 }

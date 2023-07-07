@@ -1,0 +1,5351 @@
+# name: test_form_class_not_instance
+  Thing(
+    definitions=dict({
+      'django.forms.widgets.CheckboxInput': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.CheckAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.CheckboxInput',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/checkbox.html',
+            ]),
+          }),
+          'type': dict({
+            'enum': list([
+              'checkbox',
+            ]),
+          }),
+          'value': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'type',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.CheckboxInput',
+        'title': 'django.forms.widgets.CheckboxInput',
+        'type': 'object',
+      }),
+      'django.forms.widgets.Select': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'optgroups': dict({
+            'items': dict({
+              'items': list([
+                dict({
+                  'type': 'null',
+                }),
+                dict({
+                  'items': list([
+                    dict({
+                      '$ref': '#/definitions/reactivated.serialization.widgets.OptgroupMember',
+                    }),
+                  ]),
+                  'maxItems': 1,
+                  'minItems': 1,
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'number',
+                }),
+              ]),
+              'maxItems': 3,
+              'minItems': 3,
+              'type': 'array',
+            }),
+            'type': 'array',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.Select',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/select.html',
+            ]),
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'optgroups',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.Select',
+        'title': 'django.forms.widgets.Select',
+        'type': 'object',
+      }),
+      'django.forms.widgets.TextInput': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.MaxLengthAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.TextInput',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/text.html',
+            ]),
+          }),
+          'type': dict({
+            'enum': list([
+              'text',
+            ]),
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'type',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.TextInput',
+        'title': 'django.forms.widgets.TextInput',
+        'type': 'object',
+      }),
+      'reactivated.serialization.FieldType': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'help_text': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+          'label': dict({
+            'type': 'string',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'label',
+          'help_text',
+        ]),
+        'serializer': 'reactivated.serialization.FieldType',
+        'title': 'reactivated.serialization.FieldType',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.BaseWidgetAttrs': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'disabled': dict({
+            'type': 'boolean',
+          }),
+          'id': dict({
+            'type': 'string',
+          }),
+          'placeholder': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'id',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.BaseWidgetAttrs',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.CheckAttrs': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'checked': dict({
+            'type': 'boolean',
+          }),
+          'disabled': dict({
+            'type': 'boolean',
+          }),
+          'id': dict({
+            'type': 'string',
+          }),
+          'placeholder': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'id',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.CheckAttrs',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.MaxLengthAttrs': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'disabled': dict({
+            'type': 'boolean',
+          }),
+          'id': dict({
+            'type': 'string',
+          }),
+          'maxlength': dict({
+            'type': 'string',
+          }),
+          'placeholder': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'id',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.MaxLengthAttrs',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.OptgroupMember': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'label': dict({
+            'type': 'string',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'selected': dict({
+            'type': 'boolean',
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.bool': dict({
+                'type': 'boolean',
+              }),
+              'builtins.int': dict({
+                'type': 'number',
+              }),
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'number',
+              }),
+              dict({
+                'type': 'boolean',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'name',
+          'value',
+          'label',
+          'selected',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.OptgroupMember',
+        'type': 'object',
+      }),
+      'reactivated.widgets.Autocomplete': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'selected': dict({
+            '_reactivated_union': dict({
+              'reactivated.widgets.AutocompleteSelected': dict({
+                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+          'tag': dict({
+            'enum': list([
+              'reactivated.widgets.Autocomplete',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'reactivated/autocomplete',
+            ]),
+          }),
+          'value': dict({
+            'items': dict({
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'selected',
+          'tag',
+        ]),
+        'serializer': 'reactivated.widgets.AutocompleteType',
+        'title': 'reactivated.widgets.Autocomplete',
+        'type': 'object',
+      }),
+      'reactivated.widgets.AutocompleteSelected': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'label': dict({
+            'type': 'string',
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.int': dict({
+                'type': 'number',
+              }),
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'number',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'value',
+          'label',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.widgets.AutocompleteSelected',
+        'type': 'object',
+      }),
+      'sample.server.apps.samples.forms.OperaForm': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'errors': dict({
+            'anyOf': list([
+              dict({
+                'additionalProperties': False,
+                'properties': dict({
+                  'composer': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'has_piano_transcription': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'name': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'style': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                }),
+                'required': list([
+                ]),
+                'type': 'object',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+          }),
+          'fields': dict({
+            'additionalProperties': False,
+            'properties': dict({
+              'composer': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/reactivated.widgets.Autocomplete',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'has_piano_transcription': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.CheckboxInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'name': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.TextInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'style': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.Select',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'enum': dict({
+                        '_reactivated_union': dict({
+                          'sample.server.apps.samples.models.Opera.Style': dict({
+                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                          }),
+                        }),
+                        'anyOf': list([
+                          dict({
+                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                          }),
+                          dict({
+                            'type': 'null',
+                          }),
+                        ]),
+                        'serializer': 'reactivated.serialization.UnionType',
+                      }),
+                    }),
+                    'required': list([
+                      'enum',
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+            }),
+            'required': list([
+              'name',
+              'composer',
+              'style',
+              'has_piano_transcription',
+            ]),
+            'type': 'object',
+          }),
+          'hidden_fields': dict({
+            'items': dict({
+              'enum': list([
+                'name',
+                'composer',
+                'style',
+                'has_piano_transcription',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'iterator': dict({
+            'items': dict({
+              'enum': list([
+                'name',
+                'composer',
+                'style',
+                'has_piano_transcription',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'name': dict({
+            'enum': list([
+              'sample.server.apps.samples.forms.OperaForm',
+            ]),
+            'type': 'string',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'prefix',
+          'fields',
+          'iterator',
+          'errors',
+        ]),
+        'serializer': 'reactivated.serialization.FormType',
+        'type': 'object',
+      }),
+      'sample.server.apps.samples.models.Opera.Style': dict({
+        'enum': list([
+          'VERISMO',
+          'BUFFA',
+          'GRAND',
+        ]),
+        'serializer': 'reactivated.serialization.EnumMemberType',
+        'type': 'string',
+      }),
+    }),
+    schema=dict({
+      '$ref': '#/definitions/sample.server.apps.samples.forms.OperaForm',
+    }),
+  )
+# ---
+# name: test_form_class_not_instance.1
+  dict({
+    'errors': None,
+    'fields': dict({
+      'composer': dict({
+        'help_text': None,
+        'label': 'Composer',
+        'name': 'composer',
+        'widget': dict({
+          'attrs': dict({
+            'id': 'id_composer',
+            'required': True,
+          }),
+          'is_hidden': False,
+          'name': 'composer',
+          'required': True,
+          'selected': None,
+          'tag': 'reactivated.widgets.Autocomplete',
+          'template_name': 'reactivated/autocomplete',
+          'value': list([
+            '',
+          ]),
+        }),
+      }),
+      'has_piano_transcription': dict({
+        'help_text': None,
+        'label': 'Has piano transcription',
+        'name': 'has_piano_transcription',
+        'widget': dict({
+          'attrs': dict({
+            'id': 'id_has_piano_transcription',
+          }),
+          'is_hidden': False,
+          'name': 'has_piano_transcription',
+          'required': False,
+          'tag': 'django.forms.widgets.CheckboxInput',
+          'template_name': 'django/forms/widgets/checkbox.html',
+          'type': 'checkbox',
+          'value': False,
+        }),
+      }),
+      'name': dict({
+        'help_text': None,
+        'label': 'Name',
+        'name': 'name',
+        'widget': dict({
+          'attrs': dict({
+            'id': 'id_name',
+            'maxlength': '100',
+            'required': True,
+          }),
+          'is_hidden': False,
+          'name': 'name',
+          'required': True,
+          'tag': 'django.forms.widgets.TextInput',
+          'template_name': 'django/forms/widgets/text.html',
+          'type': 'text',
+          'value': None,
+        }),
+      }),
+      'style': dict({
+        'enum': None,
+        'help_text': None,
+        'label': 'Style',
+        'name': 'style',
+        'widget': dict({
+          'attrs': dict({
+            'id': 'id_style',
+          }),
+          'is_hidden': False,
+          'name': 'style',
+          'optgroups': list([
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'Verismo',
+                  'name': 'style',
+                  'selected': False,
+                  'value': 'VERISMO',
+                }),
+              ]),
+              0,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'Opera Buffa',
+                  'name': 'style',
+                  'selected': False,
+                  'value': 'BUFFA',
+                }),
+              ]),
+              1,
+            ]),
+            list([
+              None,
+              list([
+                dict({
+                  'label': 'Grand Opera',
+                  'name': 'style',
+                  'selected': True,
+                  'value': 'GRAND',
+                }),
+              ]),
+              2,
+            ]),
+          ]),
+          'required': True,
+          'tag': 'django.forms.widgets.Select',
+          'template_name': 'django/forms/widgets/select.html',
+          'value': 'GRAND',
+        }),
+      }),
+    }),
+    'hidden_fields': list([
+    ]),
+    'iterator': list([
+      'name',
+      'composer',
+      'style',
+      'has_piano_transcription',
+    ]),
+    'name': 'sample.server.apps.samples.forms.OperaForm',
+    'prefix': '',
+  })
+# ---
+# name: test_form_group_class_not_instance
+  Thing(
+    definitions=dict({
+      'django.forms.formsets.ComposerFormFormSet': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'can_delete': dict({
+            'type': 'boolean',
+          }),
+          'can_order': dict({
+            'type': 'boolean',
+          }),
+          'empty_form': dict({
+            '$ref': '#/definitions/tests.forms.ComposerForm',
+          }),
+          'forms': dict({
+            'items': dict({
+              '$ref': '#/definitions/tests.forms.ComposerForm',
+            }),
+            'type': 'array',
+          }),
+          'initial_form_count': dict({
+            'type': 'number',
+          }),
+          'management_form': dict({
+            '$ref': '#/definitions/django.forms.formsets.ManagementForm',
+          }),
+          'max_num': dict({
+            'type': 'number',
+          }),
+          'min_num': dict({
+            'type': 'number',
+          }),
+          'non_form_errors': dict({
+            'items': dict({
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+          'total_form_count': dict({
+            'type': 'number',
+          }),
+        }),
+        'required': list([
+          'initial_form_count',
+          'total_form_count',
+          'max_num',
+          'min_num',
+          'can_delete',
+          'can_order',
+          'non_form_errors',
+          'prefix',
+          'empty_form',
+          'forms',
+          'management_form',
+        ]),
+        'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
+        'type': 'object',
+      }),
+      'django.forms.formsets.ManagementForm': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'errors': dict({
+            'anyOf': list([
+              dict({
+                'additionalProperties': False,
+                'properties': dict({
+                  'INITIAL_FORMS': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'MAX_NUM_FORMS': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'MIN_NUM_FORMS': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'TOTAL_FORMS': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                }),
+                'required': list([
+                ]),
+                'type': 'object',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+          }),
+          'fields': dict({
+            'additionalProperties': False,
+            'properties': dict({
+              'INITIAL_FORMS': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'MAX_NUM_FORMS': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'MIN_NUM_FORMS': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'TOTAL_FORMS': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+            }),
+            'required': list([
+              'TOTAL_FORMS',
+              'INITIAL_FORMS',
+              'MIN_NUM_FORMS',
+              'MAX_NUM_FORMS',
+            ]),
+            'type': 'object',
+          }),
+          'hidden_fields': dict({
+            'items': dict({
+              'enum': list([
+                'TOTAL_FORMS',
+                'INITIAL_FORMS',
+                'MIN_NUM_FORMS',
+                'MAX_NUM_FORMS',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'iterator': dict({
+            'items': dict({
+              'enum': list([
+                'TOTAL_FORMS',
+                'INITIAL_FORMS',
+                'MIN_NUM_FORMS',
+                'MAX_NUM_FORMS',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'name': dict({
+            'enum': list([
+              'django.forms.formsets.ManagementForm',
+            ]),
+            'type': 'string',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'prefix',
+          'fields',
+          'iterator',
+          'errors',
+        ]),
+        'serializer': 'reactivated.serialization.FormType',
+        'type': 'object',
+      }),
+      'django.forms.widgets.CheckboxInput': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.CheckAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.CheckboxInput',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/checkbox.html',
+            ]),
+          }),
+          'type': dict({
+            'enum': list([
+              'checkbox',
+            ]),
+          }),
+          'value': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'type',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.CheckboxInput',
+        'title': 'django.forms.widgets.CheckboxInput',
+        'type': 'object',
+      }),
+      'django.forms.widgets.HiddenInput': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.HiddenInput',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/hidden.html',
+            ]),
+          }),
+          'type': dict({
+            'enum': list([
+              'hidden',
+            ]),
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'type',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.HiddenInput',
+        'title': 'django.forms.widgets.HiddenInput',
+        'type': 'object',
+      }),
+      'django.forms.widgets.Select': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'optgroups': dict({
+            'items': dict({
+              'items': list([
+                dict({
+                  'type': 'null',
+                }),
+                dict({
+                  'items': list([
+                    dict({
+                      '$ref': '#/definitions/reactivated.serialization.widgets.OptgroupMember',
+                    }),
+                  ]),
+                  'maxItems': 1,
+                  'minItems': 1,
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'number',
+                }),
+              ]),
+              'maxItems': 3,
+              'minItems': 3,
+              'type': 'array',
+            }),
+            'type': 'array',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.Select',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/select.html',
+            ]),
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'optgroups',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.Select',
+        'title': 'django.forms.widgets.Select',
+        'type': 'object',
+      }),
+      'django.forms.widgets.TextInput': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.MaxLengthAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.TextInput',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/text.html',
+            ]),
+          }),
+          'type': dict({
+            'enum': list([
+              'text',
+            ]),
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'type',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.TextInput',
+        'title': 'django.forms.widgets.TextInput',
+        'type': 'object',
+      }),
+      'reactivated.serialization.FieldType': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'help_text': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+          'label': dict({
+            'type': 'string',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'label',
+          'help_text',
+        ]),
+        'serializer': 'reactivated.serialization.FieldType',
+        'title': 'reactivated.serialization.FieldType',
+        'type': 'object',
+      }),
+      'reactivated.serialization.FormSetType': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'can_delete': dict({
+            'type': 'boolean',
+          }),
+          'can_order': dict({
+            'type': 'boolean',
+          }),
+          'initial_form_count': dict({
+            'type': 'number',
+          }),
+          'max_num': dict({
+            'type': 'number',
+          }),
+          'min_num': dict({
+            'type': 'number',
+          }),
+          'non_form_errors': dict({
+            'items': dict({
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+          'total_form_count': dict({
+            'type': 'number',
+          }),
+        }),
+        'required': list([
+          'initial_form_count',
+          'total_form_count',
+          'max_num',
+          'min_num',
+          'can_delete',
+          'can_order',
+          'non_form_errors',
+          'prefix',
+        ]),
+        'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.BaseWidgetAttrs': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'disabled': dict({
+            'type': 'boolean',
+          }),
+          'id': dict({
+            'type': 'string',
+          }),
+          'placeholder': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'id',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.BaseWidgetAttrs',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.CheckAttrs': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'checked': dict({
+            'type': 'boolean',
+          }),
+          'disabled': dict({
+            'type': 'boolean',
+          }),
+          'id': dict({
+            'type': 'string',
+          }),
+          'placeholder': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'id',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.CheckAttrs',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.MaxLengthAttrs': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'disabled': dict({
+            'type': 'boolean',
+          }),
+          'id': dict({
+            'type': 'string',
+          }),
+          'maxlength': dict({
+            'type': 'string',
+          }),
+          'placeholder': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'id',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.MaxLengthAttrs',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.OptgroupMember': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'label': dict({
+            'type': 'string',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'selected': dict({
+            'type': 'boolean',
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.bool': dict({
+                'type': 'boolean',
+              }),
+              'builtins.int': dict({
+                'type': 'number',
+              }),
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'number',
+              }),
+              dict({
+                'type': 'boolean',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'name',
+          'value',
+          'label',
+          'selected',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.OptgroupMember',
+        'type': 'object',
+      }),
+      'reactivated.widgets.Autocomplete': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'selected': dict({
+            '_reactivated_union': dict({
+              'reactivated.widgets.AutocompleteSelected': dict({
+                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+          'tag': dict({
+            'enum': list([
+              'reactivated.widgets.Autocomplete',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'reactivated/autocomplete',
+            ]),
+          }),
+          'value': dict({
+            'items': dict({
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'selected',
+          'tag',
+        ]),
+        'serializer': 'reactivated.widgets.AutocompleteType',
+        'title': 'reactivated.widgets.Autocomplete',
+        'type': 'object',
+      }),
+      'reactivated.widgets.AutocompleteSelected': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'label': dict({
+            'type': 'string',
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.int': dict({
+                'type': 'number',
+              }),
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'number',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'value',
+          'label',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.widgets.AutocompleteSelected',
+        'type': 'object',
+      }),
+      'sample.server.apps.samples.forms.OperaForm': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'errors': dict({
+            'anyOf': list([
+              dict({
+                'additionalProperties': False,
+                'properties': dict({
+                  'composer': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'has_piano_transcription': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'name': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'style': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                }),
+                'required': list([
+                ]),
+                'type': 'object',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+          }),
+          'fields': dict({
+            'additionalProperties': False,
+            'properties': dict({
+              'composer': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/reactivated.widgets.Autocomplete',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'has_piano_transcription': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.CheckboxInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'name': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.TextInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'style': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.Select',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'enum': dict({
+                        '_reactivated_union': dict({
+                          'sample.server.apps.samples.models.Opera.Style': dict({
+                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                          }),
+                        }),
+                        'anyOf': list([
+                          dict({
+                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                          }),
+                          dict({
+                            'type': 'null',
+                          }),
+                        ]),
+                        'serializer': 'reactivated.serialization.UnionType',
+                      }),
+                    }),
+                    'required': list([
+                      'enum',
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+            }),
+            'required': list([
+              'name',
+              'composer',
+              'style',
+              'has_piano_transcription',
+            ]),
+            'type': 'object',
+          }),
+          'hidden_fields': dict({
+            'items': dict({
+              'enum': list([
+                'name',
+                'composer',
+                'style',
+                'has_piano_transcription',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'iterator': dict({
+            'items': dict({
+              'enum': list([
+                'name',
+                'composer',
+                'style',
+                'has_piano_transcription',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'name': dict({
+            'enum': list([
+              'sample.server.apps.samples.forms.OperaForm',
+            ]),
+            'type': 'string',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'prefix',
+          'fields',
+          'iterator',
+          'errors',
+        ]),
+        'serializer': 'reactivated.serialization.FormType',
+        'type': 'object',
+      }),
+      'sample.server.apps.samples.models.Opera.Style': dict({
+        'enum': list([
+          'VERISMO',
+          'BUFFA',
+          'GRAND',
+        ]),
+        'serializer': 'reactivated.serialization.EnumMemberType',
+        'type': 'string',
+      }),
+      'tests.forms.ComposerForm': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'errors': dict({
+            'anyOf': list([
+              dict({
+                'additionalProperties': False,
+                'properties': dict({
+                  'name': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                }),
+                'required': list([
+                ]),
+                'type': 'object',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+          }),
+          'fields': dict({
+            'additionalProperties': False,
+            'properties': dict({
+              'name': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.TextInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+            }),
+            'required': list([
+              'name',
+            ]),
+            'type': 'object',
+          }),
+          'hidden_fields': dict({
+            'items': dict({
+              'enum': list([
+                'name',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'iterator': dict({
+            'items': dict({
+              'enum': list([
+                'name',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'name': dict({
+            'enum': list([
+              'tests.forms.ComposerForm',
+            ]),
+            'type': 'string',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'prefix',
+          'fields',
+          'iterator',
+          'errors',
+        ]),
+        'serializer': 'reactivated.serialization.FormType',
+        'type': 'object',
+      }),
+      'tests.forms.OperaFormGroup': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'composer': dict({
+            '$ref': '#/definitions/tests.forms.ComposerForm',
+          }),
+          'composers': dict({
+            '$ref': '#/definitions/django.forms.formsets.ComposerFormFormSet',
+          }),
+          'opera': dict({
+            '$ref': '#/definitions/sample.server.apps.samples.forms.OperaForm',
+          }),
+          'tag': dict({
+            'enum': list([
+              'FormGroup',
+            ]),
+          }),
+        }),
+        'required': list([
+          'tag',
+          'opera',
+          'composer',
+          'composers',
+        ]),
+        'serializer': 'tests.forms.OperaFormGroup',
+        'title': 'tests.forms.OperaFormGroup',
+        'type': 'object',
+      }),
+    }),
+    schema=dict({
+      '$ref': '#/definitions/tests.forms.OperaFormGroup',
+    }),
+  )
+# ---
+# name: test_form_group_class_not_instance.1
+  dict({
+    'composer': dict({
+      'errors': None,
+      'fields': dict({
+        'name': dict({
+          'help_text': None,
+          'label': 'Name',
+          'name': 'name',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_name',
+              'maxlength': '100',
+              'required': True,
+            }),
+            'is_hidden': False,
+            'name': 'name',
+            'required': True,
+            'tag': 'django.forms.widgets.TextInput',
+            'template_name': 'django/forms/widgets/text.html',
+            'type': 'text',
+            'value': None,
+          }),
+        }),
+      }),
+      'hidden_fields': list([
+      ]),
+      'iterator': list([
+        'name',
+      ]),
+      'name': 'tests.forms.ComposerForm',
+      'prefix': '',
+    }),
+    'composers': dict({
+      'can_delete': False,
+      'can_order': False,
+      'empty_form': dict({
+        'errors': None,
+        'fields': dict({
+          'name': dict({
+            'help_text': None,
+            'label': 'Name',
+            'name': 'name',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_form-__prefix__-name',
+                'maxlength': '100',
+              }),
+              'is_hidden': False,
+              'name': 'form-__prefix__-name',
+              'required': True,
+              'tag': 'django.forms.widgets.TextInput',
+              'template_name': 'django/forms/widgets/text.html',
+              'type': 'text',
+              'value': None,
+            }),
+          }),
+        }),
+        'hidden_fields': list([
+        ]),
+        'iterator': list([
+          'name',
+        ]),
+        'name': 'tests.forms.ComposerForm',
+        'prefix': 'form-__prefix__',
+      }),
+      'forms': list([
+        dict({
+          'errors': None,
+          'fields': dict({
+            'name': dict({
+              'help_text': None,
+              'label': 'Name',
+              'name': 'name',
+              'widget': dict({
+                'attrs': dict({
+                  'id': 'id_form-0-name',
+                  'maxlength': '100',
+                }),
+                'is_hidden': False,
+                'name': 'form-0-name',
+                'required': True,
+                'tag': 'django.forms.widgets.TextInput',
+                'template_name': 'django/forms/widgets/text.html',
+                'type': 'text',
+                'value': None,
+              }),
+            }),
+          }),
+          'hidden_fields': list([
+          ]),
+          'iterator': list([
+            'name',
+          ]),
+          'name': 'tests.forms.ComposerForm',
+          'prefix': 'form-0',
+        }),
+      ]),
+      'initial_form_count': 0,
+      'management_form': dict({
+        'errors': None,
+        'fields': dict({
+          'INITIAL_FORMS': dict({
+            'help_text': None,
+            'label': 'Initial forms',
+            'name': 'INITIAL_FORMS',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_form-INITIAL_FORMS',
+              }),
+              'is_hidden': True,
+              'name': 'form-INITIAL_FORMS',
+              'required': True,
+              'tag': 'django.forms.widgets.HiddenInput',
+              'template_name': 'django/forms/widgets/hidden.html',
+              'type': 'hidden',
+              'value': '0',
+            }),
+          }),
+          'MAX_NUM_FORMS': dict({
+            'help_text': None,
+            'label': 'Max num forms',
+            'name': 'MAX_NUM_FORMS',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_form-MAX_NUM_FORMS',
+              }),
+              'is_hidden': True,
+              'name': 'form-MAX_NUM_FORMS',
+              'required': False,
+              'tag': 'django.forms.widgets.HiddenInput',
+              'template_name': 'django/forms/widgets/hidden.html',
+              'type': 'hidden',
+              'value': '1000',
+            }),
+          }),
+          'MIN_NUM_FORMS': dict({
+            'help_text': None,
+            'label': 'Min num forms',
+            'name': 'MIN_NUM_FORMS',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_form-MIN_NUM_FORMS',
+              }),
+              'is_hidden': True,
+              'name': 'form-MIN_NUM_FORMS',
+              'required': False,
+              'tag': 'django.forms.widgets.HiddenInput',
+              'template_name': 'django/forms/widgets/hidden.html',
+              'type': 'hidden',
+              'value': '0',
+            }),
+          }),
+          'TOTAL_FORMS': dict({
+            'help_text': None,
+            'label': 'Total forms',
+            'name': 'TOTAL_FORMS',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_form-TOTAL_FORMS',
+              }),
+              'is_hidden': True,
+              'name': 'form-TOTAL_FORMS',
+              'required': True,
+              'tag': 'django.forms.widgets.HiddenInput',
+              'template_name': 'django/forms/widgets/hidden.html',
+              'type': 'hidden',
+              'value': '1',
+            }),
+          }),
+        }),
+        'hidden_fields': list([
+          'TOTAL_FORMS',
+          'INITIAL_FORMS',
+          'MIN_NUM_FORMS',
+          'MAX_NUM_FORMS',
+        ]),
+        'iterator': list([
+          'TOTAL_FORMS',
+          'INITIAL_FORMS',
+          'MIN_NUM_FORMS',
+          'MAX_NUM_FORMS',
+        ]),
+        'name': 'django.forms.formsets.ManagementForm',
+        'prefix': 'form',
+      }),
+      'max_num': 1000,
+      'min_num': 0,
+      'non_form_errors': list([
+      ]),
+      'prefix': 'form',
+      'total_form_count': 1,
+    }),
+    'opera': dict({
+      'errors': None,
+      'fields': dict({
+        'composer': dict({
+          'help_text': None,
+          'label': 'Composer',
+          'name': 'composer',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_composer',
+              'required': True,
+            }),
+            'is_hidden': False,
+            'name': 'composer',
+            'required': True,
+            'selected': None,
+            'tag': 'reactivated.widgets.Autocomplete',
+            'template_name': 'reactivated/autocomplete',
+            'value': list([
+              '',
+            ]),
+          }),
+        }),
+        'has_piano_transcription': dict({
+          'help_text': None,
+          'label': 'Has piano transcription',
+          'name': 'has_piano_transcription',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_has_piano_transcription',
+            }),
+            'is_hidden': False,
+            'name': 'has_piano_transcription',
+            'required': False,
+            'tag': 'django.forms.widgets.CheckboxInput',
+            'template_name': 'django/forms/widgets/checkbox.html',
+            'type': 'checkbox',
+            'value': False,
+          }),
+        }),
+        'name': dict({
+          'help_text': None,
+          'label': 'Name',
+          'name': 'name',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_name',
+              'maxlength': '100',
+              'required': True,
+            }),
+            'is_hidden': False,
+            'name': 'name',
+            'required': True,
+            'tag': 'django.forms.widgets.TextInput',
+            'template_name': 'django/forms/widgets/text.html',
+            'type': 'text',
+            'value': None,
+          }),
+        }),
+        'style': dict({
+          'enum': None,
+          'help_text': None,
+          'label': 'Style',
+          'name': 'style',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_style',
+            }),
+            'is_hidden': False,
+            'name': 'style',
+            'optgroups': list([
+              list([
+                None,
+                list([
+                  dict({
+                    'label': 'Verismo',
+                    'name': 'style',
+                    'selected': False,
+                    'value': 'VERISMO',
+                  }),
+                ]),
+                0,
+              ]),
+              list([
+                None,
+                list([
+                  dict({
+                    'label': 'Opera Buffa',
+                    'name': 'style',
+                    'selected': False,
+                    'value': 'BUFFA',
+                  }),
+                ]),
+                1,
+              ]),
+              list([
+                None,
+                list([
+                  dict({
+                    'label': 'Grand Opera',
+                    'name': 'style',
+                    'selected': True,
+                    'value': 'GRAND',
+                  }),
+                ]),
+                2,
+              ]),
+            ]),
+            'required': True,
+            'tag': 'django.forms.widgets.Select',
+            'template_name': 'django/forms/widgets/select.html',
+            'value': 'GRAND',
+          }),
+        }),
+      }),
+      'hidden_fields': list([
+      ]),
+      'iterator': list([
+        'name',
+        'composer',
+        'style',
+        'has_piano_transcription',
+      ]),
+      'name': 'sample.server.apps.samples.forms.OperaForm',
+      'prefix': '',
+    }),
+    'tag': 'FormGroup',
+  })
+# ---
+# name: test_form_group_instance
+  Thing(
+    definitions=dict({
+      'django.forms.formsets.ComposerFormFormSet': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'can_delete': dict({
+            'type': 'boolean',
+          }),
+          'can_order': dict({
+            'type': 'boolean',
+          }),
+          'empty_form': dict({
+            '$ref': '#/definitions/tests.forms.ComposerForm',
+          }),
+          'forms': dict({
+            'items': dict({
+              '$ref': '#/definitions/tests.forms.ComposerForm',
+            }),
+            'type': 'array',
+          }),
+          'initial_form_count': dict({
+            'type': 'number',
+          }),
+          'management_form': dict({
+            '$ref': '#/definitions/django.forms.formsets.ManagementForm',
+          }),
+          'max_num': dict({
+            'type': 'number',
+          }),
+          'min_num': dict({
+            'type': 'number',
+          }),
+          'non_form_errors': dict({
+            'items': dict({
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+          'total_form_count': dict({
+            'type': 'number',
+          }),
+        }),
+        'required': list([
+          'initial_form_count',
+          'total_form_count',
+          'max_num',
+          'min_num',
+          'can_delete',
+          'can_order',
+          'non_form_errors',
+          'prefix',
+          'empty_form',
+          'forms',
+          'management_form',
+        ]),
+        'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
+        'type': 'object',
+      }),
+      'django.forms.formsets.ManagementForm': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'errors': dict({
+            'anyOf': list([
+              dict({
+                'additionalProperties': False,
+                'properties': dict({
+                  'INITIAL_FORMS': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'MAX_NUM_FORMS': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'MIN_NUM_FORMS': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'TOTAL_FORMS': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                }),
+                'required': list([
+                ]),
+                'type': 'object',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+          }),
+          'fields': dict({
+            'additionalProperties': False,
+            'properties': dict({
+              'INITIAL_FORMS': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'MAX_NUM_FORMS': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'MIN_NUM_FORMS': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'TOTAL_FORMS': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+            }),
+            'required': list([
+              'TOTAL_FORMS',
+              'INITIAL_FORMS',
+              'MIN_NUM_FORMS',
+              'MAX_NUM_FORMS',
+            ]),
+            'type': 'object',
+          }),
+          'hidden_fields': dict({
+            'items': dict({
+              'enum': list([
+                'TOTAL_FORMS',
+                'INITIAL_FORMS',
+                'MIN_NUM_FORMS',
+                'MAX_NUM_FORMS',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'iterator': dict({
+            'items': dict({
+              'enum': list([
+                'TOTAL_FORMS',
+                'INITIAL_FORMS',
+                'MIN_NUM_FORMS',
+                'MAX_NUM_FORMS',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'name': dict({
+            'enum': list([
+              'django.forms.formsets.ManagementForm',
+            ]),
+            'type': 'string',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'prefix',
+          'fields',
+          'iterator',
+          'errors',
+        ]),
+        'serializer': 'reactivated.serialization.FormType',
+        'type': 'object',
+      }),
+      'django.forms.widgets.CheckboxInput': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.CheckAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.CheckboxInput',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/checkbox.html',
+            ]),
+          }),
+          'type': dict({
+            'enum': list([
+              'checkbox',
+            ]),
+          }),
+          'value': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'type',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.CheckboxInput',
+        'title': 'django.forms.widgets.CheckboxInput',
+        'type': 'object',
+      }),
+      'django.forms.widgets.HiddenInput': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.HiddenInput',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/hidden.html',
+            ]),
+          }),
+          'type': dict({
+            'enum': list([
+              'hidden',
+            ]),
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'type',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.HiddenInput',
+        'title': 'django.forms.widgets.HiddenInput',
+        'type': 'object',
+      }),
+      'django.forms.widgets.Select': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'optgroups': dict({
+            'items': dict({
+              'items': list([
+                dict({
+                  'type': 'null',
+                }),
+                dict({
+                  'items': list([
+                    dict({
+                      '$ref': '#/definitions/reactivated.serialization.widgets.OptgroupMember',
+                    }),
+                  ]),
+                  'maxItems': 1,
+                  'minItems': 1,
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'number',
+                }),
+              ]),
+              'maxItems': 3,
+              'minItems': 3,
+              'type': 'array',
+            }),
+            'type': 'array',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.Select',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/select.html',
+            ]),
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'optgroups',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.Select',
+        'title': 'django.forms.widgets.Select',
+        'type': 'object',
+      }),
+      'django.forms.widgets.TextInput': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.MaxLengthAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.TextInput',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/text.html',
+            ]),
+          }),
+          'type': dict({
+            'enum': list([
+              'text',
+            ]),
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'type',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.TextInput',
+        'title': 'django.forms.widgets.TextInput',
+        'type': 'object',
+      }),
+      'reactivated.serialization.FieldType': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'help_text': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+          'label': dict({
+            'type': 'string',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'label',
+          'help_text',
+        ]),
+        'serializer': 'reactivated.serialization.FieldType',
+        'title': 'reactivated.serialization.FieldType',
+        'type': 'object',
+      }),
+      'reactivated.serialization.FormSetType': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'can_delete': dict({
+            'type': 'boolean',
+          }),
+          'can_order': dict({
+            'type': 'boolean',
+          }),
+          'initial_form_count': dict({
+            'type': 'number',
+          }),
+          'max_num': dict({
+            'type': 'number',
+          }),
+          'min_num': dict({
+            'type': 'number',
+          }),
+          'non_form_errors': dict({
+            'items': dict({
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+          'total_form_count': dict({
+            'type': 'number',
+          }),
+        }),
+        'required': list([
+          'initial_form_count',
+          'total_form_count',
+          'max_num',
+          'min_num',
+          'can_delete',
+          'can_order',
+          'non_form_errors',
+          'prefix',
+        ]),
+        'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.BaseWidgetAttrs': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'disabled': dict({
+            'type': 'boolean',
+          }),
+          'id': dict({
+            'type': 'string',
+          }),
+          'placeholder': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'id',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.BaseWidgetAttrs',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.CheckAttrs': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'checked': dict({
+            'type': 'boolean',
+          }),
+          'disabled': dict({
+            'type': 'boolean',
+          }),
+          'id': dict({
+            'type': 'string',
+          }),
+          'placeholder': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'id',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.CheckAttrs',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.MaxLengthAttrs': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'disabled': dict({
+            'type': 'boolean',
+          }),
+          'id': dict({
+            'type': 'string',
+          }),
+          'maxlength': dict({
+            'type': 'string',
+          }),
+          'placeholder': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'id',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.MaxLengthAttrs',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.OptgroupMember': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'label': dict({
+            'type': 'string',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'selected': dict({
+            'type': 'boolean',
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.bool': dict({
+                'type': 'boolean',
+              }),
+              'builtins.int': dict({
+                'type': 'number',
+              }),
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'number',
+              }),
+              dict({
+                'type': 'boolean',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'name',
+          'value',
+          'label',
+          'selected',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.OptgroupMember',
+        'type': 'object',
+      }),
+      'reactivated.widgets.Autocomplete': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'selected': dict({
+            '_reactivated_union': dict({
+              'reactivated.widgets.AutocompleteSelected': dict({
+                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+          'tag': dict({
+            'enum': list([
+              'reactivated.widgets.Autocomplete',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'reactivated/autocomplete',
+            ]),
+          }),
+          'value': dict({
+            'items': dict({
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'selected',
+          'tag',
+        ]),
+        'serializer': 'reactivated.widgets.AutocompleteType',
+        'title': 'reactivated.widgets.Autocomplete',
+        'type': 'object',
+      }),
+      'reactivated.widgets.AutocompleteSelected': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'label': dict({
+            'type': 'string',
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.int': dict({
+                'type': 'number',
+              }),
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'number',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'value',
+          'label',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.widgets.AutocompleteSelected',
+        'type': 'object',
+      }),
+      'sample.server.apps.samples.forms.OperaForm': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'errors': dict({
+            'anyOf': list([
+              dict({
+                'additionalProperties': False,
+                'properties': dict({
+                  'composer': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'has_piano_transcription': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'name': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'style': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                }),
+                'required': list([
+                ]),
+                'type': 'object',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+          }),
+          'fields': dict({
+            'additionalProperties': False,
+            'properties': dict({
+              'composer': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/reactivated.widgets.Autocomplete',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'has_piano_transcription': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.CheckboxInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'name': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.TextInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'style': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.Select',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'enum': dict({
+                        '_reactivated_union': dict({
+                          'sample.server.apps.samples.models.Opera.Style': dict({
+                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                          }),
+                        }),
+                        'anyOf': list([
+                          dict({
+                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                          }),
+                          dict({
+                            'type': 'null',
+                          }),
+                        ]),
+                        'serializer': 'reactivated.serialization.UnionType',
+                      }),
+                    }),
+                    'required': list([
+                      'enum',
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+            }),
+            'required': list([
+              'name',
+              'composer',
+              'style',
+              'has_piano_transcription',
+            ]),
+            'type': 'object',
+          }),
+          'hidden_fields': dict({
+            'items': dict({
+              'enum': list([
+                'name',
+                'composer',
+                'style',
+                'has_piano_transcription',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'iterator': dict({
+            'items': dict({
+              'enum': list([
+                'name',
+                'composer',
+                'style',
+                'has_piano_transcription',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'name': dict({
+            'enum': list([
+              'sample.server.apps.samples.forms.OperaForm',
+            ]),
+            'type': 'string',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'prefix',
+          'fields',
+          'iterator',
+          'errors',
+        ]),
+        'serializer': 'reactivated.serialization.FormType',
+        'type': 'object',
+      }),
+      'sample.server.apps.samples.models.Opera.Style': dict({
+        'enum': list([
+          'VERISMO',
+          'BUFFA',
+          'GRAND',
+        ]),
+        'serializer': 'reactivated.serialization.EnumMemberType',
+        'type': 'string',
+      }),
+      'tests.forms.ComposerForm': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'errors': dict({
+            'anyOf': list([
+              dict({
+                'additionalProperties': False,
+                'properties': dict({
+                  'name': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                }),
+                'required': list([
+                ]),
+                'type': 'object',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+          }),
+          'fields': dict({
+            'additionalProperties': False,
+            'properties': dict({
+              'name': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.TextInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+            }),
+            'required': list([
+              'name',
+            ]),
+            'type': 'object',
+          }),
+          'hidden_fields': dict({
+            'items': dict({
+              'enum': list([
+                'name',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'iterator': dict({
+            'items': dict({
+              'enum': list([
+                'name',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'name': dict({
+            'enum': list([
+              'tests.forms.ComposerForm',
+            ]),
+            'type': 'string',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'prefix',
+          'fields',
+          'iterator',
+          'errors',
+        ]),
+        'serializer': 'reactivated.serialization.FormType',
+        'type': 'object',
+      }),
+      'tests.forms.OperaFormGroup': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'composer': dict({
+            '$ref': '#/definitions/tests.forms.ComposerForm',
+          }),
+          'composers': dict({
+            '$ref': '#/definitions/django.forms.formsets.ComposerFormFormSet',
+          }),
+          'opera': dict({
+            '$ref': '#/definitions/sample.server.apps.samples.forms.OperaForm',
+          }),
+          'tag': dict({
+            'enum': list([
+              'FormGroup',
+            ]),
+          }),
+        }),
+        'required': list([
+          'tag',
+          'opera',
+          'composer',
+          'composers',
+        ]),
+        'serializer': 'tests.forms.OperaFormGroup',
+        'title': 'tests.forms.OperaFormGroup',
+        'type': 'object',
+      }),
+    }),
+    schema=dict({
+      '$ref': '#/definitions/tests.forms.OperaFormGroup',
+    }),
+  )
+# ---
+# name: test_form_group_instance.1
+  dict({
+    'composer': dict({
+      'errors': None,
+      'fields': dict({
+        'name': dict({
+          'help_text': None,
+          'label': 'Name',
+          'name': 'name',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_composer-name',
+              'maxlength': '100',
+              'required': True,
+            }),
+            'is_hidden': False,
+            'name': 'composer-name',
+            'required': True,
+            'tag': 'django.forms.widgets.TextInput',
+            'template_name': 'django/forms/widgets/text.html',
+            'type': 'text',
+            'value': None,
+          }),
+        }),
+      }),
+      'hidden_fields': list([
+      ]),
+      'iterator': list([
+        'name',
+      ]),
+      'name': 'tests.forms.ComposerForm',
+      'prefix': 'composer',
+    }),
+    'composers': dict({
+      'can_delete': False,
+      'can_order': False,
+      'empty_form': dict({
+        'errors': None,
+        'fields': dict({
+          'name': dict({
+            'help_text': None,
+            'label': 'Name',
+            'name': 'name',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_composers-__prefix__-name',
+                'maxlength': '100',
+              }),
+              'is_hidden': False,
+              'name': 'composers-__prefix__-name',
+              'required': True,
+              'tag': 'django.forms.widgets.TextInput',
+              'template_name': 'django/forms/widgets/text.html',
+              'type': 'text',
+              'value': None,
+            }),
+          }),
+        }),
+        'hidden_fields': list([
+        ]),
+        'iterator': list([
+          'name',
+        ]),
+        'name': 'tests.forms.ComposerForm',
+        'prefix': 'composers-__prefix__',
+      }),
+      'forms': list([
+        dict({
+          'errors': None,
+          'fields': dict({
+            'name': dict({
+              'help_text': None,
+              'label': 'Name',
+              'name': 'name',
+              'widget': dict({
+                'attrs': dict({
+                  'id': 'id_composers-0-name',
+                  'maxlength': '100',
+                }),
+                'is_hidden': False,
+                'name': 'composers-0-name',
+                'required': True,
+                'tag': 'django.forms.widgets.TextInput',
+                'template_name': 'django/forms/widgets/text.html',
+                'type': 'text',
+                'value': None,
+              }),
+            }),
+          }),
+          'hidden_fields': list([
+          ]),
+          'iterator': list([
+            'name',
+          ]),
+          'name': 'tests.forms.ComposerForm',
+          'prefix': 'composers-0',
+        }),
+      ]),
+      'initial_form_count': 0,
+      'management_form': dict({
+        'errors': None,
+        'fields': dict({
+          'INITIAL_FORMS': dict({
+            'help_text': None,
+            'label': 'Initial forms',
+            'name': 'INITIAL_FORMS',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_composers-INITIAL_FORMS',
+              }),
+              'is_hidden': True,
+              'name': 'composers-INITIAL_FORMS',
+              'required': True,
+              'tag': 'django.forms.widgets.HiddenInput',
+              'template_name': 'django/forms/widgets/hidden.html',
+              'type': 'hidden',
+              'value': '0',
+            }),
+          }),
+          'MAX_NUM_FORMS': dict({
+            'help_text': None,
+            'label': 'Max num forms',
+            'name': 'MAX_NUM_FORMS',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_composers-MAX_NUM_FORMS',
+              }),
+              'is_hidden': True,
+              'name': 'composers-MAX_NUM_FORMS',
+              'required': False,
+              'tag': 'django.forms.widgets.HiddenInput',
+              'template_name': 'django/forms/widgets/hidden.html',
+              'type': 'hidden',
+              'value': '1000',
+            }),
+          }),
+          'MIN_NUM_FORMS': dict({
+            'help_text': None,
+            'label': 'Min num forms',
+            'name': 'MIN_NUM_FORMS',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_composers-MIN_NUM_FORMS',
+              }),
+              'is_hidden': True,
+              'name': 'composers-MIN_NUM_FORMS',
+              'required': False,
+              'tag': 'django.forms.widgets.HiddenInput',
+              'template_name': 'django/forms/widgets/hidden.html',
+              'type': 'hidden',
+              'value': '0',
+            }),
+          }),
+          'TOTAL_FORMS': dict({
+            'help_text': None,
+            'label': 'Total forms',
+            'name': 'TOTAL_FORMS',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_composers-TOTAL_FORMS',
+              }),
+              'is_hidden': True,
+              'name': 'composers-TOTAL_FORMS',
+              'required': True,
+              'tag': 'django.forms.widgets.HiddenInput',
+              'template_name': 'django/forms/widgets/hidden.html',
+              'type': 'hidden',
+              'value': '1',
+            }),
+          }),
+        }),
+        'hidden_fields': list([
+          'TOTAL_FORMS',
+          'INITIAL_FORMS',
+          'MIN_NUM_FORMS',
+          'MAX_NUM_FORMS',
+        ]),
+        'iterator': list([
+          'TOTAL_FORMS',
+          'INITIAL_FORMS',
+          'MIN_NUM_FORMS',
+          'MAX_NUM_FORMS',
+        ]),
+        'name': 'django.forms.formsets.ManagementForm',
+        'prefix': 'composers',
+      }),
+      'max_num': 1000,
+      'min_num': 0,
+      'non_form_errors': list([
+      ]),
+      'prefix': 'composers',
+      'total_form_count': 1,
+    }),
+    'opera': dict({
+      'errors': None,
+      'fields': dict({
+        'composer': dict({
+          'help_text': None,
+          'label': 'Composer',
+          'name': 'composer',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_opera-composer',
+              'required': True,
+            }),
+            'is_hidden': False,
+            'name': 'opera-composer',
+            'required': True,
+            'selected': None,
+            'tag': 'reactivated.widgets.Autocomplete',
+            'template_name': 'reactivated/autocomplete',
+            'value': list([
+              '',
+            ]),
+          }),
+        }),
+        'has_piano_transcription': dict({
+          'help_text': None,
+          'label': 'Has piano transcription',
+          'name': 'has_piano_transcription',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_opera-has_piano_transcription',
+            }),
+            'is_hidden': False,
+            'name': 'opera-has_piano_transcription',
+            'required': False,
+            'tag': 'django.forms.widgets.CheckboxInput',
+            'template_name': 'django/forms/widgets/checkbox.html',
+            'type': 'checkbox',
+            'value': False,
+          }),
+        }),
+        'name': dict({
+          'help_text': None,
+          'label': 'Name',
+          'name': 'name',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_opera-name',
+              'maxlength': '100',
+              'required': True,
+            }),
+            'is_hidden': False,
+            'name': 'opera-name',
+            'required': True,
+            'tag': 'django.forms.widgets.TextInput',
+            'template_name': 'django/forms/widgets/text.html',
+            'type': 'text',
+            'value': None,
+          }),
+        }),
+        'style': dict({
+          'enum': None,
+          'help_text': None,
+          'label': 'Style',
+          'name': 'style',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_opera-style',
+            }),
+            'is_hidden': False,
+            'name': 'opera-style',
+            'optgroups': list([
+              list([
+                None,
+                list([
+                  dict({
+                    'label': 'Verismo',
+                    'name': 'opera-style',
+                    'selected': False,
+                    'value': 'VERISMO',
+                  }),
+                ]),
+                0,
+              ]),
+              list([
+                None,
+                list([
+                  dict({
+                    'label': 'Opera Buffa',
+                    'name': 'opera-style',
+                    'selected': False,
+                    'value': 'BUFFA',
+                  }),
+                ]),
+                1,
+              ]),
+              list([
+                None,
+                list([
+                  dict({
+                    'label': 'Grand Opera',
+                    'name': 'opera-style',
+                    'selected': True,
+                    'value': 'GRAND',
+                  }),
+                ]),
+                2,
+              ]),
+            ]),
+            'required': True,
+            'tag': 'django.forms.widgets.Select',
+            'template_name': 'django/forms/widgets/select.html',
+            'value': 'GRAND',
+          }),
+        }),
+      }),
+      'hidden_fields': list([
+      ]),
+      'iterator': list([
+        'name',
+        'composer',
+        'style',
+        'has_piano_transcription',
+      ]),
+      'name': 'sample.server.apps.samples.forms.OperaForm',
+      'prefix': 'opera',
+    }),
+    'tag': 'FormGroup',
+  })
+# ---
+# name: test_form_set_class_not_instance
+  Thing(
+    definitions=dict({
+      'django.forms.formsets.ManagementForm': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'errors': dict({
+            'anyOf': list([
+              dict({
+                'additionalProperties': False,
+                'properties': dict({
+                  'INITIAL_FORMS': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'MAX_NUM_FORMS': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'MIN_NUM_FORMS': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'TOTAL_FORMS': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                }),
+                'required': list([
+                ]),
+                'type': 'object',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+          }),
+          'fields': dict({
+            'additionalProperties': False,
+            'properties': dict({
+              'INITIAL_FORMS': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'MAX_NUM_FORMS': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'MIN_NUM_FORMS': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'TOTAL_FORMS': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+            }),
+            'required': list([
+              'TOTAL_FORMS',
+              'INITIAL_FORMS',
+              'MIN_NUM_FORMS',
+              'MAX_NUM_FORMS',
+            ]),
+            'type': 'object',
+          }),
+          'hidden_fields': dict({
+            'items': dict({
+              'enum': list([
+                'TOTAL_FORMS',
+                'INITIAL_FORMS',
+                'MIN_NUM_FORMS',
+                'MAX_NUM_FORMS',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'iterator': dict({
+            'items': dict({
+              'enum': list([
+                'TOTAL_FORMS',
+                'INITIAL_FORMS',
+                'MIN_NUM_FORMS',
+                'MAX_NUM_FORMS',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'name': dict({
+            'enum': list([
+              'django.forms.formsets.ManagementForm',
+            ]),
+            'type': 'string',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'prefix',
+          'fields',
+          'iterator',
+          'errors',
+        ]),
+        'serializer': 'reactivated.serialization.FormType',
+        'type': 'object',
+      }),
+      'django.forms.formsets.OperaFormFormSet': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'can_delete': dict({
+            'type': 'boolean',
+          }),
+          'can_order': dict({
+            'type': 'boolean',
+          }),
+          'empty_form': dict({
+            '$ref': '#/definitions/django.forms.widgets.OperaForm',
+          }),
+          'forms': dict({
+            'items': dict({
+              '$ref': '#/definitions/django.forms.widgets.OperaForm',
+            }),
+            'type': 'array',
+          }),
+          'initial_form_count': dict({
+            'type': 'number',
+          }),
+          'management_form': dict({
+            '$ref': '#/definitions/django.forms.formsets.ManagementForm',
+          }),
+          'max_num': dict({
+            'type': 'number',
+          }),
+          'min_num': dict({
+            'type': 'number',
+          }),
+          'non_form_errors': dict({
+            'items': dict({
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+          'total_form_count': dict({
+            'type': 'number',
+          }),
+        }),
+        'required': list([
+          'initial_form_count',
+          'total_form_count',
+          'max_num',
+          'min_num',
+          'can_delete',
+          'can_order',
+          'non_form_errors',
+          'prefix',
+          'empty_form',
+          'forms',
+          'management_form',
+        ]),
+        'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
+        'type': 'object',
+      }),
+      'django.forms.widgets.CheckboxInput': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.CheckAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.CheckboxInput',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/checkbox.html',
+            ]),
+          }),
+          'type': dict({
+            'enum': list([
+              'checkbox',
+            ]),
+          }),
+          'value': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'type',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.CheckboxInput',
+        'title': 'django.forms.widgets.CheckboxInput',
+        'type': 'object',
+      }),
+      'django.forms.widgets.HiddenInput': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.HiddenInput',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/hidden.html',
+            ]),
+          }),
+          'type': dict({
+            'enum': list([
+              'hidden',
+            ]),
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'type',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.HiddenInput',
+        'title': 'django.forms.widgets.HiddenInput',
+        'type': 'object',
+      }),
+      'django.forms.widgets.OperaForm': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'errors': dict({
+            'anyOf': list([
+              dict({
+                'additionalProperties': False,
+                'properties': dict({
+                  'composer': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'has_piano_transcription': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'id': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'name': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                  'style': dict({
+                    'items': dict({
+                      'type': 'string',
+                    }),
+                    'type': 'array',
+                  }),
+                }),
+                'required': list([
+                ]),
+                'type': 'object',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+          }),
+          'fields': dict({
+            'additionalProperties': False,
+            'properties': dict({
+              'composer': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/reactivated.widgets.Autocomplete',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'has_piano_transcription': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.CheckboxInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'id': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'name': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.TextInput',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                    }),
+                    'required': list([
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+              'style': dict({
+                '_reactivated_testing_merge': True,
+                'allOf': list([
+                  dict({
+                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'widget': dict({
+                        '$ref': '#/definitions/django.forms.widgets.Select',
+                      }),
+                    }),
+                    'required': list([
+                      'widget',
+                    ]),
+                    'type': 'object',
+                  }),
+                  dict({
+                    'additionalProperties': False,
+                    'properties': dict({
+                      'enum': dict({
+                        '_reactivated_union': dict({
+                          'sample.server.apps.samples.models.Opera.Style': dict({
+                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                          }),
+                        }),
+                        'anyOf': list([
+                          dict({
+                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                          }),
+                          dict({
+                            'type': 'null',
+                          }),
+                        ]),
+                        'serializer': 'reactivated.serialization.UnionType',
+                      }),
+                    }),
+                    'required': list([
+                      'enum',
+                    ]),
+                    'type': 'object',
+                  }),
+                ]),
+              }),
+            }),
+            'required': list([
+              'name',
+              'composer',
+              'style',
+              'has_piano_transcription',
+              'id',
+            ]),
+            'type': 'object',
+          }),
+          'hidden_fields': dict({
+            'items': dict({
+              'enum': list([
+                'name',
+                'composer',
+                'style',
+                'has_piano_transcription',
+                'id',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'iterator': dict({
+            'items': dict({
+              'enum': list([
+                'name',
+                'composer',
+                'style',
+                'has_piano_transcription',
+                'id',
+              ]),
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'name': dict({
+            'enum': list([
+              'django.forms.widgets.OperaForm',
+            ]),
+            'type': 'string',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'prefix',
+          'fields',
+          'iterator',
+          'errors',
+        ]),
+        'serializer': 'reactivated.serialization.FormType',
+        'type': 'object',
+      }),
+      'django.forms.widgets.Select': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'optgroups': dict({
+            'items': dict({
+              'items': list([
+                dict({
+                  'type': 'null',
+                }),
+                dict({
+                  'items': list([
+                    dict({
+                      '$ref': '#/definitions/reactivated.serialization.widgets.OptgroupMember',
+                    }),
+                  ]),
+                  'maxItems': 1,
+                  'minItems': 1,
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'number',
+                }),
+              ]),
+              'maxItems': 3,
+              'minItems': 3,
+              'type': 'array',
+            }),
+            'type': 'array',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.Select',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/select.html',
+            ]),
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'optgroups',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.Select',
+        'title': 'django.forms.widgets.Select',
+        'type': 'object',
+      }),
+      'django.forms.widgets.TextInput': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.MaxLengthAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'tag': dict({
+            'enum': list([
+              'django.forms.widgets.TextInput',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'django/forms/widgets/text.html',
+            ]),
+          }),
+          'type': dict({
+            'enum': list([
+              'text',
+            ]),
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'type',
+          'tag',
+        ]),
+        'serializer': 'reactivated.serialization.widgets.TextInput',
+        'title': 'django.forms.widgets.TextInput',
+        'type': 'object',
+      }),
+      'reactivated.serialization.FieldType': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'help_text': dict({
+            '_reactivated_union': dict({
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+          'label': dict({
+            'type': 'string',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+        }),
+        'required': list([
+          'name',
+          'label',
+          'help_text',
+        ]),
+        'serializer': 'reactivated.serialization.FieldType',
+        'title': 'reactivated.serialization.FieldType',
+        'type': 'object',
+      }),
+      'reactivated.serialization.FormSetType': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'can_delete': dict({
+            'type': 'boolean',
+          }),
+          'can_order': dict({
+            'type': 'boolean',
+          }),
+          'initial_form_count': dict({
+            'type': 'number',
+          }),
+          'max_num': dict({
+            'type': 'number',
+          }),
+          'min_num': dict({
+            'type': 'number',
+          }),
+          'non_form_errors': dict({
+            'items': dict({
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+          'total_form_count': dict({
+            'type': 'number',
+          }),
+        }),
+        'required': list([
+          'initial_form_count',
+          'total_form_count',
+          'max_num',
+          'min_num',
+          'can_delete',
+          'can_order',
+          'non_form_errors',
+          'prefix',
+        ]),
+        'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.BaseWidgetAttrs': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'disabled': dict({
+            'type': 'boolean',
+          }),
+          'id': dict({
+            'type': 'string',
+          }),
+          'placeholder': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'id',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.BaseWidgetAttrs',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.CheckAttrs': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'checked': dict({
+            'type': 'boolean',
+          }),
+          'disabled': dict({
+            'type': 'boolean',
+          }),
+          'id': dict({
+            'type': 'string',
+          }),
+          'placeholder': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'id',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.CheckAttrs',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.MaxLengthAttrs': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'disabled': dict({
+            'type': 'boolean',
+          }),
+          'id': dict({
+            'type': 'string',
+          }),
+          'maxlength': dict({
+            'type': 'string',
+          }),
+          'placeholder': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+        }),
+        'required': list([
+          'id',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.MaxLengthAttrs',
+        'type': 'object',
+      }),
+      'reactivated.serialization.widgets.OptgroupMember': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'label': dict({
+            'type': 'string',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'selected': dict({
+            'type': 'boolean',
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.bool': dict({
+                'type': 'boolean',
+              }),
+              'builtins.int': dict({
+                'type': 'number',
+              }),
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'number',
+              }),
+              dict({
+                'type': 'boolean',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'name',
+          'value',
+          'label',
+          'selected',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.serialization.widgets.OptgroupMember',
+        'type': 'object',
+      }),
+      'reactivated.widgets.Autocomplete': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'attrs': dict({
+            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+          }),
+          'is_hidden': dict({
+            'type': 'boolean',
+          }),
+          'name': dict({
+            'type': 'string',
+          }),
+          'required': dict({
+            'type': 'boolean',
+          }),
+          'selected': dict({
+            '_reactivated_union': dict({
+              'reactivated.widgets.AutocompleteSelected': dict({
+                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+              }),
+              dict({
+                'type': 'null',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+          'tag': dict({
+            'enum': list([
+              'reactivated.widgets.Autocomplete',
+            ]),
+          }),
+          'template_name': dict({
+            'enum': list([
+              'reactivated/autocomplete',
+            ]),
+          }),
+          'value': dict({
+            'items': dict({
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+        }),
+        'required': list([
+          'template_name',
+          'name',
+          'is_hidden',
+          'required',
+          'value',
+          'attrs',
+          'selected',
+          'tag',
+        ]),
+        'serializer': 'reactivated.widgets.AutocompleteType',
+        'title': 'reactivated.widgets.Autocomplete',
+        'type': 'object',
+      }),
+      'reactivated.widgets.AutocompleteSelected': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'label': dict({
+            'type': 'string',
+          }),
+          'value': dict({
+            '_reactivated_union': dict({
+              'builtins.int': dict({
+                'type': 'number',
+              }),
+              'builtins.str': dict({
+                'type': 'string',
+              }),
+            }),
+            'anyOf': list([
+              dict({
+                'type': 'string',
+              }),
+              dict({
+                'type': 'number',
+              }),
+            ]),
+            'serializer': 'reactivated.serialization.UnionType',
+          }),
+        }),
+        'required': list([
+          'value',
+          'label',
+        ]),
+        'serializer': None,
+        'title': 'reactivated.widgets.AutocompleteSelected',
+        'type': 'object',
+      }),
+      'sample.server.apps.samples.models.Opera.Style': dict({
+        'enum': list([
+          'VERISMO',
+          'BUFFA',
+          'GRAND',
+        ]),
+        'serializer': 'reactivated.serialization.EnumMemberType',
+        'type': 'string',
+      }),
+    }),
+    schema=dict({
+      '$ref': '#/definitions/django.forms.formsets.OperaFormFormSet',
+    }),
+  )
+# ---
+# name: test_form_set_class_not_instance.1
+  dict({
+    'can_delete': False,
+    'can_order': False,
+    'empty_form': dict({
+      'errors': None,
+      'fields': dict({
+        'composer': dict({
+          'help_text': None,
+          'label': 'Composer',
+          'name': 'composer',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_form-__prefix__-composer',
+            }),
+            'is_hidden': False,
+            'name': 'form-__prefix__-composer',
+            'required': True,
+            'selected': None,
+            'tag': 'reactivated.widgets.Autocomplete',
+            'template_name': 'reactivated/autocomplete',
+            'value': list([
+              '',
+            ]),
+          }),
+        }),
+        'has_piano_transcription': dict({
+          'help_text': None,
+          'label': 'Has piano transcription',
+          'name': 'has_piano_transcription',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_form-__prefix__-has_piano_transcription',
+            }),
+            'is_hidden': False,
+            'name': 'form-__prefix__-has_piano_transcription',
+            'required': False,
+            'tag': 'django.forms.widgets.CheckboxInput',
+            'template_name': 'django/forms/widgets/checkbox.html',
+            'type': 'checkbox',
+            'value': False,
+          }),
+        }),
+        'id': dict({
+          'help_text': None,
+          'label': 'Id',
+          'name': 'id',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_form-__prefix__-id',
+            }),
+            'is_hidden': True,
+            'name': 'form-__prefix__-id',
+            'required': False,
+            'tag': 'django.forms.widgets.HiddenInput',
+            'template_name': 'django/forms/widgets/hidden.html',
+            'type': 'hidden',
+            'value': None,
+          }),
+        }),
+        'name': dict({
+          'help_text': None,
+          'label': 'Name',
+          'name': 'name',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_form-__prefix__-name',
+              'maxlength': '100',
+            }),
+            'is_hidden': False,
+            'name': 'form-__prefix__-name',
+            'required': True,
+            'tag': 'django.forms.widgets.TextInput',
+            'template_name': 'django/forms/widgets/text.html',
+            'type': 'text',
+            'value': None,
+          }),
+        }),
+        'style': dict({
+          'enum': None,
+          'help_text': None,
+          'label': 'Style',
+          'name': 'style',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_form-__prefix__-style',
+            }),
+            'is_hidden': False,
+            'name': 'form-__prefix__-style',
+            'optgroups': list([
+              list([
+                None,
+                list([
+                  dict({
+                    'label': 'Verismo',
+                    'name': 'form-__prefix__-style',
+                    'selected': False,
+                    'value': 'VERISMO',
+                  }),
+                ]),
+                0,
+              ]),
+              list([
+                None,
+                list([
+                  dict({
+                    'label': 'Opera Buffa',
+                    'name': 'form-__prefix__-style',
+                    'selected': False,
+                    'value': 'BUFFA',
+                  }),
+                ]),
+                1,
+              ]),
+              list([
+                None,
+                list([
+                  dict({
+                    'label': 'Grand Opera',
+                    'name': 'form-__prefix__-style',
+                    'selected': True,
+                    'value': 'GRAND',
+                  }),
+                ]),
+                2,
+              ]),
+            ]),
+            'required': True,
+            'tag': 'django.forms.widgets.Select',
+            'template_name': 'django/forms/widgets/select.html',
+            'value': 'GRAND',
+          }),
+        }),
+      }),
+      'hidden_fields': list([
+        'id',
+      ]),
+      'iterator': list([
+        'id',
+        'name',
+        'composer',
+        'style',
+        'has_piano_transcription',
+      ]),
+      'name': 'django.forms.widgets.OperaForm',
+      'prefix': 'form-__prefix__',
+    }),
+    'forms': list([
+      dict({
+        'errors': None,
+        'fields': dict({
+          'composer': dict({
+            'help_text': None,
+            'label': 'Composer',
+            'name': 'composer',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_form-0-composer',
+              }),
+              'is_hidden': False,
+              'name': 'form-0-composer',
+              'required': True,
+              'selected': None,
+              'tag': 'reactivated.widgets.Autocomplete',
+              'template_name': 'reactivated/autocomplete',
+              'value': list([
+                '',
+              ]),
+            }),
+          }),
+          'has_piano_transcription': dict({
+            'help_text': None,
+            'label': 'Has piano transcription',
+            'name': 'has_piano_transcription',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_form-0-has_piano_transcription',
+              }),
+              'is_hidden': False,
+              'name': 'form-0-has_piano_transcription',
+              'required': False,
+              'tag': 'django.forms.widgets.CheckboxInput',
+              'template_name': 'django/forms/widgets/checkbox.html',
+              'type': 'checkbox',
+              'value': False,
+            }),
+          }),
+          'id': dict({
+            'help_text': None,
+            'label': 'Id',
+            'name': 'id',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_form-0-id',
+              }),
+              'is_hidden': True,
+              'name': 'form-0-id',
+              'required': False,
+              'tag': 'django.forms.widgets.HiddenInput',
+              'template_name': 'django/forms/widgets/hidden.html',
+              'type': 'hidden',
+              'value': None,
+            }),
+          }),
+          'name': dict({
+            'help_text': None,
+            'label': 'Name',
+            'name': 'name',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_form-0-name',
+                'maxlength': '100',
+              }),
+              'is_hidden': False,
+              'name': 'form-0-name',
+              'required': True,
+              'tag': 'django.forms.widgets.TextInput',
+              'template_name': 'django/forms/widgets/text.html',
+              'type': 'text',
+              'value': None,
+            }),
+          }),
+          'style': dict({
+            'enum': None,
+            'help_text': None,
+            'label': 'Style',
+            'name': 'style',
+            'widget': dict({
+              'attrs': dict({
+                'id': 'id_form-0-style',
+              }),
+              'is_hidden': False,
+              'name': 'form-0-style',
+              'optgroups': list([
+                list([
+                  None,
+                  list([
+                    dict({
+                      'label': 'Verismo',
+                      'name': 'form-0-style',
+                      'selected': False,
+                      'value': 'VERISMO',
+                    }),
+                  ]),
+                  0,
+                ]),
+                list([
+                  None,
+                  list([
+                    dict({
+                      'label': 'Opera Buffa',
+                      'name': 'form-0-style',
+                      'selected': False,
+                      'value': 'BUFFA',
+                    }),
+                  ]),
+                  1,
+                ]),
+                list([
+                  None,
+                  list([
+                    dict({
+                      'label': 'Grand Opera',
+                      'name': 'form-0-style',
+                      'selected': True,
+                      'value': 'GRAND',
+                    }),
+                  ]),
+                  2,
+                ]),
+              ]),
+              'required': True,
+              'tag': 'django.forms.widgets.Select',
+              'template_name': 'django/forms/widgets/select.html',
+              'value': 'GRAND',
+            }),
+          }),
+        }),
+        'hidden_fields': list([
+          'id',
+        ]),
+        'iterator': list([
+          'id',
+          'name',
+          'composer',
+          'style',
+          'has_piano_transcription',
+        ]),
+        'name': 'django.forms.widgets.OperaForm',
+        'prefix': 'form-0',
+      }),
+    ]),
+    'initial_form_count': 0,
+    'management_form': dict({
+      'errors': None,
+      'fields': dict({
+        'INITIAL_FORMS': dict({
+          'help_text': None,
+          'label': 'Initial forms',
+          'name': 'INITIAL_FORMS',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_form-INITIAL_FORMS',
+            }),
+            'is_hidden': True,
+            'name': 'form-INITIAL_FORMS',
+            'required': True,
+            'tag': 'django.forms.widgets.HiddenInput',
+            'template_name': 'django/forms/widgets/hidden.html',
+            'type': 'hidden',
+            'value': '0',
+          }),
+        }),
+        'MAX_NUM_FORMS': dict({
+          'help_text': None,
+          'label': 'Max num forms',
+          'name': 'MAX_NUM_FORMS',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_form-MAX_NUM_FORMS',
+            }),
+            'is_hidden': True,
+            'name': 'form-MAX_NUM_FORMS',
+            'required': False,
+            'tag': 'django.forms.widgets.HiddenInput',
+            'template_name': 'django/forms/widgets/hidden.html',
+            'type': 'hidden',
+            'value': '1000',
+          }),
+        }),
+        'MIN_NUM_FORMS': dict({
+          'help_text': None,
+          'label': 'Min num forms',
+          'name': 'MIN_NUM_FORMS',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_form-MIN_NUM_FORMS',
+            }),
+            'is_hidden': True,
+            'name': 'form-MIN_NUM_FORMS',
+            'required': False,
+            'tag': 'django.forms.widgets.HiddenInput',
+            'template_name': 'django/forms/widgets/hidden.html',
+            'type': 'hidden',
+            'value': '1',
+          }),
+        }),
+        'TOTAL_FORMS': dict({
+          'help_text': None,
+          'label': 'Total forms',
+          'name': 'TOTAL_FORMS',
+          'widget': dict({
+            'attrs': dict({
+              'id': 'id_form-TOTAL_FORMS',
+            }),
+            'is_hidden': True,
+            'name': 'form-TOTAL_FORMS',
+            'required': True,
+            'tag': 'django.forms.widgets.HiddenInput',
+            'template_name': 'django/forms/widgets/hidden.html',
+            'type': 'hidden',
+            'value': '1',
+          }),
+        }),
+      }),
+      'hidden_fields': list([
+        'TOTAL_FORMS',
+        'INITIAL_FORMS',
+        'MIN_NUM_FORMS',
+        'MAX_NUM_FORMS',
+      ]),
+      'iterator': list([
+        'TOTAL_FORMS',
+        'INITIAL_FORMS',
+        'MIN_NUM_FORMS',
+        'MAX_NUM_FORMS',
+      ]),
+      'name': 'django.forms.formsets.ManagementForm',
+      'prefix': 'form',
+    }),
+    'max_num': 1000,
+    'min_num': 1,
+    'non_form_errors': list([
+    ]),
+    'prefix': 'form',
+    'total_form_count': 1,
+  })
+# ---

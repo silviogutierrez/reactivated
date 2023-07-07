@@ -177,19 +177,6 @@ export type WidgetType =
     | SelectDateWidget
     | ClearableFileInput;
 
-export const getValue = (optgroup: Optgroup) => {
-    const rawValue = optgroup[1][0].value;
-
-    if (rawValue == null) {
-        return "";
-    } else if (rawValue === true) {
-        return "True";
-    } else if (rawValue === false) {
-        return "False";
-    }
-    return rawValue;
-};
-
 export const getValueForSelect = (widget: Select | Autocomplete | SelectMultiple) => {
     if (isMultiple(widget)) {
         return widget.value;

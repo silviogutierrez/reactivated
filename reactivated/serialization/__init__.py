@@ -541,6 +541,7 @@ register(models.PositiveIntegerField)(int)
 
 register(models.DecimalField)(str)
 
+register(models.FloatField)(float)
 
 @register(fields._EnumField)
 class EnumFieldType:

@@ -35,27 +35,6 @@ from .templates import Action as Action  # noqa: F401
 from .templates import interface as interface  # noqa: F401
 from .templates import template as template  # noqa: F401
 
-original_restart_with_reloader = autoreload.restart_with_reloader
-
-
-def patched_restart_with_reloader() -> None:
-    from . import processes
-    from .apps import generate_schema, get_schema
-
-    schema = get_schema()
-    generate_schema(schema)
-    processes.start_tsc()
-    processes.start_client()
-    processes.start_renderer()
-    original_restart_with_reloader()
-
-    # Start the renderer and attach it to an env variable
-    # Then for production builds, the renderer is started in apps if not already started in the env variable.
-    # No need to lazy load I think.
-
-
-autoreload.restart_with_reloader = patched_restart_with_reloader  # type: ignore[assignment]
-
 
 def export(var: Any) -> None:
     """See: https://stackoverflow.com/a/18425523"""

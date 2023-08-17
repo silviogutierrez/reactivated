@@ -162,7 +162,10 @@ class ReactivatedConfig(AppConfig):
         from .checks import check_installed_app_order  # NOQA
         from .serialization import widgets  # noqa
 
-        if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or os.environ.get("RUN_MAIN") == "true":
+        if (
+            os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+            or os.environ.get("RUN_MAIN") == "true"
+        ):
             from . import processes
             from .apps import generate_schema, get_schema
 

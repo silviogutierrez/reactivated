@@ -21,7 +21,6 @@ from django import forms as django_forms
 from django.core.exceptions import ViewDoesNotExist
 from django.http import HttpRequest, HttpResponse
 from django.urls import URLPattern, URLResolver
-from django.utils import autoreload
 from mypy_extensions import Arg, KwArg
 
 from .backend import JSX as JSX  # noqa: F401

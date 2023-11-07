@@ -2,6 +2,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Literal,
     Mapping,
     NamedTuple,
     Optional,
@@ -22,7 +23,7 @@ global_types: Dict[str, Any] = {
 }
 template_registry: Dict[str, Tuple[Any]] = {}
 interface_registry: Dict[str, Tuple[Any]] = {}
-value_registry: Dict[str, Tuple[Any, bool]] = {}
+value_registry: Dict[str, Tuple[Any, Literal["primitive", "class", "enum"]]] = {}
 definitions_registry: Dict[Any, Any] = {}
 rpc_registry: types.RPCRegistry = {}
 

@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import subprocess
-from typing import Any, Dict, NamedTuple, Tuple
+from typing import Any, Dict, NamedTuple, Tuple, Type
 
 from django.apps import AppConfig
 from django.conf import settings
@@ -129,8 +129,11 @@ def get_values() -> Dict[str, Any]:
     serialized = {}
 
     for key, (value, serialize_as_is) in value_registry.items():
-        if serialize_as_is is True:
+        if serialize_as_is == "primitive":
             serialized[key] = value
+        elif serialize_as_is == "enum":
+            generated_schema = create_schema(Type[value], {})
+            serialized[key] = serialize(value, generated_schema)
         else:
             generated_schema = create_schema(value, {})
             generated_schema.definitions["is_static_context"] = True  # type: ignore[index]

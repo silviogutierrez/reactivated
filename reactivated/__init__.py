@@ -1,4 +1,5 @@
 import abc
+import enum
 import inspect
 from typing import (
     Any,
@@ -34,20 +35,18 @@ from .templates import Action as Action  # noqa: F401
 from .templates import interface as interface  # noqa: F401
 from .templates import template as template  # noqa: F401
 
-import enum
-
 
 def export(var: Any) -> None:
     if inspect.isclass(var) and issubclass(var, enum.Enum):
         name = f"{var.__module__}.{var.__qualname__}"
-        registry.value_registry.update({name: (var, False)})
+        registry.value_registry.update({name: (var, "enum")})
         return
 
     """See: https://stackoverflow.com/a/18425523"""
     callers_local_vars = inspect.currentframe().f_back.f_locals.items()  # type: ignore[union-attr]
     name = [var_name for var_name, var_val in callers_local_vars if var_val is var][0]
 
-    registry.value_registry.update({name: (var, True)})
+    registry.value_registry.update({name: (var, "primitive")})
 
 
 # def export_type(var: Any) -> None:

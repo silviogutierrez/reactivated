@@ -34,8 +34,8 @@ def test_export_registry():
 
     export(BAR)
 
-    assert value_registry["FOO"] == (1, True)
-    assert value_registry["BAR"] == (2, True)
+    assert value_registry["FOO"] == (1, "primitive")
+    assert value_registry["BAR"] == (2, "primitive")
 
 
 def test_export_complex_types():

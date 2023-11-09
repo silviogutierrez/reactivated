@@ -334,8 +334,6 @@ class FormType(NamedTuple):
         class_or_instance: Union[Type[django_forms.BaseForm], django_forms.BaseForm],
         schema: Thing,
     ) -> JSON:
-        if Type.__name__ == "WorkoutProgramForm":
-            assert False
         value = (
             class_or_instance
             if isinstance(class_or_instance, django_forms.BaseForm)

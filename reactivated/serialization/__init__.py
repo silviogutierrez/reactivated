@@ -334,11 +334,15 @@ class FormType(NamedTuple):
         class_or_instance: Union[Type[django_forms.BaseForm], django_forms.BaseForm],
         schema: Thing,
     ) -> JSON:
+        if Type.__name__ == "WorkoutProgramForm":
+            assert False
         value = (
             class_or_instance
             if isinstance(class_or_instance, django_forms.BaseForm)
             else class_or_instance()
         )
+
+        name = f"{value.__class__.__module__}.{value.__class__.__qualname__}"
 
         for field in value:
             if (
@@ -346,6 +350,14 @@ class FormType(NamedTuple):
                 and schema.definitions.get("is_static_context") is True  # type: ignore[comparison-overlap]
             ):
                 field.field.queryset = field.field.queryset.none()
+
+            if (
+                callable(field.field.initial)
+                and schema.definitions.get("is_static_context") is True  # type: ignore[comparison-overlap]
+            ):
+                assert (
+                    False
+                ), f"Callables are not supported in initial/default values for field {field.name} in form {name}"
 
         form = value
         context = form.get_context()  # type: ignore[attr-defined]
@@ -362,9 +374,7 @@ class FormType(NamedTuple):
         value.fields = {**hidden_fields, **visible_fields}
 
         serialized = serialize(value, schema, suppress_custom_serializer=True)
-        serialized[
-            "name"
-        ] = f"{value.__class__.__module__}.{value.__class__.__qualname__}"
+        serialized["name"] = name
         serialized["prefix"] = form.prefix or ""
         serialized["iterator"] = list(hidden_fields.keys()) + list(
             visible_fields.keys()

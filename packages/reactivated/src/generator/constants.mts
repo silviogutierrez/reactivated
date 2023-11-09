@@ -25,16 +25,36 @@ const interfaces = project.createSourceFile("");
 const {urls, templates, types, values} = schema;
 
 for (const name of Object.keys(values)) {
+    // Top level constants are deprecated.
+    // Because enums and classes will often have dots and the like.
+    if (name.includes(".")) {
+        continue;
+    }
+
     interfaces.addVariableStatement({
         declarationKind: VariableDeclarationKind.Const,
         isExported: true,
         declarations: [
             {
                 name,
-                initializer: Writers.assertion(JSON.stringify(values[name]), "const"),
+                initializer: Writers.assertion(
+                    JSON.stringify(values[name], null, 4),
+                    "const",
+                ),
             },
         ],
     });
 }
+
+interfaces.addVariableStatement({
+    declarationKind: VariableDeclarationKind.Const,
+    isExported: true,
+    declarations: [
+        {
+            name: "constants",
+            initializer: Writers.assertion(JSON.stringify(values, null, 4), "const"),
+        },
+    ],
+});
 
 process.stdout.write(interfaces.getText());

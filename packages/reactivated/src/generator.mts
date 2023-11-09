@@ -281,6 +281,8 @@ import createContext from "reactivated/dist/context";
 import * as forms from "reactivated/dist/forms";
 import * as generated from "reactivated/dist/generated";
 import * as rpcUtils from "reactivated/dist/rpc";
+import {constants} from "./constants";
+export {constants};
 
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};

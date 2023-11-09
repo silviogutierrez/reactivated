@@ -1,8 +1,25 @@
+import enum
+from typing import NamedTuple
+
 from django import forms
 
 from reactivated import export, serialization
 from reactivated.apps import get_values
 from reactivated.serialization.registry import value_registry
+
+
+class SimpleEnum(enum.Enum):
+    FIRST = "First"
+    SECOND = "Second"
+
+
+class ComplexMember(NamedTuple):
+    ranking: int
+
+
+class ComplexEnum(enum.Enum):
+    FIRST = ComplexMember(ranking=1)
+    SECOND = ComplexMember(ranking=2)
 
 
 class SimpleForm(forms.Form):
@@ -17,8 +34,8 @@ def test_export_registry():
 
     export(BAR)
 
-    assert value_registry["FOO"] == (1, True)
-    assert value_registry["BAR"] == (2, True)
+    assert value_registry["FOO"] == (1, "primitive")
+    assert value_registry["BAR"] == (2, "primitive")
 
 
 def test_export_complex_types():
@@ -29,3 +46,18 @@ def test_export_complex_types():
     )
 
     del value_registry["SimpleForm"]
+
+
+def test_export_enum():
+    export(SimpleEnum)
+    # generated_schema = serialization.create_schema(Type[SimpleEnum], {})
+    assert get_values()["tests.exports.SimpleEnum"] == {
+        "FIRST": "First",
+        "SECOND": "Second",
+    }
+
+    export(ComplexEnum)
+    assert get_values()["tests.exports.ComplexEnum"] == {
+        "FIRST": {"ranking": 1},
+        "SECOND": {"ranking": 2},
+    }

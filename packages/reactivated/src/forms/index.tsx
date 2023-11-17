@@ -73,7 +73,7 @@ export interface FormHandler<T extends FieldMap> {
     initial: FormValues<T>;
     errors: FormErrors<T>;
 
-    fields: {[K in keyof T]: FieldHandler<T[keyof T]["widget"]>};
+    fields: {[K in keyof T]: FieldHandler<T[K]["widget"]>};
     visibleFields: FieldHandler<T[keyof T]["widget"]>[];
     hiddenFields: FieldHandler<DjangoFormsWidgetsHiddenInput>[];
     nonFieldErrors: string[] | null;

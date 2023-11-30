@@ -173,7 +173,7 @@ class FieldType(NamedTuple):
             extra = {
                 "type": "object",
                 "properties": {
-                    "enum": {"tsType": "UUID"},
+                    "enum": {"tsType": "UUID | null"},
                 },
                 "required": ["enum"],
                 "additionalProperties": False,
@@ -980,7 +980,6 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     try:
         proxy = PROXIES[type_class]
 
-        print(Type, proxy)
         if callable(getattr(proxy, "get_json_schema", None)):
             proxy_schema = proxy.get_json_schema(Type, definitions)
         else:

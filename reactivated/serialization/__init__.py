@@ -169,6 +169,15 @@ class FieldType(NamedTuple):
                 "required": ["enum"],
                 "additionalProperties": False,
             }
+        elif isinstance(instance, django_forms.UUIDField):
+            extra = {
+                "type": "object",
+                "properties": {
+                    "enum": {"tsType": "UUID"},
+                },
+                "required": ["enum"],
+                "additionalProperties": False,
+            }
 
         return Thing(
             schema={

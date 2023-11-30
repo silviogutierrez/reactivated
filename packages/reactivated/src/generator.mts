@@ -274,6 +274,10 @@ if (Object.keys(urls).length !== 0) {
     }`);
 }
 
+sourceFile.addStatements(
+    "export type UUID = `${string}-${string}-${string}-${string}-${string}`;",
+);
+
 sourceFile.addStatements(`
 export const rpc = new RPC(typeof window != "undefined" ? rpcUtils.defaultRequester : null as any);
 import React from "react"

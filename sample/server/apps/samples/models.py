@@ -88,6 +88,7 @@ class Opera(models.Model):
         BUFFA = "Opera Buffa"
         GRAND = "Grand Opera"
 
+    uuid = models.UUIDField(null=True, editable=False)
     name = models.CharField(max_length=100)
     composer = models.ForeignKey(
         "Composer", on_delete=models.CASCADE, related_name="operas"

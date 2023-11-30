@@ -1,5 +1,6 @@
 import datetime
 import enum
+import uuid
 from types import MethodType
 from typing import (
     Any,
@@ -541,8 +542,6 @@ register(models.DateTimeField)(datetime.datetime)
 
 register(models.EmailField)(str)
 
-register(models.UUIDField)(str)
-
 register(models.IntegerField)(int)
 
 register(models.PositiveIntegerField)(int)
@@ -550,6 +549,29 @@ register(models.PositiveIntegerField)(int)
 register(models.DecimalField)(str)
 
 register(models.FloatField)(float)
+
+
+@register(models.UUIDField)
+class UUIDFieldType:
+    @classmethod
+    def get_json_schema(
+        Proxy: Type["UUIDFieldType"],
+        Type: models.UUIDField[Any, Any],
+        definitions: Definitions,
+    ) -> "Thing":
+        return Thing(
+            {
+                "serializer": "reactivated.serialization.UUIDFieldType",
+                "tsType": "UUID",
+            },
+            definitions=definitions,
+        )
+
+    @classmethod
+    def get_serialized_value(
+        Type: Type["UUIDFieldType"], value: uuid.UUID, schema: Thing
+    ) -> JSON:
+        return str(value)
 
 
 @register(fields._EnumField)
@@ -949,6 +971,7 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     try:
         proxy = PROXIES[type_class]
 
+        print(Type, proxy)
         if callable(getattr(proxy, "get_json_schema", None)):
             proxy_schema = proxy.get_json_schema(Type, definitions)
         else:

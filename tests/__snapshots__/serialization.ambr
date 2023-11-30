@@ -709,3 +709,30 @@
     'type': 'object',
   })
 # ---
+# name: test_uuid_field
+  dict({
+    'serializer': 'reactivated.serialization.UUIDFieldType',
+    'tsType': 'UUID',
+  })
+# ---
+# name: test_uuid_field.1
+  dict({
+  })
+# ---
+# name: test_uuid_field.2
+  dict({
+    'anyOf': list([
+      dict({
+        'serializer': 'reactivated.serialization.UUIDFieldType',
+        'tsType': 'UUID',
+      }),
+      dict({
+        'type': 'null',
+      }),
+    ]),
+  })
+# ---
+# name: test_uuid_field.3
+  dict({
+  })
+# ---

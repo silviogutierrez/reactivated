@@ -1,5 +1,6 @@
 import datetime
 import enum
+import uuid
 from types import MethodType
 from typing import (
     Any,
@@ -164,6 +165,15 @@ class FieldType(NamedTuple):
                 "type": "object",
                 "properties": {
                     "enum": choice_schema,
+                },
+                "required": ["enum"],
+                "additionalProperties": False,
+            }
+        elif isinstance(instance, django_forms.UUIDField):
+            extra = {
+                "type": "object",
+                "properties": {
+                    "enum": {"tsType": "UUID | null"},
                 },
                 "required": ["enum"],
                 "additionalProperties": False,
@@ -541,8 +551,6 @@ register(models.DateTimeField)(datetime.datetime)
 
 register(models.EmailField)(str)
 
-register(models.UUIDField)(str)
-
 register(models.IntegerField)(int)
 
 register(models.PositiveIntegerField)(int)
@@ -550,6 +558,29 @@ register(models.PositiveIntegerField)(int)
 register(models.DecimalField)(str)
 
 register(models.FloatField)(float)
+
+
+@register(models.UUIDField)
+class UUIDFieldType:
+    @classmethod
+    def get_json_schema(
+        Proxy: Type["UUIDFieldType"],
+        Type: "models.UUIDField[Any, Any]",
+        definitions: Definitions,
+    ) -> "Thing":
+        return Thing(
+            {
+                "serializer": "reactivated.serialization.UUIDFieldType",
+                "tsType": "UUID",
+            },
+            definitions=definitions,
+        )
+
+    @classmethod
+    def get_serialized_value(
+        Type: Type["UUIDFieldType"], value: uuid.UUID, schema: Thing
+    ) -> JSON:
+        return str(value)
 
 
 @register(fields._EnumField)

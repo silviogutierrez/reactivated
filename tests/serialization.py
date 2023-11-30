@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import enum
+import uuid
 from typing import (
     Any,
     List,
@@ -19,7 +20,7 @@ import pytest
 import simplejson
 from django import forms as django_forms
 from django.apps.registry import Apps
-from django.db.models import IntegerField, Model
+from django.db.models import IntegerField, Model, UUIDField
 from django.forms.models import ModelChoiceIteratorValue
 from django.utils.translation import gettext, gettext_lazy
 from jsonschema import validate
@@ -623,3 +624,21 @@ def test_pick_union():
     assert serialize(10, schema) == 10.0
     assert serialize(None, schema) is None
     assert serialize([1, 2, 3], schema) == [1, 2, 3]
+
+
+def test_uuid_field(snapshot):
+    descriptor = UUIDField()
+    schema, definitions = create_schema(descriptor, {})
+    assert schema == snapshot
+    assert definitions == snapshot
+
+    descriptor = UUIDField(null=True)
+    schema, definitions = create_schema(descriptor, {})
+    assert schema == snapshot
+    assert definitions == snapshot
+
+    generated_uuid = uuid.uuid4()
+
+    opera = models.Opera(name="Götterdämmerung", uuid=generated_uuid)
+    schema = create_schema(Pick[models.Opera, "uuid"], {})
+    assert serialize(opera, schema) == {"uuid": str(generated_uuid)}

@@ -556,7 +556,7 @@ class UUIDFieldType:
     @classmethod
     def get_json_schema(
         Proxy: Type["UUIDFieldType"],
-        Type: models.UUIDField[Any, Any],
+        Type: "models.UUIDField[Any, Any]",
         definitions: Definitions,
     ) -> "Thing":
         return Thing(

@@ -636,12 +636,7 @@ def test_uuid_field(snapshot):
     assert serialize(opera, schema) == {"uuid": str(generated_uuid)}
 
 
-@pytest.mark.django_db
 def test_foreign_key_id(settings):
-    # composer = models.Composer.objects.create(name="Wagner")
-    # opera = models.Opera.objects.create(name="Götterdämmerung", composer=composer)
-    field = models.Opera._meta.get_field("composer_id")
-
     settings.INSTALLED_APPS = ["tests.serialization"]
     test_apps = Apps(settings.INSTALLED_APPS)
 
@@ -652,35 +647,35 @@ def test_foreign_key_id(settings):
             apps = test_apps
 
     class Test(django_models.Model):
-        related = django_models.ForeignKey(
+        related_through_uuid = django_models.ForeignKey(
             Related,
             on_delete=django_models.DO_NOTHING,
             to_field="uuid",
+        )
+        related_through_id = django_models.ForeignKey(
+            Related,
+            on_delete=django_models.DO_NOTHING,
         )
 
         class Meta:
             apps = test_apps
 
     with pytest.raises(AssertionError, match="directly"):
-        create_schema(Pick[Test, "related"], {})
+        create_schema(Pick[Test, "related_through_uuid"], {})
 
-    schema = create_schema(Pick[Test, "related_id"], {})
+    with pytest.raises(AssertionError, match="directly"):
+        create_schema(Pick[Test, "related_through_id"], {})
 
-    related = Related(uuid="thisworks")
-    test = Test(related=related)
-    import pprint
+    related = Related(id=17, uuid="thisworks")
+    test = Test(related_through_id=related, related_through_uuid=related)
 
-    pprint.pprint(serialize(test, schema))
-    assert False
-
-    return
-    breakpoint()
-    pprint.pprint(Test._meta.get_fields())
-
-    schema = create_schema(Pick[models.Opera, "composer_id"], {})
-    assert False
-
-    assert serialize(opera, schema) == {"composer": composer.id}
+    schema = create_schema(
+        Pick[Test, "related_through_id_id", "related_through_uuid_id"], {}
+    )
+    assert serialize(test, schema) == {
+        "related_through_id_id": 17,
+        "related_through_uuid_id": "thisworks",
+    }
 
 
 def test_nested_null_foreign_keys(settings, snapshot):

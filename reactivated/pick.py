@@ -18,6 +18,7 @@ from typing import (
 from django.apps import apps
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
+from django.db.models.fields.reverse_related import ForeignObjectRel
 
 from .models import ComputedRelation
 from .serialization import ComputedField, FieldDescriptor, create_schema
@@ -93,7 +94,6 @@ def get_field_descriptor(
         (
             models.ForeignKey,
             models.OneToOneField,
-            models.ManyToOneRel,
             models.ManyToManyField,
             models.ManyToOneRel,
             ComputedRelation,
@@ -102,8 +102,16 @@ def get_field_descriptor(
         ),
     ):
         if len(remaining) == 0:
-            if field_name == field_descriptor.descriptor.attname:
-                copy = field_descriptor.descriptor.foreign_related_fields[0].__class__(
+            if isinstance(field_descriptor.descriptor, ForeignObjectRel):
+                assert (
+                    False
+                ), f"You cannot Pick reverse relationships. Specify which fields from {field_name} you want, such as {field_name}.example_field"
+
+            if (
+                isinstance(field_descriptor.descriptor, (models.ForeignKey))
+                and field_name == field_descriptor.descriptor.attname
+            ):
+                copy = field_descriptor.descriptor.foreign_related_fields[0].__class__(  # type: ignore[attr-defined]
                     null=field_descriptor.descriptor.null
                 )
 
@@ -118,7 +126,7 @@ def get_field_descriptor(
 
             assert (
                 False
-            ), f"Do not specify related fields directly for model {model_class} in {pick_name}. Use {field_name}_id if you just want the reference"
+            ), f"Do not specify related fields directly for model {model_class} in {pick_name}. Use {field_name}_id if you just want the reference or {field_name}.subfield if you want fields inside the related model"
 
         nested_descriptor, nested_field_names = get_field_descriptor(
             pick_name, field_descriptor.descriptor.related_model, remaining
@@ -313,7 +321,6 @@ class BasePickHolder:
             field_descriptor, path = get_field_descriptor(
                 definition_name, cls.model_class, field_name.split(".")
             )
-            print(field_descriptor, path)
             reference = build_nested_schema(schema, path)
 
             field_schema = create_schema(

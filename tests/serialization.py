@@ -124,15 +124,6 @@ def convert_to_json_and_validate(instance, schema):
 
 
 @pytest.mark.django_db
-def test_foreign_key_id():
-    composer = models.Composer.objects.create(name="Wagner")
-    opera = models.Opera.objects.create(name="Götterdämmerung", composer=composer)
-    schema = create_schema(Pick[models.Opera, "composer"], {})
-
-    assert serialize(opera, schema) == {"composer": composer.id}
-
-
-@pytest.mark.django_db
 def test_serialization():
     continent = models.Continent.objects.create(name="Europe")
     birth_country = models.Country.objects.create(name="Germany", continent=continent)
@@ -643,6 +634,53 @@ def test_uuid_field(snapshot):
     opera = models.Opera(name="Götterdämmerung", uuid=generated_uuid)
     schema = create_schema(Pick[models.Opera, "uuid"], {})
     assert serialize(opera, schema) == {"uuid": str(generated_uuid)}
+
+
+@pytest.mark.django_db
+def test_foreign_key_id(settings):
+    # composer = models.Composer.objects.create(name="Wagner")
+    # opera = models.Opera.objects.create(name="Götterdämmerung", composer=composer)
+    field = models.Opera._meta.get_field("composer_id")
+
+    settings.INSTALLED_APPS = ["tests.serialization"]
+    test_apps = Apps(settings.INSTALLED_APPS)
+
+    class Related(django_models.Model):
+        uuid = django_models.UUIDField()
+
+        class Meta:
+            apps = test_apps
+
+    class Test(django_models.Model):
+        related = django_models.ForeignKey(
+            Related,
+            on_delete=django_models.DO_NOTHING,
+            to_field="uuid",
+        )
+
+        class Meta:
+            apps = test_apps
+
+    with pytest.raises(AssertionError, match="directly"):
+        create_schema(Pick[Test, "related"], {})
+
+    schema = create_schema(Pick[Test, "related_id"], {})
+
+    related = Related(uuid="thisworks")
+    test = Test(related=related)
+    import pprint
+
+    pprint.pprint(serialize(test, schema))
+    assert False
+
+    return
+    breakpoint()
+    pprint.pprint(Test._meta.get_fields())
+
+    schema = create_schema(Pick[models.Opera, "composer_id"], {})
+    assert False
+
+    assert serialize(opera, schema) == {"composer": composer.id}
 
 
 def test_nested_null_foreign_keys(settings, snapshot):

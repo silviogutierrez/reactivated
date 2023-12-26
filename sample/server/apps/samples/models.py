@@ -91,7 +91,7 @@ class Opera(models.Model):
     uuid = models.UUIDField(null=True, editable=False)
     name = models.CharField(max_length=100)
     composer = models.ForeignKey(
-        "Composer", on_delete=models.CASCADE, related_name="operas"
+        "Composer", on_delete=models.CASCADE, related_name="operas", to_field="name"
     )
     style = EnumField(enum=Style, default=Style.GRAND)
     has_piano_transcription = models.BooleanField(default=False)

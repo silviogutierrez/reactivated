@@ -154,10 +154,22 @@ def serialize(instance: models.Model, schema: JSONSchema) -> Any:
     return serialized
 
 
-def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSONSchema:
+def build_nested_schema(
+    schema_or_null: JSONSchema, path: Sequence[FieldSegment]
+) -> JSONSchema:
     needs_null = []
 
     for item, is_multiple, is_null in path:
+        # Because we mark null and convet to anyOf on each path, doing nested
+        # nullable paths Like foo?.bar?.name and foo?.bar?.id will fail if we
+        # don't first peek ahead into the anyOf. Then it'll be remarked as
+        # needs_null anyway. It's messy but we should use recursion instead of
+        # do this cleanly.
+        # See test_nested_null_foreign_keys
+        schema = (
+            schema_or_null["anyOf"][0] if "anyOf" in schema_or_null else schema_or_null
+        )
+
         existing_subschema = schema["properties"].get(item)
 
         if is_multiple:
@@ -173,7 +185,7 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
                     },
                 }
                 schema["required"].append(item)
-            schema = schema["properties"][item]["items"]
+            schema_or_null = schema["properties"][item]["items"]
         else:
             if existing_subschema is None:
                 schema["properties"][item] = {
@@ -186,7 +198,7 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
 
                 if is_null is True:
                     needs_null.append((item, schema["properties"][item]))
-            schema = schema["properties"][item]
+            schema_or_null = schema["properties"][item]
 
     # Should have used recursion. Instead we used dictionary references so we
     # null items this way.
@@ -202,7 +214,7 @@ def build_nested_schema(schema: JSONSchema, path: Sequence[FieldSegment]) -> JSO
             }
         )
 
-    return schema
+    return schema_or_null
 
 
 class BasePickHolder:

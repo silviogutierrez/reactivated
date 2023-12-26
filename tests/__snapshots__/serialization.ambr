@@ -673,6 +673,63 @@
     }),
   })
 # ---
+# name: test_nested_null_foreign_keys
+  dict({
+    'test_nested_null_foreign_keys.<locals>.Child_cf6d15b34c': dict({
+      'additionalProperties': False,
+      'properties': dict({
+        'parent': dict({
+          'anyOf': list([
+            dict({
+              'additionalProperties': False,
+              'properties': dict({
+                'grandparent': dict({
+                  'anyOf': list([
+                    dict({
+                      'additionalProperties': False,
+                      'properties': dict({
+                        'description': dict({
+                          'type': 'string',
+                        }),
+                        'id': dict({
+                          'type': 'number',
+                        }),
+                        'name': dict({
+                          'type': 'string',
+                        }),
+                      }),
+                      'required': list([
+                        'id',
+                        'name',
+                        'description',
+                      ]),
+                      'type': 'object',
+                    }),
+                    dict({
+                      'type': 'null',
+                    }),
+                  ]),
+                }),
+              }),
+              'required': list([
+                'grandparent',
+              ]),
+              'type': 'object',
+            }),
+            dict({
+              'type': 'null',
+            }),
+          ]),
+        }),
+      }),
+      'required': list([
+        'parent',
+      ]),
+      'title': 'test_nested_null_foreign_keys.<locals>.Child_cf6d15b34c',
+      'type': 'object',
+    }),
+  })
+# ---
 # name: test_override_pick_types
   dict({
     'additionalProperties': False,

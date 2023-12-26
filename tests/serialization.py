@@ -20,6 +20,7 @@ import pytest
 import simplejson
 from django import forms as django_forms
 from django.apps.registry import Apps
+from django.db import models as django_models
 from django.db.models import IntegerField, Model, UUIDField
 from django.forms.models import ModelChoiceIteratorValue
 from django.utils.translation import gettext, gettext_lazy
@@ -642,3 +643,47 @@ def test_uuid_field(snapshot):
     opera = models.Opera(name="Götterdämmerung", uuid=generated_uuid)
     schema = create_schema(Pick[models.Opera, "uuid"], {})
     assert serialize(opera, schema) == {"uuid": str(generated_uuid)}
+
+
+def test_nested_null_foreign_keys(settings):
+    settings.INSTALLED_APPS = ["tests.serialization"]
+    test_apps = Apps(settings.INSTALLED_APPS)
+
+    class Grandparent(django_models.Model):
+        name = django_models.CharField(max_length=100)
+        age = django_models.IntegerField()
+        description = django_models.CharField()
+
+        class Meta:
+            apps = test_apps
+
+    class Parent(django_models.Model):
+        name = django_models.CharField(max_length=100)
+        grandparent = django_models.ForeignKey(
+            Grandparent, on_delete=django_models.DO_NOTHING, null=True
+        )
+
+        class Meta:
+            apps = test_apps
+
+    class Child(django_models.Model):
+        parent = django_models.ForeignKey(
+            Parent, on_delete=django_models.DO_NOTHING, null=True
+        )
+
+        class Meta:
+            apps = test_apps
+
+    schema = create_schema(
+        Pick[
+            Child,
+            "parent.grandparent.id",
+            "parent.grandparent.name",
+            "parent.grandparent.description",
+        ],
+        {},
+    )
+    import pprint
+
+    pprint.pprint(schema.definitions)
+    assert False

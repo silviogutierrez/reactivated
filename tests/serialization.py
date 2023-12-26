@@ -645,7 +645,7 @@ def test_uuid_field(snapshot):
     assert serialize(opera, schema) == {"uuid": str(generated_uuid)}
 
 
-def test_nested_null_foreign_keys(settings):
+def test_nested_null_foreign_keys(settings, snapshot):
     settings.INSTALLED_APPS = ["tests.serialization"]
     test_apps = Apps(settings.INSTALLED_APPS)
 
@@ -683,7 +683,5 @@ def test_nested_null_foreign_keys(settings):
         ],
         {},
     )
-    import pprint
 
-    pprint.pprint(schema.definitions)
-    assert False
+    assert schema.definitions == snapshot

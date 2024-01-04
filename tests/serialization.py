@@ -124,15 +124,6 @@ def convert_to_json_and_validate(instance, schema):
 
 
 @pytest.mark.django_db
-def test_foreign_key_id():
-    composer = models.Composer.objects.create(name="Wagner")
-    opera = models.Opera.objects.create(name="Götterdämmerung", composer=composer)
-    schema = create_schema(Pick[models.Opera, "composer"], {})
-
-    assert serialize(opera, schema) == {"composer": composer.id}
-
-
-@pytest.mark.django_db
 def test_serialization():
     continent = models.Continent.objects.create(name="Europe")
     birth_country = models.Country.objects.create(name="Germany", continent=continent)
@@ -643,6 +634,48 @@ def test_uuid_field(snapshot):
     opera = models.Opera(name="Götterdämmerung", uuid=generated_uuid)
     schema = create_schema(Pick[models.Opera, "uuid"], {})
     assert serialize(opera, schema) == {"uuid": str(generated_uuid)}
+
+
+def test_foreign_key_id(settings):
+    settings.INSTALLED_APPS = ["tests.serialization"]
+    test_apps = Apps(settings.INSTALLED_APPS)
+
+    class Related(django_models.Model):
+        uuid = django_models.UUIDField()
+
+        class Meta:
+            apps = test_apps
+
+    class Test(django_models.Model):
+        related_through_uuid = django_models.ForeignKey(
+            Related,
+            on_delete=django_models.DO_NOTHING,
+            to_field="uuid",
+        )
+        related_through_id = django_models.ForeignKey(
+            Related,
+            on_delete=django_models.DO_NOTHING,
+        )
+
+        class Meta:
+            apps = test_apps
+
+    with pytest.raises(AssertionError, match="directly"):
+        create_schema(Pick[Test, "related_through_uuid"], {})
+
+    with pytest.raises(AssertionError, match="directly"):
+        create_schema(Pick[Test, "related_through_id"], {})
+
+    related = Related(id=17, uuid="thisworks")
+    test = Test(related_through_id=related, related_through_uuid=related)
+
+    schema = create_schema(
+        Pick[Test, "related_through_id_id", "related_through_uuid_id"], {}
+    )
+    assert serialize(test, schema) == {
+        "related_through_id_id": 17,
+        "related_through_uuid_id": "thisworks",
+    }
 
 
 def test_nested_null_foreign_keys(settings, snapshot):

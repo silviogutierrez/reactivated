@@ -21,7 +21,6 @@ from typing import (
 from django import forms as django_forms
 from django.conf import settings
 from django.db import models
-from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.forms.models import ModelChoiceIteratorValue  # type: ignore
 from django.utils.module_loading import import_string
 
@@ -1005,10 +1004,6 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return Thing(schema={}, definitions=definitions)
     elif callable(getattr(Type, "get_json_schema", None)):
         return Type.get_json_schema(definitions)  # type: ignore[no-any-return]
-    elif isinstance(Type, ForeignObjectRel):
-        assert (
-            False
-        ), f"You cannot Pick reverse relationships. Specify which fields from {Type.name} you want, such as {Type.name}.example_field"
     elif issubclass(Type, tuple) and callable(getattr(Type, "_asdict", None)):
         return named_tuple_schema(Type, definitions)
     elif type(Type) == stubs._TypedDictMeta:

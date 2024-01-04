@@ -18,6 +18,7 @@ from typing import (
 from django.apps import apps
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
+from django.db.models.fields.reverse_related import ForeignObjectRel
 
 from .models import ComputedRelation
 from .serialization import ComputedField, FieldDescriptor, create_schema
@@ -39,7 +40,7 @@ class FieldDescriptorWrapper(NamedTuple):
 
 
 def get_field_descriptor(
-    model_class: Type[models.Model], field_chain: List[str]
+    pick_name: str, model_class: Type[models.Model], field_chain: List[str]
 ) -> Tuple[FieldDescriptorWrapper, Sequence[FieldSegment]]:
     field_name, *remaining = field_chain
 
@@ -88,14 +89,11 @@ def get_field_descriptor(
         else:
             raise e
 
-    if len(remaining) == 0:
-        return field_descriptor, ()
-    elif isinstance(
+    if isinstance(
         field_descriptor.descriptor,
         (
             models.ForeignKey,
             models.OneToOneField,
-            models.ManyToOneRel,
             models.ManyToManyField,
             models.ManyToOneRel,
             ComputedRelation,
@@ -103,8 +101,35 @@ def get_field_descriptor(
             models.fields.related.RelatedField,
         ),
     ):
+        if len(remaining) == 0:
+            if isinstance(field_descriptor.descriptor, ForeignObjectRel):
+                assert (
+                    False
+                ), f"You cannot Pick reverse relationships. Specify which fields from {field_name} you want, such as {field_name}.example_field"
+
+            if (
+                isinstance(field_descriptor.descriptor, (models.ForeignKey))
+                and field_name == field_descriptor.descriptor.attname
+            ):
+                copy = field_descriptor.descriptor.foreign_related_fields[0].__class__(  # type: ignore[attr-defined]
+                    null=field_descriptor.descriptor.null
+                )
+
+                return (
+                    FieldDescriptorWrapper(
+                        descriptor=copy,
+                        target_name=field_name,
+                        annotation=None,
+                    ),
+                    (),
+                )
+
+            assert (
+                False
+            ), f"Do not specify related fields directly for model {model_class} in {pick_name}. Use {field_name}_id if you just want the reference or {field_name}.subfield if you want fields inside the related model"
+
         nested_descriptor, nested_field_names = get_field_descriptor(
-            field_descriptor.descriptor.related_model, remaining
+            pick_name, field_descriptor.descriptor.related_model, remaining
         )
 
         # TODO: Maybe RelatedField replaces all of the above?
@@ -131,6 +156,8 @@ def get_field_descriptor(
             nested_descriptor,
             ((field_name, is_multiple, is_null), *nested_field_names),
         )
+    elif len(remaining) == 0:
+        return field_descriptor, ()
 
     assert False, "Unknown descriptor"
 
@@ -292,7 +319,7 @@ class BasePickHolder:
 
         for field_name in cls.fields:
             field_descriptor, path = get_field_descriptor(
-                cls.model_class, field_name.split(".")
+                definition_name, cls.model_class, field_name.split(".")
             )
             reference = build_nested_schema(schema, path)
 

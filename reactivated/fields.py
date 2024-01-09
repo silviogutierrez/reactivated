@@ -264,7 +264,8 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
 if TYPE_CHECKING:
 
     @overload
-    def EnumField(  # type: ignore[misc] enum: Type[TEnum],
+    def EnumField(  # type: ignore[misc]
+        enum: Type[TEnum],
         default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
         null: Literal[False] = False,
         verbose_name: Optional[Union[str, bytes]] = None,

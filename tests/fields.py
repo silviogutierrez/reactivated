@@ -197,12 +197,3 @@ def test_drf_serializer(settings):
     validated_data = update_serializer.save()
     assert validated_data["enum_field"] == EnumTest.THIRD
     assert update_serializer.data["enum_field"] == "THIRD"
-
-
-@pytest.mark.django_db
-def test_enum_castng():
-    query = models.Opera.objects.filter(style="VERISMO")
-
-    list(query)
-    print(query.query)
-    assert False

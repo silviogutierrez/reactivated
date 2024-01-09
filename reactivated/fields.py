@@ -1,3 +1,4 @@
+import sys
 from enum import Enum
 from enum import unique as ensure_unique
 from typing import (
@@ -168,6 +169,9 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         del kwargs["choices"]
         return name, path, args, kwargs
 
+    def get_enum_name(self) -> str:
+        return f"{self.model._meta.db_table}_{self.name}_enum"
+
     def contribute_to_class(self, cls, name, **kwargs):  # type: ignore[no-untyped-def]
         """
         We don't store the enum in the constraint. Instead, we store the fields
@@ -186,14 +190,24 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
             EnumConstraint(
                 members=self.enum._member_names_,  # type: ignore[arg-type]
                 field_name=name,
-                name=f"{cls._meta.db_table}_{name}_enum",
+                name=self.get_enum_name(),
             )
         )
 
     def db_type(self, connection: Any) -> str:
+        # Our custom type is done through an alter statement, so the original
+        # type needs to exist. That is, varchar(63).
+        #
+        # But when casting using output_field, we need to pas in the custom
+        # enum type. This casting is done by bulk_update automatically if you
+        # use this field in the updates.
         if connection.settings_dict["ENGINE"] != "django.db.backends.postgresql":
             raise DatabaseError("EnumField is only supported on PostgreSQL")
-        return super().db_type(connection)
+
+        if "makemigrations" in sys.argv or "migrate" in sys.argv:
+            return super().db_type(connection=connection)
+
+        return self.get_enum_name()
 
     def from_db_value(
         self, value: Optional[str], expression: Any, connection: Any
@@ -209,6 +223,21 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
             return None
 
         return str(member.name)
+
+    def get_db_prep_value(
+        self, value: Any, connection: Any, prepared: bool = False
+    ) -> Any:
+        enum_name = self.get_enum_name()
+
+        from psycopg2.extensions import AsIs
+
+        if not prepared:
+            value = self.get_prep_value(value)
+
+        if value is None:
+            return None
+
+        return AsIs(f"'{value}'::{enum_name}")
 
     def value_to_string(self, obj: Any) -> str:
         value = self.value_from_object(obj)
@@ -235,8 +264,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
 if TYPE_CHECKING:
 
     @overload
-    def EnumField(  # type: ignore[misc]
-        enum: Type[TEnum],
+    def EnumField(  # type: ignore[misc] enum: Type[TEnum],
         default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
         null: Literal[False] = False,
         verbose_name: Optional[Union[str, bytes]] = None,

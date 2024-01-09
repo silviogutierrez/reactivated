@@ -153,6 +153,12 @@ def get_schema() -> str:
     return json.dumps(schema, indent=4)
 
 
+def disable_custom_types(*args: Any, **kwargs: Any) -> None:
+    from .fields import _EnumField
+
+    _EnumField.is_migrating = True
+
+
 class ReactivatedConfig(AppConfig):
     name = "reactivated"
 
@@ -161,6 +167,10 @@ class ReactivatedConfig(AppConfig):
         Django's dev server actually starts twice. So we prevent generation on
         the first start. TODO: handle noreload.
         """
+
+        from django.db.models.signals import pre_migrate
+
+        pre_migrate.connect(disable_custom_types, sender=self)
 
         from .checks import check_installed_app_order  # NOQA
         from .serialization import widgets  # noqa

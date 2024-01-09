@@ -1,4 +1,3 @@
-import sys
 from enum import Enum
 from enum import unique as ensure_unique
 from typing import (
@@ -118,6 +117,7 @@ def parse_enum(enum: Type[_GT], value: Optional[str]) -> Optional[_GT]:
 class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     # So null is handled in when adding fields through migrations.
     empty_strings_allowed = False
+    is_migrating = False
 
     def __init__(
         self,
@@ -204,7 +204,8 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         if connection.settings_dict["ENGINE"] != "django.db.backends.postgresql":
             raise DatabaseError("EnumField is only supported on PostgreSQL")
 
-        if "makemigrations" in sys.argv or "migrate" in sys.argv:
+        # This is set by a signal, hacky but it works. See pre_migrate in apps.
+        if self.is_migrating is True:
             return super().db_type(connection=connection)
 
         return self.get_enum_name()

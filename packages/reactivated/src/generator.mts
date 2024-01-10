@@ -210,38 +210,41 @@ if (Object.keys(urls).length !== 0) {
         ],
     });
 
-    const urlMap = sourceFile.addInterface({
+    const urlMap ={
         name: "URLMap",
-    });
-    urlMap.setIsExported(true);
+        properties: [] as any,
+        // isExported: true,
+    };
 
     const withArguments = [""];
+
     const withoutArguments = [""];
+
+    const interfaces: any[] = [urlMap];
 
     for (const name of Object.keys(urls)) {
         const properties = urls[name as keyof typeof urls].args;
         const normalizedName = name.replace(/[^\w]/g, "_");
+        
+        interfaces.push(...[
+            {
+                name: normalizedName,
+                properties: [
+                    {name: "name", type: `'${name}'`},
+                    {name: "args", type: `${normalizedName}_args`}
+                ],
+            },
+            {
+                name: `${normalizedName}_args`,
 
-        const urlInterface = sourceFile.addInterface({
-            name: normalizedName,
-            properties: [{name: "name", type: `'${name}'`}],
-        });
-        const argsInterface = sourceFile.addInterface({
-            name: `${normalizedName}_args`,
-        });
+                properties: Object.keys(properties).map((propertyName) => ({
+                    name: propertyName,
+                    type: properties[propertyName as keyof typeof properties],
+                })),
+            }
+        ]);
 
-        for (const propertyName of Object.keys(properties)) {
-            argsInterface.addProperty({
-                name: propertyName,
-                type: properties[propertyName as keyof typeof properties],
-            });
-        }
-        urlInterface.addProperty({
-            name: "args",
-            type: `${normalizedName}_args`,
-        });
-
-        urlMap.addProperty({
+        urlMap.properties.push({
             name: normalizedName,
             type: normalizedName,
         });
@@ -252,6 +255,7 @@ if (Object.keys(urls).length !== 0) {
             withArguments.push(normalizedName);
         }
     }
+    sourceFile.addInterfaces(interfaces);
     sourceFile.addTypeAlias({name: "WithArguments", type: withArguments.join("|")});
     sourceFile.addTypeAlias({
         name: "WithoutArguments",

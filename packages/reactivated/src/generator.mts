@@ -19,6 +19,8 @@ import {
     VariableDeclarationKind,
     WriterFunction,
     Writers,
+    InterfaceDeclarationStructure,
+    OptionalKind,
 } from "ts-morph";
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
@@ -220,7 +222,7 @@ if (Object.keys(urls).length !== 0) {
 
     const withoutArguments = [""];
 
-    const interfaces: any[] = [urlMap];
+    const interfaces: OptionalKind<InterfaceDeclarationStructure>[] = [urlMap];
 
     for (const name of Object.keys(urls)) {
         const properties = urls[name as keyof typeof urls].args;

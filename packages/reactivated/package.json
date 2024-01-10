@@ -1,6 +1,6 @@
 {
     "name": "reactivated",
-    "version": "0.34.0",
+    "version": "0.34.1",
     "description": "",
     "exports": {
         ".": "./dist/index.js",

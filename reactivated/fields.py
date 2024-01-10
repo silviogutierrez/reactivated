@@ -186,9 +186,15 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
             EnumConstraint(
                 members=self.enum._member_names_,  # type: ignore[arg-type]
                 field_name=name,
-                name=f"{cls._meta.db_table}_{name}_enum",
+                name=self.get_enum_name(),
             )
         )
+
+    def get_enum_name(self) -> str:
+        return f"{self.model._meta.db_table}_{self.name}_enum"
+
+    def cast_db_type(self, connection: Any) -> str:
+        return self.get_enum_name()
 
     def db_type(self, connection: Any) -> str:
         if connection.settings_dict["ENGINE"] != "django.db.backends.postgresql":

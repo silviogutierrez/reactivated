@@ -1,6 +1,7 @@
 import abc
 import enum
 import inspect
+from django.conf import settings
 from typing import (
     Any,
     Callable,
@@ -450,6 +451,10 @@ def extract_views_from_urlpatterns(  # type: ignore[no-untyped-def]
             else:
                 _namespace = p.namespace or namespace
             pattern = describe_pattern(p)  # type: ignore[no-untyped-call]
+
+            if _namespace in getattr(settings, "REACTIVATED_IGNORED_URL_NAMESPACES", ["admin"]):
+                continue
+
             views.extend(
                 extract_views_from_urlpatterns(  # type: ignore[no-untyped-call]
                     patterns, base + pattern, namespace=_namespace

@@ -19,6 +19,7 @@ from typing import (
 )
 
 from django import forms as django_forms
+from django.conf import settings
 from django.core.exceptions import ViewDoesNotExist
 from django.http import HttpRequest, HttpResponse
 from django.urls import URLPattern, URLResolver
@@ -450,6 +451,12 @@ def extract_views_from_urlpatterns(  # type: ignore[no-untyped-def]
             else:
                 _namespace = p.namespace or namespace
             pattern = describe_pattern(p)  # type: ignore[no-untyped-call]
+
+            if _namespace in getattr(
+                settings, "REACTIVATED_IGNORED_URL_NAMESPACES", ["admin"]
+            ):
+                continue
+
             views.extend(
                 extract_views_from_urlpatterns(  # type: ignore[no-untyped-call]
                     patterns, base + pattern, namespace=_namespace

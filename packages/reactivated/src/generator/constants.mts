@@ -20,7 +20,7 @@ const schema = JSON.parse(stdinBuffer.toString("utf8"));
 
 const project = new Project();
 
-const interfaces = project.createSourceFile("");
+const statemenets = [];
 
 const {urls, templates, types, values} = schema;
 
@@ -31,7 +31,7 @@ for (const name of Object.keys(values)) {
         continue;
     }
 
-    interfaces.addVariableStatement({
+    statemenets.push({
         declarationKind: VariableDeclarationKind.Const,
         isExported: true,
         declarations: [
@@ -46,7 +46,7 @@ for (const name of Object.keys(values)) {
     });
 }
 
-interfaces.addVariableStatement({
+statemenets.push({
     declarationKind: VariableDeclarationKind.Const,
     isExported: true,
     declarations: [
@@ -57,4 +57,7 @@ interfaces.addVariableStatement({
     ],
 });
 
-process.stdout.write(interfaces.getText());
+const constantsSource = project.createSourceFile("");
+constantsSource.addVariableStatements(statemenets);
+
+process.stdout.write(constantsSource.getText());

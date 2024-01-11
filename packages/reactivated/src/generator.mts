@@ -69,13 +69,13 @@ const rpcConstructorStructure = {
             decorators: [],
             hasQuestionToken: false,
             hasOverrideKeyword: false,
-            kind: 30,
+            kind: StructureKind.Parameter as const,
             isRestParameter: false,
         },
     ],
     typeParameters: [],
     docs: [],
-    kind: 5,
+    kind: StructureKind.Constructor as const,
     overloads: [],
 };
 
@@ -89,7 +89,7 @@ const rpcStructure = {
     isExported: true,
     isDefaultExport: false,
     hasDeclareKeyword: false,
-    kind: 2,
+    kind: StructureKind.Class as const,
     ctors: [rpcConstructorStructure],
     properties: [] as OptionalKind<PropertyDeclarationStructure>[],
     methods: [] as OptionalKind<MethodDeclarationStructure>[],
@@ -137,7 +137,7 @@ for (const name of Object.keys(rpc)) {
             decorators: [],
             hasQuestionToken: false,
             hasOverrideKeyword: false,
-            kind: 30,
+            kind: StructureKind.Parameter as const,
             isRestParameter: false,
         });
 

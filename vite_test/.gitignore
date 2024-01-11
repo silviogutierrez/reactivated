@@ -1,0 +1,10 @@
+node_modules
+
+# venv already has a .gitignore in it, but prettier does not respect it using
+# the --ignore-path option since it points to this file.
+.venv
+*.pyc
+.DS_Store
+.mypy_cache
+.pytest_cache
+static/dist

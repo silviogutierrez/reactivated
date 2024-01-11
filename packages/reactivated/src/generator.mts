@@ -297,6 +297,12 @@ export type Result<TSuccess, TInvalid> = rpcUtils.Result<TSuccess, TInvalid, _Ty
 export const {Context, Provider, getServerData} = createContext<_Types["Context"]>();
 
 export const getTemplate = ({template_name}: {template_name: string}) => {
+    // @ts-ignore
+    const templates = import.meta.glob("@client/templates/*.tsx", {eager: true});
+    return templates[\`/client/templates/\${template_name}.tsx\`].default;
+}
+
+export const getSSRTemplate = ({template_name}: {template_name: string}) => {
     // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
     const { default: templates, filenames } = require('../../client/templates/**/*');
     const templatePath = "../../client/templates/" + template_name + ".tsx";

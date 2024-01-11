@@ -6,6 +6,7 @@
         "packages/create-django-app",
         "sample",
         "website",
+        "vite_test",
         "development"
     ]
 }

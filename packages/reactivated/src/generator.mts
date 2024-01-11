@@ -21,6 +21,11 @@ import {
     Writers,
     InterfaceDeclarationStructure,
     OptionalKind,
+    MethodDeclarationStructure,
+    PropertyDeclarationStructure,
+    ParameterDeclarationStructure,
+    StatementedNodeStructure,
+    StatementStructures,
 } from "ts-morph";
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
@@ -53,27 +58,60 @@ const project = new Project();
 
 const sourceFile = project.createSourceFile("");
 
-const classDeclaration = sourceFile.addClass({
+const rpcConstructorStructure = {
+    statements: [] as string[],
+    parameters: [
+        {
+            name: "requester",
+            type: "rpcUtils.Requester",
+            isReadonly: false,
+            scope: Scope.Public,
+            decorators: [],
+            hasQuestionToken: false,
+            hasOverrideKeyword: false,
+            kind: 30,
+            isRestParameter: false,
+        },
+    ],
+    typeParameters: [],
+    docs: [],
+    kind: 5,
+    overloads: [],
+};
+
+const rpcStructure = {
+    decorators: [],
+    typeParameters: [],
+    docs: [],
+    isAbstract: false,
+    implements: [],
     name: "RPC",
     isExported: true,
-});
-
-const rpcConstructor = classDeclaration.addConstructor({
-    parameters: [{name: "requester", type: "rpcUtils.Requester", scope: Scope.Public}],
-});
-
-let rpcConstructorBody = "";
+    isDefaultExport: false,
+    hasDeclareKeyword: false,
+    kind: 2,
+    ctors: [rpcConstructorStructure],
+    properties: [] as OptionalKind<PropertyDeclarationStructure>[],
+    methods: [] as OptionalKind<MethodDeclarationStructure>[],
+};
 
 for (const name of Object.keys(rpc)) {
     const {url, input, output, type, params} = rpc[name];
-    const functionDeclaration = classDeclaration.addMethod({
+
+    const methodStructure = {
+        kind: StructureKind.Method as const,
         name,
-    });
+        isAsync: true,
+        parameters: [] as OptionalKind<ParameterDeclarationStructure>[],
+        statements: [] as (string | StatementStructures)[],
+        returnType: "",
+    };
 
-    rpcConstructorBody += `this.${name} = (this.${name} as any).bind(this);\n`;
-    functionDeclaration.setIsAsync(true);
+    rpcConstructorStructure.statements.push(
+        `this.${name} = (this.${name} as any).bind(this);\n`,
+    );
 
-    functionDeclaration.addParameter({
+    methodStructure.parameters?.push({
         name: "this",
         type: "void",
     });
@@ -85,18 +123,22 @@ for (const name of Object.keys(rpc)) {
     };
 
     if (params.length >= 1) {
-        const paramsInterface = functionDeclaration.addInterface({
-            name: "WILL_BE_STRIPPED",
-        });
+        const paramsProperties = [];
 
         const iterator = [];
         for (const [paramType, paramName] of params) {
-            paramsInterface.addProperty({name: paramName, type: "string | number"});
+            paramsProperties.push({name: paramName, type: "string | number"});
             iterator.push(paramName);
         }
-        functionDeclaration.addParameter({
+        methodStructure.parameters?.push({
             name: "params",
-            type: paramsInterface.getText().replace("interface WILL_BE_STRIPPED", ""),
+            type: Writers.objectType({properties: paramsProperties}),
+            isReadonly: false,
+            decorators: [],
+            hasQuestionToken: false,
+            hasOverrideKeyword: false,
+            kind: 30,
+            isRestParameter: false,
         });
 
         Object.assign(initializer, {
@@ -105,26 +147,23 @@ for (const name of Object.keys(rpc)) {
                 params: "params",
             }),
         });
-        // Otherwise our interface will be inserted.
-        functionDeclaration.setBodyText("");
     } else {
         Object.assign(initializer, {paramsAndIterator: "null"});
     }
 
     if (input != null) {
-        const property = classDeclaration.addProperty({
-            // isStatic: true,
+        rpcStructure.properties?.push({
             name: input,
             type: `_Types["${input}"]`,
             initializer: JSON.stringify(values[input]),
         });
-        functionDeclaration.addParameter({
+        methodStructure.parameters?.push({
             name: "input",
             type: `forms.FormOrFormSetValues<_Types["${input}"]>`,
         });
-        functionDeclaration.setReturnType(
-            `Promise<rpcUtils.Result<_Types["${output}"], forms.FormOrFormSetErrors<_Types["${input}"]>, _Types["RPCPermission"]>>`,
-        );
+
+        methodStructure.returnType = `Promise<rpcUtils.Result<_Types["${output}"], forms.FormOrFormSetErrors<_Types["${input}"]>, _Types["RPCPermission"]>>`;
+
         Object.assign(initializer, {
             input: Writers.object({
                 values: "input",
@@ -133,73 +172,27 @@ for (const name of Object.keys(rpc)) {
             }),
         });
     } else {
-        functionDeclaration.setReturnType(
-            `Promise<rpcUtils.Result<_Types["${output}"], null, _Types["RPCPermission"]>>`,
-        );
+        methodStructure.returnType = `Promise<rpcUtils.Result<_Types["${output}"], null, _Types["RPCPermission"]>>`;
         Object.assign(initializer, {input: "null"});
     }
 
-    functionDeclaration.addVariableStatement({
+    methodStructure.statements?.push({
+        kind: StructureKind.VariableStatement,
         declarationKind: VariableDeclarationKind.Const,
         declarations: [
             {
                 name: "options",
                 initializer: Writers.object(initializer),
-                /*
-                    x: 123,
-                    y: (writer) => writer.quote("abc"),
-                    z: Writers.object({
-                        one: (writer) => writer.quote("1"),
-                    }),
-                    */
             },
         ],
     });
-    functionDeclaration.setBodyText(
-        `${functionDeclaration.getBodyText()} return rpcUtils.rpcCall((this as any).requester, options)`,
+    methodStructure.statements?.push(
+        "return rpcUtils.rpcCall((this as any).requester, options)",
     );
-    /*
-
-    if (input != null) {
-        functionDeclaration.addParameter({
-            name: "input",
-            type: `forms.FormOrFormSetValues<_Types["${input}"]>`,
-        });
-        bodyText = bodyText.concat(`
-        const input = ${JSON.stringify({
-            type: "form",
-        })};
-        }
-        `);
-    }
-    else {
-    }
-    */
-
-    /*
-     if (instance.length === 1) {
-        functionDeclaration.addParameter({name: "instance", type: `string | number`});
-        functionDeclaration.setBodyText(`return rpcUtils.rpcCall("${url}", input, "${type}", instance)`);
-     }
-     else if (instance.length >= 2) {
-        const instanceInterface = functionDeclaration.addInterface({name: "WILL_BE_STRIPPED"});
-
-        for (const instanceArg of instance) {
-            instanceInterface.addProperty({name: instanceArg, type: "string | number"});
-        }
-        functionDeclaration.addParameter({name: "instance", type: instanceInterface.getText().replace("interface WILL_BE_STRIPPED", "")});
-        functionDeclaration.setBodyText(`const iterator = ${JSON.stringify(instance)}; return rpcUtils.rpcCall("${url}", input, "${type}", {iterator, params: instance})`);
-     }
-     else {
-        functionDeclaration.setBodyText(`return rpcUtils.rpcCall("${url}", input, "${type}")`);
-     }
-
-     functionDeclaration.addParameter({name: "input", type: `forms.FormOrFormSetValues<_Types["${input}"]>`});
-     functionDeclaration.setReturnType(`Promise<rpcUtils.Result<_Types["${output}"], forms.FormOrFormSetErrors<_Types["${input}"]>>>`);
-     functionDeclaration.setIsAsync(true);
-     */
+    rpcStructure.methods?.push(methodStructure);
 }
-rpcConstructor.setBodyText(rpcConstructorBody);
+
+sourceFile.addClass(rpcStructure);
 
 if (Object.keys(urls).length !== 0) {
     sourceFile.addVariableStatement({
@@ -212,7 +205,7 @@ if (Object.keys(urls).length !== 0) {
         ],
     });
 
-    const urlMap ={
+    const urlMap = {
         name: "URLMap",
         properties: [] as any,
         // isExported: true,
@@ -227,24 +220,26 @@ if (Object.keys(urls).length !== 0) {
     for (const name of Object.keys(urls)) {
         const properties = urls[name as keyof typeof urls].args;
         const normalizedName = name.replace(/[^\w]/g, "_");
-        
-        interfaces.push(...[
-            {
-                name: normalizedName,
-                properties: [
-                    {name: "name", type: `'${name}'`},
-                    {name: "args", type: `${normalizedName}_args`}
-                ],
-            },
-            {
-                name: `${normalizedName}_args`,
 
-                properties: Object.keys(properties).map((propertyName) => ({
-                    name: propertyName,
-                    type: properties[propertyName as keyof typeof properties],
-                })),
-            }
-        ]);
+        interfaces.push(
+            ...[
+                {
+                    name: normalizedName,
+                    properties: [
+                        {name: "name", type: `'${name}'`},
+                        {name: "args", type: `${normalizedName}_args`},
+                    ],
+                },
+                {
+                    name: `${normalizedName}_args`,
+
+                    properties: Object.keys(properties).map((propertyName) => ({
+                        name: propertyName,
+                        type: properties[propertyName as keyof typeof properties],
+                    })),
+                },
+            ],
+        );
 
         urlMap.properties.push({
             name: normalizedName,

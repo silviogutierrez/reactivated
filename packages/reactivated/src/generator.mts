@@ -322,12 +322,13 @@ export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = form
 compile(types, "this is unused").then((ts) => {
     process.stdout.write("/* eslint-disable */\n");
     process.stdout.write(ts);
+    const statements = [];
 
     if (!fs.existsSync("./reactivated-skip-template-check")) {
         for (const name of Object.keys(templates)) {
             const propsName = templates[name];
 
-            sourceFile.addStatements(`
+            statements.push(`
 
 import ${name}Implementation from "@client/templates/${name}"
 export type ${name}Check = Checker<_Types["${propsName}"], typeof ${name}Implementation>;
@@ -343,7 +344,7 @@ export namespace templates {
 
     for (const name of Object.keys(interfaces)) {
         const propsName = interfaces[name];
-        sourceFile.addStatements(`
+        statements.push(`
 
 export namespace interfaces {
     export type ${name} = _Types["${propsName}"];
@@ -352,6 +353,8 @@ export namespace interfaces {
 
         `);
     }
+
+    sourceFile.addStatements(statements);
 
     process.stdout.write(sourceFile.getText());
 });

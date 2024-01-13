@@ -1,6 +1,6 @@
 import React from "react";
 import {HelmetProvider} from "react-helmet-async";
-import {css} from "@linaria/core";
+import * as styles from "@client/styles.css";
 
 interface Props {
     title: string;
@@ -20,14 +20,7 @@ export const Layout = (props: Props) => {
                 <link rel="stylesheet" type="text/css" href="/static/dist/index.css" />
                 <script crossOrigin="anonymous" defer src="/static/dist/index.js" />
             </HelmetProvider>
-            <div
-                className={css`
-                    margin: 0 auto;
-                    max-width: 1000px;
-                `}
-            >
-                {props.children}
-            </div>
+            <div className={styles.layout}>{props.children}</div>
         </>
     );
 };

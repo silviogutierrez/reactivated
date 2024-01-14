@@ -1,50 +1,17 @@
 import React from "react";
 
-import {Context} from "@reactivated";
+import {Context, classNames} from "@reactivated";
 import {Helmet} from "react-helmet-async";
 
-import {css, cx} from "@linaria/core";
-import {styled} from "@linaria/react";
+import * as styles from "@client/styles.css";
 
+const Option = (props: JSX.IntrinsicElements["a"]) => (
+    <a {...props} className={styles.Option} />
+);
 
-const Option = styled.a`
-    display: grid;
-    grid-template-columns: min-content 1fr;
-    gap: 10px;
-    box-sizing: border-box;
-    text-decoration: none;
-
-    & svg {
-        width: 2.2rem;
-        height: 2.2rem;
-        fill: gray;
-        border: 1px solid #d6d6d6;
-        padding: 5px;
-        border-radius: 100%;
-    }
-
-    & p {
-        font-weight: 300;
-        line-height: 1.25;
-        color: #525252;
-        display: table;
-    }
-    & .option__heading {
-        color: #19865c;
-        font-size: 1.25rem;
-        font-weight: 400;
-    }
-`;
-
-const ScreenReader = styled.span`
-    clip: rect(1px, 1px, 1px, 1px);
-    clip-path: inset(50%);
-    height: 1px;
-    overflow: hidden;
-    position: absolute;
-    white-space: nowrap;
-    width: 1px;
-`;
+const ScreenReader = (props: {children?: React.ReactNode}) => (
+    <span className={styles.ScreenReader}>{props.children}</span>
+);
 
 interface Props {
     title: string;
@@ -82,33 +49,8 @@ export const Layout = (props: Props) => {
                     src={`${context.STATIC_URL}dist/index.js`}
                 />
             </Helmet>
-            <header
-                className={css`
-                    border-bottom: 1px solid #efefef;
-                    display: grid;
-                    grid-template-columns: auto auto;
-                    align-items: self-end;
-                    justify-content: space-between;
-                    gap: 7px;
-                    padding-top: 20px;
-                    padding-bottom: 10px;
-
-                    @media (max-width: 800px) {
-                        grid-template-columns: 1fr;
-                        padding-left: 20px;
-                        padding-right: 20px;
-                    }
-                `}
-            >
-                <a
-                    className={css`
-                        font-weight: 700;
-                        font-size: 1.375rem;
-                        text-decoration: none;
-                    `}
-                    href="/"
-                    rel="noopener"
-                >
+            <header className={styles.header}>
+                <a href="/" rel="noopener">
                     django reactivated
                 </a>
                 <p>
@@ -123,56 +65,10 @@ export const Layout = (props: Props) => {
                     for Django {context.django_version}
                 </p>
             </header>
-            <main
-                className={cx(
-                    css`
-                        padding: 20px 0;
-
-                        @media (max-width: 800px) {
-                            padding-left: 20px;
-                            padding-right: 20px;
-                        }
-                    `,
-                    props.className,
-                )}
-            >
+            <main className={classNames(styles.main, props.className)}>
                 {props.children}
             </main>
-            <footer
-                className={css`
-                    display: grid;
-                    grid-template-columns: 1fr 1fr 1fr;
-                    gap: 5px;
-                    padding: 25px 0;
-                    position: fixed;
-                    box-sizing: border-box;
-                    left: 50%;
-                    bottom: 0;
-                    width: 960px;
-                    transform: translateX(-50%);
-                    transform-style: preserve-3d;
-                    border-top: 1px solid #efefef;
-
-                    @media (max-width: 996px) {
-                        max-width: 780px;
-                    }
-
-                    @media (max-width: 800px) {
-                        height: 100%;
-                        grid-template-columns: 1fr;
-                        gap: 60px;
-                        position: relative;
-                        padding: 25px;
-                        width: 100%;
-                        margin-top: 50px;
-                    }
-
-                    @media (min-width: 801px) and (max-height: 600px) {
-                        position: relative;
-                        margin: 135px auto 0;
-                    }
-                `}
-            >
+            <footer className={styles.Footer}>
                 <Option
                     className="option"
                     href={`https://docs.djangoproject.com/en/${context.django_version}/`}

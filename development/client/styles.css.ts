@@ -134,7 +134,6 @@ export const thrustAnimation = keyframes({
     },
 });
 
-
 export const thrustPath = style({
     animation: `${thrustAnimation} 70ms 100 ease-in-out alternate`,
 
@@ -165,27 +164,26 @@ export const burnPath = style({
 });
 
 globalStyle("*, *::before, *::after", {
-    boxSizing: 'border-box',
+    boxSizing: "border-box",
 });
-
 
 globalStyle("html", {
     lineHeight: 1.15,
 });
 
 globalStyle("a", {
-    color: '#19865c',
+    color: "#19865c",
 });
 
 globalStyle("body", {
-    maxWidth: '960px',
-    color: '#525252',
-    fontFamily: 'Roboto, sans-serif',
-    margin: '0 auto',
+    maxWidth: "960px",
+    color: "#525252",
+    fontFamily: "Roboto, sans-serif",
+    margin: "0 auto",
     "@media": {
-      '(max-width: 996px)': {
-          maxWidth: '780px',
-      },
+        "(max-width: 996px)": {
+            maxWidth: "780px",
+        },
     },
 });
 
@@ -193,16 +191,127 @@ globalStyle("h1, h2, h3, h4, h5, h6", {
     padding: 0,
     margin: 0,
     fontWeight: 400,
-    listStyleType: 'none',
+    listStyleType: "none",
 });
 
 globalStyle("h1", {
-    fontSize: '1.375rem',
+    fontSize: "1.375rem",
 });
 
 globalStyle('input[type="text"]', {
-    font: 'inherit',
-    padding: '10px',
-    border: '1px solid #ccc',
-    width: '100%',
+    font: "inherit",
+    padding: "10px",
+    border: "1px solid #ccc",
+    width: "100%",
+});
+
+export const Option = style({
+    display: "grid",
+    gridTemplateColumns: "min-content 1fr",
+    gap: 10,
+    boxSizing: "border-box",
+    textDecoration: "none",
+});
+
+globalStyle(`${Option} svg`, {
+    width: "2.2rem",
+    height: "2.2rem",
+    fill: "gray",
+    border: "1px solid #d6d6d6",
+    padding: 5,
+    borderRadius: "100%",
+});
+
+globalStyle(`${Option} p`, {
+    fontWeight: 300,
+    lineHeight: 1.25,
+    color: "#525252",
+    display: "table",
+});
+
+globalStyle(`${Option} .option__heading`, {
+    color: "#19865c",
+    fontSize: "1.25rem",
+    fontWeight: 400,
+});
+
+export const ScreenReader = style({
+    clip: "rect(1px, 1px, 1px, 1px)",
+    clipPath: "inset(50%)",
+    height: 1,
+    overflow: "hidden",
+    position: "absolute",
+    whiteSpace: "nowrap",
+    width: 1,
+});
+
+export const main = style({
+    padding: "20px 0",
+    "@media": {
+        "(max-width: 800px)": {
+            paddingLeft: 20,
+            paddingRight: 20,
+        },
+    },
+});
+
+export const header = style({
+    borderBottom: "1px solid #efefef",
+    display: "grid",
+    gridTemplateColumns: "auto auto",
+    alignItems: "self-end",
+    justifyContent: "space-between",
+    gap: "7px",
+    paddingTop: "20px",
+    paddingBottom: "10px",
+
+    "@media": {
+        "(max-width: 800px)": {
+            gridTemplateColumns: "1fr",
+            paddingLeft: "20px",
+            paddingRight: "20px",
+        },
+    },
+});
+
+globalStyle(`${header} a`, {
+    fontWeight: 700,
+    fontSize: "1.375rem",
+    textDecoration: "none",
+});
+
+export const Footer = style({
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: "5px",
+    padding: "25px 0",
+    position: "fixed",
+    boxSizing: "border-box",
+    left: "50%",
+    bottom: "0",
+    width: "960px",
+    transform: "translateX(-50%)",
+    transformStyle: "preserve-3d",
+    borderTop: "1px solid #efefef",
+
+    "@media": {
+        "(max-width: 996px)": {
+            maxWidth: "780px",
+        },
+
+        "(max-width: 800px)": {
+            height: "100%",
+            gridTemplateColumns: "1fr",
+            gap: "60px",
+            position: "relative",
+            padding: "25px",
+            width: "100%",
+            marginTop: "50px",
+        },
+
+        "(min-width: 801px) and (max-height: 600px)": {
+            position: "relative",
+            margin: "135px auto 0",
+        },
+    },
 });

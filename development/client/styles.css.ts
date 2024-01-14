@@ -1,4 +1,4 @@
-import {globalStyle, style, keyframes} from "@vanilla-extract/css";
+import {globalStyle, keyframes, style} from "@vanilla-extract/css";
 import {createSprinkles, defineProperties} from "@vanilla-extract/sprinkles";
 
 const layout = defineProperties({

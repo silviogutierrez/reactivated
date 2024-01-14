@@ -6,9 +6,6 @@ import {Helmet} from "react-helmet-async";
 import {css, cx} from "@linaria/core";
 import {styled} from "@linaria/react";
 
-import * as styles from "@client/styles";
-
-styles.globalStyles();
 
 const Option = styled.a`
     display: grid;

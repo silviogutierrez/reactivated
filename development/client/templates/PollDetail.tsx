@@ -2,20 +2,20 @@ import React from "react";
 
 import {CSRFToken, reverse, templates} from "@reactivated";
 
-import {css} from "@linaria/core";
-
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
-import * as styles from "@client/styles";
+import * as styles from "@client/styles.css";
 
 export default ({error_message, question}: templates.PollDetail) => (
     <Layout title={question.question_text}>
         <form
             action={reverse("vote", {question_id: question.id})}
             method="post"
-            className={css`
-                ${styles.verticallySpaced(10)}
-            `}
+            className={styles.sprinkles({
+                display: "flex",
+                gap: 10,
+                flexDirection: "column",
+            })}
         >
             <CSRFToken />
             <forms.Fieldset>
@@ -40,7 +40,7 @@ export default ({error_message, question}: templates.PollDetail) => (
                     </React.Fragment>
                 ))}
             </forms.Fieldset>
-            <div className={styles.horizontallySpaced}>
+            <div className={styles.sprinkles({display: "flex", gap: 10})}>
                 <forms.Button type="submit">Vote</forms.Button>
                 <forms.ButtonLink
                     href={reverse("update_poll", {question_id: question.id})}

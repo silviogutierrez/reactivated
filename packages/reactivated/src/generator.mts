@@ -289,6 +289,10 @@ import * as rpcUtils from "reactivated/dist/rpc";
 import {constants} from "./constants";
 export {constants};
 
+export function classNames(...classes: (string | undefined | null)[]) {
+    return classes.filter(Boolean).join(" ");
+}
+
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
 

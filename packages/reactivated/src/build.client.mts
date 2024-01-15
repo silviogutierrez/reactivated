@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import linaria from "./linaria.mjs";
 import {vanillaExtractPlugin} from "@vanilla-extract/esbuild-plugin";
 import * as esbuild from "esbuild";
 import ImportGlobPlugin from "esbuild-plugin-import-glob";
@@ -63,7 +62,6 @@ esbuild
             // Instead of set it manually instead of relying on minification
             // settings.
             vanillaExtractPlugin({identifiers}),
-            linaria({sourceMap: true, esbuildOptions: {sourcemap: "inline"}}),
         ],
     })
     .then(async (context) => {

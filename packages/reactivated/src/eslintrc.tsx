@@ -43,11 +43,6 @@ module.exports = {
                         position: "after",
                     },
                     {
-                        group: "builtin",
-                        pattern: "@linaria/*",
-                        position: "after",
-                    },
-                    {
                         group: "internal",
                         pattern: "@client/actions/*",
                         position: "before",

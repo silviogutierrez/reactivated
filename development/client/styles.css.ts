@@ -90,7 +90,6 @@ globalStyle(`${Option} .option__heading`, {
     fontWeight: 400,
 });
 
-
 export const Fieldset = style({
     border: "1px solid #bbb",
     borderRadius: 5,

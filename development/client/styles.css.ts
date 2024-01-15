@@ -18,6 +18,79 @@ const typography = defineProperties({
 
 export const sprinkles = createSprinkles(layout, typography);
 
+globalStyle("*, *::before, *::after", {
+    boxSizing: "border-box",
+});
+
+globalStyle("html", {
+    lineHeight: 1.15,
+});
+
+globalStyle("a", {
+    color: "#19865c",
+});
+
+globalStyle("body", {
+    maxWidth: "960px",
+    color: "#525252",
+    fontFamily: "Roboto, sans-serif",
+    margin: "0 auto",
+    "@media": {
+        "(max-width: 996px)": {
+            maxWidth: "780px",
+        },
+    },
+});
+
+globalStyle("h1, h2, h3, h4, h5, h6, ul, p", {
+    padding: 0,
+    margin: 0,
+    fontWeight: 400,
+    listStyleType: "none",
+});
+
+globalStyle("h1", {
+    fontSize: "1.375rem",
+});
+
+globalStyle('input[type="text"]', {
+    font: "inherit",
+    padding: "10px",
+    border: "1px solid #ccc",
+    width: "100%",
+});
+
+export const Option = style({
+    display: "grid",
+    gridTemplateColumns: "min-content 1fr",
+    gap: 10,
+    boxSizing: "border-box",
+    textDecoration: "none",
+});
+
+globalStyle(`${Option} svg`, {
+    width: "2.2rem",
+    height: "2.2rem",
+    fill: "gray",
+    border: "1px solid #d6d6d6",
+    padding: 5,
+    borderRadius: "100%",
+});
+
+globalStyle(`${Option} p`, {
+    fontWeight: 300,
+    lineHeight: 1.25,
+    color: "#525252",
+    display: "table",
+});
+
+globalStyle(`${Option} .option__heading`, {
+    color: "#19865c",
+    fontSize: "1.25rem",
+    fontWeight: 400,
+});
+
+
 export const Fieldset = style({
     border: "1px solid #bbb",
     borderRadius: 5,
@@ -162,79 +235,6 @@ export const burnPath = style({
         },
     },
 });
-
-globalStyle("*, *::before, *::after", {
-    boxSizing: "border-box",
-});
-
-globalStyle("html", {
-    lineHeight: 1.15,
-});
-
-globalStyle("a", {
-    color: "#19865c",
-});
-
-globalStyle("body", {
-    maxWidth: "960px",
-    color: "#525252",
-    fontFamily: "Roboto, sans-serif",
-    margin: "0 auto",
-    "@media": {
-        "(max-width: 996px)": {
-            maxWidth: "780px",
-        },
-    },
-});
-
-globalStyle("h1, h2, h3, h4, h5, h6", {
-    padding: 0,
-    margin: 0,
-    fontWeight: 400,
-    listStyleType: "none",
-});
-
-globalStyle("h1", {
-    fontSize: "1.375rem",
-});
-
-globalStyle('input[type="text"]', {
-    font: "inherit",
-    padding: "10px",
-    border: "1px solid #ccc",
-    width: "100%",
-});
-
-export const Option = style({
-    display: "grid",
-    gridTemplateColumns: "min-content 1fr",
-    gap: 10,
-    boxSizing: "border-box",
-    textDecoration: "none",
-});
-
-globalStyle(`${Option} svg`, {
-    width: "2.2rem",
-    height: "2.2rem",
-    fill: "gray",
-    border: "1px solid #d6d6d6",
-    padding: 5,
-    borderRadius: "100%",
-});
-
-globalStyle(`${Option} p`, {
-    fontWeight: 300,
-    lineHeight: 1.25,
-    color: "#525252",
-    display: "table",
-});
-
-globalStyle(`${Option} .option__heading`, {
-    color: "#19865c",
-    fontSize: "1.25rem",
-    fontWeight: 400,
-});
-
 export const ScreenReader = style({
     clip: "rect(1px, 1px, 1px, 1px)",
     clipPath: "inset(50%)",

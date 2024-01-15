@@ -12,7 +12,6 @@ import React from "react";
 import {Prism as SyntaxHighlighter} from "react-syntax-highlighter";
 
 // import ts from "react-syntax-highlighter/dist/esm/languages/prism/typescript";
-import {css} from "@linaria/core";
 import {nord as style} from "react-syntax-highlighter/dist/esm/styles/prism";
 
 import * as styles from "@client/oldStyles";
@@ -24,9 +23,10 @@ interface Props {
 
 export const Code = (props: Props) => (
     <div
-        className={css`
-            ${styles.style({maxWidth: "100%", overflow: "auto"})}
-        `}
+        style={{
+            maxWidth: "100%",
+                overflow: "auto",
+        }}
     >
         <SyntaxHighlighter
             language={props.language}

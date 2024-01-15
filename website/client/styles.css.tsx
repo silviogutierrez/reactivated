@@ -85,6 +85,29 @@ export const hideOnMobile = style({
 
 });
 
+export const Fieldset = style({
+    border: "1px solid #bbb",
+    borderRadius: 5,
+    padding: 20,
+});
+
+export const Button = style({
+    borderWidth: 2,
+    borderStyle: "solid",
+    borderColor: colors.header,
+    borderRadius: "5px",
+    backgroundColor: colors.header,
+    padding: "10px 15px",
+    font: "inherit",
+    textTransform: "lowercase",
+    fontWeight: 700,
+    cursor: "pointer",
+    textDecoration: "none",
+    color: "white",
+    display: "flex",
+    alignItems: "center",
+});
+
 export const Highlight = style({
         display: "flex",
         gap: 15,
@@ -216,3 +239,174 @@ globalStyle(`${homePageLinks} > *`, {
                                     gap: 10,
                                     textAlign: "center",
 })
+
+
+
+export const Hamburger = style({
+
+                        background: "white",
+                        borderRadius: "50%",
+                        width: 40,
+                        height: 40,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        border: 0,
+                        cursor: "pointer",
+                        boxShadow: "0 4px 8px rgb(14 14 33 / 20%)",
+
+    "@media": {
+        [$desktop]: {
+                            display: "none !important",
+        },
+    },
+});
+
+export const Menu = style({
+
+                    width: 300,
+                    backgroundColor: colors.background,
+                    paddingTop: 30,
+                    paddingBottom: 30,
+                    paddingLeft: 10,
+                    paddingRight: 10,
+                    position: "relative",
+
+    "@media": {
+
+        [$mobile]: {
+                        padding: 15,
+                        display: "flex",
+                        width: "auto",
+        },
+    },
+});
+
+export const documentationLayout = style({
+
+                        display: "flex",
+                        flex: 1,
+
+    "@media": {
+        [$mobile]: {
+            flexDirection: "column",
+        },
+    },
+});
+
+export const Documentation  = style({
+
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 15,
+                            flex: 1,
+                            maxWidth: 800,
+                            margin: "0 auto",
+                            paddingLeft: 20,
+                            paddingRight: 20,
+    "@media": {
+        [$mobile]: {
+            maxWidth: "100%",
+                            },
+    },
+});
+
+globalStyle(`${Documentation} blockquote`, {
+
+                                    borderLeft: 5,
+                                    borderLeftStyle: "solid",
+                                    borderLeftColor: colors.textWithColor,
+                                    margin: 0,
+                                    padding: "15px 20px",
+});
+
+globalStyle(`${Documentation} ul`, {
+
+                                    listStyleType: "disc",
+                                    marginLeft: 20,
+                                    lineHeight: "22px",
+});
+
+globalStyle(`${Documentation} p`, {
+                                    lineHeight: "22px",
+});
+
+export const ReactMarkdown  = style({
+
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    position: "sticky",
+                                    top: 30,
+                                    gap: 10,
+});
+
+globalStyle(`${ReactMarkdown} a`, {
+                                            textDecoration: "none",
+});
+globalStyle(`${ReactMarkdown} h2 a`, {
+                                            color: colors.header,
+});
+globalStyle(`${ReactMarkdown} h2`, {
+                                            color: colors.header,
+                                            fontSize: 18,
+});
+globalStyle(`${ReactMarkdown} h3 a`, {
+                                            color: colors.textWithColor,
+});
+globalStyle(`${ReactMarkdown} h3`, {
+
+                                            fontFamily: "inherit",
+                                            fontSize: 16,
+                                            color: colors.textWithColor,
+});
+
+export const warning = style({
+        borderColor: `${colors.warningBorder} !important`,
+        backgroundColor: colors.warningBackground,
+});
+
+export const inlineCode = style({
+        fontFamily: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
+        padding: "1px 3px",
+        fontSize: 14,
+        borderRadius: 5,
+        backgroundColor: colors.background,
+        color: colors.textWithColor,
+});
+
+globalStyle(`${warning} ${inlineCode}`, {
+            color: colors.warningText,
+            backgroundColor: colors.warningDarkBackground,
+});
+
+export const menu = style({
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        gap: 20,
+        marginLeft: 20,
+        fontSize: 17,
+    "@media": {
+        [$mobile]: {
+            marginLeft: -10,
+            alignItems: "center",
+            gap: 10,
+        },
+    },
+});
+
+globalStyle(`h3 ${inlineCode}`, {
+                fontSize: 18,
+});
+
+globalStyle(`${warning} a`, {
+                color: colors.warningText,
+});
+
+globalStyle(`#menu:not(:checked) ~ ${menu}`, {
+    "@media": {
+        [$mobile]: {
+                    display: "none !important",
+        },
+    },
+});

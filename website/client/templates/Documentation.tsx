@@ -1,79 +1,13 @@
 import React from "react";
 
-import {templates} from "@reactivated";
+import {templates, classNames} from "@reactivated";
 import {Helmet} from "react-helmet-async";
 import ReactMarkdown from "react-markdown";
 
-import {css, cx} from "@linaria/core";
-
 import {Code} from "@client/components/Code";
 import {Layout} from "@client/components/Layout";
-import * as styles from "@client/oldStyles";
+import * as styles from "@client/styles.css";
 
-const warning = css`
-    ${styles.style({
-        borderColor: `${styles.colors.warningBorder} !important`,
-        backgroundColor: styles.colors.warningBackground,
-    })}
-`;
-
-const inlineCode = css`
-    ${styles.style({
-        fontFamily: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
-        padding: "1px 3px",
-        fontSize: 14,
-        borderRadius: 5,
-        backgroundColor: styles.colors.background,
-        color: styles.colors.textWithColor,
-    })}
-
-    .${warning} & {
-        ${styles.style({
-            color: styles.colors.warningText,
-            backgroundColor: styles.colors.warningDarkBackground,
-        })}
-    }
-`;
-
-const menu = css`
-    ${styles.style({
-        display: "flex",
-        flexDirection: "column",
-        flex: 1,
-        gap: 20,
-        marginLeft: 20,
-        fontSize: 17,
-        $mobile: {
-            marginLeft: -10,
-            alignItems: "center",
-            gap: 10,
-        },
-    })}
-`;
-
-css`
-    :global() {
-        h3 .${inlineCode} {
-            ${styles.style({
-                fontSize: 18,
-            })};
-        }
-
-        .${warning} a {
-            ${styles.style({
-                color: styles.colors.warningText,
-            })}
-        }
-
-        #menu:not(:checked) ~ .${menu} {
-            ${styles.style({
-                $mobile: {
-                    display: "none !important",
-                },
-            })}
-        }
-    }
-`;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getAnchor = (children: any) => {
@@ -92,29 +26,7 @@ const getAnchor = (children: any) => {
 export const Hamburger = () => {
     return (
         <label
-            className={cx(
-                css`
-                    ${styles.style({
-                        background: "white",
-                        borderRadius: "50%",
-                        width: 40,
-                        height: 40,
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        border: 0,
-                        cursor: "pointer",
-                        boxShadow: "0 4px 8px rgb(14 14 33 / 20%)",
-                    })}
-                `,
-                css`
-                    ${styles.style({
-                        $desktop: {
-                            display: "none !important",
-                        },
-                    })}
-                `,
-            )}
+            className={styles.Hamburger}
             htmlFor="menu"
         >
             <svg
@@ -132,43 +44,26 @@ export const Hamburger = () => {
 const Menu = (props: templates.Documentation) => {
     return (
         <aside
-            className={css`
-                ${styles.style({
-                    width: 300,
-                    backgroundColor: styles.colors.background,
-                    paddingTop: 30,
-                    paddingBottom: 30,
-                    paddingLeft: 10,
-                    paddingRight: 10,
-                    position: "relative",
-
-                    $mobile: {
-                        padding: 15,
-                        display: "flex",
-                        width: "auto",
-                    },
-                })}
-            `}
+            className={styles.Menu}
         >
             <Hamburger />
             <input
                 type="checkbox"
                 id="menu"
-                className={css`
-                    ${styles.style({display: "none"})}
-                `}
+        style={{
+            display: "none",
+        }}
             />
-            <ul className={menu}>
+            <ul className={styles.menu}>
                 <li>
                     <h1>
                         <a
                             href="/"
-                            className={css`
-                                ${styles.style({
+                    style={{
                                     color: styles.colors.header,
                                     textDecoration: "none",
-                                })}
-                            `}
+                    }}
+                    
                         >
                             Reactivated
                         </a>
@@ -180,27 +75,21 @@ const Menu = (props: templates.Documentation) => {
                     return (
                         <li
                             key={link}
-                            className={cx(
-                                css`
-                                    ${styles.style({
+                        style={{
                                         paddingLeft: 8,
                                         borderColor: styles.colors.background,
                                         borderLeftWidth: 3,
                                         borderLeftStyle: "solid",
-                                    })}
-                                `,
-                                href == props.path &&
-                                    css`
-                                        ${styles.style({
-                                            borderColor: styles.colors.textWithColor,
-                                        })}
-                                    `,
-                            )}
+                                ...(href == props.path ? {
+                                    borderColor: styles.colors.textWithColor,
+                                } : {
+                                })
+                        }}
                         >
                             <a
-                                className={css`
-                                    ${styles.style({color: styles.colors.header})}
-                                `}
+                        style={{
+                                    color: styles.colors.header
+                        }}
                                 href={href}
                             >
                                 {title}
@@ -219,53 +108,11 @@ export default (props: templates.Documentation) => {
     return (
         <Layout title={null}>
             <div
-                className={css`
-                    ${styles.style({
-                        display: "flex",
-                        flex: 1,
-
-                        $mobile: {
-                            flexDirection: "column",
-                        },
-                    })}
-                `}
+                className={styles.documentationLayout}
             >
                 <Menu {...props} />
                 <div
-                    className={css`
-                        ${styles.style({
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 15,
-                            flex: 1,
-                            maxWidth: 800,
-                            margin: "0 auto",
-                            paddingLeft: 20,
-                            paddingRight: 20,
-                            $mobile: {
-                                maxWidth: "100%",
-                            },
-                            paddingTop: 30,
-                            paddingBottom: 30,
-                            $nest: {
-                                "& blockquote": {
-                                    borderLeft: 5,
-                                    borderLeftStyle: "solid",
-                                    borderLeftColor: styles.colors.textWithColor,
-                                    margin: 0,
-                                    padding: "15px 20px",
-                                },
-                                "& ul": {
-                                    listStyleType: "disc",
-                                    marginLeft: 20,
-                                    lineHeight: "22px",
-                                },
-                                "& p": {
-                                    lineHeight: "22px",
-                                },
-                            },
-                        })}
-                    `}
+                    className={styles.Documentation}
                 >
                     <ReactMarkdown
                         components={{
@@ -295,7 +142,7 @@ export default (props: templates.Documentation) => {
                                 ).includes("Warning");
                                 return (
                                     <blockquote
-                                        className={isWarning ? warning : undefined}
+                                        className={isWarning ? styles.warning : undefined}
                                     >
                                         {props.children}
                                     </blockquote>
@@ -315,7 +162,7 @@ export default (props: templates.Documentation) => {
                                 }
                                 return (
                                     <code
-                                        className={cx(inlineCode, className)}
+                                        className={classNames(styles.inlineCode, className)}
                                         {...props}
                                     >
                                         {children}
@@ -329,45 +176,15 @@ export default (props: templates.Documentation) => {
                 </div>
                 {headings != null && (
                     <div
-                        className={css`
-                            ${styles.style({
+                    style={{
                                 paddingTop: 30,
                                 paddingRight: 30,
                                 width: 250,
-                                $mobile: {display: "none"},
-                            })}
-                        `}
+                    }}
+                        className={styles.hideOnMobile}
                     >
                         <ReactMarkdown
-                            className={css`
-                                ${styles.style({
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    position: "sticky",
-                                    top: 30,
-                                    gap: 10,
-                                    $nest: {
-                                        a: {
-                                            textDecoration: "none",
-                                        },
-                                        "h2 a": {
-                                            color: styles.colors.header,
-                                        },
-                                        h2: {
-                                            color: styles.colors.header,
-                                            fontSize: 18,
-                                        },
-                                        "h3 a": {
-                                            color: styles.colors.textWithColor,
-                                        },
-                                        h3: {
-                                            fontFamily: "inherit",
-                                            fontSize: 16,
-                                            color: styles.colors.textWithColor,
-                                        },
-                                    },
-                                })}
-                            `}
+                            className={styles.ReactMarkdown}
                             components={{
                                 h2: ({children}) => {
                                     const anchor = getAnchor(children);

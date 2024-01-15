@@ -2,10 +2,7 @@ import React from "react";
 
 import {FieldHandler, Widget} from "@reactivated";
 
-import {css} from "@linaria/core";
-import {styled} from "@linaria/react";
-
-import * as styles from "@client/oldStyles";
+import * as styles from "@client/styles.css";
 
 export const Field = (props: {field: FieldHandler}) => {
     const {field} = props;
@@ -17,23 +14,23 @@ export const Field = (props: {field: FieldHandler}) => {
 
     return (
         <label
-            className={css`
-                display: block;
-            `}
+            style={{
+                display: "block",
+            }}
         >
             <div
-                className={css`
-                    font-weight: 700;
-                `}
+        style={{
+            fontWeight: 700,
+        }}
             >
                 {field.label}
             </div>
             {renderedWidget}
             {field.error != null && (
                 <div
-                    className={css`
-                        color: #cf0000;
-                    `}
+                style={{
+                    color: "#cf0000",
+                }}
                 >
                     {field.error}
                 </div>
@@ -42,33 +39,10 @@ export const Field = (props: {field: FieldHandler}) => {
     );
 };
 
-export const Fieldset = styled.fieldset`
-    border: 1px solid #bbb;
-    border-radius: 5px;
-    padding: 20px;
-`;
+export const Button = (props: JSX.IntrinsicElements["button"]) => (
+    <button {...props} className={styles.Button} />
+);
 
-export const button = styles.style({
-    borderWidth: 2,
-    borderStyle: "solid",
-    borderColor: styles.colors.header,
-    borderRadius: "5px",
-    backgroundColor: styles.colors.header,
-    padding: "10px 15px",
-    font: "inherit",
-    textTransform: "lowercase",
-    fontWeight: 700,
-    cursor: "pointer",
-    textDecoration: "none",
-    color: "white",
-    display: "flex",
-    alignItems: "center",
-});
-
-export const Button = styled.button`
-    ${button}
-`;
-
-export const ButtonLink = styled.a`
-    ${button}
-`;
+export const ButtonLink = (props: JSX.IntrinsicElements["a"]) => (
+    <a {...props} className={styles.Button} />
+);

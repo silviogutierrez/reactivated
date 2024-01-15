@@ -1,4 +1,4 @@
-import {style, globalStyle} from "@vanilla-extract/css";
+import {globalStyle, style} from "@vanilla-extract/css";
 
 const $mobile = "(max-width: 1200px)";
 const $desktop = "(min-width: 1201px)";
@@ -17,63 +17,62 @@ export const colors = {
 
 globalStyle("*, *::before, *::after", {
     boxSizing: "border-box",
-})
+});
 
 globalStyle("html", {
-      lineHeight: 1.15,
-      height: '100%',
-})
+    lineHeight: 1.15,
+    height: "100%",
+});
 globalStyle("body", {
-    color: '#2e3440',
-      fontFamily: '-apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      height: '100%',
-      margin: 0,
-      fontSize: '15px',
-})
-
+    color: "#2e3440",
+    fontFamily:
+        '-apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    height: "100%",
+    margin: 0,
+    fontSize: "15px",
+});
 
 globalStyle("a", {
-    color: '#189ab4',
-})
+    color: "#189ab4",
+});
 
 globalStyle("h1, h2, h3, h4, h5, h6, p, ul", {
-     padding: 0,
-      margin: 0,
-      fontWeight: 400,
-      listStyleType: 'none',
-})
+    padding: 0,
+    margin: 0,
+    fontWeight: 400,
+    listStyleType: "none",
+});
 
 globalStyle("h1, h2, h3, h4, h5, h6", {
-      color: colors.header,
-      fontFamily: "'Suez One', serif",
-})
+    color: colors.header,
+    fontFamily: "'Suez One', serif",
+});
 
 globalStyle("hr", {
- borderColor: colors.header,
-      borderWidth: 0.5,
-      borderStyle: 'solid',
-      margin: 0,
-})
+    borderColor: colors.header,
+    borderWidth: 0.5,
+    borderStyle: "solid",
+    margin: 0,
+});
 
 globalStyle('input[type="text"]', {
-      font: 'inherit',
-      padding: '10px',
-      border: '1px solid #ccc',
-      width: '100%',
-})
+    font: "inherit",
+    padding: "10px",
+    border: "1px solid #ccc",
+    width: "100%",
+});
 
 globalStyle("pre", {
- margin: '0 !important',
-      padding: 0,
-      borderRadius: '15px',
-})
+    margin: "0 !important",
+    padding: 0,
+    borderRadius: "15px",
+});
 
 globalStyle("#root", {
-     display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-})
-
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+});
 
 export const hideOnMobile = style({
     "@media": {
@@ -81,8 +80,6 @@ export const hideOnMobile = style({
             display: "none !important",
         },
     },
-
-
 });
 
 export const Fieldset = style({
@@ -109,18 +106,18 @@ export const Button = style({
 });
 
 export const Highlight = style({
-        display: "flex",
-        gap: 15,
+    display: "flex",
+    gap: 15,
 
-        paddingLeft: 50,
-        paddingRight: 50,
-        "@media": {
-            [$mobile]: {
-                flexDirection: "column",
-                paddingLeft: 0,
-                paddingRight: 0,
-            },
+    paddingLeft: 50,
+    paddingRight: 50,
+    "@media": {
+        [$mobile]: {
+            flexDirection: "column",
+            paddingLeft: 0,
+            paddingRight: 0,
         },
+    },
 });
 
 globalStyle(`${Highlight} p`, {
@@ -128,37 +125,35 @@ globalStyle(`${Highlight} p`, {
 });
 
 globalStyle(`${Highlight} > *`, {
-
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                gap: 15,
-                justifyContent: "center",
-                textAlign: "center",
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    gap: 15,
+    justifyContent: "center",
+    textAlign: "center",
 });
 
-
 export const InstallationCommand = style({
-        margin: 0,
-        padding: 15,
-        fontSize: 14,
-        fontFamily: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
-        backgroundColor: colors.darkBackground,
-        inlineSize: "min-content",
-        borderRadius: "10px",
-        color: colors.header,
-        lineHeight: 1.5,
+    margin: 0,
+    padding: 15,
+    fontSize: 14,
+    fontFamily: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
+    backgroundColor: colors.darkBackground,
+    inlineSize: "min-content",
+    borderRadius: "10px",
+    color: colors.header,
+    lineHeight: 1.5,
 
-        overflow: "hidden",
-        maxWidth: "100%",
-        textOverflow: "ellipsis",
-})
+    overflow: "hidden",
+    maxWidth: "100%",
+    textOverflow: "ellipsis",
+});
 
 export const Links = style({
-        display: "flex",
-        flexDirection: "column",
-        gap: 5,
-        });
+    display: "flex",
+    flexDirection: "column",
+    gap: 5,
+});
 
 export const homePageHeader = style({
     maxWidth: 1200,
@@ -180,112 +175,102 @@ export const homePageHeader = style({
             paddingBottom: 20,
         },
     },
-
-})
+});
 
 export const homePageButtons = style({
-                                display: "flex",
-                                gap: 15,
-
+    display: "flex",
+    gap: 15,
 
     "@media": {
         [$mobile]: {
             justifyContent: "center",
         },
     },
-
-})
-
+});
 
 export const homePageFeatures = style({
-                            display: "flex",
-                            paddingLeft: 40,
-                            paddingRight: 40,
+    display: "flex",
+    paddingLeft: 40,
+    paddingRight: 40,
 
-                            gap: 30,
+    gap: 30,
 
     "@media": {
         [$mobile]: {
-                                flexDirection: "column",
-                                padding: 0,
+            flexDirection: "column",
+            padding: 0,
         },
     },
-})
+});
 
 globalStyle(`${homePageFeatures} > *`, {
-                                    width: "100%",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 10,
-})
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+});
 
 export const homePageLinks = style({
-                            paddingLeft: 50,
-                            paddingRight: 50,
-                            display: "flex",
+    paddingLeft: 50,
+    paddingRight: 50,
+    display: "flex",
 
     "@media": {
         [$mobile]: {
-                                flexDirection: "column",
-                                gap: 15,
+            flexDirection: "column",
+            gap: 15,
         },
     },
-})
+});
 
 globalStyle(`${homePageLinks} > *`, {
-                                    width: "100%",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 10,
-                                    textAlign: "center",
-})
-
-
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    textAlign: "center",
+});
 
 export const Hamburger = style({
-
-                        background: "white",
-                        borderRadius: "50%",
-                        width: 40,
-                        height: 40,
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        border: 0,
-                        cursor: "pointer",
-                        boxShadow: "0 4px 8px rgb(14 14 33 / 20%)",
+    background: "white",
+    borderRadius: "50%",
+    width: 40,
+    height: 40,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    border: 0,
+    cursor: "pointer",
+    boxShadow: "0 4px 8px rgb(14 14 33 / 20%)",
 
     "@media": {
         [$desktop]: {
-                            display: "none !important",
+            display: "none !important",
         },
     },
 });
 
 export const Menu = style({
-
-                    width: 300,
-                    backgroundColor: colors.background,
-                    paddingTop: 30,
-                    paddingBottom: 30,
-                    paddingLeft: 10,
-                    paddingRight: 10,
-                    position: "relative",
+    width: 300,
+    backgroundColor: colors.background,
+    paddingTop: 30,
+    paddingBottom: 30,
+    paddingLeft: 10,
+    paddingRight: 10,
+    position: "relative",
 
     "@media": {
-
         [$mobile]: {
-                        padding: 15,
-                        display: "flex",
-                        width: "auto",
+            padding: 15,
+            display: "flex",
+            width: "auto",
         },
     },
 });
 
 export const documentationLayout = style({
-
-                        display: "flex",
-                        flex: 1,
+    display: "flex",
+    flex: 1,
 
     "@media": {
         [$mobile]: {
@@ -294,98 +279,93 @@ export const documentationLayout = style({
     },
 });
 
-export const Documentation  = style({
-
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 15,
-                            flex: 1,
-                            maxWidth: 800,
-                            margin: "0 auto",
-                            paddingLeft: 20,
-                            paddingRight: 20,
+export const Documentation = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: 15,
+    flex: 1,
+    maxWidth: 800,
+    margin: "0 auto",
+    paddingLeft: 20,
+    paddingRight: 20,
     "@media": {
         [$mobile]: {
             maxWidth: "100%",
-                            },
+        },
     },
 });
 
 globalStyle(`${Documentation} blockquote`, {
-
-                                    borderLeft: 5,
-                                    borderLeftStyle: "solid",
-                                    borderLeftColor: colors.textWithColor,
-                                    margin: 0,
-                                    padding: "15px 20px",
+    borderLeft: 5,
+    borderLeftStyle: "solid",
+    borderLeftColor: colors.textWithColor,
+    margin: 0,
+    padding: "15px 20px",
 });
 
 globalStyle(`${Documentation} ul`, {
-
-                                    listStyleType: "disc",
-                                    marginLeft: 20,
-                                    lineHeight: "22px",
+    listStyleType: "disc",
+    marginLeft: 20,
+    lineHeight: "22px",
 });
 
 globalStyle(`${Documentation} p`, {
-                                    lineHeight: "22px",
+    lineHeight: "22px",
 });
 
-export const ReactMarkdown  = style({
-
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    position: "sticky",
-                                    top: 30,
-                                    gap: 10,
+export const ReactMarkdown = style({
+    display: "flex",
+    flexDirection: "column",
+    position: "sticky",
+    top: 30,
+    gap: 10,
 });
 
 globalStyle(`${ReactMarkdown} a`, {
-                                            textDecoration: "none",
+    textDecoration: "none",
 });
 globalStyle(`${ReactMarkdown} h2 a`, {
-                                            color: colors.header,
+    color: colors.header,
 });
 globalStyle(`${ReactMarkdown} h2`, {
-                                            color: colors.header,
-                                            fontSize: 18,
+    color: colors.header,
+    fontSize: 18,
 });
 globalStyle(`${ReactMarkdown} h3 a`, {
-                                            color: colors.textWithColor,
+    color: colors.textWithColor,
 });
 globalStyle(`${ReactMarkdown} h3`, {
-
-                                            fontFamily: "inherit",
-                                            fontSize: 16,
-                                            color: colors.textWithColor,
+    fontFamily: "inherit",
+    fontSize: 16,
+    color: colors.textWithColor,
 });
 
 export const warning = style({
-        borderColor: `${colors.warningBorder} !important`,
-        backgroundColor: colors.warningBackground,
+    borderColor: `${colors.warningBorder} !important`,
+    backgroundColor: colors.warningBackground,
 });
 
 export const inlineCode = style({
-        fontFamily: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
-        padding: "1px 3px",
-        fontSize: 14,
-        borderRadius: 5,
-        backgroundColor: colors.background,
-        color: colors.textWithColor,
+    fontFamily: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
+    padding: "1px 3px",
+    fontSize: 14,
+    borderRadius: 5,
+    backgroundColor: colors.background,
+    color: colors.textWithColor,
 });
 
 globalStyle(`${warning} ${inlineCode}`, {
-            color: colors.warningText,
-            backgroundColor: colors.warningDarkBackground,
+    color: colors.warningText,
+    backgroundColor: colors.warningDarkBackground,
 });
 
 export const menu = style({
-        display: "flex",
-        flexDirection: "column",
-        flex: 1,
-        gap: 20,
-        marginLeft: 20,
-        fontSize: 17,
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
+    gap: 20,
+    marginLeft: 20,
+    fontSize: 17,
     "@media": {
         [$mobile]: {
             marginLeft: -10,
@@ -396,17 +376,17 @@ export const menu = style({
 });
 
 globalStyle(`h3 ${inlineCode}`, {
-                fontSize: 18,
+    fontSize: 18,
 });
 
 globalStyle(`${warning} a`, {
-                color: colors.warningText,
+    color: colors.warningText,
 });
 
 globalStyle(`#menu:not(:checked) ~ ${menu}`, {
     "@media": {
         [$mobile]: {
-                    display: "none !important",
+            display: "none !important",
         },
     },
 });

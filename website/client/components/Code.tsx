@@ -23,7 +23,7 @@ export const Code = (props: Props) => (
     <div
         style={{
             maxWidth: "100%",
-                overflow: "auto",
+            overflow: "auto",
         }}
     >
         <SyntaxHighlighter

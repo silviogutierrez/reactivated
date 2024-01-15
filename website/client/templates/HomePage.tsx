@@ -1,6 +1,6 @@
 import React from "react";
 
-import {templates, classNames} from "@reactivated";
+import {templates} from "@reactivated";
 import {Helmet} from "react-helmet-async";
 
 import outdent from "outdent";
@@ -9,7 +9,6 @@ import {Code} from "@client/components/Code";
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
 import * as styles from "@client/styles.css";
-
 
 const Highlight = (props: JSX.IntrinsicElements["div"]) => (
     <div {...props} className={styles.Highlight} />
@@ -25,23 +24,22 @@ const Links = (props: JSX.IntrinsicElements["ul"]) => (
 
 const Site = (props: {title: string; children: React.ReactNode}) => (
     <Layout title={props.title}>
-        <div
-        >
+        <div>
             <main
                 style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            flex: 1,
-                            gap: 30,
+                    display: "flex",
+                    flexDirection: "column",
+                    flex: 1,
+                    gap: 30,
                 }}
             >
                 {props.children}
             </main>
             <footer
                 style={{
-                        textAlign: "center",
-                        fontSize: 15,
-                        padding: 20,
+                    textAlign: "center",
+                    fontSize: 15,
+                    padding: 20,
                 }}
             >
                 <p>
@@ -98,40 +96,34 @@ const DOCKER = `
 `;
 
 export default (props: templates.HomePage) => (
-    <Site
-        title="Reactivated — Zero-configuration Django and React"
-    >
+    <Site title="Reactivated — Zero-configuration Django and React">
         <Helmet>
             <script>{DOCKER}</script>
         </Helmet>
         <div
             style={{
-                    backgroundColor: styles.colors.background,
+                backgroundColor: styles.colors.background,
             }}
         >
-            <div
-                className={styles.homePageHeader}
-            >
+            <div className={styles.homePageHeader}>
                 <div
-            style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 30,
-            }}
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 30,
+                    }}
                 >
-                    <h1
-                        style={{fontSize: 32}}
-                    >
+                    <h1 style={{fontSize: 32}}>
                         Zero-configuration Django and React.
                         <br />
                         Together at last.
                     </h1>
                     <div
                         style={{
-                                fontSize: 18,
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 20,
+                            fontSize: 18,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 20,
                         }}
                     >
                         <p>
@@ -156,24 +148,22 @@ export default (props: templates.HomePage) => (
                         docker run -itv $PWD:/app silviogutierrez/reactivated install my_app
                         `}
                     </InstallationCommand>
-                    <div
-                        className={styles.homePageButtons}
-                    >
+                    <div className={styles.homePageButtons}>
                         <forms.ButtonLink href="/documentation/getting-started/">
                             Get Started
                         </forms.ButtonLink>
                         <forms.ButtonLink
                             style={{
-                                gap: 10
+                                gap: 10,
                             }}
                             href="https://github.com/silviogutierrez/reactivated"
                         >
                             <GitHub />
                             <span
-                            style={{
-                                display: "flex",
+                                style={{
+                                    display: "flex",
                                     gap: 5,
-                            }}
+                                }}
                             >
                                 <Star />
                                 {props.stars}
@@ -186,30 +176,24 @@ export default (props: templates.HomePage) => (
                             Install Nix
                         </forms.ButtonLink>
                     </div>
-                    <p
-                        id="docker-option"
-                            style={{marginTop: -20}}
-                    >
+                    <p id="docker-option" style={{marginTop: -20}}>
                         Don‘t have Nix?{" "}
                         <a id="docker" href="#">
                             Use Docker
                         </a>
                     </p>
-                    <p
-                        id="docker-warning"
-                            style={{marginTop: -20, display: "none"}}
-                    >
+                    <p id="docker-warning" style={{marginTop: -20, display: "none"}}>
                         But you really should be{" "}
                         <a href="/documentation/why-nix/">using Nix</a>.
                     </p>
                 </div>
                 <div
-                            style={{
-                            flex: 1,
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 15,
-                            }}
+                    style={{
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 15,
+                    }}
                 >
                     <Code language="python">
                         {outdent`
@@ -251,20 +235,18 @@ export default (props: templates.HomePage) => (
         </div>
         <div>
             <div
-                            style={{
-                        margin: "0 auto",
-                        maxWidth: 1200,
-                        paddingLeft: 20,
-                        paddingRight: 20,
+                style={{
+                    margin: "0 auto",
+                    maxWidth: 1200,
+                    paddingLeft: 20,
+                    paddingRight: 20,
 
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 40,
-                            }}
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 40,
+                }}
             >
-                <div
-                    className={styles.homePageFeatures}
-                >
+                <div className={styles.homePageFeatures}>
                     <div>
                         <h2>Type Safe</h2>
                         <p>TypeScript and Mypy built-in. Catch mistakes early.</p>
@@ -293,14 +275,14 @@ export default (props: templates.HomePage) => (
                 </div>
                 <hr />
                 <div
-                            style={{
-                            textAlign: "center",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: 15,
-                            fontSize: 17,
-                            }}
+                    style={{
+                        textAlign: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 15,
+                        fontSize: 17,
+                    }}
                 >
                     <h2>The full power of Django</h2>
                     <p>
@@ -403,8 +385,7 @@ export default (props: templates.HomePage) => (
                             Reactivated.
                         </p>
                     </div>
-                    <div
-                    >
+                    <div>
                         <Code language="python">{outdent`
                         class WireForm(forms.Form):
                             account_number = forms.CharField()
@@ -432,9 +413,7 @@ export default (props: templates.HomePage) => (
                     `}</Code>
                     </div>
                 </Highlight>
-                <div
-                    className={styles.homePageLinks}
-                >
+                <div className={styles.homePageLinks}>
                     <div>
                         <h3>Documentation</h3>
                         <Links>

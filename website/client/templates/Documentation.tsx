@@ -1,13 +1,12 @@
 import React from "react";
 
-import {templates, classNames} from "@reactivated";
+import {classNames, templates} from "@reactivated";
 import {Helmet} from "react-helmet-async";
 import ReactMarkdown from "react-markdown";
 
 import {Code} from "@client/components/Code";
 import {Layout} from "@client/components/Layout";
 import * as styles from "@client/styles.css";
-
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getAnchor = (children: any) => {
@@ -25,10 +24,7 @@ const getAnchor = (children: any) => {
 
 export const Hamburger = () => {
     return (
-        <label
-            className={styles.Hamburger}
-            htmlFor="menu"
-        >
+        <label className={styles.Hamburger} htmlFor="menu">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="2em"
@@ -43,27 +39,24 @@ export const Hamburger = () => {
 
 const Menu = (props: templates.Documentation) => {
     return (
-        <aside
-            className={styles.Menu}
-        >
+        <aside className={styles.Menu}>
             <Hamburger />
             <input
                 type="checkbox"
                 id="menu"
-        style={{
-            display: "none",
-        }}
+                style={{
+                    display: "none",
+                }}
             />
             <ul className={styles.menu}>
                 <li>
                     <h1>
                         <a
                             href="/"
-                    style={{
-                                    color: styles.colors.header,
-                                    textDecoration: "none",
-                    }}
-                    
+                            style={{
+                                color: styles.colors.header,
+                                textDecoration: "none",
+                            }}
                         >
                             Reactivated
                         </a>
@@ -75,21 +68,22 @@ const Menu = (props: templates.Documentation) => {
                     return (
                         <li
                             key={link}
-                        style={{
-                                        paddingLeft: 8,
-                                        borderColor: styles.colors.background,
-                                        borderLeftWidth: 3,
-                                        borderLeftStyle: "solid",
-                                ...(href == props.path ? {
-                                    borderColor: styles.colors.textWithColor,
-                                } : {
-                                })
-                        }}
+                            style={{
+                                paddingLeft: 8,
+                                borderColor: styles.colors.background,
+                                borderLeftWidth: 3,
+                                borderLeftStyle: "solid",
+                                ...(href == props.path
+                                    ? {
+                                          borderColor: styles.colors.textWithColor,
+                                      }
+                                    : {}),
+                            }}
                         >
                             <a
-                        style={{
-                                    color: styles.colors.header
-                        }}
+                                style={{
+                                    color: styles.colors.header,
+                                }}
                                 href={href}
                             >
                                 {title}
@@ -107,13 +101,9 @@ export default (props: templates.Documentation) => {
 
     return (
         <Layout title={null}>
-            <div
-                className={styles.documentationLayout}
-            >
+            <div className={styles.documentationLayout}>
                 <Menu {...props} />
-                <div
-                    className={styles.Documentation}
-                >
+                <div className={styles.Documentation}>
                     <ReactMarkdown
                         components={{
                             h1: ({children}) => {
@@ -142,7 +132,9 @@ export default (props: templates.Documentation) => {
                                 ).includes("Warning");
                                 return (
                                     <blockquote
-                                        className={isWarning ? styles.warning : undefined}
+                                        className={
+                                            isWarning ? styles.warning : undefined
+                                        }
                                     >
                                         {props.children}
                                     </blockquote>
@@ -162,7 +154,10 @@ export default (props: templates.Documentation) => {
                                 }
                                 return (
                                     <code
-                                        className={classNames(styles.inlineCode, className)}
+                                        className={classNames(
+                                            styles.inlineCode,
+                                            className,
+                                        )}
                                         {...props}
                                     >
                                         {children}
@@ -176,11 +171,11 @@ export default (props: templates.Documentation) => {
                 </div>
                 {headings != null && (
                     <div
-                    style={{
-                                paddingTop: 30,
-                                paddingRight: 30,
-                                width: 250,
-                    }}
+                        style={{
+                            paddingTop: 30,
+                            paddingRight: 30,
+                            width: 250,
+                        }}
                         className={styles.hideOnMobile}
                     >
                         <ReactMarkdown

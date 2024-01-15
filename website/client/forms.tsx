@@ -19,18 +19,18 @@ export const Field = (props: {field: FieldHandler}) => {
             }}
         >
             <div
-        style={{
-            fontWeight: 700,
-        }}
+                style={{
+                    fontWeight: 700,
+                }}
             >
                 {field.label}
             </div>
             {renderedWidget}
             {field.error != null && (
                 <div
-                style={{
-                    color: "#cf0000",
-                }}
+                    style={{
+                        color: "#cf0000",
+                    }}
                 >
                     {field.error}
                 </div>

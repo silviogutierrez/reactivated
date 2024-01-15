@@ -8,7 +8,7 @@ import {css, cx} from "@linaria/core";
 
 import {Code} from "@client/components/Code";
 import {Layout} from "@client/components/Layout";
-import * as styles from "@client/styles";
+import * as styles from "@client/oldStyles";
 
 const warning = css`
     ${styles.style({

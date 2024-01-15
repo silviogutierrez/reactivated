@@ -13,10 +13,9 @@ import {Prism as SyntaxHighlighter} from "react-syntax-highlighter";
 
 // import ts from "react-syntax-highlighter/dist/esm/languages/prism/typescript";
 import {css} from "@linaria/core";
-
 import {nord as style} from "react-syntax-highlighter/dist/esm/styles/prism";
 
-import * as styles from "@client/styles";
+import * as styles from "@client/oldStyles";
 
 interface Props {
     children: string | string[];

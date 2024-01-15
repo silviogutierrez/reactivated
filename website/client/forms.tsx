@@ -5,7 +5,7 @@ import {FieldHandler, Widget} from "@reactivated";
 import {css} from "@linaria/core";
 import {styled} from "@linaria/react";
 
-import * as styles from "@client/styles";
+import * as styles from "@client/oldStyles";
 
 export const Field = (props: {field: FieldHandler}) => {
     const {field} = props;

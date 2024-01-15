@@ -13,13 +13,7 @@ export const Field = (props: {field: FieldHandler}) => {
     }
 
     return (
-        <label
-            className={styles.sprinkles({
-                display: "flex",
-                flexDirection: "column",
-                gap: 5,
-            })}
-        >
+        <label className={styles.forms}>
             <div className={styles.sprinkles({fontWeight: 700})}>{field.label}</div>
             {renderedWidget}
             {field.error != null && (
@@ -45,7 +39,11 @@ export const Button = (props: {
     type: "submit" | "button";
     children?: React.ReactNode;
     onClick?: () => void;
-}) => <button onClick={props.onClick} type={props.type} className={styles.Button} />;
+}) => (
+    <button onClick={props.onClick} type={props.type} className={styles.Button}>
+        {props.children}
+    </button>
+);
 
 export const ButtonLink = (props: {href: string; children?: React.ReactNode}) => (
     <a className={styles.ButtonLink} href={props.href}>

@@ -90,6 +90,17 @@ globalStyle(`${Option} .option__heading`, {
     fontWeight: 400,
 });
 
+export const forms = style({
+    display: "flex",
+    flexDirection: "column",
+    gap: 5,
+});
+
+globalStyle(`${forms} textarea`, {
+    width: "100%",
+    minHeight: 100,
+});
+
 export const Fieldset = style({
     border: "1px solid #bbb",
     borderRadius: 5,
@@ -273,7 +284,7 @@ export const header = style({
     },
 });
 
-globalStyle(`${header} a`, {
+globalStyle(`${header} > a`, {
     fontWeight: 700,
     fontSize: "1.375rem",
     textDecoration: "none",

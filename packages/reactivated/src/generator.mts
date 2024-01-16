@@ -289,7 +289,7 @@ import * as rpcUtils from "reactivated/dist/rpc";
 import {constants} from "./constants";
 export {constants};
 
-export function classNames(...classes: (string | undefined | null)[]) {
+export function classNames(...classes: (string | undefined | null | false)[]) {
     return classes.filter(Boolean).join(" ");
 }
 

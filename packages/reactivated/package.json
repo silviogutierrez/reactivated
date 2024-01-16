@@ -7,8 +7,7 @@
         "./dist/renderer": "./dist/renderer.js",
         "./dist/forms": "./dist/forms/index.js",
         "./dist/context": "./dist/context.js",
-        "./dist/rpc": "./dist/rpc.js",
-        "./dist/babel.config.js": "./dist/babel.config.js"
+        "./dist/rpc": "./dist/rpc.js"
     },
     "typings": "dist/index.d.ts",
     "scripts": {

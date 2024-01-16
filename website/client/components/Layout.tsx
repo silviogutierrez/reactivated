@@ -3,9 +3,7 @@ import React from "react";
 import {Context} from "@reactivated";
 import {Helmet} from "react-helmet-async";
 
-import * as styles from "@client/styles";
-
-styles.globalStyles();
+import "@client/fonts.css";
 
 interface Props {
     title: string | null;

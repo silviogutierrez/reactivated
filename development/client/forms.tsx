@@ -1,11 +1,8 @@
 import React from "react";
 
-import {FieldHandler, Widget, createRenderer} from "@reactivated";
+import {FieldHandler, Widget, classNames, createRenderer} from "@reactivated";
 
-import {css} from "@linaria/core";
-import {styled} from "@linaria/react";
-
-import * as styles from "@client/styles";
+import * as styles from "@client/styles.css";
 
 export const Field = (props: {field: FieldHandler}) => {
     const {field} = props;
@@ -16,31 +13,11 @@ export const Field = (props: {field: FieldHandler}) => {
     }
 
     return (
-        <label
-            className={css`
-                ${styles.verticallySpaced(5)}
-                display: block;
-
-                textarea {
-                    width: 100%;
-                    min-height: 100px;
-                }
-            `}
-        >
-            <div
-                className={css`
-                    font-weight: 700;
-                `}
-            >
-                {field.label}
-            </div>
+        <label className={styles.forms}>
+            <div className={styles.sprinkles({fontWeight: 700})}>{field.label}</div>
             {renderedWidget}
             {field.error != null && (
-                <div
-                    className={css`
-                        color: #cf0000;
-                    `}
-                >
+                <div className={styles.sprinkles({color: "#cf0000"})}>
                     {field.error}
                 </div>
             )}
@@ -52,34 +29,24 @@ export const Fields = createRenderer((field) => {
     return <Field field={field} />;
 });
 
-export const Fieldset = styled.fieldset`
-    border: 1px solid #bbb;
-    border-radius: 5px;
-    padding: 20px;
-`;
+export const Fieldset = (props: {className?: string; children?: React.ReactNode}) => (
+    <fieldset className={classNames(styles.Fieldset, props.className)}>
+        {props.children}
+    </fieldset>
+);
 
-export const Button = styled.button`
-    border: 1px solid #bbb;
-    border-radius: 5px;
-    padding: 10px 15px;
-    font: inherit;
-    text-transform: lowercase;
-    font-weight: 700;
-    background-color: white;
-    color: #444;
-    cursor: pointer;
-`;
+export const Button = (props: {
+    type: "submit" | "button";
+    children?: React.ReactNode;
+    onClick?: () => void;
+}) => (
+    <button onClick={props.onClick} type={props.type} className={styles.Button}>
+        {props.children}
+    </button>
+);
 
-export const ButtonLink = styled.a`
-    display: inline-block;
-    border: 1px solid #bbb;
-    border-radius: 5px;
-    padding: 10px 15px;
-    font: inherit;
-    text-transform: lowercase;
-    font-weight: 700;
-    background-color: white;
-    color: #444;
-    cursor: pointer;
-    text-decoration: none;
-`;
+export const ButtonLink = (props: {href: string; children?: React.ReactNode}) => (
+    <a className={styles.ButtonLink} href={props.href}>
+        {props.children}
+    </a>
+);

@@ -2,11 +2,9 @@ import React from "react";
 
 import {CSRFToken, Context, reverse, templates, useForm} from "@reactivated";
 
-import {css} from "@linaria/core";
-
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
-import * as styles from "@client/styles";
+import * as styles from "@client/styles.css";
 
 export default (props: templates.PollComments) => {
     const {question} = props;
@@ -44,9 +42,11 @@ export default (props: templates.PollComments) => {
             <form
                 action={request.path}
                 method="post"
-                className={css`
-                    ${styles.verticallySpaced(10)}
-                `}
+                className={styles.sprinkles({
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                })}
                 onSubmit={onSubmit}
             >
                 <h1>{title}</h1>
@@ -70,7 +70,7 @@ export default (props: templates.PollComments) => {
 
                 <forms.Fields form={form} />
 
-                <div className={styles.horizontallySpaced}>
+                <div className={styles.sprinkles({display: "flex", gap: 10})}>
                     <forms.Button type="submit">Comment</forms.Button>
                     <forms.ButtonLink
                         href={reverse("poll_detail", {question_id: question.id})}

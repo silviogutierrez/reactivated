@@ -1,14 +1,12 @@
 import React from "react";
 
 import {Layout} from "@client/Layout";
-import {css} from "@linaria/core";
-import {styled} from "@linaria/react";
 import {templates} from "@reactivated";
-import * as styles from "@client/styles";
+import * as styles from "@client/styles.css";
 
-const Paragraph = styled.p`
-    color: #444;
-`;
+const Paragraph = (props: {children?: React.ReactNode}) => (
+    <p className={styles.Paragraph}>{props.children}</p>
+);
 
 export default (props: templates.HelloWorld) => {
     const [showStyle, setShowStyle] = React.useState(false);
@@ -27,15 +25,8 @@ export default (props: templates.HelloWorld) => {
                     <a href="#" onClick={() => setShowStyle(true)}>
                         here
                     </a>{" "}
-                    to see what{" "}
-                    <span
-                        className={css`
-                            ${styles.more()}
-                        `}
-                    >
-                        style
-                    </span>{" "}
-                    of opera it is.
+                    to see what <span className={styles.more}>style</span> of opera it
+                    is.
                 </Paragraph>
             ) : (
                 <Paragraph>

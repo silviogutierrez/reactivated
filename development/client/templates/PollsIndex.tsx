@@ -2,22 +2,22 @@ import React from "react";
 
 import {templates} from "@reactivated";
 
-import {css} from "@linaria/core";
-
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
-import * as styles from "@client/styles";
+import * as styles from "@client/styles.css";
 
 export default (props: templates.PollsIndex) => (
     <Layout
         title="Polls"
-        className={css`
-            ${styles.verticallySpaced(10)}
-        `}
+        className={styles.sprinkles({
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+        })}
     >
         <h1>Polls</h1>
         {props.latest_question_list.length > 0 ? (
-            <ul className={css``}>
+            <ul>
                 {props.latest_question_list.map((question) => (
                     <li key={question.id}>
                         <a href={`/polls/${question.id}`}>{question.question_text}</a>

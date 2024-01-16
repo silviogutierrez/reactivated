@@ -3,105 +3,44 @@ import React from "react";
 import {templates} from "@reactivated";
 import {Helmet} from "react-helmet-async";
 
-import {css, cx} from "@linaria/core";
-import {styled} from "@linaria/react";
-
 import outdent from "outdent";
 
 import {Code} from "@client/components/Code";
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
-import * as styles from "@client/styles";
+import * as styles from "@client/styles.css";
 
-const Highlight = styled.div`
-    ${styles.style({
-        display: "flex",
-        gap: 15,
+const Highlight = (props: JSX.IntrinsicElements["div"]) => (
+    <div {...props} className={styles.Highlight} />
+);
 
-        paddingLeft: 50,
-        paddingRight: 50,
+const InstallationCommand = (props: JSX.IntrinsicElements["pre"]) => (
+    <pre {...props} className={styles.InstallationCommand} />
+);
 
-        $mobile: {
-            flexDirection: "column",
-            paddingLeft: 0,
-            paddingRight: 0,
-        },
+const Links = (props: JSX.IntrinsicElements["ul"]) => (
+    <ul {...props} className={styles.Links} />
+);
 
-        $nest: {
-            "& p": {
-                fontSize: 17,
-            },
-            "& > *": {
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                gap: 15,
-                justifyContent: "center",
-                textAlign: "center",
-            },
-        },
-    })}
-`;
-
-const InstallationCommand = styled.pre`
-    ${styles.style({
-        margin: 0,
-        padding: 15,
-        fontSize: 14,
-        fontFamily: "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
-        backgroundColor: styles.colors.darkBackground,
-        inlineSize: "min-content",
-        borderRadius: "10px",
-        color: styles.colors.header,
-        lineHeight: 1.5,
-
-        overflow: "hidden",
-        maxWidth: "100%",
-        textOverflow: "ellipsis",
-    })}
-`;
-
-const Links = styled.ul`
-    ${styles.style({
-        display: "flex",
-        flexDirection: "column",
-        gap: 5,
-    })}
-`;
-
-const Site = (props: {title: string; className: string; children: React.ReactNode}) => (
+const Site = (props: {title: string; children: React.ReactNode}) => (
     <Layout title={props.title}>
-        <div
-            className={cx(
-                css`
-                    ${styles.style({})}
-                `,
-                props.className,
-            )}
-        >
+        <div>
             <main
-                className={cx(
-                    css`
-                        ${styles.style({
-                            display: "flex",
-                            flexDirection: "column",
-                            flex: 1,
-                            gap: 30,
-                        })}
-                    `,
-                    props.className,
-                )}
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    flex: 1,
+                    gap: 30,
+                }}
             >
                 {props.children}
             </main>
             <footer
-                className={css`
-                    ${styles.style({
-                        textAlign: "center",
-                        fontSize: 15,
-                        padding: 20,
-                    })}
-                `}
+                style={{
+                    textAlign: "center",
+                    fontSize: 15,
+                    padding: 20,
+                }}
             >
                 <p>
                     A{" "}
@@ -157,76 +96,35 @@ const DOCKER = `
 `;
 
 export default (props: templates.HomePage) => (
-    <Site
-        title="Reactivated — Zero-configuration Django and React"
-        className={css`
-            ${styles.style({})}
-        `}
-    >
+    <Site title="Reactivated — Zero-configuration Django and React">
         <Helmet>
             <script>{DOCKER}</script>
         </Helmet>
         <div
-            className={css`
-                ${styles.style({
-                    backgroundColor: styles.colors.background,
-                })}
-            `}
+            style={{
+                backgroundColor: styles.colors.background,
+            }}
         >
-            <div
-                className={css`
-                    ${styles.style({
-                        maxWidth: 1200,
-                        margin: "0 auto",
-
-                        paddingLeft: 20,
-                        paddingRight: 20,
-
-                        paddingTop: 100,
-                        paddingBottom: 75,
-
-                        $mobile: {
-                            flexDirection: "column",
-                            paddingTop: 20,
-                            paddingBottom: 20,
-                        },
-
-                        $desktop: {},
-
-                        display: "flex",
-                        gap: 30,
-                    })}
-                `}
-            >
+            <div className={styles.homePageHeader}>
                 <div
-                    className={css`
-                        ${{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 30,
-                        }}
-                    `}
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 30,
+                    }}
                 >
-                    <h1
-                        className={css`
-                            ${styles.style({
-                                fontSize: 32,
-                            })}
-                        `}
-                    >
+                    <h1 style={{fontSize: 32}}>
                         Zero-configuration Django and React.
                         <br />
                         Together at last.
                     </h1>
                     <div
-                        className={css`
-                            ${styles.style({
-                                fontSize: 18,
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 20,
-                            })}
-                        `}
+                        style={{
+                            fontSize: 18,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 20,
+                        }}
                     >
                         <p>
                             Reactivated is the easiest way to use Django and React
@@ -250,77 +148,52 @@ export default (props: templates.HomePage) => (
                         docker run -itv $PWD:/app silviogutierrez/reactivated install my_app
                         `}
                     </InstallationCommand>
-                    <div
-                        className={css`
-                            ${styles.style({
-                                display: "flex",
-                                gap: 15,
-
-                                $mobile: {
-                                    justifyContent: "center",
-                                },
-                            })}
-                        `}
-                    >
+                    <div className={styles.homePageButtons}>
                         <forms.ButtonLink href="/documentation/getting-started/">
                             Get Started
                         </forms.ButtonLink>
                         <forms.ButtonLink
-                            className={css`
-                                ${styles.style({gap: 10})}
-                            `}
+                            style={{
+                                gap: 10,
+                            }}
                             href="https://github.com/silviogutierrez/reactivated"
                         >
                             <GitHub />
                             <span
-                                className={css`
-                                    ${styles.style({display: "flex", gap: 5})}
-                                `}
+                                style={{
+                                    display: "flex",
+                                    gap: 5,
+                                }}
                             >
                                 <Star />
                                 {props.stars}
                             </span>
                         </forms.ButtonLink>
                         <forms.ButtonLink
-                            className={css`
-                                ${styles.style({$mobile: {display: "none !important"}})}
-                            `}
+                            className={styles.hideOnMobile}
                             href="https://nixos.org/download.html"
                         >
                             Install Nix
                         </forms.ButtonLink>
                     </div>
-                    <p
-                        id="docker-option"
-                        className={css`
-                            ${styles.style({marginTop: -20})}
-                        `}
-                    >
+                    <p id="docker-option" style={{marginTop: -20}}>
                         Don‘t have Nix?{" "}
                         <a id="docker" href="#">
                             Use Docker
                         </a>
                     </p>
-                    <p
-                        id="docker-warning"
-                        className={css`
-                            ${styles.style({marginTop: -20})}
-                        `}
-                        style={{display: "none"}}
-                    >
+                    <p id="docker-warning" style={{marginTop: -20, display: "none"}}>
                         But you really should be{" "}
                         <a href="/documentation/why-nix/">using Nix</a>.
                     </p>
                 </div>
                 <div
-                    className={css`
-                        ${{
-                            flex: 1,
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 15,
-                        }}
-                    `}
+                    style={{
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 15,
+                    }}
                 >
                     <Code language="python">
                         {outdent`
@@ -362,43 +235,18 @@ export default (props: templates.HomePage) => (
         </div>
         <div>
             <div
-                className={css`
-                    ${styles.style({
-                        margin: "0 auto",
-                        maxWidth: 1200,
-                        paddingLeft: 20,
-                        paddingRight: 20,
+                style={{
+                    margin: "0 auto",
+                    maxWidth: 1200,
+                    paddingLeft: 20,
+                    paddingRight: 20,
 
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 40,
-                    })}
-                `}
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 40,
+                }}
             >
-                <div
-                    className={css`
-                        ${styles.style({
-                            display: "flex",
-                            paddingLeft: 40,
-                            paddingRight: 40,
-
-                            gap: 30,
-                            $nest: {
-                                "& > *": {
-                                    width: "100%",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 10,
-                                },
-                            },
-
-                            $mobile: {
-                                flexDirection: "column",
-                                padding: 0,
-                            },
-                        })}
-                    `}
-                >
+                <div className={styles.homePageFeatures}>
                     <div>
                         <h2>Type Safe</h2>
                         <p>TypeScript and Mypy built-in. Catch mistakes early.</p>
@@ -427,16 +275,14 @@ export default (props: templates.HomePage) => (
                 </div>
                 <hr />
                 <div
-                    className={css`
-                        ${styles.style({
-                            textAlign: "center",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: 15,
-                            fontSize: 17,
-                        })}
-                    `}
+                    style={{
+                        textAlign: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 15,
+                        fontSize: 17,
+                    }}
                 >
                     <h2>The full power of Django</h2>
                     <p>
@@ -539,11 +385,7 @@ export default (props: templates.HomePage) => (
                             Reactivated.
                         </p>
                     </div>
-                    <div
-                        className={css`
-                            ${styles.style({})}
-                        `}
-                    >
+                    <div>
                         <Code language="python">{outdent`
                         class WireForm(forms.Form):
                             account_number = forms.CharField()
@@ -571,29 +413,7 @@ export default (props: templates.HomePage) => (
                     `}</Code>
                     </div>
                 </Highlight>
-                <div
-                    className={css`
-                        ${styles.style({
-                            paddingLeft: 50,
-                            paddingRight: 50,
-                            display: "flex",
-                            $nest: {
-                                "& > *": {
-                                    width: "100%",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 10,
-                                    textAlign: "center",
-                                },
-                            },
-
-                            $mobile: {
-                                flexDirection: "column",
-                                gap: 15,
-                            },
-                        })}
-                    `}
-                >
+                <div className={styles.homePageLinks}>
                     <div>
                         <h3>Documentation</h3>
                         <Links>

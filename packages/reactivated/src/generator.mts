@@ -29,21 +29,19 @@ import {
     StatementStructures,
 } from "ts-morph";
 
-
 const CONF_INPUT_FILE = "./client/reactivated.config.tsx";
-const CONF_OUTPUT_FILE = "./node_modules/_reactivated/conf.js";
+const CONF_OUTPUT_FILE = "./node_modules/_reactivated/conf.mjs";
 
+// TODO: dir might not exist yet, so this fails sometimes.
 if (fs.existsSync(CONF_INPUT_FILE)) {
     await esbuild.build({
-      entryPoints: [CONF_INPUT_FILE],
-      bundle: false,
-      outfile: CONF_OUTPUT_FILE,
+        entryPoints: [CONF_INPUT_FILE],
+        bundle: false,
+        outfile: CONF_OUTPUT_FILE,
     });
+} else {
+    fs.openSync(CONF_OUTPUT_FILE, "w");
 }
-else {
-    fs.openSync(CONF_OUTPUT_FILE, 'w');
-}
-
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
 const {

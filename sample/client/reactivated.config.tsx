@@ -1,7 +1,11 @@
 import React from "react";
 
-import {configure} from "@reactivated";
+import {Options} from "reactivated/dist/conf";
 
-export default configure({
+export default {
+    build: {
+        client: (options) => {},
+        renderer: () => {},
+    },
     render: (content) => <div>I AM HERE {content}</div>,
-});
+} satisfies Options;

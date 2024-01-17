@@ -32,7 +32,6 @@ import {
 const CONF_INPUT_FILE = "./client/reactivated.config.tsx";
 const CONF_OUTPUT_FILE = "./node_modules/_reactivated/conf.mjs";
 
-// TODO: dir might not exist yet, so this fails sometimes.
 if (fs.existsSync(CONF_INPUT_FILE)) {
     await esbuild.build({
         entryPoints: [CONF_INPUT_FILE],

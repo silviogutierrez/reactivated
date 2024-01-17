@@ -5,7 +5,7 @@ export type Options = {
         client?: (options: BuildOptions) => void;
         renderer?: (options: BuildOptions) => void;
     };
-    render?: (content: JSX.Element) => JSX.Element;
+    render?: (content: JSX.Element) => Promise<JSX.Element>;
 };
 
 export const configure = (options: Options) => options;
@@ -18,6 +18,6 @@ export default (customConfigurationImport: {default?: Options} | null) => {
             client: customConfiguration.build?.client ?? ((options) => {}),
             renderer: customConfiguration.build?.renderer ?? ((options) => {}),
         },
-        render: customConfiguration.render ?? ((content) => content),
+        render: customConfiguration.render ?? ((content) => Promise.resolve(content)),
     } satisfies Options;
 };

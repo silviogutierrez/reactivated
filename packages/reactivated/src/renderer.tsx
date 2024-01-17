@@ -83,13 +83,17 @@ export const render = async ({
     props: any;
 }): Promise<Result> => {
     const defaultConfiguration = {
-        render: (content) => content,
+        render: (content) => Promise.resolve(content),
     } satisfies Options;
 
-    const customConfiguration: {default?: Options} | null = await import(
-        // @ts-ignore
-        "_reactivated/conf"
-    );
+    let customConfiguration: {default?: Options} | null = null;
+
+    try {
+        customConfiguration = await import(
+            // @ts-ignore
+            "_reactivated/conf"
+        );
+    } catch (error: unknown) {}
 
     // @ts-ignore
     const {Provider, getTemplate} = await import("_reactivated/index.tsx");
@@ -109,8 +113,8 @@ export const render = async ({
         const {helmet} = helmetContext;
 
         const rendered = ReactDOMServer.renderToString(
-            customConfiguration?.default?.render?.(content) ??
-                defaultConfiguration.render(content),
+            await (customConfiguration?.default?.render?.(content) ??
+                defaultConfiguration.render(content)),
         );
 
         return {

@@ -7,5 +7,9 @@ export default {
         client: (options) => {},
         renderer: () => {},
     },
-    render: (content) => <div>I AM HERE {content}</div>,
+    render: async (content) => {
+        const {ThemeContext} = await import("@client/context");
+
+        return <ThemeContext.Provider value="light">{content}</ThemeContext.Provider>;
+    },
 } satisfies Options;

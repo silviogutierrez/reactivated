@@ -27,6 +27,12 @@ const restartServer = async () => {
     server = require(CACHE_KEY).server;
 };
 
+await esbuild.build({
+  entryPoints: ['./reactivated.config.tsx'],
+  bundle: false,
+  outfile: './node_modules/_reactivated/conf.js',
+});
+
 esbuild
     .context({
         stdin: {

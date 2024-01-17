@@ -280,6 +280,7 @@ sourceFile.addStatements(
 );
 
 sourceFile.addStatements(`
+export {configure} from "reactivated/dist/conf";
 export const rpc = new RPC(typeof window != "undefined" ? rpcUtils.defaultRequester : null as any);
 import React from "react"
 import createContext from "reactivated/dist/context";

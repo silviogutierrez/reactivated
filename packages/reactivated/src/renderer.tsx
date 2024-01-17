@@ -81,6 +81,10 @@ export const render = async ({
     context: any;
     props: any;
 }): Promise<Result> => {
+
+    // @ts-ignore
+    const configuration = await import("_reactivated/conf");
+
     // @ts-ignore
     const {Provider, getTemplate} = await import("_reactivated/index.tsx");
 
@@ -88,24 +92,21 @@ export const render = async ({
         const Template = getTemplate(context);
         const helmetContext = {} as FilledContext;
 
-        const rendered = ReactDOMServer.renderToString(
-            <HelmetProvider context={helmetContext}>
-                <Provider value={context}>
-                    <Template {...props} />
-                </Provider>
-            </HelmetProvider>,
-        );
+        const content = <HelmetProvider context={helmetContext}>
+            <Provider value={context}>
+                <Template {...props} />
+            </Provider>
+        </HelmetProvider>;
 
         const {helmet} = helmetContext;
 
+        const rendered = ReactDOMServer.renderToString(
+            configuration.default.render(content)
+        );
+
         return {
             status: "success",
-            rendered: renderPage({
-                html: rendered,
-                helmet,
-                props,
-                context,
-            }),
+            rendered,
         };
     } catch (error) {
         return {status: "error", error};

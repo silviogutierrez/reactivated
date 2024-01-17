@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import * as generated from "./generated";
+import * as esbuild from "esbuild";
 
 // Must be above the compile import as get-stdin used by
 // json-schema-to-typescript messes up the descriptor even if unused.
@@ -27,6 +28,22 @@ import {
     StatementedNodeStructure,
     StatementStructures,
 } from "ts-morph";
+
+
+const CONF_INPUT_FILE = "./client/reactivated.config.tsx";
+const CONF_OUTPUT_FILE = "./node_modules/_reactivated/conf.js";
+
+if (fs.existsSync(CONF_INPUT_FILE)) {
+    await esbuild.build({
+      entryPoints: [CONF_INPUT_FILE],
+      bundle: false,
+      outfile: CONF_OUTPUT_FILE,
+    });
+}
+else {
+    fs.openSync(CONF_OUTPUT_FILE, 'w');
+}
+
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
 const {

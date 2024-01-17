@@ -11,6 +11,7 @@ import {
     HelmetServerState,
 } from "react-helmet-async";
 
+import {Options} from "./conf";
 import {Settings} from "./models";
 
 // TODO: WHAT DOES THIS NEED TO BE? Even 100k was super fragile and a 10 choice field broke it.
@@ -82,8 +83,12 @@ export const render = async ({
     props: any;
 }): Promise<Result> => {
 
+    const defaultConfiguration = {
+        render: (content) => content,
+    } satisfies Options;
+
     // @ts-ignore
-    const configuration = await import("_reactivated/conf");
+    const customConfiguration: {default?: Options} | null = await import("_reactivated/conf");
 
     // @ts-ignore
     const {Provider, getTemplate} = await import("_reactivated/index.tsx");
@@ -101,7 +106,7 @@ export const render = async ({
         const {helmet} = helmetContext;
 
         const rendered = ReactDOMServer.renderToString(
-            configuration.default.render(content)
+            customConfiguration?.default?.render?.(content) ?? defaultConfiguration.render(content),
         );
 
         return {

@@ -2,8 +2,6 @@
 
 import fs from "fs";
 import * as generated from "./generated";
-import * as esbuild from "esbuild";
-import path from "path";
 
 // Must be above the compile import as get-stdin used by
 // json-schema-to-typescript messes up the descriptor even if unused.
@@ -29,20 +27,6 @@ import {
     StatementedNodeStructure,
     StatementStructures,
 } from "ts-morph";
-
-const CONF_INPUT_FILE = "./client/reactivated.config.tsx";
-const CONF_OUTPUT_FILE = "./node_modules/_reactivated/conf.mjs";
-
-if (fs.existsSync(CONF_INPUT_FILE)) {
-    await esbuild.build({
-        entryPoints: [CONF_INPUT_FILE],
-        bundle: false,
-        outfile: CONF_OUTPUT_FILE,
-    });
-} else {
-    fs.mkdirSync(path.dirname(CONF_OUTPUT_FILE), {recursive: true});
-    fs.writeFileSync(CONF_OUTPUT_FILE, "");
-}
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
 const {
@@ -296,7 +280,6 @@ sourceFile.addStatements(
 );
 
 sourceFile.addStatements(`
-export {configure} from "reactivated/dist/conf";
 export const rpc = new RPC(typeof window != "undefined" ? rpcUtils.defaultRequester : null as any);
 import React from "react"
 import createContext from "reactivated/dist/context";

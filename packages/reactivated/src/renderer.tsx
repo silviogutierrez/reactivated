@@ -91,7 +91,7 @@ export const render = async ({
     try {
         customConfiguration = await import(
             // @ts-ignore
-            "_reactivated/conf"
+            "_reactivated/conf.mjs"
         );
     } catch (error: unknown) {}
 

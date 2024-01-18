@@ -3,6 +3,8 @@
 import {vanillaExtractPlugin} from "@vanilla-extract/esbuild-plugin";
 import * as esbuild from "esbuild";
 import ImportGlobPlugin from "esbuild-plugin-import-glob";
+import {execSync, exec} from "child_process";
+import fs from "fs";
 
 const entryNames = process.argv.slice(2);
 
@@ -17,7 +19,17 @@ const env = {
     NODE_ENV: production ? "production" : "development",
     BUILD_VERSION: process.env.BUILD_VERSION,
     TAG_VERSION: process.env.TAG_VERSION,
+    RELEASE_VERSION: process.env.RELEASE_VERSION,
 };
+
+const hasTailwind = fs.existsSync("./tailwind.config.ts");
+
+if (hasTailwind) {
+    execSync(
+        "npx tailwind -i client/input.css -o ./node_modules/_reactivated/tailwind.css",
+        {stdio: "ignore"},
+    );
+}
 
 esbuild
     .context({
@@ -33,7 +45,7 @@ esbuild
         sourcemap: true,
         target: "es2018",
         preserveSymlinks: true,
-        external: ["moment", "@client/generated/images"],
+        external: ["@reactivated/images"],
         define: {
             // You need both. The one from the stringified JSON is not picked
             // up during the build process.
@@ -66,6 +78,11 @@ esbuild
     })
     .then(async (context) => {
         if (production === false) {
+            if (hasTailwind) {
+                exec(
+                    "npx tailwind -i client/input.css -o ./node_modules/_reactivated/tailwind.css --watch",
+                );
+            }
             context.watch();
         } else {
             await context.rebuild();

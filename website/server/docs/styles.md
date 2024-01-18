@@ -1,4 +1,4 @@
-# Styling your applicatio
+# Styling your application
 
 Without any configuration, you can write CSS files and import them from your components.
 No magic, no tooling.

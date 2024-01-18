@@ -110,12 +110,23 @@ export const render = async ({
             </HelmetProvider>
         );
 
+        const rendered = ReactDOMServer.renderToString(
+            await (customConfiguration?.default?.render ?? defaultConfiguration.render)(
+                content,
+            ),
+        );
+
         const {helmet} = helmetContext;
 
-        const rendered = ReactDOMServer.renderToString(
-            await (customConfiguration?.default?.render?.(content) ??
-                defaultConfiguration.render(content)),
-        );
+        return {
+            status: "success",
+            rendered: renderPage({
+                html: rendered,
+                helmet,
+                props,
+                context,
+            }),
+        };
 
         return {
             status: "success",

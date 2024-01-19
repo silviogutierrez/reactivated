@@ -597,7 +597,7 @@ def test_union_with_translated_string():
     assert serialize(gettext_lazy("lazy translated"), schema) == "lazy translated"
 
 
-def test_simple_union():
+def test_simple_union(snapshot):
     schema = create_schema(
         Union[datetime.date, List[str], Tuple[int, str], int, str, bool, None], {}
     )
@@ -608,6 +608,23 @@ def test_simple_union():
     assert serialize(["1", "2", "3"], schema) == ["1", "2", "3"]
     assert serialize((5, "hello"), schema) == [5, "hello"]
     assert serialize(True, schema) is True
+    assert schema == snapshot
+
+
+def test_union_with_literal(snapshot):
+    schema = create_schema(Union[Literal["one", False], None], {})
+    assert serialize(None, schema) is None
+    assert serialize("one", schema) == "one"
+    assert schema == snapshot
+
+    assert schema.schema == {
+        "_reactivated_union": {
+            (Literal["one", False], "builtins.bool"): {"enum": [False]},
+            (Literal["one", False], "builtins.str"): {"enum": ["one"]},
+        },
+        "anyOf": [{"enum": ["one"]}, {"enum": [False]}, {"type": "null"}],
+        "serializer": "reactivated.serialization.UnionType",
+    }
 
 
 def test_pick_union():

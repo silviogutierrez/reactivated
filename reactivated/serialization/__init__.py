@@ -13,6 +13,7 @@ from typing import (
     Optional,
     Protocol,
     Sequence,
+    Tuple,
     Type,
     Union,
     get_type_hints,
@@ -616,7 +617,7 @@ class UnionType(NamedTuple):
     ) -> "Thing":
         from reactivated.pick import BasePickHolder
 
-        class_mapping = {}
+        class_mapping: Dict[Tuple[Any, Any], Any] = {}
         subschemas: Sequence[Thing] = ()
         typed_dicts = []
         none_subschema = None
@@ -632,9 +633,24 @@ class UnionType(NamedTuple):
                 none_subschema = subschema
                 continue
 
-            subschemas = [*subschemas, subschema]
-
             subtype_class: Any
+
+            if (
+                isinstance(subtype, stubs._GenericAlias)
+                and subtype.__origin__ == Literal
+            ):
+                for literal_value in subtype.__args__:
+                    literal_subtype = type(literal_value)
+                    literal_subtype_name = (
+                        f"{literal_subtype.__module__}.{literal_subtype.__qualname__}"
+                    )
+                    subschema = create_schema(Literal[literal_value], definitions)
+
+                    class_mapping[(subtype, literal_subtype_name)] = subschema.schema
+                    subschemas = [*subschemas, subschema]
+                continue
+
+            subschemas = [*subschemas, subschema]
 
             if isinstance(subtype, type) and issubclass(subtype, BasePickHolder):
                 subtype_class = subtype.model_class
@@ -650,8 +666,7 @@ class UnionType(NamedTuple):
                 subtype_class = subtype
 
             subtype_name = f"{subtype_class.__module__}.{subtype_class.__qualname__}"
-
-            class_mapping[subtype_name] = subschema.schema
+            class_mapping[(None, subtype_name)] = subschema.schema
 
         all_subschemas = [subschema.schema for subschema in subschemas]
 
@@ -727,7 +742,7 @@ class UnionType(NamedTuple):
         else:
             lookup = utils.ClassLookupDict({})
 
-            for subtype_path, subtype_schema in schema.schema[
+            for (_, subtype_path), subtype_schema in schema.schema[
                 "_reactivated_union"
             ].items():
                 subtype_class = import_string(subtype_path)

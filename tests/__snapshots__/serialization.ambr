@@ -742,7 +742,10 @@
       }),
       'forced_nullable': dict({
         '_reactivated_union': dict({
-          'builtins.int': dict({
+          tuple(
+            None,
+            'builtins.int',
+          ): dict({
             'type': 'number',
           }),
         }),
@@ -765,6 +768,144 @@
     'title': 'test_override_pick_types.<locals>.TestModel_fdae93dc88',
     'type': 'object',
   })
+# ---
+# name: test_simple_union
+  Thing(
+    definitions=dict({
+    }),
+    schema=dict({
+      '_reactivated_union': dict({
+        tuple(
+          None,
+          'builtins.bool',
+        ): dict({
+          'type': 'boolean',
+        }),
+        tuple(
+          None,
+          'builtins.int',
+        ): dict({
+          'type': 'number',
+        }),
+        tuple(
+          None,
+          'builtins.list',
+        ): dict({
+          'items': dict({
+            'type': 'string',
+          }),
+          'type': 'array',
+        }),
+        tuple(
+          None,
+          'builtins.str',
+        ): dict({
+          'type': 'string',
+        }),
+        tuple(
+          None,
+          'builtins.tuple',
+        ): dict({
+          'items': list([
+            dict({
+              'type': 'number',
+            }),
+            dict({
+              'type': 'string',
+            }),
+          ]),
+          'maxItems': 2,
+          'minItems': 2,
+          'type': 'array',
+        }),
+        tuple(
+          None,
+          'datetime.date',
+        ): dict({
+          'type': 'string',
+        }),
+      }),
+      'anyOf': list([
+        dict({
+          'type': 'string',
+        }),
+        dict({
+          'items': dict({
+            'type': 'string',
+          }),
+          'type': 'array',
+        }),
+        dict({
+          'items': list([
+            dict({
+              'type': 'number',
+            }),
+            dict({
+              'type': 'string',
+            }),
+          ]),
+          'maxItems': 2,
+          'minItems': 2,
+          'type': 'array',
+        }),
+        dict({
+          'type': 'number',
+        }),
+        dict({
+          'type': 'string',
+        }),
+        dict({
+          'type': 'boolean',
+        }),
+        dict({
+          'type': 'null',
+        }),
+      ]),
+      'serializer': 'reactivated.serialization.UnionType',
+    }),
+  )
+# ---
+# name: test_union_with_literal
+  Thing(
+    definitions=dict({
+    }),
+    schema=dict({
+      '_reactivated_union': dict({
+        tuple(
+          typing.Literal['one', False],
+          'builtins.bool',
+        ): dict({
+          'enum': list([
+            False,
+          ]),
+        }),
+        tuple(
+          typing.Literal['one', False],
+          'builtins.str',
+        ): dict({
+          'enum': list([
+            'one',
+          ]),
+        }),
+      }),
+      'anyOf': list([
+        dict({
+          'enum': list([
+            'one',
+          ]),
+        }),
+        dict({
+          'enum': list([
+            False,
+          ]),
+        }),
+        dict({
+          'type': 'null',
+        }),
+      ]),
+      'serializer': 'reactivated.serialization.UnionType',
+    }),
+  )
 # ---
 # name: test_uuid_field
   dict({

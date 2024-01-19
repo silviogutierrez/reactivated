@@ -597,7 +597,7 @@ def test_union_with_translated_string():
     assert serialize(gettext_lazy("lazy translated"), schema) == "lazy translated"
 
 
-def test_simple_union():
+def test_simple_union(snapshot):
     schema = create_schema(
         Union[datetime.date, List[str], Tuple[int, str], int, str, bool, None], {}
     )
@@ -608,6 +608,34 @@ def test_simple_union():
     assert serialize(["1", "2", "3"], schema) == ["1", "2", "3"]
     assert serialize((5, "hello"), schema) == [5, "hello"]
     assert serialize(True, schema) is True
+    assert schema == snapshot
+
+
+def test_union_with_literal(snapshot):
+    schema = create_schema(Union[Literal["one", "three", 3, False], None], {})
+    assert serialize(None, schema) is None
+    assert serialize("one", schema) == "one"
+    assert serialize("three", schema) == "three"
+    assert serialize(3, schema) == 3
+    assert serialize(False, schema) is False
+    assert schema == snapshot
+
+    assert schema.schema == {
+        "_reactivated_union": {
+            "literal-0-0.builtins.str": {"enum": ["one"]},
+            "literal-0-1.builtins.str": {"enum": ["three"]},
+            "literal-0-2.builtins.int": {"enum": [3]},
+            "literal-0-3.builtins.bool": {"enum": [False]},
+        },
+        "anyOf": [
+            {"enum": ["one"]},
+            {"enum": ["three"]},
+            {"enum": [3]},
+            {"enum": [False]},
+            {"type": "null"},
+        ],
+        "serializer": "reactivated.serialization.UnionType",
+    }
 
 
 def test_pick_union():

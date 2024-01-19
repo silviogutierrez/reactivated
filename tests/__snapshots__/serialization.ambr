@@ -766,6 +766,140 @@
     'type': 'object',
   })
 # ---
+# name: test_simple_union
+  Thing(
+    definitions=dict({
+    }),
+    schema=dict({
+      '_reactivated_union': dict({
+        'builtins.bool': dict({
+          'type': 'boolean',
+        }),
+        'builtins.int': dict({
+          'type': 'number',
+        }),
+        'builtins.list': dict({
+          'items': dict({
+            'type': 'string',
+          }),
+          'type': 'array',
+        }),
+        'builtins.str': dict({
+          'type': 'string',
+        }),
+        'builtins.tuple': dict({
+          'items': list([
+            dict({
+              'type': 'number',
+            }),
+            dict({
+              'type': 'string',
+            }),
+          ]),
+          'maxItems': 2,
+          'minItems': 2,
+          'type': 'array',
+        }),
+        'datetime.date': dict({
+          'type': 'string',
+        }),
+      }),
+      'anyOf': list([
+        dict({
+          'type': 'string',
+        }),
+        dict({
+          'items': dict({
+            'type': 'string',
+          }),
+          'type': 'array',
+        }),
+        dict({
+          'items': list([
+            dict({
+              'type': 'number',
+            }),
+            dict({
+              'type': 'string',
+            }),
+          ]),
+          'maxItems': 2,
+          'minItems': 2,
+          'type': 'array',
+        }),
+        dict({
+          'type': 'number',
+        }),
+        dict({
+          'type': 'string',
+        }),
+        dict({
+          'type': 'boolean',
+        }),
+        dict({
+          'type': 'null',
+        }),
+      ]),
+      'serializer': 'reactivated.serialization.UnionType',
+    }),
+  )
+# ---
+# name: test_union_with_literal
+  Thing(
+    definitions=dict({
+    }),
+    schema=dict({
+      '_reactivated_union': dict({
+        'literal-0-0.builtins.str': dict({
+          'enum': list([
+            'one',
+          ]),
+        }),
+        'literal-0-1.builtins.str': dict({
+          'enum': list([
+            'three',
+          ]),
+        }),
+        'literal-0-2.builtins.int': dict({
+          'enum': list([
+            3,
+          ]),
+        }),
+        'literal-0-3.builtins.bool': dict({
+          'enum': list([
+            False,
+          ]),
+        }),
+      }),
+      'anyOf': list([
+        dict({
+          'enum': list([
+            'one',
+          ]),
+        }),
+        dict({
+          'enum': list([
+            'three',
+          ]),
+        }),
+        dict({
+          'enum': list([
+            3,
+          ]),
+        }),
+        dict({
+          'enum': list([
+            False,
+          ]),
+        }),
+        dict({
+          'type': 'null',
+        }),
+      ]),
+      'serializer': 'reactivated.serialization.UnionType',
+    }),
+  )
+# ---
 # name: test_uuid_field
   dict({
     'serializer': 'reactivated.serialization.UUIDFieldType',

@@ -22,10 +22,14 @@ setuptools.setup(
     data_files=[('""', ["packages/reactivated/package.json"])],
     scripts=[],
     install_requires=[
-        "requests==2.25.0",
-        "requests-unixsocket==0.3.0",
+        "requests>=2.25.0",
+        "requests-unixsocket>=0.3.0",
         "mypy>=0.910",
         "simplejson>=3.16.0",
+        # urllib3 >= 2 is currently blocked by this issue:
+        # - https://github.com/msabramo/requests-unixsocket/issues/70
+        # - https://github.com/msabramo/requests-unixsocket/pull/69
+        "urllib3<2",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

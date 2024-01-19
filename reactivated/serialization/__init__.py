@@ -617,7 +617,7 @@ class UnionType(NamedTuple):
     ) -> "Thing":
         from reactivated.pick import BasePickHolder
 
-        class_mapping: Dict[Tuple[Any, Any], Any] = {}
+        class_mapping: Dict[str, Any] = {}
         subschemas: Sequence[Thing] = ()
         typed_dicts = []
         none_subschema = None
@@ -646,7 +646,7 @@ class UnionType(NamedTuple):
                     )
                     subschema = create_schema(Literal[literal_value], definitions)
 
-                    class_mapping[(subtype, literal_subtype_name)] = subschema.schema
+                    class_mapping[literal_subtype_name] = subschema.schema
                     subschemas = [*subschemas, subschema]
                 continue
 
@@ -666,7 +666,7 @@ class UnionType(NamedTuple):
                 subtype_class = subtype
 
             subtype_name = f"{subtype_class.__module__}.{subtype_class.__qualname__}"
-            class_mapping[(None, subtype_name)] = subschema.schema
+            class_mapping[subtype_name] = subschema.schema
 
         all_subschemas = [subschema.schema for subschema in subschemas]
 
@@ -742,7 +742,7 @@ class UnionType(NamedTuple):
         else:
             lookup = utils.ClassLookupDict({})
 
-            for (_, subtype_path), subtype_schema in schema.schema[
+            for subtype_path, subtype_schema in schema.schema[
                 "_reactivated_union"
             ].items():
                 subtype_class = import_string(subtype_path)

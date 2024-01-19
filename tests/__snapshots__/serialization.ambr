@@ -742,10 +742,7 @@
       }),
       'forced_nullable': dict({
         '_reactivated_union': dict({
-          tuple(
-            None,
-            'builtins.int',
-          ): dict({
+          'builtins.int': dict({
             'type': 'number',
           }),
         }),
@@ -775,37 +772,22 @@
     }),
     schema=dict({
       '_reactivated_union': dict({
-        tuple(
-          None,
-          'builtins.bool',
-        ): dict({
+        'builtins.bool': dict({
           'type': 'boolean',
         }),
-        tuple(
-          None,
-          'builtins.int',
-        ): dict({
+        'builtins.int': dict({
           'type': 'number',
         }),
-        tuple(
-          None,
-          'builtins.list',
-        ): dict({
+        'builtins.list': dict({
           'items': dict({
             'type': 'string',
           }),
           'type': 'array',
         }),
-        tuple(
-          None,
-          'builtins.str',
-        ): dict({
+        'builtins.str': dict({
           'type': 'string',
         }),
-        tuple(
-          None,
-          'builtins.tuple',
-        ): dict({
+        'builtins.tuple': dict({
           'items': list([
             dict({
               'type': 'number',
@@ -818,10 +800,7 @@
           'minItems': 2,
           'type': 'array',
         }),
-        tuple(
-          None,
-          'datetime.date',
-        ): dict({
+        'datetime.date': dict({
           'type': 'string',
         }),
       }),
@@ -871,18 +850,12 @@
     }),
     schema=dict({
       '_reactivated_union': dict({
-        tuple(
-          typing.Literal['one', False],
-          'builtins.bool',
-        ): dict({
+        'builtins.bool': dict({
           'enum': list([
             False,
           ]),
         }),
-        tuple(
-          typing.Literal['one', False],
-          'builtins.str',
-        ): dict({
+        'builtins.str': dict({
           'enum': list([
             'one',
           ]),

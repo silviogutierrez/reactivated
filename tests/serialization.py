@@ -619,8 +619,8 @@ def test_union_with_literal(snapshot):
 
     assert schema.schema == {
         "_reactivated_union": {
-            (Literal["one", False], "builtins.bool"): {"enum": [False]},
-            (Literal["one", False], "builtins.str"): {"enum": ["one"]},
+            "builtins.bool": {"enum": [False]},
+            "builtins.str": {"enum": ["one"]},
         },
         "anyOf": [{"enum": ["one"]}, {"enum": [False]}, {"type": "null"}],
         "serializer": "reactivated.serialization.UnionType",

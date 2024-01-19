@@ -7,6 +7,7 @@
         "./dist/renderer": "./dist/renderer.js",
         "./dist/forms": "./dist/forms/index.js",
         "./dist/context": "./dist/context.js",
+        "./dist/conf": "./dist/conf.js",
         "./dist/rpc": "./dist/rpc.js"
     },
     "typings": "dist/index.d.ts",
@@ -19,6 +20,7 @@
         "setup_environment.sh": "./scripts/setup_environment.sh",
         "generate_client_assets": "./dist/generator.mjs",
         "generate_client_constants": "./dist/generator/constants.mjs",
+        "generate_client_configuration": "./dist/generator/configuration.mjs",
         "build.client": "./dist/build.client.mjs",
         "build.renderer": "./dist/build.renderer.mjs"
     },

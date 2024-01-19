@@ -34,6 +34,9 @@ def start_client() -> None:
 
 
 def start_renderer() -> None:
+    if os.environ.get("REACTIVATED_RENDERER", None):
+        return
+
     os.environ["REACTIVATED_RENDERER"] = "true"
 
     renderer_process = subprocess.Popen(

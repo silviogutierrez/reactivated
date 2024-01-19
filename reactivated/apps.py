@@ -188,6 +188,14 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
     logger.info("Generating interfaces and client side code")
     encoded_schema = schema.encode()
 
+    configuration_process = subprocess.Popen(
+        ["npm", "exec", "generate_client_configuration"],
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+        cwd=settings.BASE_DIR,
+    )
+    out, error = configuration_process.communicate()
+
     import hashlib
 
     digest = hashlib.sha1(encoded_schema).hexdigest().encode()

@@ -13,7 +13,6 @@ from typing import (
     Optional,
     Protocol,
     Sequence,
-    Tuple,
     Type,
     Union,
     get_type_hints,

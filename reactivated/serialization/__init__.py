@@ -625,7 +625,7 @@ class UnionType(NamedTuple):
         # TODO: This should check that every member is uniquely addressable.
         # Because if you have a Union[Tuple[Literal[True], SomeTypedDict], # Tuple[Literal[False], str]]
         # Then it will serialize both second members as strings.
-        for subtype in Type.__args__:
+        for index, subtype in enumerate(Type.__args__):
             subschema = create_schema(subtype, definitions=definitions)
             definitions = {**definitions, **subschema.definitions}
 
@@ -639,11 +639,9 @@ class UnionType(NamedTuple):
                 isinstance(subtype, stubs._GenericAlias)
                 and subtype.__origin__ == Literal
             ):
-                for literal_value in subtype.__args__:
+                for literal_index, literal_value in enumerate(subtype.__args__):
                     literal_subtype = type(literal_value)
-                    literal_subtype_name = (
-                        f"{literal_subtype.__module__}.{literal_subtype.__qualname__}"
-                    )
+                    literal_subtype_name = f"literal-{index}-{literal_index}.{literal_subtype.__module__}.{literal_subtype.__qualname__}"
                     subschema = create_schema(Literal[literal_value], definitions)
 
                     class_mapping[literal_subtype_name] = subschema.schema
@@ -745,6 +743,9 @@ class UnionType(NamedTuple):
             for subtype_path, subtype_schema in schema.schema[
                 "_reactivated_union"
             ].items():
+                if subtype_path.startswith("literal"):
+                    subtype_path = subtype_path.split(".", 1)[-1]
+
                 subtype_class = import_string(subtype_path)
                 lookup[subtype_class] = Thing(
                     schema=subtype_schema, definitions=schema.definitions

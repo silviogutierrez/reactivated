@@ -612,17 +612,28 @@ def test_simple_union(snapshot):
 
 
 def test_union_with_literal(snapshot):
-    schema = create_schema(Union[Literal["one", False], None], {})
+    schema = create_schema(Union[Literal["one", "three", 3, False], None], {})
     assert serialize(None, schema) is None
     assert serialize("one", schema) == "one"
+    assert serialize("three", schema) == "three"
+    assert serialize(3, schema) == 3
+    assert serialize(False, schema) is False
     assert schema == snapshot
 
     assert schema.schema == {
         "_reactivated_union": {
-            "builtins.bool": {"enum": [False]},
-            "builtins.str": {"enum": ["one"]},
+            "literal-0-0.builtins.str": {"enum": ["one"]},
+            "literal-0-1.builtins.str": {"enum": ["three"]},
+            "literal-0-2.builtins.int": {"enum": [3]},
+            "literal-0-3.builtins.bool": {"enum": [False]},
         },
-        "anyOf": [{"enum": ["one"]}, {"enum": [False]}, {"type": "null"}],
+        "anyOf": [
+            {"enum": ["one"]},
+            {"enum": ["three"]},
+            {"enum": [3]},
+            {"enum": [False]},
+            {"type": "null"},
+        ],
         "serializer": "reactivated.serialization.UnionType",
     }
 

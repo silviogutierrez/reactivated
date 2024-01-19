@@ -850,14 +850,24 @@
     }),
     schema=dict({
       '_reactivated_union': dict({
-        'builtins.bool': dict({
-          'enum': list([
-            False,
-          ]),
-        }),
-        'builtins.str': dict({
+        'literal-0-0.builtins.str': dict({
           'enum': list([
             'one',
+          ]),
+        }),
+        'literal-0-1.builtins.str': dict({
+          'enum': list([
+            'three',
+          ]),
+        }),
+        'literal-0-2.builtins.int': dict({
+          'enum': list([
+            3,
+          ]),
+        }),
+        'literal-0-3.builtins.bool': dict({
+          'enum': list([
+            False,
           ]),
         }),
       }),
@@ -865,6 +875,16 @@
         dict({
           'enum': list([
             'one',
+          ]),
+        }),
+        dict({
+          'enum': list([
+            'three',
+          ]),
+        }),
+        dict({
+          'enum': list([
+            3,
           ]),
         }),
         dict({

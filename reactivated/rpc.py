@@ -1,4 +1,5 @@
 import enum
+import json
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -18,6 +19,7 @@ from typing import (
 )
 
 from django import forms
+from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.urls import URLPattern, path
 
@@ -337,6 +339,13 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
 
             return_value = view(request, context)
             data = serialize(return_value, return_schema)
+
+            if settings.DEBUG is True and "debug" in request.GET:
+                serialized = json.dumps(data, indent=4)
+                return HttpResponse(
+                    f"<html><body><h1>Debug response</h1><pre>{serialized}</pre></body></html>"
+                )
+
             return JsonResponse(data, safe=False)
 
         url_name = f"rpc_{view.__name__}"

@@ -37,6 +37,7 @@
         "@vanilla-extract/esbuild-plugin": "^2.2.2",
         "@vanilla-extract/recipes": "^0.4.0",
         "@vanilla-extract/sprinkles": "^1.6.0",
+        "@vanilla-extract/vite-plugin": "^4.0.1",
         "@vitejs/plugin-react": "^4.2.1",
         "esbuild": "^0.17.19",
         "esbuild-plugin-import-glob": "^0.1.1",

@@ -1,12 +1,13 @@
-import express from 'express'
+import express from "express";
 
 import {renderPage} from "./renderer";
+import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 
-const isProduction = process.env.NODE_ENV === 'production'
-const port = process.env.PORT || 5173
-const base = process.env.BASE || '/'
+const isProduction = process.env.NODE_ENV === "production";
+const port = process.env.PORT || 5173;
+const base = process.env.BASE || "/";
 
-const app = express()
+const app = express();
 
 const indexHTML = `
 <!DOCTYPE html>
@@ -23,36 +24,37 @@ const indexHTML = `
     <script type="module" src="/client/entry-client.tsx"></script>
   </body>
 </html>
-`
+`;
 
-const { createServer } = await import('vite')
+const {createServer} = await import("vite");
 
 const vite = await createServer({
-    server: { middlewareMode: true },
-    appType: 'custom',
-    base
-})
+    server: {middlewareMode: true},
+    appType: "custom",
+    plugins: [vanillaExtractPlugin()],
+    base,
+});
 
-app.use(vite.middlewares)
+app.use(vite.middlewares);
 
-app.use('*', async (req, res) => {
+app.use("*", async (req, res) => {
     const templateName = req.query.templateName ?? "HelloWorld";
 
-    const url = ""
-    const template =  await vite.transformIndexHtml(url, indexHTML)
-    const  render = (await vite.ssrLoadModule('/client/entry-server.tsx')).render
+    const url = "";
+    const template = await vite.transformIndexHtml(url, indexHTML);
+    const render = (await vite.ssrLoadModule("/client/entry-server.tsx")).render;
 
     const ssrManifest = null;
     // const rendered = await render(url, ssrManifest)
     const rendered = await render(templateName);
 
     const html = template
-      .replace(`<!--app-head-->`, rendered.head ?? '')
-      .replace(`<!--app-html-->`, rendered.html ?? '')
+        .replace(`<!--app-head-->`, rendered.head ?? "")
+        .replace(`<!--app-html-->`, rendered.html ?? "");
 
-    res.status(200).set({ 'Content-Type': 'text/html' }).end(html)
-})
+    res.status(200).set({"Content-Type": "text/html"}).end(html);
+});
 
 app.listen(port, () => {
-  console.log(`Server started at http://localhost:${port}`)
-})
+    console.log(`Server started at http://localhost:${port}`);
+});

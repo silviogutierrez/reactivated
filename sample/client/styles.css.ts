@@ -7,6 +7,6 @@ export const layout = style({
     maxWidth: 1000,
 });
 
-export const more = style({color: "blue"});
+export const more = style({color: "red"});
 
 export const Paragraph = style({color: "#444"});

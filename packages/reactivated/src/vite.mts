@@ -36,12 +36,15 @@ const vite = await createServer({
 app.use(vite.middlewares)
 
 app.use('*', async (req, res) => {
+    const templateName = req.query.templateName ?? "HelloWorld";
+
     const url = ""
     const template =  await vite.transformIndexHtml(url, indexHTML)
     const  render = (await vite.ssrLoadModule('/client/entry-server.tsx')).render
 
     const ssrManifest = null;
-    const rendered = await render(url, ssrManifest)
+    // const rendered = await render(url, ssrManifest)
+    const rendered = await render(templateName);
 
     const html = template
       .replace(`<!--app-head-->`, rendered.head ?? '')

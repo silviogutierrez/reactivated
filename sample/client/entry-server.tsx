@@ -2,10 +2,13 @@ import React from 'react'
 import ReactDOMServer from 'react-dom/server'
 import {App} from './App'
 
-export function render() {
+export function render(templateName: string) {
+  const templates = import.meta.glob("../client/templates/*.tsx", {eager: true});
+  const Template = templates[`./templates/${templateName}.tsx`].default;
+
   const html = ReactDOMServer.renderToString(
     <React.StrictMode>
-      <App />
+      <Template />
     </React.StrictMode>
   )
   return { html }

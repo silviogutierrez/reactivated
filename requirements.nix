@@ -13,7 +13,7 @@ in with pkgs; {
     pkgs.python39
     pkgs.python39Packages.virtualenv
     pkgs.python39Packages.pip
-    pkgs.nodejs-16_x
+    pkgs.nodejs-18_x
   ];
   development_dependencies = [
     unstable.flyctl

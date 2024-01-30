@@ -30,7 +30,13 @@ const indexHTML = `
 const {createServer} = await import("vite");
 
 const vite = await createServer({
-    server: {middlewareMode: true},
+    server: {middlewareMode: true, proxy: {
+        /*
+        "^.*": {
+            target: "http://main.joyapp.com.silviogutierrez.localhost:12008/",
+        },
+        */
+    }},
     appType: "custom",
     plugins: [vanillaExtractPlugin()],
     resolve: {

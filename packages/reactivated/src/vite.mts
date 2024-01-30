@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 
 import {renderPage} from "./renderer";
 import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
@@ -32,6 +33,12 @@ const vite = await createServer({
     server: {middlewareMode: true},
     appType: "custom",
     plugins: [vanillaExtractPlugin()],
+    resolve: {
+        alias: {
+             "@client": path.resolve(process.cwd(), "./client"),
+             "@reactivated": path.resolve(process.cwd(), "./node_modules/_reactivated"),
+        },
+    },
     base,
 });
 

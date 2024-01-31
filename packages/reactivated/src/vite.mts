@@ -7,6 +7,7 @@ import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 const isProduction = process.env.NODE_ENV === "production";
 const port = process.env.PORT || 5173;
 const base = process.env.BASE || "/";
+const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const app = express();
 
@@ -30,13 +31,29 @@ const indexHTML = `
 const {createServer} = await import("vite");
 
 const vite = await createServer({
-    server: {middlewareMode: true, proxy: {
-        /*
-        "^.*": {
-            target: "http://main.joyapp.com.silviogutierrez.localhost:12008/",
+    server: {
+        middlewareMode: true,
+        proxy: {
+            [`^(?!${escapedBase}).*`]: {
+                 target: "http://main.joyapp.com.silviogutierrez.localhost:12008/",
+            },
         },
-        */
-    }},
+    },
+    // server: {middlewareMode: true, proxy: {
+    //     /*
+    //     "^.*": {
+    //         target: "http://main.joyapp.com.silviogutierrez.localhost:12008/",
+    //     },
+    //     */
+    //       // '^(?!\/$).+': {
+    //           '^(?!\/$|\/@vite\/client$|\/client\/entry-client\.tsx$).+': {
+    //           target: "http://main.joyapp.com.silviogutierrez.localhost:12008/",
+    //         rewrite: (path) => {
+    //             console.log(path);
+    //             return path;
+    //         },
+    //       },
+    // }},
     appType: "custom",
     plugins: [vanillaExtractPlugin()],
     resolve: {

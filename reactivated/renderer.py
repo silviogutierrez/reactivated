@@ -96,7 +96,7 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
     session = requests_unixsocket.Session()
     socket = urllib.parse.quote_plus(address)
 
-    response = session.post(f"http+unix://{socket}", headers=headers, data=data)
+    response = session.post(address, headers=headers, data=data)
 
     if response.status_code == 200:
         return response.text  # type: ignore[no-any-return]

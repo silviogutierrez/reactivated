@@ -1,14 +1,22 @@
 import React from "react";
 import express from "express";
 import path from "path";
+import react from '@vitejs/plugin-react';
+
+import {
+    FilledContext,
+    Helmet,
+    HelmetProvider,
+    HelmetServerState,
+} from "react-helmet-async";
 
 import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 
 const isProduction = process.env.NODE_ENV === "production";
 const port = process.env.PORT || 5173;
 const base = process.env.BASE || "/";
-const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const reactivatedEndpoint = "/_reactivated/".replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const reactivatedEndpoint = "/_reactivated/".replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const app = express();
 
@@ -29,6 +37,54 @@ const indexHTML = `
 </html>
 `;
 
+export const renderPage = ({
+    html,
+    helmet,
+    context,
+    props,
+}: {
+    html: string;
+    helmet: HelmetServerState;
+    context: any;
+    props: any;
+}) => {
+    const scriptNonce = context.request.csp_nonce
+        ? `nonce="${context.request.csp_nonce}"`
+        : "";
+    return `
+<!DOCTYPE html>
+<html ${helmet.htmlAttributes.toString()}>
+    <head>
+        <!--react-script-->
+        <script ${scriptNonce}>
+            // These go first because scripts below need them.
+            // WARNING: See the following for security issues around embedding JSON in HTML:
+            // http://redux.js.org/recipes/ServerRendering.html#security-considerations
+            window.__PRELOADED_PROPS__ = ${JSON.stringify(props).replace(
+                /</g,
+                "\\u003c",
+            )}
+            window.__PRELOADED_CONTEXT__ = ${JSON.stringify(context).replace(
+                /</g,
+                "\\u003c",
+            )}
+        </script>
+
+        ${helmet.base.toString()}
+        ${helmet.link.toString()}
+        ${helmet.meta.toString()}
+        ${helmet.noscript.toString()}
+        ${helmet.script.toString()}
+        ${helmet.style.toString()}
+        ${helmet.title.toString()}
+    </head>
+    <body ${helmet.bodyAttributes.toString()}>
+        <div id="root">${html}</div>
+        <script type="module" src="/client/index.tsx"></script>
+    </body>
+</html>`;
+};
+
 const {createServer} = await import("vite");
 
 const vite = await createServer({
@@ -36,7 +92,7 @@ const vite = await createServer({
         middlewareMode: true,
         proxy: {
             [`^(?!${escapedBase}|${reactivatedEndpoint}).*`]: {
-                 target: "http://127.0.0.1:8000/",
+                target: "http://127.0.0.1:8000/",
             },
         },
     },
@@ -56,11 +112,11 @@ const vite = await createServer({
     //       },
     // }},
     appType: "custom",
-    plugins: [vanillaExtractPlugin()],
+    plugins: [react(), vanillaExtractPlugin()],
     resolve: {
         alias: {
-             "@client": path.resolve(process.cwd(), "./client"),
-             "@reactivated": path.resolve(process.cwd(), "./node_modules/_reactivated"),
+            "@client": path.resolve(process.cwd(), "./client"),
+            "@reactivated": path.resolve(process.cwd(), "./node_modules/_reactivated"),
         },
     },
     base,
@@ -77,31 +133,51 @@ app.use("/_reactivated/", async (req, res) => {
 
     // @ts-ignore
     // const {Provider, getTemplate} = await import(path.resolve(process.cwd(), "./node_modules/_reactivated/index.tsx"));
-    const {Provider, viteGetTemplate: getTemplate} = await vite.ssrLoadModule("@reactivated/index.tsx");
-    const Template = getTemplate(context);
-
-    const content = ReactDOMServer.renderToString(
-        React.createElement(React.StrictMode, {}, React.createElement(Template, props))
+    const {Provider, viteGetTemplate: getTemplate} = await vite.ssrLoadModule(
+        "@reactivated/index.tsx",
     );
-    // const {Provider, getTemplate} = await import(path.resolve(process.cwd(), "./node_modules/_reactivated/index.tsx"));
+    const Template = getTemplate(context);
+    const helmetContext = {} as FilledContext;
 
-    const templateName = req.query.templateName ?? "HelloWorld";
+    const html = ReactDOMServer.renderToString(
+        React.createElement(
+            React.StrictMode,
+            {},
+            React.createElement(HelmetProvider, {context: helmetContext}, 
+            React.createElement(
+                Provider,
+                {value: context},
+                React.createElement(Template, props),
+            ),
+            ),
+        ),
+    );
+    const {helmet} = helmetContext;
 
-    const url = "";
-    const template = await vite.transformIndexHtml(url, indexHTML);
-    const render = (await vite.ssrLoadModule("/client/entry-server.tsx")).render;
+    const rendered = renderPage({
+        html,
+        helmet,
+        props,
+        context,
+    });
 
-    const ssrManifest = null;
-    // const rendered = await render(url, ssrManifest)
-    const rendered = await render(templateName);
+    const url = context.request.path;
+    const transformed = await vite.transformIndexHtml(url, rendered);
+    const withReact = transformed.replace("<!--react-script-->", `
+        <script type="module">
+          import RefreshRuntime from '${base}@react-refresh'
+          RefreshRuntime.injectIntoGlobalHook(window)
+          window.$RefreshReg$ = () => {}
+          window.$RefreshSig$ = () => (type) => type
+          window.__vite_plugin_react_preamble_installed__ = true
+        </script>
+    `);
 
-    const html = template
-        .replace(`<!--app-head-->`, rendered.head ?? "")
-        .replace(`<!--app-html-->`, rendered.html ?? "");
+
 
     // res.status(200).set({"Content-Type": "text/html"}).end("thispingingisworking");
     // res.status(200).set({"Content-Type": "text/html"}).end("hello");
-    res.status(200).set({"Content-Type": "text/html"}).end(content);
+    res.status(200).set({"Content-Type": "text/html"}).end(withReact);
 });
 
 app.listen(port, () => {

@@ -1,7 +1,7 @@
+import React from "react";
 import express from "express";
 import path from "path";
 
-import {renderPage} from "./renderer";
 import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -68,7 +68,23 @@ const vite = await createServer({
 
 app.use(vite.middlewares);
 
+app.use(express.json());
+
+import ReactDOMServer from "react-dom/server";
+
 app.use("/_reactivated/", async (req, res) => {
+    const {context, props} = req.body;
+
+    // @ts-ignore
+    // const {Provider, getTemplate} = await import(path.resolve(process.cwd(), "./node_modules/_reactivated/index.tsx"));
+    const {Provider, viteGetTemplate: getTemplate} = await vite.ssrLoadModule("@reactivated/index.tsx");
+    const Template = getTemplate(context);
+
+    const content = ReactDOMServer.renderToString(
+        React.createElement(React.StrictMode, {}, React.createElement(Template, props))
+    );
+    // const {Provider, getTemplate} = await import(path.resolve(process.cwd(), "./node_modules/_reactivated/index.tsx"));
+
     const templateName = req.query.templateName ?? "HelloWorld";
 
     const url = "";
@@ -85,7 +101,7 @@ app.use("/_reactivated/", async (req, res) => {
 
     // res.status(200).set({"Content-Type": "text/html"}).end("thispingingisworking");
     // res.status(200).set({"Content-Type": "text/html"}).end("hello");
-    res.status(200).set({"Content-Type": "text/html"}).end(html);
+    res.status(200).set({"Content-Type": "text/html"}).end(content);
 });
 
 app.listen(port, () => {

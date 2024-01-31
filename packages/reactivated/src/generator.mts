@@ -302,6 +302,15 @@ export type Result<TSuccess, TInvalid> = rpcUtils.Result<TSuccess, TInvalid, _Ty
 
 export const {Context, Provider, getServerData} = createContext<_Types["Context"]>();
 
+export const viteGetTemplate = ({template_name}: {template_name: string}) => {
+    // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
+    // @ts-ignore
+    const templates = import.meta.glob("@client/templates/*.tsx", {eager: true});
+
+    const templatePath = \`/client/templates/\${template_name}.tsx\`;
+    return templates[templatePath].default;
+}
+
 export const getTemplate = ({template_name}: {template_name: string}) => {
     // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
     const { default: templates, filenames } = require('../../client/templates/**/*');

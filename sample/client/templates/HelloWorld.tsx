@@ -1,8 +1,12 @@
 import React from "react";
 
-import * as styles from "@client/styles.css";
 import {Button} from "@client/Button";
+import * as styles from "@client/styles.css";
 
-export default () => {
-    return <div className={""}>Hello world 10 <Button /></div>;
+export const Template = () => {
+    return (
+        <div className={styles.more}>
+            Hello world 10 <Button />
+        </div>
+    );
 };

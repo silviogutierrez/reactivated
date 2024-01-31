@@ -17,5 +17,5 @@ ReactDOM.hydrateRoot(
                 <Template {...props} />
             </Provider>
         </HelmetProvider>
-    </React.StrictMode>
+    </React.StrictMode>,
 );

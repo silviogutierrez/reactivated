@@ -308,7 +308,7 @@ export const viteGetTemplate = ({template_name}: {template_name: string}) => {
     const templates = import.meta.glob("@client/templates/*.tsx", {eager: true});
 
     const templatePath = \`/client/templates/\${template_name}.tsx\`;
-    return templates[templatePath].default;
+    return templates[templatePath].Template;
 }
 
 export const getTemplate = ({template_name}: {template_name: string}) => {

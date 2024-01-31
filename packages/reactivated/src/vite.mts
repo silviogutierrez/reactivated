@@ -1,7 +1,7 @@
 import React from "react";
 import express from "express";
 import path from "path";
-import react from '@vitejs/plugin-react';
+import react from "@vitejs/plugin-react";
 
 import {
     FilledContext,
@@ -143,12 +143,14 @@ app.use("/_reactivated/", async (req, res) => {
         React.createElement(
             React.StrictMode,
             {},
-            React.createElement(HelmetProvider, {context: helmetContext}, 
             React.createElement(
-                Provider,
-                {value: context},
-                React.createElement(Template, props),
-            ),
+                HelmetProvider,
+                {context: helmetContext},
+                React.createElement(
+                    Provider,
+                    {value: context},
+                    React.createElement(Template, props),
+                ),
             ),
         ),
     );
@@ -163,7 +165,9 @@ app.use("/_reactivated/", async (req, res) => {
 
     const url = context.request.path;
     const transformed = await vite.transformIndexHtml(url, rendered);
-    const withReact = transformed.replace("<!--react-script-->", `
+    const withReact = transformed.replace(
+        "<!--react-script-->",
+        `
         <script type="module">
           import RefreshRuntime from '${base}@react-refresh'
           RefreshRuntime.injectIntoGlobalHook(window)
@@ -171,9 +175,8 @@ app.use("/_reactivated/", async (req, res) => {
           window.$RefreshSig$ = () => (type) => type
           window.__vite_plugin_react_preamble_installed__ = true
         </script>
-    `);
-
-
+    `,
+    );
 
     // res.status(200).set({"Content-Type": "text/html"}).end("thispingingisworking");
     // res.status(200).set({"Content-Type": "text/html"}).end("hello");

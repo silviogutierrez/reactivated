@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "outDir": "./dist/",
+        "noEmit": true,
         "strict": true,
         "sourceMap": true,
         "noImplicitAny": true,

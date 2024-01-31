@@ -88,6 +88,7 @@ export const renderPage = ({
 const {createServer} = await import("vite");
 
 const vite = await createServer({
+    clearScreen: false,
     server: {
         middlewareMode: true,
         port: parseInt(process.env.REACTIVATED_ORIGINAL_PORT ?? "0"),

@@ -177,7 +177,7 @@ app.use("/_reactivated/", async (req, res) => {
 
     // res.status(200).set({"Content-Type": "text/html"}).end("thispingingisworking");
     // res.status(200).set({"Content-Type": "text/html"}).end("hello");
-    res.status(200).set({"Content-Type": "text/html"}).end(withReact);
+    res.status(200).set({"Content-Type": "text/html"}).end(transformed);
 });
 
 app.listen(port, () => {

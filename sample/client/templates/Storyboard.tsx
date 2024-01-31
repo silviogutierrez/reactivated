@@ -1,3 +1,3 @@
 import React from "react";
 
-export default () => <div>Storyboard 3</div>;
+export const Template = () => <div>Storyboard 3</div>;

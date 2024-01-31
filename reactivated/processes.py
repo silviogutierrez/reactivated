@@ -13,10 +13,21 @@ def start_tsc() -> None:
         # stderr=subprocess.PIPE,
         env={**os.environ.copy()},
     )
+
     atexit.register(lambda: tsc_process.terminate())
 
 
 def start_client() -> None:
+    vite_process = subprocess.Popen(
+        ["node", "../packages/reactivated/dist/vite.mjs"],
+        # stdout=subprocess.PIPE,
+        # stderr=subprocess.PIPE,
+        env={**os.environ.copy(), "BASE": "/static/dist/"},
+    )
+
+    atexit.register(lambda: vite_process.terminate())
+    return
+
     entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
 
     client_process = subprocess.Popen(
@@ -34,6 +45,7 @@ def start_client() -> None:
 
 
 def start_renderer() -> None:
+    return
     if os.environ.get("REACTIVATED_RENDERER", None):
         return
 

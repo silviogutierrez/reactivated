@@ -1,6 +1,7 @@
 import abc
 import enum
 import inspect
+import os
 from typing import (
     Any,
     Callable,
@@ -21,6 +22,7 @@ from typing import (
 from django import forms as django_forms
 from django.conf import settings
 from django.core.exceptions import ViewDoesNotExist
+from django.core.management.commands import runserver
 from django.http import HttpRequest, HttpResponse
 from django.urls import URLPattern, URLResolver
 from mypy_extensions import Arg, KwArg
@@ -35,6 +37,36 @@ from .stubs import _GenericAlias
 from .templates import Action as Action  # noqa: F401
 from .templates import interface as interface  # noqa: F401
 from .templates import template as template  # noqa: F401
+
+original_run = runserver.Command.run
+
+
+def patched_run(self, **options):
+    import socket
+
+    if os.environ.get("REACTIVATED_BACKEND_PORT", None) is None:
+        sock = socket.socket()
+        sock.bind(("", 0))
+        port = sock.getsockname()[1]
+        os.environ[
+            "REACTIVATED_RENDERER"
+        ] = f"http://localhost:{self.port}/_reactivated/"
+        os.environ["REACTIVATED_ORIGINAL_PORT"] = self.port
+        self.port = port
+        os.environ["REACTIVATED_BACKEND_PORT"] = str(port)
+        print(f"Binding to port {port}")
+    else:
+        self.port = os.environ["REACTIVATED_BACKEND_PORT"]
+    # options
+    # print("This is first")
+    # os.environ["REACTIVATED_BACKEND_PORT"] = str(port)
+
+    original_run(self, **options)
+
+
+runserver.Command.run = patched_run
+
+# basehttp.run = patched_run
 
 
 def export(var: Any) -> None:

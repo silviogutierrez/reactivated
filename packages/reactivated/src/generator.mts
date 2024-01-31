@@ -345,7 +345,7 @@ compile(types, "this is unused").then((ts) => {
 
             statements.push(`
 
-import ${name}Implementation from "@client/templates/${name}"
+import {Template as ${name}Implementation} from "@client/templates/${name}"
 export type ${name}Check = Checker<_Types["${propsName}"], typeof ${name}Implementation>;
 
 export namespace templates {

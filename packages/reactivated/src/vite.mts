@@ -8,6 +8,7 @@ const isProduction = process.env.NODE_ENV === "production";
 const port = process.env.PORT || 5173;
 const base = process.env.BASE || "/";
 const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const reactivatedEndpoint = "/_reactivated/".replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const app = express();
 
@@ -34,8 +35,8 @@ const vite = await createServer({
     server: {
         middlewareMode: true,
         proxy: {
-            [`^(?!${escapedBase}).*`]: {
-                 target: "http://main.joyapp.com.silviogutierrez.localhost:12008/",
+            [`^(?!${escapedBase}|${reactivatedEndpoint}).*`]: {
+                 target: "http://localhost:8000/",
             },
         },
     },
@@ -67,7 +68,7 @@ const vite = await createServer({
 
 app.use(vite.middlewares);
 
-app.use("*", async (req, res) => {
+app.use("/_reactivated/", async (req, res) => {
     const templateName = req.query.templateName ?? "HelloWorld";
 
     const url = "";
@@ -82,6 +83,8 @@ app.use("*", async (req, res) => {
         .replace(`<!--app-head-->`, rendered.head ?? "")
         .replace(`<!--app-html-->`, rendered.html ?? "");
 
+    // res.status(200).set({"Content-Type": "text/html"}).end("thispingingisworking");
+    // res.status(200).set({"Content-Type": "text/html"}).end("hello");
     res.status(200).set({"Content-Type": "text/html"}).end(html);
 });
 

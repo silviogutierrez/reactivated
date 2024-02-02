@@ -31,9 +31,6 @@ import  path from "path";
 //
 import { builtinModules } from "node:module";
 const external =  [...builtinModules, ...builtinModules.map((m) => `node:${m}`)];
-console.log(external);
-
-process.exit(0);
 
 await build({
     ssr: {
@@ -47,10 +44,10 @@ await build({
     manifest: true,
     rollupOptions: {
       // overwrite default .html entry
-      input: 'reactivated/dist/vite.mjs',
+      input: './renderer.tsx',
       output: {
-        entryFileNames: `assets/server.[name].js`,
-        chunkFileNames: `assets/server.[name].js`,
+        entryFileNames: `assets/server.[name].mjs`,
+        chunkFileNames: `assets/server.[name].mjs`,
         assetFileNames: `assets/server.[name].[ext]`
       },
       external,

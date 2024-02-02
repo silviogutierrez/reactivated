@@ -767,6 +767,15 @@
     'type': 'object',
   })
 # ---
+# name: test_serialize_lazy_object
+  Thing(
+    definitions=dict({
+    }),
+    schema=dict({
+      'type': 'string',
+    }),
+  )
+# ---
 # name: test_simple_union
   Thing(
     definitions=dict({

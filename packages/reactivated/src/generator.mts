@@ -280,7 +280,7 @@ sourceFile.addStatements(
 );
 
 sourceFile.addStatements(`
-export {Options} from "reactivated/dist/conf";
+export type {Options} from "reactivated/dist/conf";
 
 export const rpc = new RPC(typeof window != "undefined" ? rpcUtils.defaultRequester : null as any);
 import React from "react"
@@ -320,7 +320,7 @@ export const {createRenderer, Iterator} = forms.bindWidgetType<_Types["globals"]
 export type FieldHandler = forms.FieldHandler<_Types["globals"]["Widget"]>;
 export type models = _Types["globals"]["models"];
 
-export {FormHandler} from "reactivated/dist/forms";
+export type {FormHandler} from "reactivated/dist/forms";
 export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = forms;
 `);
 

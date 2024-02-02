@@ -35,12 +35,15 @@ const OK_RESPONSE = 200;
 
 const ERROR_REPONSE = 500;
 
+import {Provider, viteGetTemplate as getTemplate} from "@reactivated";
+
 // Relative path to keep it under 100 characters.
 // See: https://unix.stackexchange.com/questions/367008/why-is-socket-path-length-limited-to-a-hundred-chars
 export const SOCKET_PATH =
     process.env.REACTIVATED_SOCKET ?? `node_modules/_reactivated/reactivated.sock`;
 
 export const server = http.createServer((req, res) => {
+    console.log(getTemplate)
     let body = Buffer.from("");
 
     req.on("data", (chunk) => {

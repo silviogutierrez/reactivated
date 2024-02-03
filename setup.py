@@ -25,6 +25,7 @@ setuptools.setup(
         "requests>=2.25.0",
         "requests-unixsocket>=0.3.0",
         "mypy>=0.910",
+        "psutil>=5.9.8",
         "simplejson>=3.16.0",
         # urllib3 >= 2 is currently blocked by this issue:
         # - https://github.com/msabramo/requests-unixsocket/issues/70

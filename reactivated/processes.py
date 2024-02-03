@@ -1,9 +1,30 @@
 import atexit
+import json
 import os
 import re
 import subprocess
+from typing import Any, TypedDict
 
+import psutil
 from django.conf import settings
+
+
+class ServeOptions(TypedDict):
+    host: str
+    port: int
+
+
+def terminate_proc(proc: subprocess.Popen[Any]) -> None:
+    """
+    npm exec doesn't correctly forward signals to its child processes. So,
+    simply calling proc.terminate() doesn't actually kill the process. Rather,
+    we have to recursively iterate and kill each individual child proc.
+    """
+    parent = psutil.Process(proc.pid)
+    for child in parent.children(recursive=True):
+        child.terminate()
+    parent.terminate()
+    proc.communicate(timeout=5)
 
 
 def start_tsc() -> None:
@@ -13,10 +34,10 @@ def start_tsc() -> None:
         # stderr=subprocess.PIPE,
         env={**os.environ.copy()},
     )
-    atexit.register(lambda: tsc_process.terminate())
+    atexit.register(lambda: terminate_proc(tsc_process))
 
 
-def start_client() -> None:
+def start_client(serve_opts: ServeOptions) -> None:
     entry_points = getattr(settings, "REACTIVATED_BUNDLES", ["index"])
 
     client_process = subprocess.Popen(
@@ -25,12 +46,13 @@ def start_client() -> None:
             "exec",
             "build.client",
             "--",
+            json.dumps(serve_opts),
             *entry_points,
         ],
         stdout=subprocess.PIPE,
         env={**os.environ.copy()},
     )
-    atexit.register(lambda: client_process.terminate())
+    atexit.register(lambda: terminate_proc(client_process))
 
 
 def start_renderer() -> None:
@@ -47,7 +69,7 @@ def start_renderer() -> None:
             **os.environ.copy(),
         },
     )
-    atexit.register(lambda: renderer_process.terminate())
+    atexit.register(lambda: terminate_proc(renderer_process))
 
     renderer_process_port = ""
     output = ""

@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import subprocess
+import sys
 from typing import Any, Dict, NamedTuple, Tuple, Type
 
 from django.apps import AppConfig
@@ -153,8 +154,45 @@ def get_schema() -> str:
     return json.dumps(schema, indent=4)
 
 
+def get_runserver_addr_port(argv: list[str]) -> tuple[str, str]:
+    """
+    Return the addr and port that Django's development server is currently
+    bound to.
+    """
+    from django.core.management.commands.runserver import Command
+
+    class FakeRunServerCmd(Command):
+        """
+        Neutered version of Django's runserver command that retains the
+        addr/port parsing logic, but doesn't actually start any servers.
+        """
+
+        addr: str
+        port: str
+
+        def run(self, **options: dict[str, Any]) -> None:
+            pass
+
+    cmd = FakeRunServerCmd()
+    cmd.run_from_argv(argv)
+    return cmd.addr, cmd.port
+
+
+def get_esbuild_addr_port(argv: list[str]) -> tuple[str, int]:
+    # Unless otherwise specified by env var, run the esbuild server on the next
+    # port up from the Django server.
+    host, django_port = get_runserver_addr_port(argv)
+    if os.environ.get("REACTIVATED_ESBUILD_PORT"):
+        esbuild_port = int(os.environ["REACTIVATED_ESBUILD_PORT"])
+    else:
+        esbuild_port = int(django_port) + 1
+    return host, esbuild_port
+
+
 class ReactivatedConfig(AppConfig):
     name = "reactivated"
+
+    esbuild_port: int | None = None
 
     def ready(self) -> None:
         """
@@ -172,10 +210,14 @@ class ReactivatedConfig(AppConfig):
             from . import processes
             from .apps import generate_schema, get_schema
 
+            # Run the esbuild server on the next port up from the Django server
+            host, self.esbuild_port = get_esbuild_addr_port(sys.argv)
+            serve_opts = processes.ServeOptions(host=host, port=self.esbuild_port)
+
             schema = get_schema()
             generate_schema(schema)
             processes.start_tsc()
-            processes.start_client()
+            processes.start_client(serve_opts)
             processes.start_renderer()
 
 

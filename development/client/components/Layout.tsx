@@ -41,12 +41,12 @@ export const Layout = (props: Props) => {
                 <link
                     rel="stylesheet"
                     type="text/css"
-                    href={`${context.STATIC_URL}dist/index.css`}
+                    href={`${context.BUNDLE_URL}index.css`}
                 />
                 <script
                     defer
                     crossOrigin="anonymous"
-                    src={`${context.STATIC_URL}dist/index.js`}
+                    src={`${context.BUNDLE_URL}index.js`}
                 />
             </Helmet>
             <header className={styles.header}>

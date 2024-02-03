@@ -17,3 +17,17 @@ root.render(
         </Provider>
     </HelmetProvider>,
 );
+
+if (process.env.ESBUILD_SERVE_PORT) {
+    (function connectLiveReload() {
+        const url = `//${window.location.hostname}:${process.env.ESBUILD_SERVE_PORT}/esbuild`;
+        const bundler = new EventSource(url);
+        bundler.addEventListener("change", () => {
+            location.reload();
+        });
+        bundler.addEventListener("error", () => {
+            bundler.close();
+            setTimeout(connectLiveReload, 500);
+        });
+    })();
+}

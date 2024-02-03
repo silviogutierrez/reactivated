@@ -13,7 +13,7 @@ import {
 import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 
 const isProduction = process.env.NODE_ENV === "production";
-const port = process.env.REACTIVATED_ORIGINAL_PORT || 5173;
+const port = process.env.REACTIVATED_VITE_PORT || 5173;
 const base = process.env.BASE || "/";
 const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const reactivatedEndpoint = "/_reactivated/".replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -94,7 +94,7 @@ const vite = await createServer({
         port: parseInt(process.env.REACTIVATED_ORIGINAL_PORT ?? "0"),
         proxy: {
             [`^(?!${escapedBase}|${reactivatedEndpoint}).*`]: {
-                target: `http://127.0.0.1:${process.env.REACTIVATED_BACKEND_PORT}/`,
+                target: `http://127.0.0.1:${process.env.REACTIVATED_DJANGO_PORT}/`,
             },
         },
     },

@@ -1,7 +1,64 @@
 import * as React from "react";
+import * as ReactDOMServer from "react-dom/server";
+import type {Options} from "reactivated/dist/conf";
 
 import * as http from "http";
 import * as fs from "fs";
+
+import {
+    FilledContext,
+    Helmet,
+    HelmetProvider,
+    HelmetServerState,
+} from "react-helmet-async";
+
+export const renderPage = ({
+    html,
+    helmet,
+    context,
+    props,
+}: {
+    html: string;
+    helmet: HelmetServerState;
+    context: any;
+    props: any;
+}) => {
+    const scriptNonce = context.request.csp_nonce
+        ? `nonce="${context.request.csp_nonce}"`
+        : "";
+    return `
+<!DOCTYPE html>
+<html ${helmet.htmlAttributes.toString()}>
+    <head>
+        <!--react-script-->
+        <script ${scriptNonce}>
+            // These go first because scripts below need them.
+            // WARNING: See the following for security issues around embedding JSON in HTML:
+            // http://redux.js.org/recipes/ServerRendering.html#security-considerations
+            window.__PRELOADED_PROPS__ = ${JSON.stringify(props).replace(
+                /</g,
+                "\\u003c",
+            )}
+            window.__PRELOADED_CONTEXT__ = ${JSON.stringify(context).replace(
+                /</g,
+                "\\u003c",
+            )}
+        </script>
+
+        ${helmet.base.toString()}
+        ${helmet.link.toString()}
+        ${helmet.meta.toString()}
+        ${helmet.noscript.toString()}
+        ${helmet.script.toString()}
+        ${helmet.style.toString()}
+        ${helmet.title.toString()}
+    </head>
+    <body ${helmet.bodyAttributes.toString()}>
+        <div id="root">${html}</div>
+        <script type="module" src="/client/index.tsx"></script>
+    </body>
+</html>`;
+};
 
 type Result =
     | {
@@ -20,10 +77,49 @@ export const render = async ({
     context: any;
     props: any;
 }): Promise<Result> => {
-    return {
-        status: "success",
-        rendered: "This is working",
-    };
+
+    const customConfiguration = null;
+    const defaultConfiguration = {
+        render: (content) => Promise.resolve(content),
+    } satisfies Options;
+
+    try {
+        const Template = getTemplate(context);
+        const helmetContext = {} as FilledContext;
+
+        const content = (
+            <HelmetProvider context={helmetContext}>
+                <Provider value={context}>
+                    <Template {...props} />
+                </Provider>
+            </HelmetProvider>
+        );
+
+        const rendered = ReactDOMServer.renderToString(
+            await (customConfiguration?.default?.render ?? defaultConfiguration.render)(
+                content,
+            ),
+        );
+
+        const {helmet} = helmetContext;
+
+        return {
+            status: "success",
+            rendered: renderPage({
+                html: rendered,
+                helmet,
+                props,
+                context,
+            }),
+        };
+
+        return {
+            status: "success",
+            rendered,
+        };
+    } catch (error) {
+        return {status: "error", error};
+    }
 }
 
 export const serverRender = (body: Buffer) => {
@@ -35,6 +131,7 @@ const OK_RESPONSE = 200;
 
 const ERROR_REPONSE = 500;
 
+// @ts-ignore
 import {Provider, viteGetTemplate as getTemplate} from "@reactivated";
 
 // Relative path to keep it under 100 characters.

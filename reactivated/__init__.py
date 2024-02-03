@@ -1,7 +1,10 @@
 import abc
 import enum
 import inspect
+import atexit
 import os
+import socket
+import subprocess
 from typing import (
     Any,
     Callable,
@@ -42,7 +45,54 @@ original_run = runserver.Command.run
 
 
 def patched_run(self, **options):
-    import socket
+    # if existing := os.environ.get("REACTIVATED_RENDERER", None):
+    #     os.environ["REACTIVATED_RENDERER"] = str(int(existing) + 1)
+    # else:
+    #     os.environ["REACTIVATED_RENDERER"] = "1"
+
+    # if os.environ["REACTIVATED_RENDERER"] == "1":
+    #     print("Only happening the first time")
+
+    from . import processes
+    from .apps import generate_schema, get_schema
+
+    if (
+        os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+        or os.environ.get("RUN_MAIN") == "true"
+    ):
+        schema = get_schema()
+        generate_schema(schema)
+        # processes.start_tsc()
+
+        print("Inside reload")
+        self.port = int(os.environ["REACTIVATED_DJANGO_PORT"])
+    else:
+        sock = socket.socket()
+        sock.bind(("", 0))
+        free_port = sock.getsockname()[1]
+        os.environ["REACTIVATED_VITE_PORT"] = self.port
+        os.environ["REACTIVATED_DJANGO_PORT"] = str(free_port)
+
+        vite_process = subprocess.Popen(
+            ["node", "../packages/reactivated/dist/vite.mjs"],
+            # stdout=subprocess.PIPE,
+            # stderr=subprocess.PIPE,
+            env={**os.environ.copy(), "BASE": "/static/dist/"},
+        )
+        os.environ["REACTIVATED_RENDERER"] = f"http://localhost:{self.port}/_reactivated/"
+
+        atexit.register(lambda: vite_process.terminate())
+
+        schema = get_schema()
+        generate_schema(schema)
+
+        print("outside reload")
+
+    # print("I am happening", os.environ["REACTIVATED_RENDERER"], os.environ.get("RUN_MAIN"))
+    return original_run(self, **options)
+    # if os.environ.get("REACTIVATED_RENDERER") is not None:
+    #     original_run(self, **options)
+    #     return
 
     if os.environ.get("REACTIVATED_BACKEND_PORT", None) is None:
         sock = socket.socket()
@@ -57,9 +107,6 @@ def patched_run(self, **options):
         print(f"Binding to port {port}")
     else:
         self.port = os.environ["REACTIVATED_BACKEND_PORT"]
-    # options
-    # print("This is first")
-    # os.environ["REACTIVATED_BACKEND_PORT"] = str(port)
 
     original_run(self, **options)
 

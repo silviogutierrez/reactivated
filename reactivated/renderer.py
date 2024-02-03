@@ -5,6 +5,8 @@ import re
 import subprocess
 import urllib.parse
 from typing import Any, List, Optional
+import json
+import requests
 
 import requests_unixsocket  # type: ignore[import]
 import simplejson
@@ -96,9 +98,17 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
     session = requests_unixsocket.Session()
     socket = urllib.parse.quote_plus(address)
 
-    response = session.post(address, headers=headers, data=data)
+    if "sock" in address:
+        response = session.post(f"http+unix://{socket}", headers=headers, data=data)
+    else:
+        response = session.post(address, headers=headers, data=data)
 
     if response.status_code == 200:
         return response.text  # type: ignore[no-any-return]
     else:
-        raise Exception(response.json()["stack"])
+        try:
+            error = response.json()
+        except requests.JSONDecodeError:  # type: ignore[attr-defined]
+            raise Exception(response.content)
+        else:
+            raise Exception(error["stack"])

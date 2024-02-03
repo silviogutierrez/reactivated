@@ -17,7 +17,7 @@ def start_tsc() -> None:
     atexit.register(lambda: tsc_process.terminate())
 
 
-def start_client() -> None:
+def start_vite() -> None:
     vite_process = subprocess.Popen(
         ["node", "../packages/reactivated/dist/vite.mjs"],
         # stdout=subprocess.PIPE,

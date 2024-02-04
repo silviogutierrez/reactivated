@@ -2,6 +2,15 @@ import * as React from "react";
 import * as ReactDOMServer from "react-dom/server";
 import type {Options} from "reactivated/dist/conf";
 
+const isProduction = process.env.NODE_ENV === "production";
+
+if (isProduction) {
+}
+else {
+    const {createServer} = await import("vite");
+    console.log(createServer);
+}
+
 import * as http from "http";
 import * as fs from "fs";
 

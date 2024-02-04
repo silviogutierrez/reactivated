@@ -30,7 +30,8 @@ import  path from "path";
 // })
 //
 import { builtinModules } from "node:module";
-const external =  [...builtinModules, ...builtinModules.map((m) => `node:${m}`)];
+const otherExternals: string[] = [];
+const external =  [...otherExternals, ...builtinModules, ...builtinModules.map((m) => `node:${m}`)];
 
 await build({
     ssr: {
@@ -40,11 +41,12 @@ await build({
   build: {
     // generate .vite/manifest.json in outDir
     // minify: false,
+    // target: "esnext",
     ssr: true,
     manifest: true,
     rollupOptions: {
       // overwrite default .html entry
-      input: './renderer.tsx',
+      input: 'reactivated/dist/server.mjs',
       output: {
         entryFileNames: `assets/server.[name].mjs`,
         chunkFileNames: `assets/server.[name].mjs`,

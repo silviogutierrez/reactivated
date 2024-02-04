@@ -9,6 +9,7 @@
         "./dist/context": "./dist/context.js",
         "./dist/conf": "./dist/conf.js",
         "./dist/vite.mjs": "./dist/vite.mjs",
+        "./dist/server.mjs": "./dist/server.mjs",
         "./dist/rpc": "./dist/rpc.js"
     },
     "typings": "dist/index.d.ts",

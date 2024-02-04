@@ -14,15 +14,23 @@ export const renderPage = ({
     helmet,
     context,
     props,
+    mode,
+    entryPoint,
 }: {
     html: string;
     helmet: HelmetServerState;
     context: any;
     props: any;
+    mode: "production" | "development";
+    entryPoint: string,
 }) => {
     const scriptNonce = context.request.csp_nonce
         ? `nonce="${context.request.csp_nonce}"`
         : "";
+
+    const css = mode == "production" ? `<link rel="stylesheet" type="text/css" href="/static/dist/${entryPoint}.css">` : "";
+    const js = mode == "production" ? `<script src="/static/dist/${entryPoint}.js" defer crossOrigin="anonymous"></script>` : `<script type="module" src="/client/${entryPoint}.tsx"></script>`;
+
     return `
 <!DOCTYPE html>
 <html ${helmet.htmlAttributes.toString()}>
@@ -41,6 +49,7 @@ export const renderPage = ({
                 "\\u003c",
             )}
         </script>
+        ${css}
 
         ${helmet.base.toString()}
         ${helmet.link.toString()}
@@ -52,12 +61,12 @@ export const renderPage = ({
     </head>
     <body ${helmet.bodyAttributes.toString()}>
         <div id="root">${html}</div>
-        <script type="module" src="/client/index.tsx"></script>
+        ${js}
     </body>
 </html>`;
 };
 
-export const render = (req: Request, Provider: any, getTemplate: any) => {
+export const render = (req: Request, Provider: any, getTemplate: any, mode: "production" | "development", entryPoint: string) => {
     const {context, props} = req.body;
     const Template = getTemplate(context);
     const helmetContext = {} as FilledContext;
@@ -84,6 +93,8 @@ export const render = (req: Request, Provider: any, getTemplate: any) => {
         helmet,
         props,
         context,
+        mode,
+        entryPoint,
     });
 
     const url = context.request.path;

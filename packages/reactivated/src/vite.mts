@@ -56,7 +56,7 @@ app.use("/_reactivated/", async (req, res) => {
         "@reactivated/index.tsx",
     );
 
-    const {url, rendered} = render(req, Provider, getTemplate);
+    const {url, rendered} = render(req, Provider, getTemplate, "development", "index");
 
     const transformed = await vite.transformIndexHtml(url, rendered);
     res.status(200).set({"Content-Type": "text/html"}).end(transformed);

@@ -3,7 +3,9 @@ import express from "express";
 import path from "path";
 import react from "@vitejs/plugin-react";
 import ReactDOMServer from "react-dom/server";
-import {render} from "./render.mjs";
+import type {render as renderType} from "./render.mjs";
+import type {Options} from "./conf";
+import type {RendererConfig} from "./build.client.mjs";
 
 import {
     FilledContext,
@@ -22,7 +24,23 @@ const reactivatedEndpoint = "/_reactivated/".replace(/[.*+?^${}()|[\]\\]/g, "\\$
 const app = express();
 const {createServer} = await import("vite");
 
-const vite = await createServer({
+const getConfiguration = () => {
+  try {
+    return import(path.resolve(process.cwd(), "./node_modules/_reactivated/conf.mjs"));
+  }
+  catch {
+    return null;
+  }
+}
+
+const customConfigurationImport: {default?: Options} | null = await getConfiguration();
+
+const getRendererOptions =
+    customConfigurationImport?.default?.build?.renderer != null
+        ? customConfigurationImport.default.build.renderer
+        : (options: RendererConfig) => options;
+
+const rendererConfig = {
     clearScreen: false,
     server: {
         middlewareMode: true,
@@ -42,10 +60,14 @@ const vite = await createServer({
         },
     },
     base,
-});
+} as any as RendererConfig;
+
+export const vite = await createServer(getRendererOptions(rendererConfig));
 
 app.use(vite.middlewares);
 app.use(express.json());
+
+const {render} = await vite.ssrLoadModule("reactivated/dist/render.mjs") as {render: typeof renderType};
 
 app.use("/_reactivated/", async (req, res) => {
     const {context, props} = req.body;
@@ -56,7 +78,7 @@ app.use("/_reactivated/", async (req, res) => {
         "@reactivated/index.tsx",
     );
 
-    const {url, rendered} = render(req, Provider, getTemplate, "development", "index");
+    const {url, rendered} = await render(req, Provider, getTemplate, "development", "index");
 
     const transformed = await vite.transformIndexHtml(url, rendered);
     res.status(200).set({"Content-Type": "text/html"}).end(transformed);

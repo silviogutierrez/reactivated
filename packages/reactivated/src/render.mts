@@ -66,13 +66,22 @@ export const renderPage = ({
 </html>`;
 };
 
-export const render = (req: Request, Provider: any, getTemplate: any, mode: "production" | "development", entryPoint: string) => {
+
+const defaultConfiguration = {
+    render: (content) => Promise.resolve(content),
+} satisfies Options;
+
+
+export const render = async (req: Request, Provider: any, getTemplate: any, mode: "production" | "development", entryPoint: string) => {
+    // @ts-ignore
+    const customConfiguration: {default?: Options} | null = import.meta.glob("@reactivated/conf.mjs", {eager: true})["/node_modules/_reactivated/conf.mjs"];
+
     const {context, props} = req.body;
     const Template = getTemplate(context);
     const helmetContext = {} as FilledContext;
 
-    const html = ReactDOMServer.renderToString(
-        React.createElement(
+
+    const content = React.createElement(
             React.StrictMode,
             {},
             React.createElement(
@@ -84,7 +93,13 @@ export const render = (req: Request, Provider: any, getTemplate: any, mode: "pro
                     React.createElement(Template, props),
                 ),
             ),
+        );
+
+    const html = ReactDOMServer.renderToString(
+        await (customConfiguration?.default?.render ?? defaultConfiguration.render)(
+            content,
         ),
+
     );
     const {helmet} = helmetContext;
 

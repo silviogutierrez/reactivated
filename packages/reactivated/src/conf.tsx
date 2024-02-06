@@ -1,9 +1,10 @@
-import {BuildOptions} from "esbuild";
+import type {ClientConfig, RendererConfig} from "./build.client.mjs";
+import type { InlineConfig } from "vite";
 
 export type Options = {
     build?: {
-        client?: (options: BuildOptions) => void;
-        renderer?: (options: BuildOptions) => void;
+        client?: (options: ClientConfig) => InlineConfig;
+        renderer?: (options: RendererConfig) => InlineConfig;
     };
     render?: (content: JSX.Element) => Promise<JSX.Element>;
 };

@@ -2,13 +2,37 @@
 
 import react from '@vitejs/plugin-react'
 import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
-import {build} from "vite";
+import {InlineConfig, build} from "vite";
+import { builtinModules } from "node:module";
 import  path from "path";
+import {Options} from "./conf";
+
+const getConfiguration = () => {
+  try {
+    return import(path.resolve(process.cwd(), "./node_modules/_reactivated/conf.mjs"));
+  }
+  catch {
+    return null;
+  }
+}
+
+
+// @ts-ignore
+const customConfigurationImport: {default?: Options} | null = await getConfiguration();
+
+const getClientOptions =
+    customConfigurationImport?.default?.build?.client != null
+        ? customConfigurationImport.default.build.client
+        : (options: ClientConfig) => options;
+
+const getRendererOptions =
+    customConfigurationImport?.default?.build?.renderer != null
+        ? customConfigurationImport.default.build.renderer
+        : (options: RendererConfig) => options;
 
 const identifiers = "short";
 
-await build({
-  build: {
+const clientConfig = {build: {
     emptyOutDir: true,
     outDir: "static",
     // generate .vite/manifest.json in outDir
@@ -31,13 +55,13 @@ await build({
             "@reactivated": path.resolve(process.cwd(), "./node_modules/_reactivated"),
         },
     },
-})
+} satisfies InlineConfig;
 
-import { builtinModules } from "node:module";
 const otherExternals: string[] = [];
 const external =  [...otherExternals, ...builtinModules, ...builtinModules.map((m) => `node:${m}`)];
 
-await build({
+
+const rendererConfig = {
     ssr: {
         external,
         noExternal: true,
@@ -69,4 +93,12 @@ await build({
           "@reactivated": path.resolve(process.cwd(), "./node_modules/_reactivated"),
       },
   },
-})
+} satisfies InlineConfig;
+
+export type ClientConfig = typeof clientConfig;
+
+export type RendererConfig = typeof rendererConfig;
+
+await build(getClientOptions(clientConfig));
+
+await build(getRendererOptions(rendererConfig));

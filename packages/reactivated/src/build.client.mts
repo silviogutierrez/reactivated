@@ -34,7 +34,7 @@ const identifiers = "short";
 
 const clientConfig = {build: {
     emptyOutDir: true,
-    outDir: "static",
+    // outDir: "static",
     // generate .vite/manifest.json in outDir
     manifest: false,
     rollupOptions: {
@@ -68,7 +68,7 @@ const rendererConfig = {
     },
   build: {
     emptyOutDir: false,
-    outDir: "static",
+    // outDir: "static",
     // generate .vite/manifest.json in outDir
     // minify: false,
     // target: "esnext",

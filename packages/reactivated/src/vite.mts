@@ -6,6 +6,7 @@ import ReactDOMServer from "react-dom/server";
 import type {render as renderType} from "./render.mjs";
 import type {Options} from "./conf";
 import type {RendererConfig} from "./build.client.mjs";
+import { resolveConfig, mergeConfig, loadConfigFromFile ,InlineConfig} from "vite";
 
 import {
     FilledContext,
@@ -24,23 +25,7 @@ const reactivatedEndpoint = "/_reactivated/".replace(/[.*+?^${}()|[\]\\]/g, "\\$
 const app = express();
 const {createServer} = await import("vite");
 
-const getConfiguration = () => {
-  try {
-    return import(path.resolve(process.cwd(), "./node_modules/_reactivated/conf.mjs"));
-  }
-  catch {
-    return null;
-  }
-}
-
-const customConfigurationImport: {default?: Options} | null = await getConfiguration();
-
-const getRendererOptions =
-    customConfigurationImport?.default?.build?.renderer != null
-        ? customConfigurationImport.default.build.renderer
-        : (options: RendererConfig) => options;
-
-const rendererConfig = {
+const rendererConfig: InlineConfig = {
     clearScreen: false,
     server: {
         middlewareMode: true,
@@ -60,25 +45,20 @@ const rendererConfig = {
         },
     },
     base,
-} as any as RendererConfig;
+};
 
-export const vite = await createServer(getRendererOptions(rendererConfig));
+export const vite = await createServer(rendererConfig);
 
 app.use(vite.middlewares);
 app.use(express.json());
 
-const {render} = await vite.ssrLoadModule("reactivated/dist/render.mjs") as {render: typeof renderType};
 
 app.use("/_reactivated/", async (req, res) => {
     const {context, props} = req.body;
 
-    // @ts-ignore
-    // const {Provider, getTemplate} = await import(path.resolve(process.cwd(), "./node_modules/_reactivated/index.tsx"));
-    const {Provider, viteGetTemplate: getTemplate} = await vite.ssrLoadModule(
-        "@reactivated/index.tsx",
-    );
+    const {render} = await vite.ssrLoadModule("reactivated/dist/render.mjs") as {render: typeof renderType};
 
-    const {url, rendered} = await render(req, Provider, getTemplate, "development", "index");
+    const {url, rendered} = await render(req,  "development", "index");
 
     const transformed = await vite.transformIndexHtml(url, rendered);
     res.status(200).set({"Content-Type": "text/html"}).end(transformed);

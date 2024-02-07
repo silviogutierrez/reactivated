@@ -9,6 +9,9 @@ import * as React from "react";
 import * as ReactDOMServer from "react-dom/server";
 import type {Options} from "./conf";
 
+// @ts-ignore
+import {Provider, viteGetTemplate as getTemplate} from "@reactivated";
+
 export const renderPage = ({
     html,
     helmet,
@@ -71,10 +74,11 @@ const defaultConfiguration = {
     render: (content) => Promise.resolve(content),
 } satisfies Options;
 
+export type Renderer = (content: JSX.Element) => Promise<JSX.Element>;
 
-export const render = async (req: Request, Provider: any, getTemplate: any, mode: "production" | "development", entryPoint: string) => {
+export const render = async (req: Request, mode: "production" | "development", entryPoint: string) => {
     // @ts-ignore
-    const customConfiguration: {default?: Options} | null = import.meta.glob("@reactivated/conf.mjs", {eager: true})["/node_modules/_reactivated/conf.mjs"];
+    const customConfiguration: {default?: Render} | null = import.meta.glob("@client/renderer.tsx", {eager: true})["/client/renderer.tsx"];
 
     const {context, props} = req.body;
     const Template = getTemplate(context);
@@ -96,7 +100,7 @@ export const render = async (req: Request, Provider: any, getTemplate: any, mode
         );
 
     const html = ReactDOMServer.renderToString(
-        await (customConfiguration?.default?.render ?? defaultConfiguration.render)(
+        await (customConfiguration?.default ?? defaultConfiguration.render)(
             content,
         ),
 

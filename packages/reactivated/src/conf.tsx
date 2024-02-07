@@ -8,3 +8,12 @@ export type Options = {
     };
     render?: (content: JSX.Element) => Promise<JSX.Element>;
 };
+
+
+
+export type Foo = (first: string) => void;
+
+
+
+export default ((first) => {
+}) satisfies Foo;

@@ -281,6 +281,7 @@ sourceFile.addStatements(
 
 sourceFile.addStatements(`
 export type {Options} from "reactivated/dist/conf";
+export type {Renderer} from "reactivated/dist/render.mjs";
 
 export const rpc = new RPC(typeof window != "undefined" ? rpcUtils.defaultRequester : null as any);
 import React from "react"

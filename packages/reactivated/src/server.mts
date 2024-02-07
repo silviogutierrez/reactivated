@@ -29,7 +29,7 @@ app.use(express.json());
 app.use("/_reactivated/", async (req, res) => {
     const {context, props} = req.body;
 
-    const {url, rendered} = await render(req, Provider, getTemplate, "production", "index");
+    const {url, rendered} = await render(req, "production", "index");
     res.status(200).set({"Content-Type": "text/html"}).end(rendered);
 });
 

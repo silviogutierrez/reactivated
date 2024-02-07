@@ -17,7 +17,7 @@ export const Layout = (props: Props) => {
                     name="viewport"
                     content="width=device-width, initial-scale=1, shrink-to-fit=no"
                 />
-        {/*
+                {/*
                 <link rel="stylesheet" type="text/css" href="/static/dist/index.css" />
                 <script crossOrigin="anonymous" defer src="/static/dist/index.js" />
          */}

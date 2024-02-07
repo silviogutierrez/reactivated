@@ -1,7 +1,7 @@
 import abc
+import atexit
 import enum
 import inspect
-import atexit
 import os
 import socket
 import subprocess
@@ -76,7 +76,9 @@ def patched_run(self, **options):
             # stderr=subprocess.PIPE,
             env={**os.environ.copy(), "BASE": "/static/dist/"},
         )
-        os.environ["REACTIVATED_RENDERER"] = f"http://localhost:{self.port}/_reactivated/"
+        os.environ[
+            "REACTIVATED_RENDERER"
+        ] = f"http://localhost:{self.port}/_reactivated/"
 
         atexit.register(lambda: vite_process.terminate())
 

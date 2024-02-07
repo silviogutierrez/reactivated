@@ -5,9 +5,8 @@ import re
 import subprocess
 import urllib.parse
 from typing import Any, List, Optional
-import json
-import requests
 
+import requests
 import requests_unixsocket  # type: ignore[import]
 import simplejson
 from django.conf import settings

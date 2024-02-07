@@ -1,4 +1,4 @@
-import { Request } from "express";
+import {Request} from "express";
 import {
     FilledContext,
     Helmet,
@@ -25,14 +25,20 @@ export const renderPage = ({
     context: any;
     props: any;
     mode: "production" | "development";
-    entryPoint: string,
+    entryPoint: string;
 }) => {
     const scriptNonce = context.request.csp_nonce
         ? `nonce="${context.request.csp_nonce}"`
         : "";
 
-    const css = mode == "production" ? `<link rel="stylesheet" type="text/css" href="/static/dist/${entryPoint}.css">` : "";
-    const js = mode == "production" ? `<script src="/static/dist/${entryPoint}.js" defer crossOrigin="anonymous"></script>` : `<script type="module" src="/client/${entryPoint}.tsx"></script>`;
+    const css =
+        mode == "production"
+            ? `<link rel="stylesheet" type="text/css" href="/static/dist/${entryPoint}.css">`
+            : "";
+    const js =
+        mode == "production"
+            ? `<script src="/static/dist/${entryPoint}.js" defer crossOrigin="anonymous"></script>`
+            : `<script type="module" src="/client/${entryPoint}.tsx"></script>`;
 
     return `
 <!DOCTYPE html>
@@ -69,41 +75,43 @@ export const renderPage = ({
 </html>`;
 };
 
-
 const defaultConfiguration = {
     render: (content) => Promise.resolve(content),
 } satisfies Options;
 
 export type Renderer = (content: JSX.Element) => Promise<JSX.Element>;
 
-export const render = async (req: Request, mode: "production" | "development", entryPoint: string) => {
+export const render = async (
+    req: Request,
+    mode: "production" | "development",
+    entryPoint: string,
+) => {
     // @ts-ignore
-    const customConfiguration: {default?: Render} | null = import.meta.glob("@client/renderer.tsx", {eager: true})["/client/renderer.tsx"];
+    const customConfiguration: {default?: Render} | null = import.meta.glob(
+        "@client/renderer.tsx",
+        {eager: true},
+    )["/client/renderer.tsx"];
 
     const {context, props} = req.body;
     const Template = getTemplate(context);
     const helmetContext = {} as FilledContext;
 
-
     const content = React.createElement(
-            React.StrictMode,
-            {},
+        React.StrictMode,
+        {},
+        React.createElement(
+            HelmetProvider,
+            {context: helmetContext},
             React.createElement(
-                HelmetProvider,
-                {context: helmetContext},
-                React.createElement(
-                    Provider,
-                    {value: context},
-                    React.createElement(Template, props),
-                ),
+                Provider,
+                {value: context},
+                React.createElement(Template, props),
             ),
-        );
+        ),
+    );
 
     const html = ReactDOMServer.renderToString(
-        await (customConfiguration?.default ?? defaultConfiguration.render)(
-            content,
-        ),
-
+        await (customConfiguration?.default ?? defaultConfiguration.render)(content),
     );
     const {helmet} = helmetContext;
 
@@ -118,4 +126,4 @@ export const render = async (req: Request, mode: "production" | "development", e
 
     const url = context.request.path;
     return {url, rendered};
-}
+};

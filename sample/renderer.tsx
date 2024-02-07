@@ -5,8 +5,7 @@ import type {Options} from "reactivated/dist/conf";
 const isProduction = process.env.NODE_ENV === "production";
 
 if (isProduction) {
-}
-else {
+} else {
     const {createServer} = await import("vite");
     console.log(createServer);
 }
@@ -86,7 +85,6 @@ export const render = async ({
     context: any;
     props: any;
 }): Promise<Result> => {
-
     const customConfiguration = null;
     const defaultConfiguration = {
         render: (content) => Promise.resolve(content),
@@ -129,7 +127,7 @@ export const render = async ({
     } catch (error) {
         return {status: "error", error};
     }
-}
+};
 
 export const serverRender = (body: Buffer) => {
     const {context, props} = JSON.parse(body.toString("utf8"));
@@ -149,7 +147,7 @@ export const SOCKET_PATH =
     process.env.REACTIVATED_SOCKET ?? `node_modules/_reactivated/reactivated.sock`;
 
 export const server = http.createServer((req, res) => {
-    console.log(getTemplate)
+    console.log(getTemplate);
     let body = Buffer.from("");
 
     req.on("data", (chunk) => {

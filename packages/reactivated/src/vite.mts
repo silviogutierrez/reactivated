@@ -6,7 +6,7 @@ import ReactDOMServer from "react-dom/server";
 import type {render as renderType} from "./render.mjs";
 import type {Options} from "./conf";
 import type {RendererConfig} from "./build.client.mjs";
-import { resolveConfig, mergeConfig, loadConfigFromFile ,InlineConfig} from "vite";
+import {resolveConfig, mergeConfig, loadConfigFromFile, InlineConfig} from "vite";
 
 import {
     FilledContext,
@@ -52,13 +52,14 @@ export const vite = await createServer(rendererConfig);
 app.use(vite.middlewares);
 app.use(express.json());
 
-
 app.use("/_reactivated/", async (req, res) => {
     const {context, props} = req.body;
 
-    const {render} = await vite.ssrLoadModule("reactivated/dist/render.mjs") as {render: typeof renderType};
+    const {render} = (await vite.ssrLoadModule("reactivated/dist/render.mjs")) as {
+        render: typeof renderType;
+    };
 
-    const {url, rendered} = await render(req,  "development", "index");
+    const {url, rendered} = await render(req, "development", "index");
 
     const transformed = await vite.transformIndexHtml(url, rendered);
     res.status(200).set({"Content-Type": "text/html"}).end(transformed);

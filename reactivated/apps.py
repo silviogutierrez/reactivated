@@ -164,6 +164,7 @@ class ReactivatedConfig(AppConfig):
 
         from .checks import check_installed_app_order  # NOQA
         from .serialization import widgets  # noqa
+
         return
 
         if os.environ.get("REACTIVATED_RENDERER") is not None:

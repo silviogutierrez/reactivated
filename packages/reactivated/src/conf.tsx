@@ -1,5 +1,5 @@
 import type {ClientConfig, RendererConfig} from "./build.client.mjs";
-import type { InlineConfig } from "vite";
+import type {InlineConfig} from "vite";
 
 export type Options = {
     build?: {
@@ -9,11 +9,6 @@ export type Options = {
     render?: (content: JSX.Element) => Promise<JSX.Element>;
 };
 
-
-
 export type Foo = (first: string) => void;
 
-
-
-export default ((first) => {
-}) satisfies Foo;
+export default ((first) => {}) satisfies Foo;

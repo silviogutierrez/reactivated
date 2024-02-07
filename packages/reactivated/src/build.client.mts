@@ -11,7 +11,7 @@ const identifiers = "short";
 
 const clientConfig = {
     build: {
-      sourcemap: true,
+        sourcemap: true,
         emptyOutDir: true,
         outDir: "static",
         manifest: false,
@@ -47,7 +47,7 @@ const rendererConfig = {
         noExternal: true,
     },
     build: {
-      sourcemap: true,
+        sourcemap: true,
         emptyOutDir: false,
         outDir: "static",
         ssr: true,

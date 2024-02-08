@@ -42,8 +42,6 @@
         "@vanilla-extract/sprinkles": "^1.6.0",
         "@vanilla-extract/vite-plugin": "^3.9.5",
         "@vitejs/plugin-react": "^4.2.1",
-        "esbuild": "^0.17.19",
-        "esbuild-plugin-import-glob": "^0.1.1",
         "eslint": "^8.40.0",
         "eslint-config-prettier": "^8.8.0",
         "eslint-import-resolver-typescript": "^3.5.5",

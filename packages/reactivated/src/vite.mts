@@ -8,6 +8,8 @@ import type {Options} from "./conf";
 import type {RendererConfig} from "./build.client.mjs";
 import {resolveConfig, mergeConfig, loadConfigFromFile, InlineConfig} from "vite";
 
+import { cjsInterop } from "vite-plugin-cjs-interop";
+
 import {
     FilledContext,
     Helmet,
@@ -27,6 +29,12 @@ const {createServer} = await import("vite");
 
 const rendererConfig: InlineConfig = {
     clearScreen: false,
+    optimizeDeps: {
+        disabled: true,
+    },
+    ssr: {
+        optimizeDeps: {disabled: true},
+    },
     server: {
         middlewareMode: true,
         port: parseInt(process.env.REACTIVATED_ORIGINAL_PORT ?? "0"),
@@ -37,7 +45,22 @@ const rendererConfig: InlineConfig = {
         },
     },
     appType: "custom",
-    plugins: [react(), vanillaExtractPlugin()],
+    plugins: [react(), vanillaExtractPlugin(), 
+        /*
+    cjsInterop({
+      // List of CJS dependencies that require interop
+      dependencies: [
+        "some-package",
+        // Deep imports should be specified separately
+        "some-package/deep/import",
+        // But globs are supported
+        "some-package/foo/*",
+        // Even deep globs for scoped packages
+        "@some-scope/**",
+      ],
+    }),
+    */
+    ],
     resolve: {
         alias: {
             "@client": path.resolve(process.cwd(), "./client"),

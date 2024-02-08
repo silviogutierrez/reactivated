@@ -13,14 +13,15 @@ const clientConfig = {
     build: {
         sourcemap: true,
         emptyOutDir: true,
-        outDir: "static",
+        outDir: "static/dist",
         manifest: false,
         rollupOptions: {
             input: "/client/index.tsx",
             output: {
-                entryFileNames: `dist/[name].js`,
-                chunkFileNames: `dist/[name].js`,
-                assetFileNames: `dist/[name].[ext]`,
+                inlineDynamicImports: true,
+                entryFileNames: `[name].js`,
+                chunkFileNames: `[name].js`,
+                assetFileNames: `[name].[ext]`,
             },
         },
     },
@@ -49,15 +50,16 @@ const rendererConfig = {
     build: {
         sourcemap: true,
         emptyOutDir: false,
-        outDir: "static",
+        outDir: "static/dist",
         ssr: true,
         manifest: false,
         rollupOptions: {
             input: "reactivated/dist/server.mjs",
             output: {
-                entryFileNames: `dist/renderer.mjs`,
-                chunkFileNames: `dist/renderer.mjs`,
-                assetFileNames: `dist/renderer.[ext]`,
+                inlineDynamicImports: true,
+                entryFileNames: `renderer.mjs`,
+                chunkFileNames: `renderer.mjs`,
+                assetFileNames: `renderer.[ext]`,
             },
             external,
         },

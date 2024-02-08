@@ -45,13 +45,12 @@ original_run = runserver.Command.run
 
 
 def patched_run(self, **options):
-
-    from .apps import generate_schema, get_schema
-
     if (
         os.environ.get("WERKZEUG_RUN_MAIN") == "true"
         or os.environ.get("RUN_MAIN") == "true"
     ):
+        from .apps import generate_schema, get_schema
+
         schema = get_schema()
         generate_schema(schema)
         # processes.start_tsc()
@@ -64,14 +63,16 @@ def patched_run(self, **options):
             os.environ["REACTIVATED_DJANGO_PORT"] = self.port
             return original_run(self, **options)
 
+        from .apps import generate_schema, get_schema
         sock = socket.socket()
         sock.bind(("", 0))
         free_port = sock.getsockname()[1]
+        free_port = 5123
         os.environ["REACTIVATED_VITE_PORT"] = self.port
         os.environ["REACTIVATED_DJANGO_PORT"] = str(free_port)
 
         vite_process = subprocess.Popen(
-            ["node", "../packages/reactivated/dist/vite.mjs"],
+            ["node", "node_modules/reactivated/dist/vite.mjs"],
             # stdout=subprocess.PIPE,
             # stderr=subprocess.PIPE,
             env={**os.environ.copy(), "BASE": "/static/dist/"},

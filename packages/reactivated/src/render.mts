@@ -37,7 +37,7 @@ export const renderPage = ({
             : "";
     const js =
         mode == "production"
-            ? `<script src="/static/dist/${entryPoint}.js" defer crossOrigin="anonymous"></script>`
+            ? `<script type="module" src="/static/dist/${entryPoint}.js" defer crossOrigin="anonymous"></script>`
             : `<script type="module" src="/client/${entryPoint}.tsx"></script>`;
 
     return `
@@ -93,7 +93,7 @@ export const render = async (
     )["/client/renderer.tsx"];
 
     const {context, props} = req.body;
-    const Template = getTemplate(context);
+    const Template = await getTemplate(context);
     const helmetContext = {} as FilledContext;
 
     const content = React.createElement(

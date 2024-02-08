@@ -2,6 +2,7 @@
     "name": "reactivated",
     "version": "0.37.0",
     "description": "",
+    "type": "module",
     "exports": {
         ".": "./dist/index.js",
         "./dist/renderer": "./dist/renderer.js",

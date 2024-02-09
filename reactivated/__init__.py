@@ -70,18 +70,31 @@ def patched_run(self: Any, **options: Any) -> Any:
         os.environ["REACTIVATED_VITE_PORT"] = self.port
         os.environ["REACTIVATED_DJANGO_PORT"] = str(free_port)
 
-        vite_process = subprocess.Popen(
-            ["node", "node_modules/reactivated/dist/vite.mjs"],
-            # stdout=subprocess.PIPE,
-            # stderr=subprocess.PIPE,
-            env={**os.environ.copy(), "BASE": "/static/dist/"},
-        )
-        os.environ["REACTIVATED_RENDERER"] = f"http://localhost:{self.port}"
-
-        atexit.register(lambda: vite_process.terminate())
-
         schema = get_schema()
         generate_schema(schema)
+
+        tsc_process = subprocess.Popen(
+            [
+                "npm",
+                "exec",
+                "tsc",
+                "--",
+                "--watch",
+                "--noEmit",
+                "--preserveWatchOutput",
+            ],
+            # stdout=subprocess.PIPE,
+            env={**os.environ.copy()},
+        )
+        atexit.register(lambda: tsc_process.terminate())
+
+        vite_process = subprocess.Popen(
+            ["npm", "exec", "start_vite"],
+            # stdout=subprocess.PIPE,
+            env={**os.environ.copy(), "BASE": f"{settings.STATIC_URL}dist/"},
+        )
+        atexit.register(lambda: vite_process.terminate())
+        os.environ["REACTIVATED_RENDERER"] = f"http://localhost:{self.port}"
 
         # print("outside reload")
 

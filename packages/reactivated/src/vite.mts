@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import React from "react";
 import express from "express";
 import path from "path";

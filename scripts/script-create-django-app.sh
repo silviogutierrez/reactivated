@@ -41,6 +41,10 @@ tar xzf packages/create-django-app/monorepo/python.tar.gz -C packages/create-dja
 rm packages/create-django-app/monorepo/python.tar.gz
 mv packages/create-django-app/monorepo/* packages/create-django-app/monorepo/python
 npm -w reactivated run build
+
+# For temporary eslint support.
+sed -i '/export {};/d' packages/reactivated/dist/eslintrc.cjs
+
 npm -w reactivated pack --pack-destination packages/create-django-app/monorepo/
 mv packages/create-django-app/monorepo/*.tgz packages/create-django-app/monorepo/node.tgz
 

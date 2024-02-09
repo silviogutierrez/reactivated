@@ -6,7 +6,7 @@ import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
 import * as styles from "@client/styles.css";
 
-export default (props: templates.PollsIndex) => (
+export const Template = (props: templates.PollsIndex) => (
     <Layout
         title="Polls"
         className={styles.sprinkles({

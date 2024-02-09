@@ -6,7 +6,7 @@ import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
 import * as styles from "@client/styles.css";
 
-export default (props: templates.PollComments) => {
+export const Template = (props: templates.PollComments) => {
     const {question} = props;
     const {request} = React.useContext(Context);
     const [comments, setComments] = React.useState(question.comments);

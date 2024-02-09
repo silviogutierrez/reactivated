@@ -54,6 +54,9 @@ echo "Current version: $CURRENT_VERSION"
 python scripts/generate_types.py
 
 npm -w reactivated run build
+#
+# For temporary eslint support.
+sed -i '/export {};/d' packages/reactivated/dist/eslintrc.cjs
 
 cd "${PROJECT_ROOT}/packages/reactivated/"
 

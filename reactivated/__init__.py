@@ -64,6 +64,7 @@ def patched_run(self, **options):
             return original_run(self, **options)
 
         from .apps import generate_schema, get_schema
+
         sock = socket.socket()
         sock.bind(("", 0))
         free_port = sock.getsockname()[1]

@@ -8,14 +8,10 @@ import type {Options} from "./conf";
 import type {RendererConfig} from "./build.client.mjs";
 import {resolveConfig, mergeConfig, loadConfigFromFile, InlineConfig} from "vite";
 
-import { cjsInterop } from "vite-plugin-cjs-interop";
+// @ts-ignore
+import {cjsInterop} from "vite-plugin-cjs-interop";
 
-import {
-    FilledContext,
-    Helmet,
-    HelmetProvider,
-    HelmetServerState,
-} from "react-helmet-async";
+import {Helmet, HelmetProvider, HelmetServerState} from "react-helmet-async";
 import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -47,18 +43,20 @@ const rendererConfig: InlineConfig = {
         },
     },
     appType: "custom",
-    plugins: [react(), vanillaExtractPlugin(), 
-    cjsInterop({
-      // List of CJS dependencies that require interop
-      dependencies: [
-        "lz-string",
-          "@reduxjs/toolkit",
-          "immer",
-          "lodash",
-          "react-use",
-          "react-helmet-async",
-      ],
-    }),
+    plugins: [
+        react(),
+        vanillaExtractPlugin(),
+        cjsInterop({
+            // List of CJS dependencies that require interop
+            dependencies: [
+                "lz-string",
+                "@reduxjs/toolkit",
+                "immer",
+                "lodash",
+                "react-use",
+                "react-helmet-async",
+            ],
+        }),
     ],
     resolve: {
         alias: {
@@ -72,7 +70,7 @@ const rendererConfig: InlineConfig = {
 export const vite = await createServer(rendererConfig);
 
 app.use(vite.middlewares);
-app.use(express.json({limit: '200mb'}));
+app.use(express.json({limit: "200mb"}));
 
 app.use("/_reactivated/", async (req, res) => {
     const {context, props} = req.body;

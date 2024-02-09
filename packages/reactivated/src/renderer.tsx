@@ -4,12 +4,7 @@ import {compile} from "json-schema-to-typescript";
 import path from "path";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import {
-    FilledContext,
-    Helmet,
-    HelmetProvider,
-    HelmetServerState,
-} from "react-helmet-async";
+import {Helmet, HelmetProvider, HelmetServerState} from "react-helmet-async";
 
 import {Options} from "./conf";
 import {Settings} from "./models";
@@ -100,7 +95,7 @@ export const render = async ({
 
     try {
         const Template = getTemplate(context);
-        const helmetContext = {} as FilledContext;
+        const helmetContext = {} as {helmet: HelmetServerState};
 
         const content = (
             <HelmetProvider context={helmetContext}>

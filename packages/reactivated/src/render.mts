@@ -1,10 +1,5 @@
 import {Request} from "express";
-import {
-    FilledContext,
-    Helmet,
-    HelmetProvider,
-    HelmetServerState,
-} from "react-helmet-async";
+import {Helmet, HelmetProvider, HelmetServerState} from "react-helmet-async";
 import * as React from "react";
 import * as ReactDOMServer from "react-dom/server";
 import type {Options} from "./conf";
@@ -94,7 +89,7 @@ export const render = async (
 
     const {context, props} = req.body;
     const Template = await getTemplate(context);
-    const helmetContext = {} as FilledContext;
+    const helmetContext = {} as {helmet: HelmetServerState};
 
     const content = React.createElement(
         React.StrictMode,

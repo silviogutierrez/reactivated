@@ -25,8 +25,7 @@
         "generate_client_assets": "./dist/generator.mjs",
         "generate_client_constants": "./dist/generator/constants.mjs",
         "generate_client_configuration": "./dist/generator/configuration.mjs",
-        "build.client": "./dist/build.client.mjs",
-        "build.renderer": "./dist/build.renderer.mjs"
+        "build.client": "./dist/build.client.mjs"
     },
     "license": "ISC",
     "peerDependencies": {

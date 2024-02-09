@@ -1,4 +1,5 @@
 {
+    "type": "module",
     "dependencies": {
         "reactivated": "../packages/reactivated/"
     },

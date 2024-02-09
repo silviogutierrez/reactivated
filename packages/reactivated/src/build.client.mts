@@ -11,7 +11,7 @@ const identifiers = "short";
 
 const clientConfig = {
     build: {
-        target: 'esnext',
+        target: "esnext",
         sourcemap: true,
         emptyOutDir: true,
         outDir: "static/dist",
@@ -51,15 +51,15 @@ const rendererConfig = {
     build: {
         sourcemap: true,
         emptyOutDir: false,
-        outDir: "static/dist",
+        outDir: "./node_modules/_reactivated/",
         ssr: true,
         manifest: false,
         rollupOptions: {
             input: "reactivated/dist/server.mjs",
             output: {
                 inlineDynamicImports: true,
-                entryFileNames: `renderer.mjs`,
-                chunkFileNames: `renderer.mjs`,
+                entryFileNames: `renderer.js`,
+                chunkFileNames: `renderer.js`,
                 assetFileNames: `renderer.[ext]`,
             },
             external,

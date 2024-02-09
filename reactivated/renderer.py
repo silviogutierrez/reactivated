@@ -29,8 +29,7 @@ def wait_and_get_port() -> str:
     renderer_process = subprocess.Popen(
         [
             "node",
-            # f"{settings.BASE_DIR}/node_modules/_reactivated/renderer.js",
-            f"{settings.BASE_DIR}/static/dist/renderer.mjs",
+            f"{settings.BASE_DIR}/node_modules/_reactivated/renderer.js",
         ],
         encoding="utf-8",
         stdout=subprocess.PIPE,

@@ -41,10 +41,10 @@ from .templates import Action as Action  # noqa: F401
 from .templates import interface as interface  # noqa: F401
 from .templates import template as template  # noqa: F401
 
-original_run = runserver.Command.run
+original_run = runserver.Command.run  # type: ignore[attr-defined]
 
 
-def patched_run(self, **options):
+def patched_run(self: Any, **options: Any) -> Any:
     if (
         os.environ.get("WERKZEUG_RUN_MAIN") == "true"
         or os.environ.get("RUN_MAIN") == "true"
@@ -92,7 +92,7 @@ def patched_run(self, **options):
     return original_run(self, **options)
 
 
-runserver.Command.run = patched_run
+runserver.Command.run = patched_run  # type: ignore[attr-defined]
 
 # basehttp.run = patched_run
 

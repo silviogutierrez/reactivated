@@ -165,24 +165,6 @@ class ReactivatedConfig(AppConfig):
         from .checks import check_installed_app_order  # NOQA
         from .serialization import widgets  # noqa
 
-        return
-
-        if os.environ.get("REACTIVATED_RENDERER") is not None:
-            return
-
-        if (
-            os.environ.get("WERKZEUG_RUN_MAIN") == "true"
-            or os.environ.get("RUN_MAIN") == "true"
-        ):
-            from . import processes
-            from .apps import generate_schema, get_schema
-
-            schema = get_schema()
-            generate_schema(schema)
-            processes.start_tsc()
-            processes.start_client()
-            processes.start_renderer()
-
 
 def generate_schema(schema: str, skip_cache: bool = False) -> None:
     """

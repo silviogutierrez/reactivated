@@ -53,9 +53,7 @@ def patched_run(self: Any, **options: Any) -> Any:
 
         schema = get_schema()
         generate_schema(schema)
-        # processes.start_tsc()
 
-        print("Inside reload")
         self.port = int(os.environ["REACTIVATED_DJANGO_PORT"])
     else:
         if os.environ.get("REACTIVATED_RENDERER") is not None:
@@ -85,7 +83,7 @@ def patched_run(self: Any, **options: Any) -> Any:
         schema = get_schema()
         generate_schema(schema)
 
-        print("outside reload")
+        # print("outside reload")
 
     return original_run(self, **options)
 

@@ -1,18 +1,18 @@
 import React from "react";
 import {hydrate} from "react-dom";
 
-import {Provider, getServerData, getTemplate} from "@reactivated";
+import {Provider, getServerData, viteGetTemplate as getTemplate} from "@reactivated";
 import {HelmetProvider} from "react-helmet-async";
 
 const {props, context} = getServerData();
 
-const Template = getTemplate(context);
-
-hydrate(
-    <HelmetProvider>
-        <Provider value={context}>
-            <Template {...props} />
-        </Provider>
-    </HelmetProvider>,
-    document.getElementById("root"),
-);
+void getTemplate(context).then((Template) => {
+    hydrate(
+        <HelmetProvider>
+            <Provider value={context}>
+                <Template {...props} />
+            </Provider>
+        </HelmetProvider>,
+        document.getElementById("root"),
+    );
+});

@@ -67,7 +67,8 @@ def patched_run(self: Any, **options: Any) -> Any:
         sock = socket.socket()
         sock.bind(("", 0))
         free_port = sock.getsockname()[1]
-        free_port = 5123
+        sock.close()
+
         os.environ["REACTIVATED_VITE_PORT"] = self.port
         os.environ["REACTIVATED_DJANGO_PORT"] = str(free_port)
 

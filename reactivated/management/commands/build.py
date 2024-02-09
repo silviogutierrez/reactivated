@@ -60,8 +60,8 @@ class Command(BaseCommand):
 
         if client_output == b"":
             # Sometimes Popen / npm exec fail silently with return code 0. I
-            # think race conditions between multiple process, so the
-            # communicate() has to be in between. every process.
+            # think race conditions between multiple processes all calling npm
+            # exec, so the communicate() has to be in between. every process.
             raise CommandError("Problems spawning process, this should not ever happen")
 
         if client_process.returncode != 0:

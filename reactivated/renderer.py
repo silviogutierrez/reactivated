@@ -29,11 +29,13 @@ def wait_and_get_port() -> str:
     renderer_process = subprocess.Popen(
         [
             "node",
-            f"{settings.BASE_DIR}/node_modules/_reactivated/renderer.js",
+            # f"{settings.BASE_DIR}/node_modules/_reactivated/renderer.js",
+            f"{settings.BASE_DIR}/static/dist/renderer.mjs",
         ],
         encoding="utf-8",
         stdout=subprocess.PIPE,
         cwd=settings.BASE_DIR,
+        env={**os.environ.copy(), "NODE_ENV": "production"},
     )
     atexit.register(lambda: renderer_process.terminate())
 
@@ -42,8 +44,8 @@ def wait_and_get_port() -> str:
     for c in iter(lambda: renderer_process.stdout.read(1), b""):  # type: ignore[union-attr]
         output += c
 
-        if match := re.match(r"RENDERER:([/.\w]+):LISTENING", output):
-            renderer_process_port = match.group(1)
+        if matches := re.findall(r"RENDERER:(.*?):LISTENING", output):
+            renderer_process_port = matches[0].strip()
             return renderer_process_port
     assert False, "Could not bind to renderer"
 
@@ -100,7 +102,7 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
     if "sock" in address:
         response = session.post(f"http+unix://{socket}", headers=headers, data=data)
     else:
-        response = session.post(address, headers=headers, data=data)
+        response = session.post(f"{address}/_reactivated/", headers=headers, data=data)
 
     if response.status_code == 200:
         return response.text  # type: ignore[no-any-return]

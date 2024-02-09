@@ -78,9 +78,7 @@ def patched_run(self: Any, **options: Any) -> Any:
             # stderr=subprocess.PIPE,
             env={**os.environ.copy(), "BASE": "/static/dist/"},
         )
-        os.environ[
-            "REACTIVATED_RENDERER"
-        ] = f"http://localhost:{self.port}/_reactivated/"
+        os.environ["REACTIVATED_RENDERER"] = f"http://localhost:{self.port}"
 
         atexit.register(lambda: vite_process.terminate())
 
@@ -93,8 +91,6 @@ def patched_run(self: Any, **options: Any) -> Any:
 
 
 runserver.Command.run = patched_run  # type: ignore[attr-defined]
-
-# basehttp.run = patched_run
 
 
 def export(var: Any) -> None:

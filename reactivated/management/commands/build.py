@@ -49,43 +49,15 @@ class Command(BaseCommand):
             env=build_env,
             cwd=settings.BASE_DIR,
         )
-        renderer_process = subprocess.Popen(
-            ["npm", "exec", "build.renderer"],
-            stdout=subprocess.PIPE,
-            env=build_env,
-            cwd=settings.BASE_DIR,
-        )
 
         tsc_output, tsc_error = tsc_process.communicate()
         client_output, client_error = client_process.communicate()
-        renderer_ouput, renderer_error = renderer_process.communicate()
 
         if tsc_process.returncode != 0:
             raise CommandError("TypeScript error. Run 'tsc --noEmit' manually.")
 
-        if client_process.returncode != 0 or renderer_process.returncode != 0:
-            raise CommandError("esbuild errors")
-
-        if options["no_minify"] is False:
-            for bundle in entry_points:
-                terser_process = subprocess.Popen(
-                    [
-                        "npm",
-                        "exec",
-                        "terser",
-                        "--",
-                        f"{DIST_ROOT}{bundle}.js",
-                        f"--source-map=content='{DIST_ROOT}{bundle}.js.map'",
-                        "--compress",
-                        "--mangle",
-                        "-o",
-                        f"{DIST_ROOT}{bundle}.js",
-                    ],
-                    stdout=subprocess.PIPE,
-                    env=build_env,
-                    cwd=settings.BASE_DIR,
-                )
-                terser_process.communicate()
+        if client_process.returncode != 0:
+            raise CommandError("vite errors")
 
         if options["upload_sourcemaps"] is True:
             assert "TAG_VERSION" in os.environ, "TAG_VERSION must be set"

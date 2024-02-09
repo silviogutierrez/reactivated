@@ -11,6 +11,7 @@ const identifiers = "short";
 
 const clientConfig = {
     build: {
+        target: 'esnext',
         sourcemap: true,
         emptyOutDir: true,
         outDir: "static/dist",

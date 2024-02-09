@@ -60,8 +60,8 @@ COPY server server
 
 RUN mkdir -p node_modules/_reactivated/
 RUN mkdir -p static/
-COPY --from=builder /app/node_modules/_reactivated/renderer.js node_modules/_reactivated/
-COPY --from=builder /app/node_modules/_reactivated/renderer.js.map node_modules/_reactivated/
+COPY --from=builder /app/node_modules/_reactivated/renderer.mjs node_modules/_reactivated/
+COPY --from=builder /app/node_modules/_reactivated/renderer.mjs.map node_modules/_reactivated/
 COPY --from=builder /app/collected collected
 
 ENV PYTHONUNBUFFERED 1

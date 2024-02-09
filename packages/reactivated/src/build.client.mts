@@ -58,8 +58,8 @@ const rendererConfig = {
             input: "reactivated/dist/server.mjs",
             output: {
                 inlineDynamicImports: true,
-                entryFileNames: `renderer.js`,
-                chunkFileNames: `renderer.js`,
+                entryFileNames: `renderer.mjs`,
+                chunkFileNames: `renderer.mjs`,
                 assetFileNames: `renderer.[ext]`,
             },
             external,

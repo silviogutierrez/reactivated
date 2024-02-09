@@ -37,6 +37,12 @@ class Command(BaseCommand):
             env=build_env,
             cwd=settings.BASE_DIR,
         )
+
+        tsc_output, tsc_error = tsc_process.communicate()
+
+        if tsc_process.returncode != 0:
+            raise CommandError("TypeScript error. Run 'tsc --noEmit' manually.")
+
         client_process = subprocess.Popen(
             [
                 "npm",
@@ -50,11 +56,13 @@ class Command(BaseCommand):
             cwd=settings.BASE_DIR,
         )
 
-        tsc_output, tsc_error = tsc_process.communicate()
         client_output, client_error = client_process.communicate()
 
-        if tsc_process.returncode != 0:
-            raise CommandError("TypeScript error. Run 'tsc --noEmit' manually.")
+        if client_output == b"":
+            # Sometimes Popen / npm exec fail silently with return code 0. I
+            # think race conditions between multiple process, so the
+            # communicate() has to be in between. every process.
+            raise CommandError("Problems spawning process, this should not ever happen")
 
         if client_process.returncode != 0:
             raise CommandError("vite errors")

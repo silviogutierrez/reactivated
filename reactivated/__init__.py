@@ -5,6 +5,7 @@ import inspect
 import os
 import socket
 import subprocess
+import time
 from typing import (
     Any,
     Callable,
@@ -87,6 +88,9 @@ def patched_run(self: Any, **options: Any) -> Any:
             env={**os.environ.copy()},
         )
         atexit.register(lambda: tsc_process.terminate())
+        # npm exec is weird and seems to run into duplicate issues if executed
+        # too quickly. There are better ways to do this, I assume.
+        time.sleep(0.5)
 
         vite_process = subprocess.Popen(
             ["npm", "exec", "start_vite"],
@@ -94,6 +98,7 @@ def patched_run(self: Any, **options: Any) -> Any:
             env={**os.environ.copy(), "BASE": f"{settings.STATIC_URL}dist/"},
         )
         atexit.register(lambda: vite_process.terminate())
+        time.sleep(0.5)
         os.environ["REACTIVATED_RENDERER"] = f"http://localhost:{self.port}"
 
         # print("outside reload")

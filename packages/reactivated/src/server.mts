@@ -24,7 +24,7 @@ const reactivatedEndpoint = "/_reactivated/".replace(/[.*+?^${}()|[\]\\]/g, "\\$
 
 const app = express();
 
-app.use(express.json());
+app.use(express.json({limit: '200mb'}));
 app.use("/_reactivated/", async (req, res) => {
     const {context, props} = req.body;
 

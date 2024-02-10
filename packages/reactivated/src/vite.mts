@@ -5,7 +5,7 @@ import express from "express";
 import path from "path";
 import react from "@vitejs/plugin-react";
 import ReactDOMServer from "react-dom/server";
-import {define} from "./render.mjs";
+import {define} from "./conf.js";
 import type {render as renderType} from "./render.mjs";
 import type {Options} from "./conf";
 import type {RendererConfig} from "./build.client.mjs";

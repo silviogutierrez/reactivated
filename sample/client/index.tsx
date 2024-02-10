@@ -6,16 +6,15 @@ import {Provider, getTemplate, getServerData} from "@reactivated";
 import {HelmetProvider} from "react-helmet-async";
 
 const {props, context} = getServerData();
+const Template = await getTemplate(context);
 
-void getTemplate(context).then((Template) => {
-    ReactDOM.hydrateRoot(
-        document.getElementById("root") as HTMLElement,
-        <React.StrictMode>
-            <HelmetProvider>
-                <Provider value={context}>
-                    <Template {...props} />
-                </Provider>
-            </HelmetProvider>
-        </React.StrictMode>,
-    );
-});
+ReactDOM.hydrateRoot(
+    document.getElementById("root") as HTMLElement,
+    <React.StrictMode>
+        <HelmetProvider>
+            <Provider value={context}>
+                <Template {...props} />
+            </Provider>
+        </HelmetProvider>
+    </React.StrictMode>,
+);

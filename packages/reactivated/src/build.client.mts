@@ -5,8 +5,7 @@ import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 import {InlineConfig, build} from "vite";
 import {builtinModules} from "node:module";
 import path from "path";
-import {Options} from "./conf";
-import {define} from "./render.mjs";
+import {define, Options} from "./conf.js";
 
 const identifiers = "short";
 

@@ -280,6 +280,9 @@ sourceFile.addStatements(
 );
 
 sourceFile.addStatements(`
+// For import.meta to be typed.
+import "vite/client";
+
 export type {Options} from "reactivated/dist/conf";
 export type {Renderer} from "reactivated/dist/render.mjs";
 
@@ -311,7 +314,9 @@ export const viteGetTemplate = async ({template_name}: {template_name: string}) 
     const templates = import.meta.glob("@client/templates/*.tsx");
 
     const templatePath = \`/client/templates/\${template_name}.tsx\`;
-    return (await templates[templatePath]()).Template;
+
+    const TemplateModule = await templates[templatePath]() as {Template: React.ComponentType<any>}
+    return TemplateModule.Template;
 }
 
 export const getTemplate = ({template_name}: {template_name: string}) => {

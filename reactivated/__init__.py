@@ -3,6 +3,7 @@ import atexit
 import enum
 import inspect
 import os
+import signal
 import socket
 import subprocess
 import time
@@ -41,6 +42,20 @@ from .stubs import _GenericAlias
 from .templates import Action as Action  # noqa: F401
 from .templates import interface as interface  # noqa: F401
 from .templates import template as template  # noqa: F401
+
+
+def terminate_proc(proc: subprocess.Popen[Any]) -> None:
+    """
+    npm exec doesn't correctly forward signals to its child processes. So,
+    simply calling proc.terminate() doesn't actually kill the process. Rather,
+    we have to send SIGTERM to the entire process group.
+    Note: using this requires that the initial call to subprocess.Popen included
+    the `start_new_session=True` flag.
+    """
+    pgrp = os.getpgid(proc.pid)
+    os.killpg(pgrp, signal.SIGTERM)
+    proc.communicate(timeout=5)
+
 
 original_run = runserver.Command.run  # type: ignore[attr-defined]
 
@@ -87,8 +102,9 @@ def patched_run(self: Any, **options: Any) -> Any:
             ],
             # stdout=subprocess.PIPE,
             env={**os.environ.copy()},
+            start_new_session=True,
         )
-        atexit.register(lambda: tsc_process.terminate())
+        atexit.register(lambda: terminate_proc(tsc_process))
         # npm exec is weird and seems to run into duplicate issues if executed
         # too quickly. There are better ways to do this, I assume.
         time.sleep(0.5)
@@ -97,8 +113,9 @@ def patched_run(self: Any, **options: Any) -> Any:
             ["npm", "exec", "start_vite"],
             # stdout=subprocess.PIPE,
             env={**os.environ.copy(), "BASE": f"{settings.STATIC_URL}dist/"},
+            start_new_session=True,
         )
-        atexit.register(lambda: vite_process.terminate())
+        atexit.register(lambda: terminate_proc(vite_process))
         time.sleep(0.5)
         os.environ["REACTIVATED_RENDERER"] = f"http://localhost:{self.port}"
 

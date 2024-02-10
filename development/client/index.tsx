@@ -6,14 +6,13 @@ import {HelmetProvider} from "react-helmet-async";
 import {createRoot} from "react-dom/client";
 
 const {props, context} = getServerData();
+const Template = await getTemplate(context);
 
-void getTemplate(context).then((Template) => {
-    const root = createRoot(document.getElementById("root")!);
-    root.render(
-        <HelmetProvider>
-            <Provider value={context}>
-                <Template {...props} />
-            </Provider>
-        </HelmetProvider>,
-    );
-});
+const root = createRoot(document.getElementById("root")!);
+root.render(
+    <HelmetProvider>
+        <Provider value={context}>
+            <Template {...props} />
+        </Provider>
+    </HelmetProvider>,
+);

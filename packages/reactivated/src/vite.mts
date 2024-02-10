@@ -5,6 +5,7 @@ import express from "express";
 import path from "path";
 import react from "@vitejs/plugin-react";
 import ReactDOMServer from "react-dom/server";
+import {define} from "./render.mjs";
 import type {render as renderType} from "./render.mjs";
 import type {Options} from "./conf";
 import type {RendererConfig} from "./build.client.mjs";
@@ -44,6 +45,7 @@ const rendererConfig: InlineConfig = {
             },
         },
     },
+    define: define(),
     appType: "custom",
     plugins: [
         react(),
@@ -81,10 +83,15 @@ app.use("/_reactivated/", async (req, res) => {
         render: typeof renderType;
     };
 
-    const {url, rendered} = await render(req, "development", "index");
-
-    const transformed = await vite.transformIndexHtml(url, rendered);
-    res.status(200).set({"Content-Type": "text/html"}).end(transformed);
+    try {
+        const {url, rendered} = await render(req, "development", "index");
+        const transformed = await vite.transformIndexHtml(url, rendered);
+        res.status(200).set({"Content-Type": "text/html"}).end(transformed);
+    } catch (error) {
+        vite.ssrFixStacktrace(error as any);
+        console.error(error);
+        res.status(500).json({error: {}});
+    }
 });
 
 app.listen(port, () => {

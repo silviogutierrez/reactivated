@@ -6,10 +6,12 @@ import {InlineConfig, build} from "vite";
 import {builtinModules} from "node:module";
 import path from "path";
 import {Options} from "./conf";
+import {define} from "./render.mjs";
 
 const identifiers = "short";
 
 const clientConfig = {
+    define: define(),
     build: {
         target: "esnext",
         sourcemap: true,

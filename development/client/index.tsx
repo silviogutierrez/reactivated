@@ -1,6 +1,6 @@
 import React from "react";
 
-import {Provider, getServerData, viteGetTemplate as getTemplate} from "@reactivated";
+import {Provider, getServerData, getTemplate} from "@reactivated";
 import {HelmetProvider} from "react-helmet-async";
 
 import {createRoot} from "react-dom/client";

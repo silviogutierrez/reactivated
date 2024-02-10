@@ -307,7 +307,7 @@ export type Result<TSuccess, TInvalid> = rpcUtils.Result<TSuccess, TInvalid, _Ty
 
 export const {Context, Provider, getServerData} = createContext<_Types["Context"]>();
 
-export const viteGetTemplate = async ({template_name}: {template_name: string}) => {
+export const getTemplate = async ({template_name}: {template_name: string}) => {
     // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
     // No {eager: true}) to import.meta.glob as you get weird circular initialization issues.
     // @ts-ignore
@@ -317,18 +317,6 @@ export const viteGetTemplate = async ({template_name}: {template_name: string}) 
 
     const TemplateModule = await templates[templatePath]() as {Template: React.ComponentType<any>}
     return TemplateModule.Template;
-}
-
-export const getTemplate = ({template_name}: {template_name: string}) => {
-    // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
-    const { default: templates, filenames } = require('../../client/templates/**/*');
-    const templatePath = "../../client/templates/" + template_name + ".tsx";
-    const possibleTemplate: {default: React.ComponentType<any>} | null = templates.find((t: any, index: number) => filenames[index] === templatePath);
-
-    if (possibleTemplate == null) {
-        throw new Error("Template " + template_name + ".tsx not found");
-    }
-    return possibleTemplate.default;
 }
 
 export const CSRFToken = forms.createCSRFToken(Context);

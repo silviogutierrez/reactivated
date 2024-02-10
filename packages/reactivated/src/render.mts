@@ -5,7 +5,7 @@ import * as ReactDOMServer from "react-dom/server";
 import type {Options} from "./conf";
 
 // @ts-ignore
-import {Provider, viteGetTemplate as getTemplate} from "@reactivated";
+import {Provider, getTemplate} from "@reactivated";
 
 export const renderPage = ({
     html,

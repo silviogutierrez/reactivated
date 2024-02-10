@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import {createRoot} from "react-dom/client";
 
-import {Provider, viteGetTemplate as getTemplate, getServerData} from "@reactivated";
+import {Provider, getTemplate, getServerData} from "@reactivated";
 import {HelmetProvider} from "react-helmet-async";
 
 const {props, context} = getServerData();

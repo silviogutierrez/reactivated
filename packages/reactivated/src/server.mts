@@ -9,7 +9,7 @@ import {Helmet, HelmetProvider, HelmetServerState} from "react-helmet-async";
 import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 
 // @ts-ignore
-import {Provider, viteGetTemplate as getTemplate} from "@reactivated";
+import {Provider, getTemplate} from "@reactivated";
 
 const isProduction = process.env.NODE_ENV === "production";
 const port = process.env.REACTIVATED_VITE_PORT || 5173;

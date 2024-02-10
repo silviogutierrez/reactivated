@@ -88,5 +88,5 @@ app.use("/_reactivated/", async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server started at http://localhost:${port}`);
+    console.log("Reactivated vite process started\n");
 });

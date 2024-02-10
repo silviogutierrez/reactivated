@@ -280,9 +280,6 @@ sourceFile.addStatements(
 );
 
 sourceFile.addStatements(`
-// For import.meta to be typed.
-import "vite/client";
-
 export type {Options} from "reactivated/dist/conf";
 export type {Renderer} from "reactivated/dist/render.mjs";
 
@@ -332,6 +329,9 @@ export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = form
 // tslint:disable-next-line
 compile(types, "this is unused").then((ts) => {
     process.stdout.write("/* eslint-disable */\n");
+    // Needs to be on top, needed for vite typing of import.meta without work
+    // by the downstream apps.
+    process.stdout.write(`/// <reference types="vite/client.d.ts" />`);
     process.stdout.write(ts);
     const statements = [];
 

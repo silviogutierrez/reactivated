@@ -70,7 +70,12 @@ def patched_run(self: Any, **options: Any) -> Any:
         schema = get_schema()
         generate_schema(schema)
 
-        self.port = int(os.environ["REACTIVATED_DJANGO_PORT"])
+        # This way the dev server still prints the "public port".
+        class LyingPort(int):
+            def __str__(self) -> str:
+                return os.environ["REACTIVATED_VITE_PORT"]
+
+        self.port = LyingPort(os.environ["REACTIVATED_DJANGO_PORT"])
     else:
         if os.environ.get("REACTIVATED_RENDERER") is not None:
             os.environ["REACTIVATED_VITE_PORT"] = "0"

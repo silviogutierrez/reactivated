@@ -322,18 +322,6 @@ export const getServerData = () => {
     return {props, context};
 };
 
-export const getTemplate = async ({template_name}: {template_name: string}) => {
-    // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
-    // No {eager: true}) to import.meta.glob as you get weird circular initialization issues.
-    // @ts-ignore
-    const templates = import.meta.glob("@client/templates/*.tsx");
-
-    const templatePath = \`/client/templates/\${template_name}.tsx\`;
-
-    const TemplateModule = await templates[templatePath]() as {Template: React.ComponentType<any>}
-    return TemplateModule.Template;
-}
-
 export const CSRFToken = forms.createCSRFToken(Context);
 
 export const {createRenderer, Iterator} = forms.bindWidgetType<_Types["globals"]["Widget"]>();
@@ -342,6 +330,7 @@ export type models = _Types["globals"]["models"];
 
 export type {FormHandler} from "reactivated/dist/forms";
 export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = forms;
+export {getTemplate} from "./template";
 `);
 
 const contextContent = `
@@ -357,6 +346,20 @@ type TMutableContext = TContext & {
 };
 
 export const Context = React.createContext<TMutableContext>(null!);
+`;
+
+const templateContent = `
+export const getTemplate = async ({template_name}: {template_name: string}) => {
+    // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
+    // No {eager: true}) to import.meta.glob as you get weird circular initialization issues.
+    // @ts-ignore
+    const templates = import.meta.glob("@client/templates/*.tsx");
+
+    const templatePath = \`/client/templates/\${template_name}.tsx\`;
+
+    const TemplateModule = await templates[templatePath]() as {Template: React.ComponentType<any>}
+    return TemplateModule.Template;
+}
 `;
 
 // tslint:disable-next-line
@@ -405,6 +408,11 @@ export namespace interfaces {
     await fsPromises.writeFile(
         "./node_modules/_reactivated/context.tsx",
         contextContent,
+        "utf-8",
+    );
+    await fsPromises.writeFile(
+        "./node_modules/_reactivated/template.tsx",
+        templateContent,
         "utf-8",
     );
 });

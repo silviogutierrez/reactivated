@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import * as generated from "./generated";
+import {promises as fsPromises} from "fs";
 
 // Must be above the compile import as get-stdin used by
 // json-schema-to-typescript messes up the descriptor even if unused.
@@ -286,7 +287,6 @@ export type {Renderer} from "reactivated/dist/render.mjs";
 
 export const rpc = new RPC(typeof window != "undefined" ? rpcUtils.defaultRequester : null as any);
 import React from "react"
-import createContext from "reactivated/dist/context";
 import * as forms from "reactivated/dist/forms";
 import * as generated from "reactivated/dist/generated";
 import * as rpcUtils from "reactivated/dist/rpc";
@@ -302,7 +302,25 @@ export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentCl
 
 export type Result<TSuccess, TInvalid> = rpcUtils.Result<TSuccess, TInvalid, _Types["RPCPermission"]>;
 
-export const {Context, Provider, getServerData} = createContext<_Types["Context"]>();
+export {Context} from "./context";
+import {Context} from "./context";
+
+export const Provider = (props: {value: _Types["Context"]; children: React.ReactNode}) => {
+    const [value, setValue] = React.useState(props.value);
+
+    return (
+        <Context.Provider value={{...value, setValue}}>
+            {props.children}
+        </Context.Provider>
+    );
+};
+
+export const getServerData = () => {
+    const props: Record<string, unknown> = (window as any).__PRELOADED_PROPS__;
+    const context: _Types["Context"] = (window as any).__PRELOADED_CONTEXT__;
+
+    return {props, context};
+};
 
 export const getTemplate = async ({template_name}: {template_name: string}) => {
     // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
@@ -326,8 +344,23 @@ export type {FormHandler} from "reactivated/dist/forms";
 export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = forms;
 `);
 
+const contextContent = `
+/* eslint-disable */
+import React from "react";
+
+import type {_Types} from "./index"
+
+type TContext = _Types["Context"];
+
+type TMutableContext = TContext & {
+    setValue: React.Dispatch<React.SetStateAction<TContext>>;
+};
+
+export const Context = React.createContext<TMutableContext>(null!);
+`;
+
 // tslint:disable-next-line
-compile(types, "this is unused").then((ts) => {
+compile(types, "this is unused").then(async (ts) => {
     process.stdout.write("/* eslint-disable */\n");
     // Needs to be on top, needed for vite typing of import.meta without work
     // by the downstream apps.
@@ -368,4 +401,10 @@ export namespace interfaces {
     sourceFile.addStatements(statements);
 
     process.stdout.write(sourceFile.getText());
+
+    await fsPromises.writeFile(
+        "./node_modules/_reactivated/context.tsx",
+        contextContent,
+        "utf-8",
+    );
 });

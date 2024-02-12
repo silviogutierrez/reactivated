@@ -24,7 +24,7 @@ app.use("/_reactivated/", async (req, res) => {
     const {context, props} = req.body;
 
     try {
-        const {url, rendered} = await render(req, "production", "index");
+        const rendered = await render(req, "", "production", "index");
         res.status(200).set({"Content-Type": "text/html"}).end(rendered);
     } catch (error) {
         res.status(500).json({error: {}});

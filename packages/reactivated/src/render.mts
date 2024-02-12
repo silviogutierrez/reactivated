@@ -9,6 +9,7 @@ import {Provider, getTemplate} from "@reactivated";
 
 export const renderPage = ({
     html,
+    vite,
     helmet,
     context,
     props,
@@ -16,6 +17,7 @@ export const renderPage = ({
     entryPoint,
 }: {
     html: string;
+    vite: string;
     helmet: HelmetServerState;
     context: any;
     props: any;
@@ -25,21 +27,26 @@ export const renderPage = ({
     const scriptNonce = context.request.csp_nonce
         ? `nonce="${context.request.csp_nonce}"`
         : "";
+    const {STATIC_URL} = context;
+
+    if (STATIC_URL == null) {
+        console.error("Ensure your context processor includes STATIC_URL");
+    }
 
     const css =
         mode == "production"
-            ? `<link rel="stylesheet" type="text/css" href="/static/dist/${entryPoint}.css">`
+            ? `<link rel="stylesheet" type="text/css" href="${STATIC_URL}dist/${entryPoint}.css">`
             : "";
     const js =
         mode == "production"
-            ? `<script type="module" src="/static/dist/${entryPoint}.js" defer crossOrigin="anonymous"></script>`
-            : `<script type="module" src="/client/${entryPoint}.tsx"></script>`;
+            ? `<script type="module" src="${STATIC_URL}dist/${entryPoint}.js" defer crossOrigin="anonymous"></script>`
+            : `<script type="module" src="${STATIC_URL}dist/client/${entryPoint}.tsx"></script>`;
 
     return `
 <!DOCTYPE html>
 <html ${helmet.htmlAttributes.toString()}>
     <head>
-        <!--react-script-->
+        ${vite}
         <script ${scriptNonce}>
             // These go first because scripts below need them.
             // WARNING: See the following for security issues around embedding JSON in HTML:
@@ -78,6 +85,7 @@ export type Renderer = (content: JSX.Element) => Promise<JSX.Element>;
 
 export const render = async (
     req: Request,
+    vite: string,
     mode: "production" | "development",
     entryPoint: string,
 ) => {
@@ -112,6 +120,7 @@ export const render = async (
 
     const rendered = renderPage({
         html,
+        vite,
         helmet,
         props,
         context,
@@ -119,6 +128,5 @@ export const render = async (
         entryPoint,
     });
 
-    const url = context.request.path;
-    return {url, rendered};
+    return rendered;
 };

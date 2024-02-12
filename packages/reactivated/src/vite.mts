@@ -84,9 +84,11 @@ app.use("/_reactivated/", async (req, res) => {
     };
 
     try {
-        const {url, rendered} = await render(req, "development", "index");
-        const transformed = await vite.transformIndexHtml(url, rendered);
-        res.status(200).set({"Content-Type": "text/html"}).end(transformed);
+        const url = context.request.path;
+        const viteHead = await vite.transformIndexHtml(url, "");
+        const rendered = await render(req, viteHead, "development", "index");
+
+        res.status(200).set({"Content-Type": "text/html"}).end(rendered);
     } catch (error) {
         vite.ssrFixStacktrace(error as any);
         console.error(error);

@@ -6,6 +6,8 @@ import {InlineConfig, build} from "vite";
 import {builtinModules} from "node:module";
 import path from "path";
 import {define, Options} from "./conf.js";
+import * as esbuild from "esbuild";
+import {promises as fs} from "fs";
 
 const identifiers = "short";
 
@@ -83,3 +85,16 @@ export type RendererConfig = typeof rendererConfig;
 
 await build(clientConfig);
 await build(rendererConfig);
+
+// Currently, vanilla-extract plugins are not bundled even though we tell rollup
+// to bundle in the renderer build. So we do an esbuild pass after. Really clunky.
+await esbuild.build({
+    sourcemap: true,
+    entryPoints: ["./node_modules/_reactivated/renderer.mjs"],
+    bundle: true,
+    platform: "node",
+    outfile: "./node_modules/_reactivated/renderer.js",
+});
+
+await fs.unlink("./node_modules/_reactivated/renderer.mjs");
+await fs.unlink("./node_modules/_reactivated/renderer.mjs.map");

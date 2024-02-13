@@ -57,7 +57,8 @@ const urls: generated.Types["URLSchema"] = {
 
 const project = new Project();
 
-const sourceFile = project.createSourceFile("");
+const sourceFile = project.createSourceFile("types");
+const urlFile = project.createSourceFile("urls");
 
 const rpcConstructorStructure = {
     statements: [] as string[],
@@ -195,8 +196,10 @@ for (const name of Object.keys(rpc)) {
 
 sourceFile.addClass(rpcStructure);
 
-if (Object.keys(urls).length !== 0) {
-    sourceFile.addVariableStatement({
+if (Object.keys(urls).length == 0) {
+    urlFile.addStatements(`export const reverse () => throw new Error("No urls")`);
+} else {
+    urlFile.addVariableStatement({
         declarationKind: VariableDeclarationKind.Const,
         declarations: [
             {
@@ -253,13 +256,13 @@ if (Object.keys(urls).length !== 0) {
             withArguments.push(normalizedName);
         }
     }
-    sourceFile.addInterfaces(interfaces);
-    sourceFile.addTypeAlias({name: "WithArguments", type: withArguments.join("|")});
-    sourceFile.addTypeAlias({
+    urlFile.addInterfaces(interfaces);
+    urlFile.addTypeAlias({name: "WithArguments", type: withArguments.join("|")});
+    urlFile.addTypeAlias({
         name: "WithoutArguments",
         type: withoutArguments.join("|"),
     });
-    sourceFile.addStatements(`
+    urlFile.addStatements(`
 
     type All = WithArguments|WithoutArguments;
     export function reverse<T extends WithoutArguments['name']>(name: T): string;
@@ -303,6 +306,10 @@ export type Result<TSuccess, TInvalid> = rpcUtils.Result<TSuccess, TInvalid, _Ty
 
 export {Context} from "./context";
 import {Context} from "./context";
+
+import * as forms from "reactivated/dist/forms";
+export type {FormHandler} from "reactivated/dist/forms";
+export {reverse} from "./urls";
 
 export const Provider = (props: {value: _Types["Context"]; children: React.ReactNode}) => {
     const [value, setValue] = React.useState(props.value);
@@ -418,6 +425,11 @@ export namespace interfaces {
     await fsPromises.writeFile(
         "./node_modules/_reactivated/forms.tsx",
         formsContent,
+        "utf-8",
+    );
+    await fsPromises.writeFile(
+        "./node_modules/_reactivated/urls.tsx",
+        "/* eslint-disable */\n" + urlFile.getText(),
         "utf-8",
     );
     await fsPromises.writeFile(

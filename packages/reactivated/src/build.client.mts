@@ -14,7 +14,7 @@ const identifiers = "short";
 const clientConfig = {
     define: define(),
     build: {
-        minify: false,
+        minify: true,
         target: "esnext",
         sourcemap: true,
         emptyOutDir: true,

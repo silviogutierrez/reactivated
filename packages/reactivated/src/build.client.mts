@@ -12,6 +12,7 @@ const identifiers = "short";
 const clientConfig = {
     define: define(),
     build: {
+        minify: false,
         target: "esnext",
         sourcemap: true,
         emptyOutDir: true,
@@ -81,5 +82,4 @@ export type ClientConfig = typeof clientConfig;
 export type RendererConfig = typeof rendererConfig;
 
 await build(clientConfig);
-
 await build(rendererConfig);

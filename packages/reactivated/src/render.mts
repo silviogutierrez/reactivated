@@ -5,7 +5,9 @@ import * as ReactDOMServer from "react-dom/server";
 import type {Options} from "./conf";
 
 // @ts-ignore
-import {Provider, getTemplate} from "@reactivated";
+import {Provider} from "@reactivated";
+// @ts-ignore
+import {getTemplate} from "@reactivated/template";
 
 export const renderPage = ({
     html,

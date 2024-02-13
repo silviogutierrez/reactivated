@@ -330,7 +330,6 @@ export type models = _Types["globals"]["models"];
 
 export type {FormHandler} from "reactivated/dist/forms";
 export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = forms;
-export {getTemplate} from "./template";
 `);
 
 const contextContent = `
@@ -349,15 +348,12 @@ export const Context = React.createContext<TMutableContext>(null!);
 `;
 
 const templateContent = `
+// @ts-ignore
+const templates = import.meta.glob("@client/templates/*.tsx", {eager: true});
+
 export const getTemplate = async ({template_name}: {template_name: string}) => {
-    // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
-    // No {eager: true}) to import.meta.glob as you get weird circular initialization issues.
-    // @ts-ignore
-    const templates = import.meta.glob("@client/templates/*.tsx");
-
     const templatePath = \`/client/templates/\${template_name}.tsx\`;
-
-    const TemplateModule = await templates[templatePath]() as {Template: React.ComponentType<any>}
+    const TemplateModule = templates[templatePath] as {Template: React.ComponentType<any>}
     return TemplateModule.Template;
 }
 `;

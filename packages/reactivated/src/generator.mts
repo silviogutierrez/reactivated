@@ -340,7 +340,8 @@ const formsContent = `
 import type {_Types} from "./index";
 import * as forms from "reactivated/dist/forms";
 
-export const CSRFToken = () => "";
+import {Context} from "./context";
+export const CSRFToken = forms.createCSRFToken(Context);
 
 export const {createRenderer, Iterator} = forms.bindWidgetType<_Types["globals"]["Widget"]>();
 export type FieldHandler = forms.FieldHandler<_Types["globals"]["Widget"]>;

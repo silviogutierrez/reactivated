@@ -287,7 +287,6 @@ export type {Renderer} from "reactivated/dist/render.mjs";
 
 export const rpc = new RPC(typeof window != "undefined" ? rpcUtils.defaultRequester : null as any);
 import React from "react"
-import * as forms from "reactivated/dist/forms";
 import * as generated from "reactivated/dist/generated";
 import * as rpcUtils from "reactivated/dist/rpc";
 import {constants} from "./constants";
@@ -322,15 +321,24 @@ export const getServerData = () => {
     return {props, context};
 };
 
-export const CSRFToken = forms.createCSRFToken(Context);
+export type models = _Types["globals"]["models"];
+
+export type {FieldHandler} from "./forms";
+export {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} from "reactivated/dist/forms";
+export {Iterator, CSRFToken, createRenderer} from "./forms";
+export {getTemplate} from "./template";
+`);
+
+const formsContent = `
+import type {_Types} from "./index";
+import * as forms from "reactivated/dist/forms";
+
+export const CSRFToken = () => "";
 
 export const {createRenderer, Iterator} = forms.bindWidgetType<_Types["globals"]["Widget"]>();
 export type FieldHandler = forms.FieldHandler<_Types["globals"]["Widget"]>;
-export type models = _Types["globals"]["models"];
-
 export type {FormHandler} from "reactivated/dist/forms";
-export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = forms;
-`);
+`;
 
 const contextContent = `
 /* eslint-disable */
@@ -404,6 +412,11 @@ export namespace interfaces {
     await fsPromises.writeFile(
         "./node_modules/_reactivated/context.tsx",
         contextContent,
+        "utf-8",
+    );
+    await fsPromises.writeFile(
+        "./node_modules/_reactivated/forms.tsx",
+        formsContent,
         "utf-8",
     );
     await fsPromises.writeFile(

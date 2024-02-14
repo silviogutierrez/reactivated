@@ -68,7 +68,7 @@ class Command(BaseCommand):
             raise CommandError("vite errors")
 
         if options["upload_sourcemaps"] is True:
-            assert "TAG_VERSION" in os.environ, "TAG_VERSION must be set"
+            assert "RELEASE_VERSION" in os.environ, "RELEASE_VERSION must be set"
 
             sentry_process = subprocess.Popen(
                 [
@@ -78,7 +78,7 @@ class Command(BaseCommand):
                     "--",
                     "releases",
                     "files",
-                    os.environ["TAG_VERSION"],
+                    os.environ["RELEASE_VERSION"],
                     "upload-sourcemaps",
                     DIST_ROOT,
                     "--url-prefix",

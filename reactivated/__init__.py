@@ -78,7 +78,7 @@ def patched_run(self: Any, **options: Any) -> Any:
         self.port = LyingPort(os.environ["REACTIVATED_DJANGO_PORT"])
     else:
         if os.environ.get("REACTIVATED_RENDERER") is not None:
-            os.environ["REACTIVATED_VITE_PORT"] = "0"
+            os.environ["REACTIVATED_VITE_PORT"] = self.port
             os.environ["REACTIVATED_DJANGO_PORT"] = self.port
             return original_run(self, **options)
 
@@ -123,8 +123,6 @@ def patched_run(self: Any, **options: Any) -> Any:
         atexit.register(lambda: terminate_proc(vite_process))
         time.sleep(0.5)
         os.environ["REACTIVATED_RENDERER"] = f"http://localhost:{self.port}"
-
-        # print("outside reload")
 
     return original_run(self, **options)
 

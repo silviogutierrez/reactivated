@@ -52,9 +52,13 @@ def terminate_proc(proc: subprocess.Popen[Any]) -> None:
     Note: using this requires that the initial call to subprocess.Popen included
     the `start_new_session=True` flag.
     """
-    pgrp = os.getpgid(proc.pid)
-    os.killpg(pgrp, signal.SIGTERM)
-    proc.communicate(timeout=5)
+    try:
+        pgrp = os.getpgid(proc.pid)
+    except ProcessLookupError:
+        pass
+    else:
+        os.killpg(pgrp, signal.SIGTERM)
+        proc.communicate(timeout=5)
 
 
 original_run = runserver.Command.run  # type: ignore[attr-defined]

@@ -99,6 +99,17 @@ def patched_run(self: Any, **options: Any) -> Any:
         schema = get_schema()
         generate_schema(schema)
 
+        vite_process = subprocess.Popen(
+            ["npm", "exec", "start_vite"],
+            # stdout=subprocess.PIPE,
+            env={**os.environ.copy(), "BASE": f"{settings.STATIC_URL}dist/"},
+            start_new_session=True,
+        )
+        atexit.register(lambda: terminate_proc(vite_process))
+        # npm exec is weird and seems to run into duplicate issues if executed
+        # too quickly. There are better ways to do this, I assume.
+        time.sleep(0.5)
+
         tsc_process = subprocess.Popen(
             [
                 "npm",
@@ -114,18 +125,7 @@ def patched_run(self: Any, **options: Any) -> Any:
             start_new_session=True,
         )
         atexit.register(lambda: terminate_proc(tsc_process))
-        # npm exec is weird and seems to run into duplicate issues if executed
-        # too quickly. There are better ways to do this, I assume.
-        time.sleep(0.5)
 
-        vite_process = subprocess.Popen(
-            ["npm", "exec", "start_vite"],
-            # stdout=subprocess.PIPE,
-            env={**os.environ.copy(), "BASE": f"{settings.STATIC_URL}dist/"},
-            start_new_session=True,
-        )
-        atexit.register(lambda: terminate_proc(vite_process))
-        time.sleep(0.5)
         os.environ["REACTIVATED_RENDERER"] = f"http://localhost:{self.port}"
 
     return original_run(self, **options)

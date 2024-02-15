@@ -172,7 +172,6 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
 
     You can use this function for your E2E test prep.
     """
-    logger.info("Generating interfaces and client side code")
     encoded_schema = schema.encode()
 
     configuration_process = subprocess.Popen(
@@ -192,8 +191,8 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
             already_generated = existing.read()
 
             if digest in already_generated:
-                logger.info("Skipping generation as nothing has changed")
                 return
+    logger.info("Generating interfaces and client side code")
 
     #: Note that we don't pass the file object to stdout, because otherwise
     # webpack gets confused with the half-written file when we make updates.

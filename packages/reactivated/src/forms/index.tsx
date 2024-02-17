@@ -4,7 +4,7 @@ import React from "react";
 
 import {DjangoFormsWidgetsHiddenInput, Types} from "../generated";
 import {DiscriminateUnion} from "../types";
-import * as widgets from "./widgets";
+import * as widgets from "./widgets.js";
 
 export type Optgroup = Types["Optgroup"];
 

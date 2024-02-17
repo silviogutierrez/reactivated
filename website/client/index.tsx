@@ -5,8 +5,7 @@ import {Provider, getServerData, getTemplate} from "@reactivated";
 import {HelmetProvider} from "react-helmet-async";
 
 const {props, context} = getServerData();
-
-const Template = getTemplate(context);
+const Template = await getTemplate(context);
 
 hydrate(
     <HelmetProvider>

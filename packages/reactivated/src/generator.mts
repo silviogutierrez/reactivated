@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import * as generated from "./generated";
+import {promises as fsPromises} from "fs";
 
 // Must be above the compile import as get-stdin used by
 // json-schema-to-typescript messes up the descriptor even if unused.
@@ -56,7 +57,8 @@ const urls: generated.Types["URLSchema"] = {
 
 const project = new Project();
 
-const sourceFile = project.createSourceFile("");
+const sourceFile = project.createSourceFile("types");
+const urlFile = project.createSourceFile("urls");
 
 const rpcConstructorStructure = {
     statements: [] as string[],
@@ -194,8 +196,10 @@ for (const name of Object.keys(rpc)) {
 
 sourceFile.addClass(rpcStructure);
 
-if (Object.keys(urls).length !== 0) {
-    sourceFile.addVariableStatement({
+if (Object.keys(urls).length == 0) {
+    urlFile.addStatements(`export const reverse () => throw new Error("No urls")`);
+} else {
+    urlFile.addVariableStatement({
         declarationKind: VariableDeclarationKind.Const,
         declarations: [
             {
@@ -252,13 +256,13 @@ if (Object.keys(urls).length !== 0) {
             withArguments.push(normalizedName);
         }
     }
-    sourceFile.addInterfaces(interfaces);
-    sourceFile.addTypeAlias({name: "WithArguments", type: withArguments.join("|")});
-    sourceFile.addTypeAlias({
+    urlFile.addInterfaces(interfaces);
+    urlFile.addTypeAlias({name: "WithArguments", type: withArguments.join("|")});
+    urlFile.addTypeAlias({
         name: "WithoutArguments",
         type: withoutArguments.join("|"),
     });
-    sourceFile.addStatements(`
+    urlFile.addStatements(`
 
     type All = WithArguments|WithoutArguments;
     export function reverse<T extends WithoutArguments['name']>(name: T): string;
@@ -281,11 +285,11 @@ sourceFile.addStatements(
 
 sourceFile.addStatements(`
 export type {Options} from "reactivated/dist/conf";
+export type {Renderer} from "reactivated/dist/render.mjs";
+
 
 export const rpc = new RPC(typeof window != "undefined" ? rpcUtils.defaultRequester : null as any);
 import React from "react"
-import createContext from "reactivated/dist/context";
-import * as forms from "reactivated/dist/forms";
 import * as generated from "reactivated/dist/generated";
 import * as rpcUtils from "reactivated/dist/rpc";
 import {constants} from "./constants";
@@ -300,33 +304,82 @@ export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentCl
 
 export type Result<TSuccess, TInvalid> = rpcUtils.Result<TSuccess, TInvalid, _Types["RPCPermission"]>;
 
-export const {Context, Provider, getServerData} = createContext<_Types["Context"]>();
+export {Context} from "./context";
+import {Context} from "./context";
 
-export const getTemplate = ({template_name}: {template_name: string}) => {
-    // This require needs to be *inside* the function to avoid circular dependencies with esbuild.
-    const { default: templates, filenames } = require('../../client/templates/**/*');
-    const templatePath = "../../client/templates/" + template_name + ".tsx";
-    const possibleTemplate: {default: React.ComponentType<any>} | null = templates.find((t: any, index: number) => filenames[index] === templatePath);
+import * as forms from "reactivated/dist/forms";
+export type {FormHandler} from "reactivated/dist/forms";
+export {reverse} from "./urls";
 
-    if (possibleTemplate == null) {
-        throw new Error("Template " + template_name + ".tsx not found");
-    }
-    return possibleTemplate.default;
-}
+export const Provider = (props: {value: _Types["Context"]; children: React.ReactNode}) => {
+    const [value, setValue] = React.useState(props.value);
 
+    return (
+        <Context.Provider value={{...value, setValue}}>
+            {props.children}
+        </Context.Provider>
+    );
+};
+
+export const getServerData = () => {
+    const props: Record<string, unknown> = (window as any).__PRELOADED_PROPS__;
+    const context: _Types["Context"] = (window as any).__PRELOADED_CONTEXT__;
+
+    return {props, context};
+};
+
+export type models = _Types["globals"]["models"];
+
+export type {FieldHandler} from "./forms";
+export {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} from "reactivated/dist/forms";
+export {Iterator, CSRFToken, createRenderer} from "./forms";
+export {getTemplate} from "./template";
+`);
+
+const formsContent = `
+import type {_Types} from "./index";
+import * as forms from "reactivated/dist/forms";
+
+import {Context} from "./context";
 export const CSRFToken = forms.createCSRFToken(Context);
 
 export const {createRenderer, Iterator} = forms.bindWidgetType<_Types["globals"]["Widget"]>();
 export type FieldHandler = forms.FieldHandler<_Types["globals"]["Widget"]>;
-export type models = _Types["globals"]["models"];
-
 export type {FormHandler} from "reactivated/dist/forms";
-export const {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} = forms;
-`);
+`;
+
+const contextContent = `
+/* eslint-disable */
+import React from "react";
+
+import type {_Types} from "./index"
+
+type TContext = _Types["Context"];
+
+type TMutableContext = TContext & {
+    setValue: React.Dispatch<React.SetStateAction<TContext>>;
+};
+
+export const Context = React.createContext<TMutableContext>(null!);
+`;
+
+const templateContent = `
+// @ts-ignore
+const templates = import.meta.glob("@client/templates/*.tsx", {eager: true});
+
+export const getTemplate = async ({template_name}: {template_name: string}) => {
+    const templatePath = \`/client/templates/\${template_name}.tsx\`;
+    const TemplateModule = templates[templatePath] as {Template: React.ComponentType<any>}
+    return TemplateModule.Template;
+}
+`;
 
 // tslint:disable-next-line
-compile(types, "this is unused").then((ts) => {
+compile(types, "this is unused").then(async (ts) => {
     process.stdout.write("/* eslint-disable */\n");
+    // Needs to be on top, needed for vite typing of import.meta without work
+    // by the downstream apps.
+    process.stdout.write(`/// <reference types="vite/client.d.ts" />`);
     process.stdout.write(ts);
     const statements = [];
 
@@ -336,7 +389,7 @@ compile(types, "this is unused").then((ts) => {
 
             statements.push(`
 
-import ${name}Implementation from "@client/templates/${name}"
+import {Template as ${name}Implementation} from "@client/templates/${name}"
 export type ${name}Check = Checker<_Types["${propsName}"], typeof ${name}Implementation>;
 
 export namespace templates {
@@ -363,4 +416,25 @@ export namespace interfaces {
     sourceFile.addStatements(statements);
 
     process.stdout.write(sourceFile.getText());
+
+    await fsPromises.writeFile(
+        "./node_modules/_reactivated/context.tsx",
+        contextContent,
+        "utf-8",
+    );
+    await fsPromises.writeFile(
+        "./node_modules/_reactivated/forms.tsx",
+        formsContent,
+        "utf-8",
+    );
+    await fsPromises.writeFile(
+        "./node_modules/_reactivated/urls.tsx",
+        "/* eslint-disable */\n" + urlFile.getText(),
+        "utf-8",
+    );
+    await fsPromises.writeFile(
+        "./node_modules/_reactivated/template.tsx",
+        templateContent,
+        "utf-8",
+    );
 });

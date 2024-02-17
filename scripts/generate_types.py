@@ -1,9 +1,16 @@
 import subprocess
 
+import django
 import simplejson
+from django.conf import settings
 
-from reactivated.serialization import create_schema
-from reactivated.types import Types
+# Django needs to be configured because of reactivated's monkey patching of
+# runserver_plus.
+settings.configure()
+django.setup()
+
+from reactivated.serialization import create_schema  # noqa: E402
+from reactivated.types import Types  # noqa: E402
 
 types_schema = create_schema(Types, {})
 

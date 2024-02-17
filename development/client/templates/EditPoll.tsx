@@ -6,7 +6,7 @@ import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
 import * as styles from "@client/styles.css";
 
-export default (props: templates.EditPoll) => {
+export const Template = (props: templates.EditPoll) => {
     const formSet = useFormSet({formSet: props.choice_form_set});
     const title = props.existing_poll == null ? "Create poll" : "Update poll";
 

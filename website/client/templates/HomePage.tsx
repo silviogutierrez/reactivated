@@ -95,7 +95,7 @@ const DOCKER = `
     });
 `;
 
-export default (props: templates.HomePage) => (
+export const Template = (props: templates.HomePage) => (
     <Site title="Reactivated — Zero-configuration Django and React">
         <Helmet>
             <script>{DOCKER}</script>

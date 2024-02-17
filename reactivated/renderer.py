@@ -6,6 +6,7 @@ import subprocess
 import urllib.parse
 from typing import Any, List, Optional
 
+import requests
 import requests_unixsocket  # type: ignore[import]
 import simplejson
 from django.conf import settings
@@ -33,6 +34,7 @@ def wait_and_get_port() -> str:
         encoding="utf-8",
         stdout=subprocess.PIPE,
         cwd=settings.BASE_DIR,
+        env={**os.environ.copy(), "NODE_ENV": "production"},
     )
     atexit.register(lambda: renderer_process.terminate())
 
@@ -41,8 +43,8 @@ def wait_and_get_port() -> str:
     for c in iter(lambda: renderer_process.stdout.read(1), b""):  # type: ignore[union-attr]
         output += c
 
-        if match := re.match(r"RENDERER:([/.\w]+):LISTENING", output):
-            renderer_process_port = match.group(1)
+        if matches := re.findall(r"RENDERER:(.*?):LISTENING", output):
+            renderer_process_port = matches[0].strip()
             return renderer_process_port
     assert False, "Could not bind to renderer"
 
@@ -66,6 +68,9 @@ def should_respond_with_json(request: HttpRequest) -> bool:
     )
 
 
+session = requests_unixsocket.Session()
+
+
 def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
     respond_with_json = should_respond_with_json(request)
 
@@ -85,20 +90,26 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
 
     renderer_port = wait_and_get_port()
 
-    # Sometimes we are running tests and the CWD is outside BASE_DIR.  For
-    # example, the reactivated tests themselves.  Instead of using BASE_DIR as
-    # the prefix, we calculate the relative path to avoid the 100 character
-    # UNIX socket limit.
-    # But dots do not work for relative paths with sockets so we clear it.
-    rel_path = os.path.relpath(settings.BASE_DIR)
-    address = renderer_port if rel_path == "." else f"{rel_path}/{renderer_port}"
-
-    session = requests_unixsocket.Session()
-    socket = urllib.parse.quote_plus(address)
-
-    response = session.post(f"http+unix://{socket}", headers=headers, data=data)
+    if "sock" in renderer_port:
+        # Sometimes we are running tests and the CWD is outside BASE_DIR.  For
+        # example, the reactivated tests themselves.  Instead of using BASE_DIR as
+        # the prefix, we calculate the relative path to avoid the 100 character
+        # UNIX socket limit.
+        # But dots do not work for relative paths with sockets so we clear it.
+        rel_path = os.path.relpath(settings.BASE_DIR)
+        address = renderer_port if rel_path == "." else f"{rel_path}/{renderer_port}"
+        socket = urllib.parse.quote_plus(address)
+        response = session.post(f"http+unix://{socket}", headers=headers, data=data)
+    else:
+        address = renderer_port
+        response = session.post(f"{address}/_reactivated/", headers=headers, data=data)
 
     if response.status_code == 200:
         return response.text  # type: ignore[no-any-return]
     else:
-        raise Exception(response.json()["stack"])
+        try:
+            error = response.json()
+        except requests.JSONDecodeError:  # type: ignore[attr-defined]
+            raise Exception(response.content)
+        else:
+            raise Exception(error["stack"])

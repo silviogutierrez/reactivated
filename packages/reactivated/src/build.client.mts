@@ -9,6 +9,7 @@ import {define, Options} from "./conf.js";
 import * as esbuild from "esbuild";
 import {promises as fs} from "fs";
 
+const base = process.env.BASE ?? "/";
 const identifiers = "short";
 
 const clientConfig = {
@@ -38,6 +39,7 @@ const clientConfig = {
             "@reactivated": path.resolve(process.cwd(), "./node_modules/_reactivated"),
         },
     },
+    base,
 } satisfies InlineConfig;
 
 const otherExternals: string[] = [];
@@ -77,6 +79,7 @@ const rendererConfig = {
             "@reactivated": path.resolve(process.cwd(), "./node_modules/_reactivated"),
         },
     },
+    base,
 } satisfies InlineConfig;
 
 export type ClientConfig = typeof clientConfig;

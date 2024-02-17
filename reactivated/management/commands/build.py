@@ -29,6 +29,7 @@ class Command(BaseCommand):
         build_env = {
             **os.environ.copy(),
             "NODE_ENV": "production",
+            "BASE": f"{settings.STATIC_URL}dist/",
         }
 
         tsc_process = subprocess.Popen(

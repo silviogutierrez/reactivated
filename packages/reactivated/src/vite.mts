@@ -18,8 +18,8 @@ import {Helmet, HelmetProvider, HelmetServerState} from "react-helmet-async";
 import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 
 const isProduction = process.env.NODE_ENV === "production";
-const port = process.env.REACTIVATED_VITE_PORT || 5173;
-const base = process.env.BASE || "/";
+const port = process.env.REACTIVATED_VITE_PORT ?? 5173;
+const base = process.env.BASE ?? "/";
 const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const reactivatedEndpoint = "/_reactivated/".replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 

@@ -75,8 +75,17 @@ def outer_process(cmd: Any) -> None:
     sock.bind(("", 0))
     free_port = sock.getsockname()[1]
     sock.close()
+    original_port = cmd.port
 
-    os.environ["REACTIVATED_VITE_PORT"] = cmd.port
+    # Lie to the terminal when logging the port we bound to, so the user still
+    # visits the original port.
+    class LyingPort(int):
+        def __str__(self) -> str:
+            return str(original_port)
+
+    cmd.port = LyingPort(free_port)
+
+    os.environ["REACTIVATED_VITE_PORT"] = original_port
     os.environ["REACTIVATED_DJANGO_PORT"] = str(free_port)
 
     schema = get_schema()
@@ -115,21 +124,25 @@ def outer_process(cmd: Any) -> None:
 def inner_process(cmd: Any) -> None:
     from .apps import generate_schema, get_schema
 
+    # Inner process still needs this rebound for Django's built in runserver
+    # though maybe not for django_extensions runserver_plus
+    free_port = os.environ["REACTIVATED_DJANGO_PORT"]
+    original_port = os.environ["REACTIVATED_VITE_PORT"]
+
+    class LyingPort(int):
+        def __str__(self) -> str:
+            return str(original_port)
+
+    cmd.port = LyingPort(free_port)
+
     schema = get_schema()
     generate_schema(schema)
 
-    # This way the dev server still prints the "public port".
-    class LyingPort(int):
-        def __str__(self) -> str:
-            return os.environ["REACTIVATED_VITE_PORT"]
-
-    cmd.port = LyingPort(os.environ["REACTIVATED_DJANGO_PORT"])
-
 
 def patched_run(self: Any, **options: Any) -> Any:
-    if (
-        os.environ.get("RUN_MAIN") == "true"
-    ) and os.environ.get("REACTIVATED_SKIP_SERVER") != "true":
+    if (os.environ.get("RUN_MAIN") == "true") and os.environ.get(
+        "REACTIVATED_SKIP_SERVER"
+    ) != "true":
         inner_process(self)
     else:
         outer_process(self)
@@ -140,20 +153,25 @@ def patched_run(self: Any, **options: Any) -> Any:
 runserver.Command.run = patched_run  # type: ignore[attr-defined]
 
 try:
-    from django_extensions.management.commands import runserver_plus  # type: ignore[import]
+    from django_extensions.management.commands import (
+        runserver_plus,  # type: ignore[import]
+    )
+
     original_run_plus = runserver_plus.Command.inner_run
 except ImportError:
     pass
 else:
+
     def patched_run_plus(self: Any, options: Any) -> Any:
-        if (
-            os.environ.get("WERKZEUG_RUN_MAIN") == "true"
-        ) and os.environ.get("REACTIVATED_SKIP_SERVER") != "true":
+        if (os.environ.get("WERKZEUG_RUN_MAIN") == "true") and os.environ.get(
+            "REACTIVATED_SKIP_SERVER"
+        ) != "true":
             inner_process(self)
         else:
             outer_process(self)
 
         return original_run_plus(self, options)
+
 
 runserver_plus.Command.inner_run = patched_run_plus
 

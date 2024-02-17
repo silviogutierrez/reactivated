@@ -129,7 +129,7 @@ so:
 ```typescript
 import {templates} from "@reactivated";
 
-export default (props: templates.MyTemplate) => (
+export const Template = (props: templates.MyTemplate) => (
     <div>{props.properties_of_my_template}</div>
 );
 ```

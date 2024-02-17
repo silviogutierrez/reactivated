@@ -64,74 +64,98 @@ def terminate_proc(proc: subprocess.Popen[Any]) -> None:
 original_run = runserver.Command.run  # type: ignore[attr-defined]
 
 
+def outer_process(cmd: Any) -> None:
+    from .apps import generate_schema, get_schema
+
+    if os.environ.get("REACTIVATED_RENDERER") is not None:
+        os.environ["REACTIVATED_SKIP_SERVER"] = "true"
+        return
+
+    sock = socket.socket()
+    sock.bind(("", 0))
+    free_port = sock.getsockname()[1]
+    sock.close()
+
+    os.environ["REACTIVATED_VITE_PORT"] = cmd.port
+    os.environ["REACTIVATED_DJANGO_PORT"] = str(free_port)
+
+    schema = get_schema()
+    generate_schema(schema)
+
+    vite_process = subprocess.Popen(
+        ["npm", "exec", "start_vite"],
+        # stdout=subprocess.PIPE,
+        env={**os.environ.copy(), "BASE": f"{settings.STATIC_URL}dist/"},
+        start_new_session=True,
+    )
+    atexit.register(lambda: terminate_proc(vite_process))
+    # npm exec is weird and seems to run into duplicate issues if executed
+    # too quickly. There are better ways to do this, I assume.
+    time.sleep(0.5)
+
+    tsc_process = subprocess.Popen(
+        [
+            "npm",
+            "exec",
+            "tsc",
+            "--",
+            "--watch",
+            "--noEmit",
+            "--preserveWatchOutput",
+        ],
+        # stdout=subprocess.PIPE,
+        env={**os.environ.copy()},
+        start_new_session=True,
+    )
+    atexit.register(lambda: terminate_proc(tsc_process))
+
+    os.environ["REACTIVATED_RENDERER"] = f"http://localhost:{cmd.port}"
+
+
+def inner_process(cmd: Any) -> None:
+    from .apps import generate_schema, get_schema
+
+    schema = get_schema()
+    generate_schema(schema)
+
+    # This way the dev server still prints the "public port".
+    class LyingPort(int):
+        def __str__(self) -> str:
+            return os.environ["REACTIVATED_VITE_PORT"]
+
+    cmd.port = LyingPort(os.environ["REACTIVATED_DJANGO_PORT"])
+
+
 def patched_run(self: Any, **options: Any) -> Any:
     if (
-        os.environ.get("WERKZEUG_RUN_MAIN") == "true"
-        or os.environ.get("RUN_MAIN") == "true"
-    ):
-        from .apps import generate_schema, get_schema
-
-        schema = get_schema()
-        generate_schema(schema)
-
-        # This way the dev server still prints the "public port".
-        class LyingPort(int):
-            def __str__(self) -> str:
-                return os.environ["REACTIVATED_VITE_PORT"]
-
-        self.port = LyingPort(os.environ["REACTIVATED_DJANGO_PORT"])
+        os.environ.get("RUN_MAIN") == "true"
+    ) and os.environ.get("REACTIVATED_SKIP_SERVER") != "true":
+        inner_process(self)
     else:
-        if os.environ.get("REACTIVATED_RENDERER") is not None:
-            os.environ["REACTIVATED_VITE_PORT"] = self.port
-            os.environ["REACTIVATED_DJANGO_PORT"] = self.port
-            return original_run(self, **options)
-
-        from .apps import generate_schema, get_schema
-
-        sock = socket.socket()
-        sock.bind(("", 0))
-        free_port = sock.getsockname()[1]
-        sock.close()
-
-        os.environ["REACTIVATED_VITE_PORT"] = self.port
-        os.environ["REACTIVATED_DJANGO_PORT"] = str(free_port)
-
-        schema = get_schema()
-        generate_schema(schema)
-
-        vite_process = subprocess.Popen(
-            ["npm", "exec", "start_vite"],
-            # stdout=subprocess.PIPE,
-            env={**os.environ.copy(), "BASE": f"{settings.STATIC_URL}dist/"},
-            start_new_session=True,
-        )
-        atexit.register(lambda: terminate_proc(vite_process))
-        # npm exec is weird and seems to run into duplicate issues if executed
-        # too quickly. There are better ways to do this, I assume.
-        time.sleep(0.5)
-
-        tsc_process = subprocess.Popen(
-            [
-                "npm",
-                "exec",
-                "tsc",
-                "--",
-                "--watch",
-                "--noEmit",
-                "--preserveWatchOutput",
-            ],
-            # stdout=subprocess.PIPE,
-            env={**os.environ.copy()},
-            start_new_session=True,
-        )
-        atexit.register(lambda: terminate_proc(tsc_process))
-
-        os.environ["REACTIVATED_RENDERER"] = f"http://localhost:{self.port}"
+        outer_process(self)
 
     return original_run(self, **options)
 
 
 runserver.Command.run = patched_run  # type: ignore[attr-defined]
+
+try:
+    from django_extensions.management.commands import runserver_plus  # type: ignore[import]
+    original_run_plus = runserver_plus.Command.inner_run
+except ImportError:
+    pass
+else:
+    def patched_run_plus(self: Any, options: Any) -> Any:
+        if (
+            os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+        ) and os.environ.get("REACTIVATED_SKIP_SERVER") != "true":
+            inner_process(self)
+        else:
+            outer_process(self)
+
+        return original_run_plus(self, options)
+
+runserver_plus.Command.inner_run = patched_run_plus
 
 
 def export(var: Any) -> None:

@@ -152,28 +152,30 @@ def patched_run(self: Any, **options: Any) -> Any:
 
 runserver.Command.run = patched_run  # type: ignore[attr-defined]
 
-try:
-    from django_extensions.management.commands import (
-        runserver_plus,  # type: ignore[import]
-    )
+# Mypy tests have problems with this executing outside a Django context so
+# we skip the patching on those runs.
+if "MYPY_CONFIG_FILE_DIR" not in os.environ:
+    try:
+        from django_extensions.management.commands import (  # type: ignore[import]
+            runserver_plus,
+        )
 
-    original_run_plus = runserver_plus.Command.inner_run
-except ImportError:
-    pass
-else:
+        original_run_plus = runserver_plus.Command.inner_run
+    except ImportError:
+        pass
+    else:
 
-    def patched_run_plus(self: Any, options: Any) -> Any:
-        if (os.environ.get("WERKZEUG_RUN_MAIN") == "true") and os.environ.get(
-            "REACTIVATED_SKIP_SERVER"
-        ) != "true":
-            inner_process(self)
-        else:
-            outer_process(self)
+        def patched_run_plus(self: Any, options: Any) -> Any:
+            if (os.environ.get("WERKZEUG_RUN_MAIN") == "true") and os.environ.get(
+                "REACTIVATED_SKIP_SERVER"
+            ) != "true":
+                inner_process(self)
+            else:
+                outer_process(self)
 
-        return original_run_plus(self, options)
+            return original_run_plus(self, options)
 
-
-runserver_plus.Command.inner_run = patched_run_plus
+        runserver_plus.Command.inner_run = patched_run_plus
 
 
 def export(var: Any) -> None:

@@ -53,6 +53,7 @@ const rendererConfig: InlineConfig = {
         cjsInterop({
             // List of CJS dependencies that require interop
             dependencies: [
+                "react-syntax-highlighter",
                 "lz-string",
                 "@reduxjs/toolkit",
                 "immer",

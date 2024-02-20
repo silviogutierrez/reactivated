@@ -380,3 +380,14 @@ class Pick:
             module = mod  # type: ignore[assignment]
 
         return PickHolder
+
+
+def new_pick(model: Any, fields: list[str]) -> Any:
+    pass
+
+
+class NoWay:
+    def __init__(self, required: str) -> None:
+        pass
+
+    member_thing: bool

@@ -1,10 +1,31 @@
 from django.http import HttpRequest, HttpResponse
 from django.utils import timezone
 
+from reactivated.pick import new_pick, NoWay
+
+from typing import NamedTuple
+
 from . import forms, interfaces, models, templates
+from typing import List, Type
+
+Point = NamedTuple("Point", [("x", int)])
+
+
+Blah = new_pick(models.Composer, ["name"])
+
+
+# For some reason, new_pick is not valid as a type. We need to fix this.
+class Thing:
+    invalid_blah: Blah
+    blah: List[Type[NoWay]]
+    point: Point
 
 
 def hello_world(request: HttpRequest) -> HttpResponse:
+    reveal_type(NoWay)
+    reveal_type(Blah)
+    blah = Blah()
+    blah.member_thing
     composer = models.Composer(name="Arrigo Boito")
     opera = models.Opera(
         name="Mefistofele", composer=composer, style=models.Opera.Style.GRAND

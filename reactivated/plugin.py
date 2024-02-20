@@ -1,7 +1,8 @@
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Any
 from typing import Type as TypingType
 from typing import TypeVar
 
+from mypy_django_plugin.lib import helpers  # type: ignore[import]
 from mypy.mro import MroError, calculate_mro
 from mypy.nodes import (
     ARG_POS,
@@ -17,11 +18,12 @@ from mypy.nodes import (
 from mypy.plugin import (
     AnalyzeTypeContext,
     ClassDefContext,
+    FunctionContext,
     DynamicClassDefContext,
     Plugin,
 )
 from mypy.plugins.common import add_method
-from mypy.types import Instance, Type
+from mypy.types import Instance, Type, TypeType, TypeOfAny, AnyType
 
 T = TypeVar("T")
 CB = Optional[Callable[[T], None]]
@@ -52,6 +54,11 @@ class ReactivatedPlugin(Plugin):
             return analyze_stubs
         return None
 
+    def get_function_hook(self, fullname: str) -> Any:
+        if fullname == 'reactivated.pick.new_pick':
+            return analyze_new_pick
+        return None
+
     def get_dynamic_class_hook(self, fullname: str) -> "CB[DynamicClassDefContext]":
         if fullname in [
             "django.forms.formsets.formset_factory",
@@ -59,6 +66,14 @@ class ReactivatedPlugin(Plugin):
         ]:
             return analyze_formset_factory
         return None
+
+
+def analyze_new_pick(ctx: FunctionContext) -> Type:
+    model_info = helpers.lookup_fully_qualified_typeinfo(helpers.get_typechecker_api(ctx), "reactivated.pick.NoWay")
+    if model_info is None:
+        return AnyType(TypeOfAny.unannotated)
+
+    return TypeType(Instance(model_info, []))
 
 
 def analyze_stubs(ctx: ClassDefContext) -> None:

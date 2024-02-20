@@ -23,7 +23,7 @@ from mypy.plugin import (
     Plugin,
 )
 from mypy.plugins.common import add_method
-from mypy.types import Instance, Type, TypeType, TypeOfAny, AnyType
+from mypy.types import Instance, Type, TypeType, TypeOfAny, AnyType, TypeAliasType
 
 T = TypeVar("T")
 CB = Optional[Callable[[T], None]]
@@ -55,11 +55,17 @@ class ReactivatedPlugin(Plugin):
         return None
 
     def get_function_hook(self, fullname: str) -> Any:
-        if fullname == 'reactivated.pick.new_pick':
-            return analyze_new_pick
         return None
+        """
+            if fullname == 'reactivated.pick.new_pick':
+                return analyze_new_pick
+            return None
+        """
 
     def get_dynamic_class_hook(self, fullname: str) -> "CB[DynamicClassDefContext]":
+        if fullname == 'reactivated.pick.new_pick':
+            return analyze_new_pick
+
         if fullname in [
             "django.forms.formsets.formset_factory",
             "django.forms.models.modelformset_factory",
@@ -68,12 +74,21 @@ class ReactivatedPlugin(Plugin):
         return None
 
 
-def analyze_new_pick(ctx: FunctionContext) -> Type:
+def analyze_new_pick(ctx: DynamicClassDefContext) -> None:
+    model_info = ctx.api.lookup_fully_qualified_or_none(
+        "reactivated.pick.NoWay",
+    )
+    ctx.api.add_symbol_table_node(ctx.name, model_info)
+    # breakpoint()
+    # ctx.api.lookup_fully_qualified_or_none("builtints.int")
+    # breakpoint()
+    """
     model_info = helpers.lookup_fully_qualified_typeinfo(helpers.get_typechecker_api(ctx), "reactivated.pick.NoWay")
     if model_info is None:
         return AnyType(TypeOfAny.unannotated)
 
-    return TypeType(Instance(model_info, []))
+    return TypeAliasType(model_info, []))
+    """
 
 
 def analyze_stubs(ctx: ClassDefContext) -> None:

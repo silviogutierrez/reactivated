@@ -218,7 +218,7 @@ export const Template = (props: templates.HomePage) => (
 
                             import {Layout} from "@client/components/Layout";
 
-                            export default (props: templates.HomePage) => (
+                            export const Template = (props: templates.HomePage) => (
                                 <Layout title="Sign Up">
                                     <h1>Sign Up</h1>
                                     <form method="POST">

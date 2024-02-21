@@ -227,7 +227,7 @@ def test_update_opera_with_no_form(client):
     assert response.json() is True
 
 
-OperaSchema = Pick[models.Opera, "id", "name"]
+OperaSchema = Pick[models.Opera, Literal["id", "name"]]
 
 
 @opera.rpc

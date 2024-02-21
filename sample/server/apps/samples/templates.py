@@ -1,11 +1,10 @@
-from typing import NamedTuple
+from typing import NamedTuple, Literal
 
-from reactivated import template, Pick
+from reactivated import Pick, template
 
 from . import forms, models
 
-
-Opera = Pick(models.Opera, fields=["name", "composer.name", "style"])
+Opera = Pick[models.Opera, Literal["name", "composer.name", "style"]]
 
 
 @template

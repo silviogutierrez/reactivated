@@ -78,6 +78,11 @@ def analyze_new_pick(ctx: DynamicClassDefContext) -> None:
     model_info = ctx.api.lookup_fully_qualified_or_none(
         "reactivated.pick.NoWay",
     )
+    model = ctx.call.args[0].fullname
+    fields = [item.value for item in ctx.call.args[1].items]
+
+    print(model, fields)
+    assert model_info is not None
     ctx.api.add_symbol_table_node(ctx.name, model_info)
     # breakpoint()
     # ctx.api.lookup_fully_qualified_or_none("builtints.int")

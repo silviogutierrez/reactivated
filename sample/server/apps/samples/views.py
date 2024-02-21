@@ -14,7 +14,6 @@ Point = NamedTuple("Point", [("x", int)])
 Blah = new_pick(models.Composer, ["name"])
 
 
-# For some reason, new_pick is not valid as a type. We need to fix this.
 class Thing:
     invalid_blah: Blah
     blah: List[Type[NoWay]]

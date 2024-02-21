@@ -86,7 +86,10 @@ class BaseWidget(NamedTuple):
         base = named_tuple_schema(
             Proxy, definitions, definition_name=definition_name, exclude=["subwidgets"]
         )
-        base = base.add_property("template_name", create_schema(Literal[widget_class.template_name], {}).schema)  # type: ignore[attr-defined]
+        base = base.add_property(
+            "template_name",
+            create_schema(Literal[widget_class.template_name], {}).schema,
+        )
 
         if subwidgets := get_type_hints(Proxy).get("subwidgets", None):
             if hasattr(subwidgets, "__annotations__"):

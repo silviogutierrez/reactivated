@@ -47,6 +47,7 @@ class ReactivatedPlugin(Plugin):
 
         return None
 
+    """
     def get_base_class_hook(self, fullname: str) -> "CB[ClassDefContext]":
         if fullname in ["django.forms.formsets.BaseFormSet"]:
             return analyze_stubs
@@ -59,6 +60,7 @@ class ReactivatedPlugin(Plugin):
         ]:
             return analyze_formset_factory
         return None
+    """
 
 
 def analyze_stubs(ctx: ClassDefContext) -> None:

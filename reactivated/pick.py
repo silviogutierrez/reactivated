@@ -58,7 +58,7 @@ def get_field_descriptor(
             FieldDescriptorWrapper(descriptor=model_class._meta.pk, annotation=annotation, target_name="pk")  # type: ignore[arg-type]
             if field_name == "pk"
             else FieldDescriptorWrapper(
-                descriptor=model_class._meta.get_field(field_name),
+                descriptor=model_class._meta.get_field(field_name),  # type: ignore[arg-type]
                 annotation=annotation,
             )
         )
@@ -111,7 +111,7 @@ def get_field_descriptor(
                 isinstance(field_descriptor.descriptor, (models.ForeignKey))
                 and field_name == field_descriptor.descriptor.attname
             ):
-                copy = field_descriptor.descriptor.foreign_related_fields[0].__class__(  # type: ignore[attr-defined]
+                copy = field_descriptor.descriptor.foreign_related_fields[0].__class__(
                     null=field_descriptor.descriptor.null
                 )
 
@@ -129,7 +129,7 @@ def get_field_descriptor(
             ), f"Do not specify related fields directly for model {model_class} in {pick_name}. Use {field_name}_id if you just want the reference or {field_name}.subfield if you want fields inside the related model"
 
         nested_descriptor, nested_field_names = get_field_descriptor(
-            pick_name, field_descriptor.descriptor.related_model, remaining
+            pick_name, field_descriptor.descriptor.related_model, remaining  # type: ignore[arg-type]
         )
 
         # TODO: Maybe RelatedField replaces all of the above?

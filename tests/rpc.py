@@ -149,7 +149,7 @@ class OperaForm(forms.ModelForm[models.Opera]):
 @opera.process
 def update_opera(
     request: HttpRequest, opera: models.Opera, form: OperaForm
-) -> Dict[str, str]:
+) -> Dict[str, Union[str, int]]:
     return {
         "from_context": opera.pk,
         "from_form": form.cleaned_data["name"],

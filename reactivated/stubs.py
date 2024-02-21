@@ -12,15 +12,14 @@ from typing import (
 
 if TYPE_CHECKING:
     from django import forms as django_forms
+    from django.forms.formsets import _F
 
     T = TypeVar("T")
 
     class BaseForm(django_forms.BaseForm):
         base_fields: ClassVar[Mapping[str, django_forms.fields.Field]]
 
-    class BaseFormSet(django_forms.formsets.BaseFormSet):
-        form: ClassVar[Type[BaseForm]]
-
+    class BaseFormSet(django_forms.formsets.BaseFormSet[_F]):
         def total_form_count(self) -> int:
             ...
 
@@ -39,9 +38,6 @@ if TYPE_CHECKING:
         max_num: int
         min_num: int
         extra: int
-
-    class BaseModelFormSet(BaseFormSet, django_forms.models.BaseModelFormSet):
-        pass
 
     class _GenericAlias:
         __origin__: Union[type, Any]

@@ -1,4 +1,4 @@
-from typing import NamedTuple, Literal
+from typing import Literal, NamedTuple
 
 from reactivated import Pick, template
 

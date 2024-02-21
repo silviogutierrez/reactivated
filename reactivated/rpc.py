@@ -48,8 +48,8 @@ TForm = TypeVar(
     bound=Union[
         forms.Form,
         forms.ModelForm[Any],
-        forms.BaseFormSet,
-        forms.BaseInlineFormSet,
+        forms.BaseFormSet[Any],
+        forms.BaseInlineFormSet[Any, Any, Any],
         FormGroup,
         None,
     ],

@@ -23,6 +23,7 @@ from .constraints import EnumConstraint
 
 if TYPE_CHECKING:
     from django.db.models.fields import _ErrorMessagesToOverride, _ValidatorCallable
+    from django.utils.functional import _StrOrPromise
 else:
 
     class _ValidatorCallable:
@@ -124,7 +125,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         enum: Type[_GT],
         default: Union[Type[NOT_PROVIDED], _GT, None] = NOT_PROVIDED,
         null: bool = False,
-        verbose_name: Optional[Union[str, bytes]] = None,
+        verbose_name: Optional["_StrOrPromise"] = None,
         unique: bool = False,
         blank: bool = False,
         db_index: bool = False,

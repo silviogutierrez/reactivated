@@ -1,10 +1,11 @@
 from typing import NamedTuple
 
-from reactivated import template
+from reactivated import template, Pick
 
 from . import forms, models
 
-Opera = models.Opera  # Pick[models.Opera, "name", "composer.name", "style"]
+
+Opera = Pick(models.Opera, fields=["name", "composer.name", "style"])
 
 
 @template

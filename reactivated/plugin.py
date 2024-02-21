@@ -28,14 +28,6 @@ CB = Optional[Callable[[T], None]]
 
 
 class ReactivatedPlugin(Plugin):
-    def get_type_analyze_hook(
-        self, fullname: str
-    ) -> Optional[Callable[[AnalyzeTypeContext], Type]]:
-        if fullname == "reactivated.pick.Pick":
-            return analyze_pick
-
-        return None
-
     def get_class_decorator_hook(
         self, fullname: str
     ) -> Optional[Callable[[ClassDefContext], None]]:
@@ -53,6 +45,9 @@ class ReactivatedPlugin(Plugin):
         return None
 
     def get_dynamic_class_hook(self, fullname: str) -> "CB[DynamicClassDefContext]":
+        if fullname == "reactivated.pick.Pick":
+            return analyze_pick
+
         if fullname in [
             "django.forms.formsets.formset_factory",
             "django.forms.models.modelformset_factory",
@@ -116,10 +111,13 @@ def analyze_formset_factory(ctx: DynamicClassDefContext) -> None:
     ctx.api.add_symbol_table_node(ctx.name, SymbolTableNode(GDEF, info))
 
 
-def analyze_pick(ctx: AnalyzeTypeContext) -> Type:
-    return ctx.api.visit_unbound_type(  # type: ignore[no-any-return, attr-defined]
-        ctx.type.args[0]
+def analyze_pick(ctx: DynamicClassDefContext) -> None:
+    model_info = ctx.api.lookup_fully_qualified_or_none(
+        ctx.call.args[0].fullname  # type: ignore[attr-defined]
     )
+
+    if model_info is not None:
+        ctx.api.add_symbol_table_node(ctx.name, model_info)
 
 
 def analyze_template(ctx: ClassDefContext) -> None:

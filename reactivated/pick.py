@@ -348,7 +348,7 @@ class BasePickHolder:
         )
 
 
-class Pick:
+class _Pick:
     def __class_getitem__(cls: Any, item: Any) -> Any:
         meta_model, *meta_fields = item
 
@@ -380,3 +380,13 @@ class Pick:
             module = mod  # type: ignore[assignment]
 
         return PickHolder
+
+
+def Pick(model: Type[models.Model], *, fields: list[str]) -> Any:
+    frm = inspect.stack()[1]
+    mod = inspect.getmodule(frm[0])
+
+    holder = _Pick.__class_getitem__([model, *fields])
+    holder.use_snake_case = True
+    holder.module = mod
+    return holder

@@ -5,6 +5,9 @@ from reactivated import Pick, interface
 from . import models
 
 
+Opera = Pick(models.Opera, fields=["name"])
+
+
 @interface
 class OperaList(NamedTuple):
-    operas: List[Pick[models.Opera, "name"]]
+    operas: List[Opera]

@@ -156,7 +156,7 @@ runserver.Command.run = patched_run  # type: ignore[attr-defined]
 # we skip the patching on those runs.
 if "MYPY_CONFIG_FILE_DIR" not in os.environ:
     try:
-        from django_extensions.management.commands import (  # type: ignore[import]
+        from django_extensions.management.commands import (  # type: ignore[import-untyped]
             runserver_plus,
         )
 

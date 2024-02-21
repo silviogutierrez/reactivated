@@ -184,7 +184,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         # Fortunately, we can create a name dynamically.
         cls._meta.constraints.append(
             EnumConstraint(
-                members=self.enum._member_names_,  # type: ignore[arg-type]
+                members=self.enum._member_names_,
                 field_name=name,
                 name=self.get_enum_name(),
             )
@@ -241,7 +241,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
 if TYPE_CHECKING:
 
     @overload
-    def EnumField(  # type: ignore[misc]
+    def EnumField(  # type: ignore[overload-overlap]
         enum: Type[TEnum],
         default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
         null: Literal[False] = False,

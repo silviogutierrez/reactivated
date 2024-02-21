@@ -45,7 +45,7 @@ def get_field_descriptor(
     field_name, *remaining = field_chain
 
     resolved_hints = (
-        model_class.resolve_type_hints()  # type: ignore[attr-defined]
+        model_class.resolve_type_hints()
         if hasattr(model_class, "resolve_type_hints")
         else {}
     )

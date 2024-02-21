@@ -7,7 +7,7 @@ import urllib.parse
 from typing import Any, List, Optional
 
 import requests
-import requests_unixsocket  # type: ignore[import]
+import requests_unixsocket  # type: ignore[import-untyped]
 import simplejson
 from django.conf import settings
 from django.http import HttpRequest

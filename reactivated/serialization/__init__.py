@@ -704,11 +704,11 @@ class UnionType(NamedTuple):
                 for schema in subschemas
             }
             schema["_reactivated_tagged_union_discriminant"] = discriminant
-            schema["_reactivated_tagged_union_mapping"] = mapping
+            schema["_reactivated_tagged_union_mapping"] = mapping  # type: ignore[assignment]
         elif len(class_mapping.keys()) != len(subschemas):
             assert False, f"Every item in a union must be uniquely serializable {Type}"
         else:
-            schema["_reactivated_union"] = class_mapping
+            schema["_reactivated_union"] = class_mapping  # type: ignore[assignment]
 
         return Thing(
             schema=schema,

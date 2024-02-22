@@ -1,6 +1,7 @@
 import subprocess
 
 import django
+import django_stubs_ext
 import simplejson
 from django.conf import settings
 
@@ -8,6 +9,10 @@ from django.conf import settings
 # runserver_plus.
 settings.configure()
 django.setup()
+
+
+django_stubs_ext.monkeypatch()
+
 
 from reactivated.serialization import create_schema  # noqa: E402
 from reactivated.types import Types  # noqa: E402

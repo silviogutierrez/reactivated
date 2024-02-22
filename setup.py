@@ -25,6 +25,7 @@ setuptools.setup(
         "requests>=2.25.0",
         "requests-unixsocket>=0.3.0",
         "mypy>=1.8.0",
+        "django-stubs>=4.2.7",
         "simplejson>=3.16.0",
         # urllib3 >= 2 is currently blocked by this issue:
         # - https://github.com/msabramo/requests-unixsocket/issues/70

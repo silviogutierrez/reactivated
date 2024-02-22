@@ -55,9 +55,6 @@ const rendererConfig: InlineConfig = {
             dependencies: [
                 "react-syntax-highlighter",
                 "lz-string",
-                "@reduxjs/toolkit",
-                "immer",
-                "lodash",
                 "react-use",
                 "react-helmet-async",
             ],

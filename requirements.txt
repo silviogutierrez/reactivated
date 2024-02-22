@@ -13,7 +13,7 @@ jsonschema==3.1.1
 mypy==1.8.0
 pytest-django==3.5.1
 pytest-mypy-plugins==3.0.0
-pytest==6.2.5
+pytest==8.0.1
 simplejson==3.16.0
 twine==2.0.0
 

@@ -2,23 +2,8 @@ from typing import Callable, Optional
 from typing import Type as TypingType
 from typing import TypeVar
 
-from mypy.nodes import (
-    ARG_POS,
-    GDEF,
-    Argument,
-    Block,
-    ClassDef,
-    SymbolTable,
-    SymbolTableNode,
-    TypeInfo,
-    Var,
-)
-from mypy.plugin import (
-    AnalyzeTypeContext,
-    ClassDefContext,
-    DynamicClassDefContext,
-    Plugin,
-)
+from mypy.nodes import ARG_POS, Argument, Var
+from mypy.plugin import AnalyzeTypeContext, ClassDefContext, Plugin
 from mypy.plugins.common import add_method
 from mypy.types import Instance, Type
 

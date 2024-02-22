@@ -39,9 +39,14 @@ class Choice(forms.ModelForm[models.Choice]):
         fields = ["choice_text", "votes"]
 
 
-ChoiceFormSet = forms.modelformset_factory(
-    model=models.Choice, form=Choice, extra=0, min_num=2, validate_min=True
-)
+class ChoiceFormSet(forms.BaseModelFormSet[models.Choice, Choice]):
+    extra = 0
+    min_num = 2
+    max_num = 0
+    validate_min = True
+    form = Choice
+    renderer = None
+    model = models.Choice
 
 
 class Comment(forms.ModelForm[models.Comment]):

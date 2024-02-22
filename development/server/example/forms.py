@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 from django import forms
+from reactivated.forms import ModelFormSetFactory
 
 from . import models
 
@@ -39,14 +40,10 @@ class Choice(forms.ModelForm[models.Choice]):
         fields = ["choice_text", "votes"]
 
 
-class ChoiceFormSet(forms.BaseModelFormSet[models.Choice, Choice]):
+class ChoiceFormSet(ModelFormSetFactory[models.Choice, Choice]):
     extra = 0
     min_num = 2
-    max_num = 0
     validate_min = True
-    form = Choice
-    renderer = None
-    model = models.Choice
 
 
 class Comment(forms.ModelForm[models.Comment]):

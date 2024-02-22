@@ -19,7 +19,6 @@ from django import forms as django_forms
 from django.core.exceptions import FieldDoesNotExist
 from django.core.management import call_command
 from django.db import models as django_models
-
 from reactivated.fields import EnumField
 from reactivated.pick import build_nested_schema, get_field_descriptor
 from reactivated.serialization import ComputedField, create_schema
@@ -337,7 +336,7 @@ def test_form_set():
     schema = create_schema(forms.OperaFormSet, {})
 
     assert schema.schema == {
-        "$ref": "#/definitions/django.forms.formsets.OperaFormFormSet"
+        "$ref": "#/definitions/sample.server.apps.samples.forms.OperaFormSet"
     }
     # Ensure the children of the child form are serialized by passing
     # definitions around without mutating.

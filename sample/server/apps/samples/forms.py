@@ -1,8 +1,7 @@
 from typing import Any, Dict
 
 from django import forms
-
-from reactivated.forms import Autocomplete, EnumChoiceField
+from reactivated.forms import Autocomplete, EnumChoiceField, ModelFormSetFactory
 from sample.server.apps.samples import models
 
 
@@ -27,9 +26,10 @@ class ComposerForm(forms.ModelForm[models.Composer]):
         fields = "__all__"
 
 
-ComposerFormSet = forms.modelformset_factory(
-    model=models.Composer, form=ComposerForm, extra=0, min_num=1, validate_min=True
-)
+class ComposerFormSet(ModelFormSetFactory[models.Composer, ComposerForm]):
+    extra = 0
+    min_num = 1
+    validate_min = True
 
 
 class OperaForm(forms.ModelForm[models.Opera]):
@@ -39,9 +39,9 @@ class OperaForm(forms.ModelForm[models.Opera]):
         widgets = {"composer": Autocomplete()}
 
 
-OperaFormSet = forms.modelformset_factory(
-    model=models.Opera, form=OperaForm, extra=0, min_num=1, validate_min=True
-)
+class OperaFormSet(ModelFormSetFactory[models.Opera, OperaForm]):
+    extra = 0
+    min_num = 1
 
 
 class StoryboardForm(forms.Form):

@@ -4069,66 +4069,6 @@
         'serializer': 'reactivated.serialization.FormType',
         'type': 'object',
       }),
-      'django.forms.formsets.OperaFormFormSet': dict({
-        'additionalProperties': False,
-        'properties': dict({
-          'can_delete': dict({
-            'type': 'boolean',
-          }),
-          'can_order': dict({
-            'type': 'boolean',
-          }),
-          'empty_form': dict({
-            '$ref': '#/definitions/django.forms.widgets.OperaForm',
-          }),
-          'forms': dict({
-            'items': dict({
-              '$ref': '#/definitions/django.forms.widgets.OperaForm',
-            }),
-            'type': 'array',
-          }),
-          'initial_form_count': dict({
-            'type': 'number',
-          }),
-          'management_form': dict({
-            '$ref': '#/definitions/django.forms.formsets.ManagementForm',
-          }),
-          'max_num': dict({
-            'type': 'number',
-          }),
-          'min_num': dict({
-            'type': 'number',
-          }),
-          'non_form_errors': dict({
-            'items': dict({
-              'type': 'string',
-            }),
-            'type': 'array',
-          }),
-          'prefix': dict({
-            'type': 'string',
-          }),
-          'total_form_count': dict({
-            'type': 'number',
-          }),
-        }),
-        'required': list([
-          'initial_form_count',
-          'total_form_count',
-          'max_num',
-          'min_num',
-          'can_delete',
-          'can_order',
-          'non_form_errors',
-          'prefix',
-          'empty_form',
-          'forms',
-          'management_form',
-        ]),
-        'serializer': 'reactivated.serialization.FormSetType',
-        'title': 'reactivated.serialization.FormSetType',
-        'type': 'object',
-      }),
       'django.forms.widgets.CheckboxInput': dict({
         'additionalProperties': False,
         'properties': dict({
@@ -4947,6 +4887,66 @@
         'title': 'reactivated.widgets.AutocompleteSelected',
         'type': 'object',
       }),
+      'sample.server.apps.samples.forms.OperaFormSet': dict({
+        'additionalProperties': False,
+        'properties': dict({
+          'can_delete': dict({
+            'type': 'boolean',
+          }),
+          'can_order': dict({
+            'type': 'boolean',
+          }),
+          'empty_form': dict({
+            '$ref': '#/definitions/django.forms.widgets.OperaForm',
+          }),
+          'forms': dict({
+            'items': dict({
+              '$ref': '#/definitions/django.forms.widgets.OperaForm',
+            }),
+            'type': 'array',
+          }),
+          'initial_form_count': dict({
+            'type': 'number',
+          }),
+          'management_form': dict({
+            '$ref': '#/definitions/django.forms.formsets.ManagementForm',
+          }),
+          'max_num': dict({
+            'type': 'number',
+          }),
+          'min_num': dict({
+            'type': 'number',
+          }),
+          'non_form_errors': dict({
+            'items': dict({
+              'type': 'string',
+            }),
+            'type': 'array',
+          }),
+          'prefix': dict({
+            'type': 'string',
+          }),
+          'total_form_count': dict({
+            'type': 'number',
+          }),
+        }),
+        'required': list([
+          'initial_form_count',
+          'total_form_count',
+          'max_num',
+          'min_num',
+          'can_delete',
+          'can_order',
+          'non_form_errors',
+          'prefix',
+          'empty_form',
+          'forms',
+          'management_form',
+        ]),
+        'serializer': 'reactivated.serialization.FormSetType',
+        'title': 'reactivated.serialization.FormSetType',
+        'type': 'object',
+      }),
       'sample.server.apps.samples.models.Opera.Style': dict({
         'enum': list([
           'VERISMO',
@@ -4958,7 +4958,7 @@
       }),
     }),
     schema=dict({
-      '$ref': '#/definitions/django.forms.formsets.OperaFormFormSet',
+      '$ref': '#/definitions/sample.server.apps.samples.forms.OperaFormSet',
     }),
   )
 # ---

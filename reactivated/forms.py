@@ -2,6 +2,7 @@ import enum
 import re
 from enum import unique
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -24,6 +25,27 @@ from django.template.response import TemplateResponse
 from . import registry, serialization, stubs
 from .fields import _GT, EnumChoiceIterator, coerce_to_enum
 from .widgets import Autocomplete as Autocomplete
+
+if TYPE_CHECKING:
+    from django.forms.formsets import _F
+    from django.forms.models import _M, _ModelFormT
+
+    class FormSetFactory(django_forms.BaseFormSet[_F]):
+        pass
+
+    class ModelFormSetFactory(django_forms.BaseModelFormSet[_M, _ModelFormT]):
+        pass
+
+else:
+
+    class FormSetFactory:
+        def __class_getitem__(cls: Any, item: Any) -> Any:
+            return django_forms.formset_factory(form=item)
+
+    class ModelFormSetFactory:
+        def __class_getitem__(cls: Any, item: Any) -> Any:
+            model, form = item
+            return django_forms.modelformset_factory(model=model, form=form)
 
 
 class EnumChoiceField(django_forms.TypedChoiceField):

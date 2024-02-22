@@ -15,3 +15,4 @@ class HelloWorld(NamedTuple):
 @template
 class Storyboard(NamedTuple):
     form: forms.StoryboardForm
+    form_set: forms.OperaFormSet

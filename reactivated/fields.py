@@ -22,8 +22,8 @@ from django.db.models.fields import BLANK_CHOICE_DASH, NOT_PROVIDED
 from .constraints import EnumConstraint
 
 if TYPE_CHECKING:
-    from django.db.models.fields import _ErrorMessagesDict
     from django.core.validators import _ValidatorCallable
+    from django.db.models.fields import _ErrorMessagesDict
     from django.utils.functional import _StrOrPromise
 else:
 

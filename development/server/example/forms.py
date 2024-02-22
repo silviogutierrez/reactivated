@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 from django import forms
+
 from reactivated.forms import ModelFormSetFactory
 
 from . import models

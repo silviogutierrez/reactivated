@@ -5,6 +5,7 @@ import pytest
 from django import forms
 from django.http import HttpRequest, HttpResponseRedirect
 from django.urls import reverse
+
 from reactivated import Pick
 from reactivated.rpc import EmptyForm, FormGroup, RPCRequest, RPCResponse, create_rpc
 from sample.server.apps.samples import models

@@ -2,6 +2,7 @@ import enum
 from typing import Optional
 
 from django.db import models
+
 from reactivated import computed_foreign_key, computed_relation
 from reactivated.fields import EnumField
 

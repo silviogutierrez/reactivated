@@ -23,6 +23,7 @@ from django.conf import settings
 from django.db import models
 from django.forms.models import ModelChoiceIteratorValue
 from django.utils.module_loading import import_string
+
 from reactivated import fields, stubs, utils
 from reactivated.models import ComputedRelation
 from reactivated.types import Optgroup

@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 from django import forms
+
 from reactivated.forms import Autocomplete, EnumChoiceField, ModelFormSetFactory
 from sample.server.apps.samples import models
 

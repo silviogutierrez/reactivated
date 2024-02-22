@@ -407,7 +407,7 @@ class FormSetType(NamedTuple):
     @classmethod
     def get_json_schema(
         Proxy: Type["FormSetType"],
-        Type: Type[stubs.BaseFormSet[Any]],
+        Type: Type[django_forms.BaseFormSet[Any]],
         definitions: Definitions,
     ) -> "Thing":
         definition_name = f"{Type.__module__}.{Type.__qualname__}"

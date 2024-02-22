@@ -172,7 +172,7 @@ def test_context_model_form(client):
     response = client.post(url, {"name": "Hello"})
     assert response.status_code == 200
     assert response.json() == {
-        "from_context": "923",
+        "from_context": 923,
         "from_form": "Hello",
     }
 

@@ -4,6 +4,7 @@ from django.db import models
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 from django.db.backends.ddl_references import Statement, Table
 from django.db.models.base import Model
+from django.db.utils import DEFAULT_DB_ALIAS
 
 
 class EnumConstraint(models.constraints.BaseConstraint):
@@ -26,6 +27,15 @@ class EnumConstraint(models.constraints.BaseConstraint):
         types in PostgreSQL.
         """
         return ""
+
+    def validate(
+        self,
+        model: Optional[Type[Model]],
+        instance: Model,
+        exclude: Any = None,
+        using: Any = DEFAULT_DB_ALIAS,
+    ) -> None:
+        pass
 
     def create_sql(self, model: Optional[Type[Model]], schema_editor: Optional[BaseDatabaseSchemaEditor]) -> Statement:  # type: ignore[override]
         columns = self.members

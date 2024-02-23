@@ -80,15 +80,15 @@ To use a list of book instances, just wrap everything with `List` from `typing`:
 ```python
 @template
 class BookDetail(NamedTuple):
-    book: Pick[models.Book, List["name", "author.name", "author.age"]]
-    related_books: List[Pick[models.Book, List["name", "author.name", "author.age"]]]
+    book: Pick[models.Book, Literal["name", "author.name", "author.age"]]
+    related_books: List[Pick[models.Book, Literal["name", "author.name", "author.age"]]]
 ```
 
 You'll notice we're repeating ourselves quite a bit. We can alias our `Pick` and reuse
 it:
 
 ```python
-Book = Pick[models.Book, List["name", "author.name", "author.age"]]
+Book = Pick[models.Book, Literal["name", "author.name", "author.age"]]
 
 @template
 class BookDetail(NamedTuple):

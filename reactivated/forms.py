@@ -2,6 +2,7 @@ import enum
 import re
 from enum import unique
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -24,6 +25,27 @@ from django.template.response import TemplateResponse
 from . import registry, serialization, stubs
 from .fields import _GT, EnumChoiceIterator, coerce_to_enum
 from .widgets import Autocomplete as Autocomplete
+
+if TYPE_CHECKING:
+    from django.forms.formsets import _F
+    from django.forms.models import _M, _ModelFormT
+
+    class FormSetFactory(django_forms.BaseFormSet[_F]):
+        pass
+
+    class ModelFormSetFactory(django_forms.BaseModelFormSet[_M, _ModelFormT]):
+        pass
+
+else:
+
+    class FormSetFactory:
+        def __class_getitem__(cls: Any, item: Any) -> Any:
+            return django_forms.formset_factory(form=item)
+
+    class ModelFormSetFactory:
+        def __class_getitem__(cls: Any, item: Any) -> Any:
+            model, form = item
+            return django_forms.modelformset_factory(model=model, form=form)
 
 
 class EnumChoiceField(django_forms.TypedChoiceField):
@@ -66,7 +88,7 @@ class EnumChoiceField(django_forms.TypedChoiceField):
         unique(self.enum)
 
         return super().__init__(
-            coerce=coerce,
+            coerce=coerce,  # type: ignore[arg-type]
             empty_value=empty_value,
             choices=choices,
             required=required,
@@ -123,7 +145,8 @@ def get_form_or_form_set_descriptor(prefixed_name: str) -> FormOrFormSetDescript
 
 def get_form_from_form_set_or_form(
     context_data: Dict[
-        str, Union[django_forms.BaseForm, django_forms.formsets.BaseFormSet, object]
+        str,
+        Union[django_forms.BaseForm, django_forms.formsets.BaseFormSet[Any], object],
     ],
     descriptor: FormOrFormSetDescriptor,
 ) -> Optional[django_forms.BaseForm]:
@@ -164,11 +187,11 @@ def autocomplete(view_func: T) -> T:
             and isinstance(form.fields[descriptor.field_name].widget, Autocomplete)
         ):
             autocomplete_field = form.fields[descriptor.field_name]
-            to_field_name = autocomplete_field.to_field_name or "pk"
+            to_field_name = autocomplete_field.to_field_name or "pk"  # type: ignore[attr-defined]
 
             results = [
                 {"value": getattr(result, to_field_name), "label": str(result)}
-                for result in autocomplete_field.queryset.autocomplete(query)[:50]
+                for result in autocomplete_field.queryset.autocomplete(query)[:50]  # type: ignore[attr-defined]
             ]
 
             return JsonResponse({"results": results})

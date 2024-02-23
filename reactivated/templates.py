@@ -110,7 +110,7 @@ class Action(NamedTuple):
 
 class Extracted(NamedTuple):
     context_forms: Dict[str, forms.BaseForm]
-    context_form_sets: Dict[str, forms.BaseFormSet]
+    context_form_sets: Dict[str, forms.BaseFormSet[Any]]
     context_actions: Dict[str, Action]
 
 

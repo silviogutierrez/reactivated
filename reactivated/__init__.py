@@ -61,7 +61,7 @@ def terminate_proc(proc: subprocess.Popen[Any]) -> None:
         proc.communicate(timeout=5)
 
 
-original_run = runserver.Command.run  # type: ignore[attr-defined]
+original_run = runserver.Command.run
 
 
 def outer_process(cmd: Any) -> None:
@@ -150,13 +150,13 @@ def patched_run(self: Any, **options: Any) -> Any:
     return original_run(self, **options)
 
 
-runserver.Command.run = patched_run  # type: ignore[attr-defined]
+runserver.Command.run = patched_run  # type: ignore[method-assign]
 
 # Mypy tests have problems with this executing outside a Django context so
 # we skip the patching on those runs.
 if "MYPY_CONFIG_FILE_DIR" not in os.environ:
     try:
-        from django_extensions.management.commands import (  # type: ignore[import]
+        from django_extensions.management.commands import (  # type: ignore[import-untyped]
             runserver_plus,
         )
 
@@ -440,7 +440,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
         # We use our own management form because base_fields is set dynamically
         # by Django in django.forms.formsets.
         class ManagementForm(django_forms.formsets.ManagementForm):
-            base_fields: Any
+            base_fields: Any  # type: ignore[misc]
 
         ManagementForm.base_fields = ManagementForm().base_fields
 

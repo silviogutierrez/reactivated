@@ -149,7 +149,7 @@ class OperaForm(forms.ModelForm[models.Opera]):
 @opera.process
 def update_opera(
     request: HttpRequest, opera: models.Opera, form: OperaForm
-) -> Dict[str, str]:
+) -> Dict[str, Union[str, int]]:
     return {
         "from_context": opera.pk,
         "from_form": form.cleaned_data["name"],
@@ -172,7 +172,7 @@ def test_context_model_form(client):
     response = client.post(url, {"name": "Hello"})
     assert response.status_code == 200
     assert response.json() == {
-        "from_context": "923",
+        "from_context": 923,
         "from_form": "Hello",
     }
 
@@ -227,7 +227,7 @@ def test_update_opera_with_no_form(client):
     assert response.json() is True
 
 
-OperaSchema = Pick[models.Opera, "id", "name"]
+OperaSchema = Pick[models.Opera, Literal["id", "name"]]
 
 
 @opera.rpc

@@ -21,7 +21,7 @@ from typing import (
 from django import forms as django_forms
 from django.conf import settings
 from django.db import models
-from django.forms.models import ModelChoiceIteratorValue  # type: ignore
+from django.forms.models import ModelChoiceIteratorValue
 from django.utils.module_loading import import_string
 
 from reactivated import fields, stubs, utils
@@ -202,11 +202,11 @@ class FieldType(NamedTuple):
         Type: Type["FieldType"], value: django_forms.BoundField, schema: Thing
     ) -> JSON:
         field = value
-        field.field.widget._render = lambda template_name, context, renderer: context[  # type: ignore[union-attr]
+        field.field.widget._render = lambda template_name, context, renderer: context[
             "widget"
         ]
 
-        field.field.widget._reactivated_get_context = field.as_widget  # type: ignore[union-attr]
+        field.field.widget._reactivated_get_context = field.as_widget
         field.widget = field.field.widget  # type: ignore[attr-defined]
 
         serialized = serialize(value, schema, suppress_custom_serializer=True)
@@ -223,10 +223,8 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
     So we monkeypatch the widget's internal renderer to return JSON directly
     without being wrapped by `mark_safe`.
     """
-    original_render = field.field.widget._render  # type: ignore[union-attr]
-    field.field.widget._render = (  # type: ignore[union-attr]
-        lambda template_name, context, renderer: context
-    )
+    original_render = field.field.widget._render
+    field.field.widget._render = lambda template_name, context, renderer: context
     widget = field.as_widget()
     context: Any = widget["widget"]  # type: ignore[index]
     context["template_name"] = getattr(
@@ -254,7 +252,7 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
 
     handle_optgroups(context)
 
-    field.field.widget._render = original_render  # type: ignore[union-attr]
+    field.field.widget._render = original_render
 
     return context  # type: ignore[no-any-return]
 
@@ -356,7 +354,7 @@ class FormType(NamedTuple):
                 isinstance(field.field, django_forms.ModelChoiceField)
                 and schema.definitions.get("is_static_context") is True  # type: ignore[comparison-overlap]
             ):
-                field.field.queryset = field.field.queryset.none()
+                field.field.queryset = field.field.queryset.none()  # type: ignore[union-attr]
 
             if (
                 callable(field.field.initial)
@@ -367,7 +365,7 @@ class FormType(NamedTuple):
                 ), f"Callables are not supported in initial/default values for field {field.name} in form {name}"
 
         form = value
-        context = form.get_context()  # type: ignore[attr-defined]
+        context = form.get_context()
 
         hidden_fields = {field.name: field for field in context["hidden_fields"]}
         visible_fields = {field.name: field for field, _ in context["fields"]}
@@ -409,7 +407,7 @@ class FormSetType(NamedTuple):
     @classmethod
     def get_json_schema(
         Proxy: Type["FormSetType"],
-        Type: Type[stubs.BaseFormSet],
+        Type: Type[django_forms.BaseFormSet[Any]],
         definitions: Definitions,
     ) -> "Thing":
         definition_name = f"{Type.__module__}.{Type.__qualname__}"
@@ -452,7 +450,7 @@ class FormSetType(NamedTuple):
         # Because we inject form names into our forms at runtime, we set the __module__
         # and __qualname__ so that the form name is still the original form's name.
         class ManagementForm(django_forms.formsets.ManagementForm):
-            base_fields: Any
+            base_fields: Any  # type: ignore[misc]
 
         ManagementForm.base_fields = ManagementForm().base_fields
         ManagementForm.__module__ = django_forms.formsets.ManagementForm.__module__
@@ -492,7 +490,9 @@ class FormSetType(NamedTuple):
     @classmethod
     def get_serialized_value(
         Type: Type["FormSetType"],
-        value: Union[Type[django_forms.BaseFormSet], django_forms.BaseFormSet],
+        value: Union[
+            Type[django_forms.BaseFormSet[Any]], django_forms.BaseFormSet[Any]
+        ],
         schema: Thing,
     ) -> JSON:
         if isinstance(value, django_forms.BaseFormSet):
@@ -704,11 +704,11 @@ class UnionType(NamedTuple):
                 for schema in subschemas
             }
             schema["_reactivated_tagged_union_discriminant"] = discriminant
-            schema["_reactivated_tagged_union_mapping"] = mapping
+            schema["_reactivated_tagged_union_mapping"] = mapping  # type: ignore[assignment]
         elif len(class_mapping.keys()) != len(subschemas):
             assert False, f"Every item in a union must be uniquely serializable {Type}"
         else:
-            schema["_reactivated_union"] = class_mapping
+            schema["_reactivated_union"] = class_mapping  # type: ignore[assignment]
 
         return Thing(
             schema=schema,
@@ -722,7 +722,7 @@ class UnionType(NamedTuple):
         if isinstance(value, fields.EnumChoice):
             return str(value)
         elif isinstance(value, ModelChoiceIteratorValue):
-            return str(value.value)
+            return str(value.value)  # type: ignore[attr-defined]
 
         if discriminant := schema.schema.get(
             "_reactivated_tagged_union_discriminant", None

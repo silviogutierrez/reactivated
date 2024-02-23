@@ -337,7 +337,7 @@ def test_form_set():
     schema = create_schema(forms.OperaFormSet, {})
 
     assert schema.schema == {
-        "$ref": "#/definitions/django.forms.formsets.OperaFormFormSet"
+        "$ref": "#/definitions/sample.server.apps.samples.forms.OperaFormSet"
     }
     # Ensure the children of the child form are serialized by passing
     # definitions around without mutating.

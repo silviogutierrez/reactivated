@@ -76,7 +76,7 @@ class Foo(NamedTuple):
     ]
     pick_computed_foreign_key: Pick[models.Composer, "main_opera.name"]
     pick_computed_null_foreign_key: Pick[models.Composer, "favorite_opera.name"]
-    pick_nested: Pick[models.Composer, "name", Pick["operas", Opera]]
+    pick_nested: Pick[models.Composer, "name", Pick[Literal["operas"], Opera]]
     pick_enum: Pick[models.Continent, "hemisphere"]
     fixed_tuple_different_types: Tuple[str, int]
     fixed_tuple_same_types: Tuple[str, str]

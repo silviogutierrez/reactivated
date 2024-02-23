@@ -7,11 +7,11 @@ import urllib.parse
 from typing import Any, List, Optional
 
 import requests
-import requests_unixsocket  # type: ignore[import]
+import requests_unixsocket  # type: ignore[import-untyped]
 import simplejson
 from django.conf import settings
 from django.http import HttpRequest
-from django.template.defaultfilters import escape
+from django.utils.html import escape
 
 renderer_process_port: Optional[str] = None
 logger = logging.getLogger("django.server")

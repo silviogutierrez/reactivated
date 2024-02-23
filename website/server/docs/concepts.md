@@ -24,10 +24,11 @@ With Reactivated, we first declare our template structure:
 
 ```python
 from reactivated import Pick, template
+from typing import Literal
 
 @template
 class MyTemplate(NamedTuple):
-    book: Pick[models.Book, "name"]
+    book: Pick[models.Book, Literal["name"]]
     form: forms.CommentForm
 ```
 
@@ -227,7 +228,7 @@ serializes a model. This is easy to do using the `interface` decorator.
 Inside `interfaces.py`:
 
 ```python
-from typing import NamedTuple
+from typing import Literal, NamedTuple
 
 from reactivated import interface, Pick
 
@@ -235,7 +236,7 @@ from . import models
 
 @interface
 class WidgetDetail(NamedTuple):
-    widget: Pick[models.Widget, "name", "price"]
+    widget: Pick[models.Widget, Literal["name", "price"]]
 ```
 
 Then in our `views.py`:

@@ -128,3 +128,9 @@ function sync_template() {
     cp -RT "$PROJECT_PATH/packages/create-django-app/template/client" client
     cp -RT "$PROJECT_PATH/packages/create-django-app/template/server/example" server/example
 }
+
+function clear_github_cache() {
+    # Modified from https://hn.mrugesh.dev/how-to-delete-github-actions-caches-with-github-cli
+    gh api -H "Accept: application/vnd.github+json" '/repos/{owner}/{repo}/actions/caches' -q '.actions_caches[] | {id} | .[]' --paginate |
+        xargs -I {} gh api --method DELETE -H "Accept: application/vnd.github.v3+json" '/repos/{owner}/{repo}/actions/caches/'{}
+}

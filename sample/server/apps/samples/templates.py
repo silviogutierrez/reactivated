@@ -1,10 +1,10 @@
-from typing import NamedTuple
+from typing import Literal, NamedTuple
 
 from reactivated import Pick, template
 
 from . import forms, models
 
-Opera = Pick[models.Opera, "name", "composer.name", "style"]
+Opera = Pick[models.Opera, Literal["name", "composer.name", "style"]]
 
 
 @template
@@ -15,3 +15,4 @@ class HelloWorld(NamedTuple):
 @template
 class Storyboard(NamedTuple):
     form: forms.StoryboardForm
+    form_set: forms.OperaFormSet

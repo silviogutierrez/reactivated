@@ -29,6 +29,7 @@ from .serialization.registry import (
     Thing,
     global_types,
 )
+from .stubs import _LiteralGenericAlias
 
 FieldSegment = Tuple[str, bool, bool]
 
@@ -352,11 +353,12 @@ class Pick:
     def __class_getitem__(cls: Any, item: Any) -> Any:
         meta_model, *meta_fields = item
 
-        if isinstance(meta_model, str):
+        if type(meta_model) is _LiteralGenericAlias:
+            related_field = meta_model.__args__[0]
             nested_fields = []
 
             for nested_field in meta_fields[0].fields:
-                nested_fields.append(f"{meta_model}.{nested_field}")
+                nested_fields.append(f"{related_field}.{nested_field}")
             return nested_fields
 
         flattened_fields: List[str] = []

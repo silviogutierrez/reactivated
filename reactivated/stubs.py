@@ -7,12 +7,15 @@ if TYPE_CHECKING:
         __origin__: Union[type, Any]
         __args__: List[Any]
 
+    class _LiteralGenericAlias:
+        __args__: List[Any]
+
     class _TypedDictMeta:
         pass
 
     Undefined = Optional[T]
 else:
-    from typing import _GenericAlias, _TypedDictMeta  # noqa: F401
+    from typing import _GenericAlias, _LiteralGenericAlias, _TypedDictMeta  # noqa: F401
 
     class BaseUndefinedHolder:
         _reactivated_undefined = True

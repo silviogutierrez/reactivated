@@ -12,10 +12,10 @@ in with pkgs; {
   development_dependencies = [
     unstable.flyctl
 
-    # Needed for psycopg2 to build on Mac Silicon.
+    # Needed for psycopg on MacOS Silicon... maybe? Maybe psycopg 3 doesn't need it.
     pkgs.openssl
 
-    # Needed for psycopg2 to build in general (pg_config)
+    # Needed for psycopg on MacOS... maybe? Maybe psycopg 3 doesn't need it.
     pkgs.postgresql_13
 
     # Needed for automating flyctl

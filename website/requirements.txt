@@ -1,5 +1,5 @@
 Django==5.0.2
-psycopg==3.1.18
+psycopg-binary==3.1.18
 simplejson==3.16.0
 django-stubs==4.2.7
 mypy==1.8.0

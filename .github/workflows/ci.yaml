@@ -46,6 +46,9 @@ jobs:
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "python manage.py build"
                   nix-shell --command "scripts/test.sh"
+            - name: Setup tmate session
+              if: ${{ failure() }}
+              uses: mxschmitt/action-tmate@v3
     website_tests:
         name: Website tests
         runs-on: ubuntu-22.04

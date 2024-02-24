@@ -378,6 +378,7 @@ class FormType(NamedTuple):
         # the bound field.
         value.fields = {**hidden_fields, **visible_fields}
 
+        value.hidden_fields = []
         serialized = serialize(value, schema, suppress_custom_serializer=True)
         serialized["name"] = name
         serialized["prefix"] = form.prefix or ""

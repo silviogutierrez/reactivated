@@ -57,8 +57,8 @@ class LazySerializationResponse(TemplateResponse):
         Then, remove our template from pickling because it cannot and should
         not be pickled. The response only cares about the rendered content.
         """
-        obj_dict = super().__getstate__()  # type: ignore[misc]
-        del obj_dict["template"]
+        obj_dict = super().__getstate__()
+        del obj_dict["template"]  # type: ignore[attr-defined]
         return obj_dict
 
     def resolve_context(self, context: Optional[Dict[str, Any]]) -> JSON:

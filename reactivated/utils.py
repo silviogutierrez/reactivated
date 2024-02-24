@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import collections
+import collections.abc
 import inspect
 from typing import TYPE_CHECKING, Any, Sequence
 
@@ -30,7 +30,7 @@ def get_attribute(instance: Any, attrs: Sequence[str]) -> Any:
             # Break out early if we get `None` at any point in a nested lookup.
             return None
         try:
-            if isinstance(instance, collections.Mapping):
+            if isinstance(instance, collections.abc.Mapping):
                 instance = instance[attr]
             else:
                 instance = getattr(instance, attr)
@@ -77,6 +77,9 @@ class ClassLookupDict:
         # actually receives a proxy at runtime.
         if issubclass(base_class, Promise):
             if getattr(base_class, "_delegate_text", False):
+                base_class = str
+            # Detect a string, hacky.
+            elif getattr(base_class, "rpartition", False):
                 base_class = str
             else:
                 assert (

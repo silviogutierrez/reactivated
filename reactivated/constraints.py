@@ -4,6 +4,7 @@ from django.db import models
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 from django.db.backends.ddl_references import Statement, Table
 from django.db.models.base import Model
+from django.db.utils import DEFAULT_DB_ALIAS
 
 
 class EnumConstraint(models.constraints.BaseConstraint):
@@ -74,3 +75,12 @@ class EnumConstraint(models.constraints.BaseConstraint):
         kwargs["members"] = self.members
         kwargs["field_name"] = self.field_name
         return path, args, kwargs
+
+    def validate(
+        self,
+        model: Type[models.Model],
+        instance: models.Model,
+        exclude: list[str] | None = None,
+        using: Any = DEFAULT_DB_ALIAS,
+    ) -> None:
+        pass

@@ -154,7 +154,7 @@ runserver.Command.run = patched_run  # type: ignore[method-assign]
 
 # Mypy tests have problems with this executing outside a Django context so
 # we skip the patching on those runs.
-if "MYPY_CONFIG_FILE_DIR" not in os.environ:
+if False and "MYPY_CONFIG_FILE_DIR" not in os.environ:
     try:
         from django_extensions.management.commands import (  # type: ignore[import-untyped]
             runserver_plus,

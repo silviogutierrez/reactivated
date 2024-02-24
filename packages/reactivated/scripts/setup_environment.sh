@@ -23,8 +23,7 @@ if [ ! -d "$VIRTUAL_ENV" ]; then
     fi
 
     rm -rf "$TMP_ENV"
-    virtualenv "$VIRTUAL_ENV"
-    mkdir "$VIRTUAL_ENV/static"
+    python -m venv "$VIRTUAL_ENV"
     pip install -r requirements.txt
 fi
 

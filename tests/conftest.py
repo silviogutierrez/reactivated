@@ -3,6 +3,7 @@ from typing import Any
 
 
 def pytest_configure(config: Any) -> None:
+    return
     # See: https://github.com/typeddjango/pytest-mypy-plugins/issues/34
     site_packages = site.getsitepackages()[0]
     for file_name, line_numbers in FILES:
@@ -15,7 +16,7 @@ def pytest_configure(config: Any) -> None:
                 line_number = index + 1
                 if line_number in line_numbers and "ignore" not in line:
                     file_lines.append(
-                        f"{line.rstrip()}  # type: ignore[var-annotated,import]\n"
+                        f"{line.rstrip()}  # type: ignore[override,var-annotated,import]\n"
                     )
                 else:
                     file_lines.append(line)
@@ -24,6 +25,7 @@ def pytest_configure(config: Any) -> None:
 
 
 FILES = [
+    ("django-stubs/core/files/base", (24, 37)),
     ("django-stubs/contrib/auth/base_user", (18, 19, 25, 26)),
     (
         "django-stubs/contrib/auth/models",

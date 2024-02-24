@@ -8,7 +8,7 @@ const Paragraph = (props: {children?: React.ReactNode}) => (
     <p className={styles.Paragraph}>{props.children}</p>
 );
 
-export default (props: templates.HelloWorld) => {
+export const Template = (props: templates.HelloWorld) => {
     const [showStyle, setShowStyle] = React.useState(false);
 
     return (

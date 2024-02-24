@@ -96,7 +96,7 @@ const Menu = (props: templates.Documentation) => {
     );
 };
 
-export default (props: templates.Documentation) => {
+export const Template = (props: templates.Documentation) => {
     const headings = props.content.match(/#{2,6}.+(?=\n)/g)?.join("\n");
 
     return (

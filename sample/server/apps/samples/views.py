@@ -26,6 +26,7 @@ def storyboard(request: HttpRequest) -> HttpResponse:
     )
     return templates.Storyboard(
         form=form,
+        form_set=forms.OperaFormSet(),
     ).render(request)
 
 

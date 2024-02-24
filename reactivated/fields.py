@@ -22,13 +22,15 @@ from django.db.models.fields import BLANK_CHOICE_DASH, NOT_PROVIDED
 from .constraints import EnumConstraint
 
 if TYPE_CHECKING:
-    from django.db.models.fields import _ErrorMessagesToOverride, _ValidatorCallable
+    from django.core.validators import _ValidatorCallable
+    from django.db.models.fields import _ErrorMessagesDict
+    from django.utils.functional import _StrOrPromise
 else:
 
     class _ValidatorCallable:
         pass
 
-    class _ErrorMessagesToOverride:
+    class _ErrorMessagesDict:
         pass
 
 
@@ -124,7 +126,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         enum: Type[_GT],
         default: Union[Type[NOT_PROVIDED], _GT, None] = NOT_PROVIDED,
         null: bool = False,
-        verbose_name: Optional[Union[str, bytes]] = None,
+        verbose_name: Optional["_StrOrPromise"] = None,
         unique: bool = False,
         blank: bool = False,
         db_index: bool = False,
@@ -133,12 +135,12 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         db_column: Optional[str] = None,
         db_tablespace: Optional[str] = None,
         validators: Iterable[_ValidatorCallable] = (),
-        error_messages: Optional[_ErrorMessagesToOverride] = None,
+        error_messages: Optional[_ErrorMessagesDict] = None,
     ):
         ensure_unique(enum)
 
         self.enum = enum
-        self.choices = EnumChoiceIterator(enum=enum)
+        self.choices = EnumChoiceIterator(enum=enum)  # type: ignore[assignment]
         self.db_collation = None
 
         # We skip the constructor for CharField because we do *not* want
@@ -184,7 +186,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         # Fortunately, we can create a name dynamically.
         cls._meta.constraints.append(
             EnumConstraint(
-                members=self.enum._member_names_,  # type: ignore[arg-type]
+                members=self.enum._member_names_,
                 field_name=name,
                 name=self.get_enum_name(),
             )
@@ -196,7 +198,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     def cast_db_type(self, connection: Any) -> str:
         return self.get_enum_name()
 
-    def db_type(self, connection: Any) -> str:
+    def db_type(self, connection: Any) -> Optional[str]:
         if connection.settings_dict["ENGINE"] != "django.db.backends.postgresql":
             raise DatabaseError("EnumField is only supported on PostgreSQL")
         return super().db_type(connection)
@@ -220,7 +222,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         value = self.value_from_object(obj)
         return self.get_prep_value(value)  # type: ignore[return-value]
 
-    def formfield(self, **kwargs: Any) -> Any:
+    def formfield(self, **kwargs: Any) -> Any:  # type: ignore[override]
         from .forms import EnumChoiceField
 
         include_blank = self.blank or not (self.has_default() or "initial" in kwargs)
@@ -241,7 +243,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
 if TYPE_CHECKING:
 
     @overload
-    def EnumField(  # type: ignore[misc]
+    def EnumField(  # type: ignore[overload-overlap]
         enum: Type[TEnum],
         default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
         null: Literal[False] = False,
@@ -254,7 +256,7 @@ if TYPE_CHECKING:
         db_column: Optional[str] = None,
         db_tablespace: Optional[str] = None,
         validators: Iterable[_ValidatorCallable] = (),
-        error_messages: Optional[_ErrorMessagesToOverride] = None,
+        error_messages: Optional[_ErrorMessagesDict] = None,
     ) -> _EnumField[TEnum, TEnum]:
         ...
 
@@ -272,7 +274,7 @@ if TYPE_CHECKING:
         db_column: Optional[str] = None,
         db_tablespace: Optional[str] = None,
         validators: Iterable[_ValidatorCallable] = (),
-        error_messages: Optional[_ErrorMessagesToOverride] = None,
+        error_messages: Optional[_ErrorMessagesDict] = None,
     ) -> _EnumField[Optional[TEnum], Optional[TEnum]]:  # type: ignore[type-var]
         ...
 
@@ -289,7 +291,7 @@ if TYPE_CHECKING:
         db_column: Optional[str] = None,
         db_tablespace: Optional[str] = None,
         validators: Iterable[_ValidatorCallable] = (),
-        error_messages: Optional[_ErrorMessagesToOverride] = None,
+        error_messages: Optional[_ErrorMessagesDict] = None,
     ) -> Union[_EnumField[TEnum, TEnum], _EnumField[Optional[TEnum], Optional[TEnum]]]:  # type: ignore[type-var]
         return _EnumField[TEnum, TEnum](enum=enum, default=default, null=null)
 

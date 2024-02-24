@@ -17,5 +17,5 @@
           without_default_and_null = EnumField(enum=MyEnum, null=True)
       instance = MyModel()
 
-      reveal_type(instance.enum_field)  # N: Revealed type is "main.MyEnum*"
-      reveal_type(instance.null_enum_field)  # N: Revealed type is "Union[main.MyEnum*, None]"
+      reveal_type(instance.enum_field)  # N: Revealed type is "main.MyEnum"
+      reveal_type(instance.null_enum_field)  # N: Revealed type is "Union[main.MyEnum, None]"

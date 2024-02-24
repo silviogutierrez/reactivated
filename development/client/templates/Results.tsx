@@ -4,7 +4,7 @@ import {reverse, templates} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
 
-export default ({question}: templates.Results) => (
+export const Template = ({question}: templates.Results) => (
     <Layout title={question.question_text}>
         <h1>{question.question_text}</h1>
         <ul>

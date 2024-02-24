@@ -9,7 +9,7 @@ other packages.
 ## Requirements
 
 -   Python 3.9
--   Node.js 16
+-   Node.js 18
 -   PostgreSQL 10 or higher
 -   Django 4.0
 

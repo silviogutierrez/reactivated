@@ -6,8 +6,7 @@ import {HelmetProvider} from "react-helmet-async";
 import {createRoot} from "react-dom/client";
 
 const {props, context} = getServerData();
-
-const Template = getTemplate(context);
+const Template = await getTemplate(context);
 
 const root = createRoot(document.getElementById("root")!);
 root.render(

@@ -1,18 +1,6 @@
-import React from "react";
-import {hydrate} from "react-dom";
+import {getServerData} from "@reactivated";
 
-import {Provider, getServerData, getTemplate} from "@reactivated";
-import {HelmetProvider} from "react-helmet-async";
-
-const {props, context} = getServerData();
-
-const Template = getTemplate(context);
-
-hydrate(
-    <HelmetProvider>
-        <Provider value={context}>
-            <Template {...props} />
-        </Provider>
-    </HelmetProvider>,
-    document.getElementById("root"),
-);
+// Just so we get styles when building with vite. But don't hydrate, it causes
+// issues in production build with react-syntax-highlighter
+// See: https://github.com/react-syntax-highlighter/react-syntax-highlighter/issues/513
+getServerData();

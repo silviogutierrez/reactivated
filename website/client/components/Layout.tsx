@@ -37,11 +37,6 @@ export const Layout = (props: Props) => {
                     sizes="16x16"
                     href={`${context.STATIC_URL}favicon-16x16.png`}
                 />
-                <link
-                    rel="stylesheet"
-                    type="text/css"
-                    href={`${context.STATIC_URL}dist/index.css`}
-                />
             </Helmet>
             {props.children}
         </>

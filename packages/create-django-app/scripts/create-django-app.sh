@@ -30,7 +30,7 @@ sed -i "s/reactivated==\(.*\)/reactivated==$PIP_CURRENT_VERSION/" requirements.t
 
 git init --initial-branch=main
 
-nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm init --yes && git add -A"
+nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm init --yes && npm pkg set type='module' && git add -A"
 
 if [ -d "$SCRIPT_PATH/../monorepo" ]; then
     nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install $SCRIPT_PATH/../monorepo/node.tgz"

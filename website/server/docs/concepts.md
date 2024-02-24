@@ -24,10 +24,11 @@ With Reactivated, we first declare our template structure:
 
 ```python
 from reactivated import Pick, template
+from typing import Literal
 
 @template
 class MyTemplate(NamedTuple):
-    book: Pick[models.Book, "name"]
+    book: Pick[models.Book, Literal["name"]]
     form: forms.CommentForm
 ```
 
@@ -70,7 +71,7 @@ def comment_on_book(request: HttpRequest, *, book_id: int) -> HttpResponse:
 
 ## The React Side
 
-With your Python code declared above, Reactivated would expect a default export at
+With your Python code declared above, Reactivated would expect a `Template` export at
 `client/templates/MyTemplate.tsx` for a React component that accepts the context you
 declared. As you can see, types are automatically generated:
 
@@ -79,7 +80,7 @@ import React from "react";
 
 import {templates, Form} from "@reactivated";
 
-export default (props: templates.MyTemplate) => (
+export const Template = (props: templates.MyTemplate) => (
     <div>
         <h1>{props.book.name}</h1>
         <form>
@@ -116,7 +117,7 @@ import React from "react";
 
 import {templates, Context} from "@reactivated";
 
-export default (props: templates.MyTemplate) => {
+export const Template = (props: templates.MyTemplate) => {
     const context = React.useContext(Context);
 
     return (
@@ -161,7 +162,7 @@ def poll_comments(request: HttpRequest, question_id: int) -> HttpResponse:
 And a redacted version of the React template:
 
 ```typescript
-export default (props: templates.PollComments) => {
+export const Template = (props: templates.PollComments) => {
     const {question} = props;
     const {request} = React.useContext(Context);
     const [comments, setComments] = React.useState(question.comments);
@@ -227,7 +228,7 @@ serializes a model. This is easy to do using the `interface` decorator.
 Inside `interfaces.py`:
 
 ```python
-from typing import NamedTuple
+from typing import Literal, NamedTuple
 
 from reactivated import interface, Pick
 
@@ -235,7 +236,7 @@ from . import models
 
 @interface
 class WidgetDetail(NamedTuple):
-    widget: Pick[models.Widget, "name", "price"]
+    widget: Pick[models.Widget, Literal["name", "price"]]
 ```
 
 Then in our `views.py`:
@@ -289,8 +290,6 @@ Reactivated encourages the following structure, but we
             -   common.py
             -   localhost.py
             -   production.py
-        -   templates
-            -   MyTemplate.tsx
         -   books_app
             -   views.py
             -   models.py

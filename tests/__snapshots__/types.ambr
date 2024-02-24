@@ -1,3 +1,4 @@
+# serializer version: 1
 # name: test_context_processor_type
   dict({
     'reactivated.serialization.context_processors.BaseContext': dict({

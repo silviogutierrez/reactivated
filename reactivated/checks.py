@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.checks import Error, register
 
 
-@register()  # type: ignore[misc]
+@register()
 def check_installed_app_order(app_configs: Any, **kwargs: Any) -> List[Error]:
     if False and settings.INSTALLED_APPS[-1] != "reactivated":
         return [

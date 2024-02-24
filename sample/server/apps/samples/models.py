@@ -1,5 +1,5 @@
 import enum
-from typing import Optional, cast
+from typing import Optional
 
 from django.db import models
 
@@ -43,9 +43,7 @@ class ComposerQuerySet(models.QuerySet["Composer"]):
 
 class Composer(models.Model):
     name = models.CharField(max_length=100)
-    objects: ComposerQuerySet = cast(  # type: ignore[assignment]
-        ComposerQuerySet, ComposerQuerySet.as_manager()
-    )
+    objects = ComposerQuerySet.as_manager()
 
     countries = models.ManyToManyField(
         Country, through=ComposerCountry, related_name="composers"
@@ -96,7 +94,7 @@ class Opera(models.Model):
     style = EnumField(enum=Style, default=Style.GRAND)
     has_piano_transcription = models.BooleanField(default=False)
 
-    objects = cast(OperaManager, OperaManager.from_queryset(OperaQuerySet)())
+    objects = OperaManager.from_queryset(OperaQuerySet)()
 
     def __str__(self) -> str:
         return f"{self.name}: {self.composer.name}"

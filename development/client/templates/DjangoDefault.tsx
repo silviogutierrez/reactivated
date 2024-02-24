@@ -5,7 +5,7 @@ import {classNames} from "@reactivated";
 import {Layout} from "@client/components/Layout";
 import * as styles from "@client/styles.css";
 
-export default () => (
+export const Template = () => (
     <Layout
         title="The install worked successfully! Congratulations!"
         className={classNames(

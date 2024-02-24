@@ -6,7 +6,7 @@ import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
 import * as styles from "@client/styles.css";
 
-export default ({error_message, question}: templates.PollDetail) => (
+export const Template = ({error_message, question}: templates.PollDetail) => (
     <Layout title={question.question_text}>
         <form
             action={reverse("vote", {question_id: question.id})}

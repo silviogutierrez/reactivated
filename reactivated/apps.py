@@ -27,7 +27,7 @@ GENERATED_DIRECTORY = f"{settings.BASE_DIR}/node_modules/_reactivated"
 
 def get_urls_schema() -> Dict[str, Any]:
     urlconf = importlib.import_module(settings.ROOT_URLCONF)
-    urlpatterns = urlconf.urlpatterns  # type: ignore[attr-defined]
+    urlpatterns = urlconf.urlpatterns
 
     from django.urls import converters
     from django.urls.resolvers import RoutePattern
@@ -165,19 +165,6 @@ class ReactivatedConfig(AppConfig):
         from .checks import check_installed_app_order  # NOQA
         from .serialization import widgets  # noqa
 
-        if (
-            os.environ.get("WERKZEUG_RUN_MAIN") == "true"
-            or os.environ.get("RUN_MAIN") == "true"
-        ):
-            from . import processes
-            from .apps import generate_schema, get_schema
-
-            schema = get_schema()
-            generate_schema(schema)
-            processes.start_tsc()
-            processes.start_client()
-            processes.start_renderer()
-
 
 def generate_schema(schema: str, skip_cache: bool = False) -> None:
     """
@@ -185,7 +172,6 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
 
     You can use this function for your E2E test prep.
     """
-    logger.info("Generating interfaces and client side code")
     encoded_schema = schema.encode()
 
     configuration_process = subprocess.Popen(
@@ -205,8 +191,8 @@ def generate_schema(schema: str, skip_cache: bool = False) -> None:
             already_generated = existing.read()
 
             if digest in already_generated:
-                logger.info("Skipping generation as nothing has changed")
                 return
+    logger.info("Generating interfaces and client side code")
 
     #: Note that we don't pass the file object to stdout, because otherwise
     # webpack gets confused with the half-written file when we make updates.

@@ -12,7 +12,7 @@ import React from "react";
 import {Prism as SyntaxHighlighter} from "react-syntax-highlighter";
 
 // import ts from "react-syntax-highlighter/dist/esm/languages/prism/typescript";
-import {nord as style} from "react-syntax-highlighter/dist/esm/styles/prism";
+import {nord as style} from "react-syntax-highlighter/dist/cjs/styles/prism";
 
 interface Props {
     children: string | string[];

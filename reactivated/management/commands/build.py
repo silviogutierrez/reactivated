@@ -29,6 +29,7 @@ class Command(BaseCommand):
         build_env = {
             **os.environ.copy(),
             "NODE_ENV": "production",
+            "BASE": f"{settings.STATIC_URL}dist/",
         }
 
         tsc_process = subprocess.Popen(
@@ -37,6 +38,12 @@ class Command(BaseCommand):
             env=build_env,
             cwd=settings.BASE_DIR,
         )
+
+        tsc_output, tsc_error = tsc_process.communicate()
+
+        if tsc_process.returncode != 0:
+            raise CommandError("TypeScript error. Run 'tsc --noEmit' manually.")
+
         client_process = subprocess.Popen(
             [
                 "npm",
@@ -49,46 +56,20 @@ class Command(BaseCommand):
             env=build_env,
             cwd=settings.BASE_DIR,
         )
-        renderer_process = subprocess.Popen(
-            ["npm", "exec", "build.renderer"],
-            stdout=subprocess.PIPE,
-            env=build_env,
-            cwd=settings.BASE_DIR,
-        )
 
-        tsc_output, tsc_error = tsc_process.communicate()
         client_output, client_error = client_process.communicate()
-        renderer_ouput, renderer_error = renderer_process.communicate()
 
-        if tsc_process.returncode != 0:
-            raise CommandError("TypeScript error. Run 'tsc --noEmit' manually.")
+        if client_output == b"":
+            # Sometimes Popen / npm exec fail silently with return code 0. I
+            # think race conditions between multiple processes all calling npm
+            # exec, so the communicate() has to be in between. every process.
+            raise CommandError("Problems spawning process, this should not ever happen")
 
-        if client_process.returncode != 0 or renderer_process.returncode != 0:
-            raise CommandError("esbuild errors")
-
-        if options["no_minify"] is False:
-            for bundle in entry_points:
-                terser_process = subprocess.Popen(
-                    [
-                        "npm",
-                        "exec",
-                        "terser",
-                        "--",
-                        f"{DIST_ROOT}{bundle}.js",
-                        f"--source-map=content='{DIST_ROOT}{bundle}.js.map'",
-                        "--compress",
-                        "--mangle",
-                        "-o",
-                        f"{DIST_ROOT}{bundle}.js",
-                    ],
-                    stdout=subprocess.PIPE,
-                    env=build_env,
-                    cwd=settings.BASE_DIR,
-                )
-                terser_process.communicate()
+        if client_process.returncode != 0:
+            raise CommandError("vite errors")
 
         if options["upload_sourcemaps"] is True:
-            assert "TAG_VERSION" in os.environ, "TAG_VERSION must be set"
+            assert "RELEASE_VERSION" in os.environ, "RELEASE_VERSION must be set"
 
             sentry_process = subprocess.Popen(
                 [
@@ -98,7 +79,7 @@ class Command(BaseCommand):
                     "--",
                     "releases",
                     "files",
-                    os.environ["TAG_VERSION"],
+                    os.environ["RELEASE_VERSION"],
                     "upload-sourcemaps",
                     DIST_ROOT,
                     "--url-prefix",

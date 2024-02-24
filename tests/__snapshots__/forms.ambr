@@ -4388,22 +4388,22 @@
               }),
             }),
             'required': list([
+              'id',
               'name',
               'composer',
               'style',
               'has_piano_transcription',
-              'id',
             ]),
             'type': 'object',
           }),
           'hidden_fields': dict({
             'items': dict({
               'enum': list([
+                'id',
                 'name',
                 'composer',
                 'style',
                 'has_piano_transcription',
-                'id',
               ]),
               'type': 'string',
             }),
@@ -4412,11 +4412,11 @@
           'iterator': dict({
             'items': dict({
               'enum': list([
+                'id',
                 'name',
                 'composer',
                 'style',
                 'has_piano_transcription',
-                'id',
               ]),
               'type': 'string',
             }),

@@ -378,7 +378,8 @@ class FormType(NamedTuple):
         # the bound field.
         value.fields = {**hidden_fields, **visible_fields}
 
-        value.hidden_fields = []
+        original = value.hidden_fields
+        value.hidden_fields = []  # type: ignore[method-assign, assignment]
         serialized = serialize(value, schema, suppress_custom_serializer=True)
         serialized["name"] = name
         serialized["prefix"] = form.prefix or ""
@@ -387,6 +388,7 @@ class FormType(NamedTuple):
         )
         serialized["hidden_fields"] = list(hidden_fields.keys())
         serialized["errors"] = form.errors or None
+        value.hidden_fields = original  # type: ignore[method-assign]
         return serialized
 
 

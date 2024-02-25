@@ -42,6 +42,7 @@ runs:
           # and site-packages is not in sys.path. I cannot figure out why, no files
           # or env variables change in between nix-shell runs.
           if: runner.os == 'macOS'
+          shell: bash
           run: nix-shell --command ""
         - name: Build
           run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"

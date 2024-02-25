@@ -44,11 +44,11 @@ jobs:
                   cd integration
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "python manage.py build"
-                  nix-shell --command "scripts/test.sh"
+                  nix-shell --command "scripts/test.sh --all"
                   nix-shell --command "scripts/remove_example.sh"
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "python manage.py build"
-                  nix-shell --command "scripts/test.sh"
+                  nix-shell --command "scripts/test.sh --all"
     website_tests:
         name: Website tests
         runs-on: ubuntu-22.04

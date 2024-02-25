@@ -84,8 +84,8 @@ else
         TARGET_BRANCH="origin/main"
         echo "Local run: running against default branch $TARGET_BRANCH"
     fi
-
-    CHANGED_FILES=$(git diff --name-only --diff-filter d --relative "$(git merge-base $TARGET_BRANCH HEAD)")
+    target_ref=$(git merge-base "$TARGET_BRANCH" HEAD)
+    CHANGED_FILES=$(git diff --name-only --diff-filter d --relative "$target_ref")
 fi
 
 CHANGED_TS_JS_FILES=$(echo "$CHANGED_FILES" | grep -e '.jsx\?$\|.tsx\?$' || true)

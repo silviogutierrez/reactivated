@@ -84,8 +84,8 @@ else
         TARGET_BRANCH="origin/main"
         echo "Local run: running against default branch $TARGET_BRANCH"
     fi
-
-    CHANGED_FILES=$(git diff --name-only --diff-filter d --relative "$(git merge-base $TARGET_BRANCH HEAD)")
+    target_ref=$(git merge-base "$TARGET_BRANCH" HEAD)
+    CHANGED_FILES=$(git diff --name-only --diff-filter d --relative "$target_ref")
 fi
 
 CHANGED_TS_JS_FILES=$(echo "$CHANGED_FILES" | grep -e '.jsx\?$\|.tsx\?$' || true)
@@ -102,7 +102,7 @@ if [[ $SERVER -eq 1 ]]; then
 fi
 
 if [[ $CLIENT -eq 1 ]]; then
-    # capture_stdout_and_stderr_if_successful yarn jest
+    # capture_stdout_and_stderr_if_successful npm exec jest
 
     if [[ -n "${CHANGED_TS_JS_FILES// /}" ]]; then
         # shellcheck disable=SC2086

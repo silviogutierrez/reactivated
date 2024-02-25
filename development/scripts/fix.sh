@@ -48,7 +48,8 @@ elif [ -z "$ORIGIN" ]; then
     fi
 
     # Changed files against target branch, but exclude deleted files.
-    CHANGED_FILES=$(git diff --name-only --diff-filter d --relative "$(git merge-base $TARGET_BRANCH HEAD)")
+    target_ref=$(git merge-base "$TARGET_BRANCH" HEAD)
+    CHANGED_FILES=$(git diff --name-only --diff-filter d --relative "$target_ref")
     CHANGED_FILES=${CHANGED_FILES// /}
 else
     echo "Invalid fix options"

@@ -70,6 +70,9 @@ jobs:
               run: |
                   cd website
                   scripts/deploy.sh --build-only
+            - name: Setup tmate session
+              if: ${{ failure() }}
+              uses: mxschmitt/action-tmate@v3
     docker_tests:
         name: Docker tests
         runs-on: ubuntu-22.04

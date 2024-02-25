@@ -2,19 +2,18 @@ Django==5.0.2
 psycopg[binary]==3.1.18
 flake8==7.0.0
 isort==5.13.2
-Werkzeug==0.16.0
 black==22.3.0
 autoflake==2.3.0
+
+Werkzeug==0.16.0
 django-extensions==3.2.3
 djangorestframework==3.14.0
 django-stubs==4.2.7
 
 jsonschema==3.1.1
-mypy==1.8.0
-pytest-django==3.5.1
-pytest-mypy-plugins==3.0.0
 pytest==8.0.1
-simplejson==3.16.0
+pytest-django==4.5.2
+pytest-mypy-plugins==3.0.0
 twine==2.0.0
 
 playwright==1.41.2
@@ -23,8 +22,5 @@ syrupy==4.6.1
 
 types-requests==2.25.11
 types-simplejson==3.17.1
-
-requests-unixsocket==0.3.0
-
 # Install reactivated package locally
 -e .

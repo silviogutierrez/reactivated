@@ -40,6 +40,8 @@ else
     echo "reactivated==$PIP_CURRENT_VERSION" >>requirements.txt
 fi
 
+# Empty command for odd MacOS venv bug.
+nix-shell --command ""
 nix-shell --command "python manage.py generate_client_assets"
 nix-shell --command "python manage.py migrate"
 

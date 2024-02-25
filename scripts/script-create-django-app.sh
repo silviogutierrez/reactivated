@@ -1,6 +1,6 @@
 #! /usr/bin/env nix-shell
 #! nix-shell ../shell.nix --pure -i bash --keep NIX_PATH
-set -e
+set -ex
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 

@@ -11,6 +11,10 @@ POSTGRESQL_LOGS="$VIRTUAL_ENV/postgresql/logs.txt"
 # $PWD returning /tmp or /private/tmp, we resolve with readlink.
 TMP_ENV="$TMPDIR/reactivated/$(readlink -f "$VIRTUAL_ENV" | md5sum | awk '{print $1}')"
 
+# https://github.com/python/mypy/issues/13392
+# https://setuptools.pypa.io/en/latest/userguide/development_mode.html#legacy-behavior
+export SETUPTOOLS_ENABLE_FEATURES="legacy-editable"
+
 export PGPORT=1
 export PGDATABASE="database"
 export PGHOST=$TMP_ENV

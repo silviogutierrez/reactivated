@@ -15,7 +15,7 @@ class EnumConstraint(models.constraints.BaseConstraint):
         # Other libraries, like django extensions, depend on this instance variable.
         self.fields: List[str] = []
 
-        super().__init__(name)
+        super().__init__(name=name)
 
     def constraint_sql(
         self,

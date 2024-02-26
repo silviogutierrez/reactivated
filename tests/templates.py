@@ -83,6 +83,7 @@ def test_render_template_with_no_renderer(rf, settings):
     rendered["context"]["csrf_token"] = "CLOBBERED"
     assert rendered == {
         "context": {
+            "STATIC_URL": "/static/",
             "template_name": "MyTemplate",
             "messages": [],
             "request": {"path": "/", "url": "http://testserver/", "csp_nonce": None},

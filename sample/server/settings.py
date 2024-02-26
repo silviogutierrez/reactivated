@@ -68,6 +68,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.request",
                 "django.template.context_processors.csrf",
+                "django.template.context_processors.static",
             ]
         },
     },

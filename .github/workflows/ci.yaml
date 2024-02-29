@@ -16,6 +16,8 @@ jobs:
               with:
                   fetch-depth: 0
             - uses: ./.github/actions/setup
+            - name: Post setup
+              uses: mxschmitt/action-tmate@v3
             - name: Run tests
               run: nix-shell --command "scripts/test.sh"
             - name: Setup tmate session

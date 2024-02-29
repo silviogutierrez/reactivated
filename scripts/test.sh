@@ -61,7 +61,7 @@ done
 
 AT_LEAST_ONE_ERROR=0
 
-cd $PROJECT_ROOT
+cd "$PROJECT_ROOT"
 
 if [[ $SERVER -eq 1 ]]; then
     OLD_PATH="$PATH"
@@ -87,8 +87,9 @@ if [[ $E2E -eq 1 ]]; then
 fi
 
 if [[ $INFRASTRUCTURE -eq 1 ]]; then
-    CHANGED_NIX_FILES=$(git diff --name-only --diff-filter d --relative "$(git merge-base $TARGET_BRANCH HEAD)" | grep -e '.nix$' || true)
-    CHANGED_SH_FILES=$(git diff --name-only --diff-filter d --relative "$(git merge-base $TARGET_BRANCH HEAD)" | grep -e '.sh$' || true)
+    target_ref=$(git merge-base "$TARGET_BRANCH" HEAD)
+    CHANGED_NIX_FILES=$(git diff --name-only --diff-filter d --relative "$target_ref" | grep -e '.nix$' || true)
+    CHANGED_SH_FILES=$(git diff --name-only --diff-filter d --relative "$target_ref" | grep -e '.sh$' || true)
 
     if [[ -n "${CHANGED_SH_FILES// /}" ]]; then
         # shellcheck disable=SC2086

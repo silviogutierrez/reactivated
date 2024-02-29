@@ -14,7 +14,8 @@ RUN cp -va $(nix-store -qR /output/profile) /output/store
 COPY requirements.txt requirements.txt
 COPY monorepo* monorepo/
 
-RUN virtualenv .venv && .venv/bin/pip install -r requirements.txt
+ENV PATH="/app/.venv/bin:${PATH}"
+RUN python -m venv .venv && pip install wheel && pip install --no-cache-dir -r requirements.txt
 
 COPY package.json .
 COPY package-lock.json .
@@ -53,7 +54,8 @@ ENV NODE_ENV production
 COPY requirements.txt requirements.txt
 COPY monorepo* monorepo/
 
-RUN virtualenv .venv && .venv/bin/pip install -r requirements.txt
+ENV PATH="/app/.venv/bin:${PATH}"
+RUN python -m venv .venv && pip install wheel && pip install --no-cache-dir -r requirements.txt
 
 COPY manage.py .
 COPY server server

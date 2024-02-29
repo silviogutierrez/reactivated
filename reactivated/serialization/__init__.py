@@ -378,6 +378,8 @@ class FormType(NamedTuple):
         # the bound field.
         value.fields = {**hidden_fields, **visible_fields}
 
+        original = value.hidden_fields
+        value.hidden_fields = []  # type: ignore[method-assign, assignment]
         serialized = serialize(value, schema, suppress_custom_serializer=True)
         serialized["name"] = name
         serialized["prefix"] = form.prefix or ""
@@ -386,6 +388,7 @@ class FormType(NamedTuple):
         )
         serialized["hidden_fields"] = list(hidden_fields.keys())
         serialized["errors"] = form.errors or None
+        value.hidden_fields = original  # type: ignore[method-assign]
         return serialized
 
 
@@ -656,7 +659,7 @@ class UnionType(NamedTuple):
                 tuple,
             ):
                 subtype_class = subtype.__origin__
-            elif type(subtype) == stubs._TypedDictMeta:
+            elif type(subtype) is stubs._TypedDictMeta:
                 subtype_class = dict
                 typed_dicts.append(subschema)
             else:
@@ -1021,7 +1024,7 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
         return Type.get_json_schema(definitions)  # type: ignore[no-any-return]
     elif issubclass(Type, tuple) and callable(getattr(Type, "_asdict", None)):
         return named_tuple_schema(Type, definitions)
-    elif type(Type) == stubs._TypedDictMeta:
+    elif type(Type) is stubs._TypedDictMeta:
         return named_tuple_schema(Type, definitions)
     elif issubclass(Type, datetime.datetime):
         return Thing(schema={"type": "string"}, definitions={})

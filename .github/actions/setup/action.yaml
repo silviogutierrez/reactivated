@@ -37,6 +37,17 @@ runs:
           with:
               path: ${{ steps.npm-cache-dir.outputs.dir }}
               key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        - name: "MacOS python venv issue"
+          # On macOS, the first time you setup venv a really weird issue happens
+          # and site-packages is not in sys.path. I cannot figure out why, no files
+          # or env variables change in between nix-shell runs.
+          if: runner.os == 'macOS'
+          shell: bash
+          run: nix-shell --command ""
         - name: Build
           run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
+          shell: bash
+        - name: Fix greenlet
+          if: runner.os == 'Linux'
+          run: nix-shell --command "pip install greenlet==3.0.3 --no-binary greenlet --force-reinstall"
           shell: bash

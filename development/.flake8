@@ -5,6 +5,9 @@ exclude =
     .venv
     node_modules
 extend-ignore =
-    E501  # Line too long: black handles this.
-    F403  # mypy analyzes undefined names for wildcards.
-    F821  # We use literals inside Pick that get flagged as missing variable/names.
+    # Line too long: black handles this.
+    E501,
+    # mypy analyzes undefined names for wildcards.
+    F403,
+    # We use literals inside Pick that get flagged as missing variable/names.
+    F821

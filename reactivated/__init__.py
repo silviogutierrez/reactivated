@@ -143,6 +143,13 @@ def patched_run(self: Any, **options: Any) -> Any:
     if (os.environ.get("RUN_MAIN") == "true") and os.environ.get(
         "REACTIVATED_SKIP_SERVER"
     ) != "true":
+        original_on_bind = runserver.Command.on_bind
+
+        def on_bind(self: Any, server_port: Any) -> None:
+            original_on_bind(self, int(os.environ["REACTIVATED_VITE_PORT"]))
+
+        runserver.Command.on_bind = on_bind  # type: ignore[method-assign]
+
         inner_process(self)
     else:
         outer_process(self)

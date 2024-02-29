@@ -18,12 +18,15 @@ jobs:
             - uses: ./.github/actions/setup
             - name: Run tests
               run: nix-shell --command "scripts/test.sh"
+            - name: Setup tmate session
+              if: ${{ failure() }}
+              uses: mxschmitt/action-tmate@v3
     integration_tests:
         name: Integration tests
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                os: [macos-11, ubuntu-22.04]
+                os: [macos-13-xlarge, ubuntu-22.04]
         steps:
             - uses: actions/checkout@v3
               with:
@@ -41,11 +44,14 @@ jobs:
                   cd integration
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "python manage.py build"
-                  nix-shell --command "scripts/test.sh"
+                  nix-shell --command "scripts/test.sh --all"
                   nix-shell --command "scripts/remove_example.sh"
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "python manage.py build"
-                  nix-shell --command "scripts/test.sh"
+                  nix-shell --command "scripts/test.sh --all"
+            - name: Setup tmate session
+              if: ${{ failure() }}
+              uses: mxschmitt/action-tmate@v3
     website_tests:
         name: Website tests
         runs-on: ubuntu-22.04
@@ -67,6 +73,9 @@ jobs:
               run: |
                   cd website
                   scripts/deploy.sh --build-only
+            - name: Setup tmate session
+              if: ${{ failure() }}
+              uses: mxschmitt/action-tmate@v3
     docker_tests:
         name: Docker tests
         runs-on: ubuntu-22.04

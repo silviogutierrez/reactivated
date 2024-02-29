@@ -1,14 +1,12 @@
-Django==4.0.1
-psycopg2-binary==2.9.3
-simplejson==3.16.0
-django-stubs==4.2.7
-mypy==1.8.0
+Django==5.0.2
+psycopg[binary]==3.1.18
+flake8==7.0.0
+isort==5.13.2
 black==22.3.0
-isort==5.10.1
+autoflake==2.3.0
+
 pytest==8.0.1
 pytest-django==4.5.2
-flake8==4.0.1
-autoflake==1.4
 types-requests==2.27.12
 
 gunicorn==20.1.0

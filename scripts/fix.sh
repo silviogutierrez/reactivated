@@ -23,7 +23,8 @@ if [ -z "$SPECIFIC_FILE" ]; then
     fi
 
     # Changed files against target branch, but exclude deleted files.
-    CHANGED_FILES=$(git diff --name-only --diff-filter d --relative "$(git merge-base $TARGET_BRANCH HEAD)")
+    target_ref=$(git merge-base "$TARGET_BRANCH" HEAD)
+    CHANGED_FILES=$(git diff --name-only --diff-filter d --relative "$target_ref")
     CHANGED_FILES=${CHANGED_FILES// /}
 elif [ -f "$SPECIFIC_FILE" ]; then
     echo "Specific file run: running against $SPECIFIC_FILE"

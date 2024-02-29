@@ -18,10 +18,12 @@ from typing import (
     overload,
 )
 
+import simplejson
 from django import forms
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.urls import URLPattern, path
+from django.utils.html import escape
 
 from . import registry
 from .forms import FormGroup as FormGroup
@@ -403,6 +405,11 @@ class RPC(Generic[THttpRequest]):
                 return JsonResponse(authentication_check.name, status=403, safe=False)
 
             request = authentication_check
+            post_data, is_post, is_debug = (
+                (request.GET, settings.DEBUG is True, True)
+                if request.GET.get("method") == "POST"
+                else (request.POST, request.method == "POST", False)
+            )
 
             if not is_empty_form:
                 form_type_hints = get_type_hints(form_class.__init__)
@@ -415,13 +422,13 @@ class RPC(Generic[THttpRequest]):
                 form = form_class(
                     # Some forms use positional arguments, like AuthenticationForm so
                     # we can't assume the first argument is the POST data.
-                    data=request.POST if request.method == "POST" else None,
+                    data=post_data if is_post else None,
                     **form_kwargs,  # type: ignore
                 )
             else:
                 form = EmptyForm(data={})
 
-            if request.method == "POST":
+            if is_post is True:
                 if form.is_valid():
                     try:
                         response = view(request, **kwargs, form=form)  # type: ignore[call-arg]
@@ -440,7 +447,13 @@ class RPC(Generic[THttpRequest]):
                             )
                     data = serialize(response, return_schema)
 
-                    return JsonResponse(data, safe=False)
+                    if is_debug:
+                        data = simplejson.dumps(data, indent=4)
+                        return HttpResponse(
+                            f"<html><body><h1>Debug response</h1><pre>{escape(data)}</pre></body></html>"
+                        )
+                    else:
+                        return JsonResponse(data, safe=False)
                 else:
                     # TODO: this should be code + message, not just messages.
                     # But types will then need to be updated.

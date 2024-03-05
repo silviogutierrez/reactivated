@@ -13,18 +13,18 @@ from django.conf import settings
 from django.http import HttpRequest
 from django.utils.html import escape
 
-renderer_process_port: Optional[str] = None
+renderer_process_addr: Optional[str] = None
 logger = logging.getLogger("django.server")
 
 
-def wait_and_get_port() -> str:
+def wait_and_get_addr() -> str:
     if renderer := os.environ.get("REACTIVATED_RENDERER", None):
         return renderer
 
-    global renderer_process_port
+    global renderer_process_addr
 
-    if renderer_process_port is not None:
-        return renderer_process_port
+    if renderer_process_addr is not None:
+        return renderer_process_addr
 
     renderer_process = subprocess.Popen(
         [
@@ -44,8 +44,8 @@ def wait_and_get_port() -> str:
         output += c
 
         if matches := re.findall(r"RENDERER:(.*?):LISTENING", output):
-            renderer_process_port = matches[0].strip()
-            return renderer_process_port
+            renderer_process_addr = matches[0].strip()
+            return renderer_process_addr
     assert False, "Could not bind to renderer"
 
 
@@ -88,21 +88,23 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
         request._is_reactivated_response = True  # type: ignore[attr-defined]
         return data
 
-    renderer_port = wait_and_get_port()
+    address = wait_and_get_addr()
+    path = "/_reactivated/"
 
-    if "sock" in renderer_port:
+    if "sock" in address:
         # Sometimes we are running tests and the CWD is outside BASE_DIR.  For
         # example, the reactivated tests themselves.  Instead of using BASE_DIR as
         # the prefix, we calculate the relative path to avoid the 100 character
         # UNIX socket limit.
         # But dots do not work for relative paths with sockets so we clear it.
         rel_path = os.path.relpath(settings.BASE_DIR)
-        address = renderer_port if rel_path == "." else f"{rel_path}/{renderer_port}"
+        address = address if rel_path == "." else os.path.join(rel_path, address)
         socket = urllib.parse.quote_plus(address)
-        response = session.post(f"http+unix://{socket}", headers=headers, data=data)
+        response = session.post(
+            f"http+unix://{socket}{path}", headers=headers, data=data
+        )
     else:
-        address = renderer_port
-        response = session.post(f"{address}/_reactivated/", headers=headers, data=data)
+        response = session.post(f"{address}{path}", headers=headers, data=data)
 
     if response.status_code == 200:
         return response.text  # type: ignore[no-any-return]

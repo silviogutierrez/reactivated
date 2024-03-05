@@ -1,6 +1,8 @@
 import React from "react";
 import express from "express";
-import path from "path";
+import path from "node:path";
+import http from "node:http";
+import os from "node:os";
 import react from "@vitejs/plugin-react";
 import ReactDOMServer from "react-dom/server";
 import {render} from "./render.mjs";
@@ -12,7 +14,7 @@ import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 import {Provider, getTemplate} from "@reactivated";
 
 const isProduction = process.env.NODE_ENV === "production";
-const port = process.env.REACTIVATED_VITE_PORT || 5173;
+const socketPath = path.join(os.tmpdir(), `reactivated.${process.pid}.sock`);
 const base = process.env.BASE || "/";
 const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const reactivatedEndpoint = "/_reactivated/".replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -31,6 +33,11 @@ app.use("/_reactivated/", async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    process.stdout.write(`RENDERER:http://localhost:${port}:LISTENING`);
+const server = http.createServer(app);
+server.listen(socketPath, () => {
+    process.stdout.write(`RENDERER:${socketPath}:LISTENING`);
+});
+
+process.on("SIGTERM", () => {
+    server.close();
 });

@@ -19,6 +19,7 @@ import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 
 const isProduction = process.env.NODE_ENV === "production";
 const port = process.env.REACTIVATED_VITE_PORT ?? 5173;
+const hmrPort = process.env.REACTIVATED_VITE_HMR_PORT ?? undefined;
 const base = process.env.BASE ?? "/";
 const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const reactivatedEndpoint = "/_reactivated/".replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -43,6 +44,9 @@ const rendererConfig: InlineConfig = {
             [`^(?!${escapedBase}|${reactivatedEndpoint}).*`]: {
                 target: `http://127.0.0.1:${process.env.REACTIVATED_DJANGO_PORT}/`,
             },
+        },
+        hmr: {
+            port: hmrPort ? parseInt(hmrPort) : undefined,
         },
     },
     define: define(),

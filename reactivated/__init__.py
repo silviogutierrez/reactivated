@@ -64,6 +64,13 @@ def terminate_proc(proc: subprocess.Popen[Any]) -> None:
 original_run = runserver.Command.run
 
 
+def get_free_port() -> int:
+    sock = socket.socket()
+    sock.bind(("", 0))
+    free_port = sock.getsockname()[1]
+    return free_port  # type: ignore[no-any-return]
+
+
 def outer_process(cmd: Any) -> None:
     from .apps import generate_schema, get_schema
 
@@ -71,10 +78,7 @@ def outer_process(cmd: Any) -> None:
         os.environ["REACTIVATED_SKIP_SERVER"] = "true"
         return
 
-    sock = socket.socket()
-    sock.bind(("", 0))
-    free_port = sock.getsockname()[1]
-    sock.close()
+    free_port = get_free_port()
     original_port = cmd.port
 
     # Lie to the terminal when logging the port we bound to, so the user still
@@ -87,6 +91,7 @@ def outer_process(cmd: Any) -> None:
 
     os.environ["REACTIVATED_VITE_PORT"] = original_port
     os.environ["REACTIVATED_DJANGO_PORT"] = str(free_port)
+    os.environ["REACTIVATED_VITE_HMR_PORT"] = str(get_free_port())
 
     schema = get_schema()
     generate_schema(schema)

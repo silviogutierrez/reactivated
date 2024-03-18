@@ -19,12 +19,17 @@ import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 
 const isProduction = process.env.NODE_ENV === "production";
 const port = process.env.REACTIVATED_VITE_PORT ?? 5173;
-const hmrPort = process.env.REACTIVATED_VITE_HMR_PORT ?? undefined;
 const base = process.env.BASE ?? "/";
 const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const reactivatedEndpoint = "/_reactivated/".replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const app = express();
+
+// Server goes first so we can pass it to HMR / Vite.
+// Not sure if there are race conditions here but I doubt it.
+const server = app.listen(port, () => {
+    console.log("Reactivated vite process started\n");
+});
 const {createServer} = await import("vite");
 
 const rendererConfig: InlineConfig = {
@@ -46,7 +51,7 @@ const rendererConfig: InlineConfig = {
             },
         },
         hmr: {
-            port: hmrPort ? parseInt(hmrPort) : undefined,
+            server,
         },
     },
     define: define(),
@@ -96,8 +101,4 @@ app.use("/_reactivated/", async (req, res) => {
         console.error(error);
         res.status(500).json({error: {}});
     }
-});
-
-app.listen(port, () => {
-    console.log("Reactivated vite process started\n");
 });

@@ -91,7 +91,6 @@ def outer_process(cmd: Any) -> None:
 
     os.environ["REACTIVATED_VITE_PORT"] = original_port
     os.environ["REACTIVATED_DJANGO_PORT"] = str(free_port)
-    os.environ["REACTIVATED_VITE_HMR_PORT"] = str(get_free_port())
 
     schema = get_schema()
     generate_schema(schema)

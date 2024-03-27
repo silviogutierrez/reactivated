@@ -10,7 +10,6 @@ ENV USER=guest
 RUN curl -L https://nixos.org/nix/install | sh
 
 ENV PATH="/home/guest/.nix-profile/bin:/reactivated/scripts/:${PATH}"
-ENV REACTIVATED_SOCKET=/tmp/reactivated.sock
 ENV TMPDIR=/tmp
 
 COPY --chown=guest package.json /reactivated/package.json

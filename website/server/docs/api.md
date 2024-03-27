@@ -287,7 +287,7 @@ Just like `useForm`, `useFormSet` exposes the values of each form under `values`
 
 Yes, it's magic. You can use `reverse` just like you can in your Django code.
 
-All your named views will be there with full static types.
+All your **named** views will be there with full static types.
 
 Take the following `urls.py` file:
 

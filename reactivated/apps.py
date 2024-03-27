@@ -46,6 +46,9 @@ def get_urls_schema() -> Dict[str, Any]:
     for _, regex, name, pattern in urls:
         if not isinstance(pattern, RoutePattern):
             continue
+        if not name:
+            continue
+
         reverse[name or regex] = {
             "route": f"/{regex}",
             "args": {

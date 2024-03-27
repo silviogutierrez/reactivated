@@ -8,10 +8,10 @@ other packages.
 
 ## Requirements
 
--   Python 3.9
+-   Python 3.11
 -   Node.js 18
 -   PostgreSQL 10 or higher
--   Django 4.0
+-   Django 4.3
 
 Make sure the `python` and `node` executables are available in your `PATH`. Reactivated
 will invoke them as needed.
@@ -31,6 +31,9 @@ _must_ be inside your `BASE_DIR` and siblings of `manage.py`.
 Run `npm install reactivated` and `pip install reactivated` to download the required
 packages. Make sure the versions of these packages always match. They are published at
 the same time.
+
+> **Warning**: Ensure your `package.json` file has a `name` field, otherwise the build
+> process wil fail.
 
 ## Server Setup
 
@@ -84,6 +87,7 @@ Next to `manage.py` in `BASE_DIR`, create the following structure:
 ```
 -   BASE_DIR
     -   manage.py
+    -   package.json
     -   tsconfig.json
     -   client
         -   index.tsx
@@ -119,22 +123,24 @@ And the following code to `client/index.tsx`:
 
 ```typescript
 import React from "react";
-import {hydrate} from "react-dom";
+import ReactDOM from "react-dom/client";
+import {createRoot} from "react-dom/client";
 
-import {Provider, getServerData, getTemplate} from "@reactivated";
+import {Provider, getTemplate, getServerData} from "@reactivated";
 import {HelmetProvider} from "react-helmet-async";
 
 const {props, context} = getServerData();
+const Template = await getTemplate(context);
 
-const Template = getTemplate(context);
-
-hydrate(
-    <HelmetProvider>
-        <Provider value={context}>
-            <Template {...props} />
-        </Provider>
-    </HelmetProvider>,
-    document.getElementById("root"),
+ReactDOM.hydrateRoot(
+    document.getElementById("root") as HTMLElement,
+    <React.StrictMode>
+        <HelmetProvider>
+            <Provider value={context}>
+                <Template {...props} />
+            </Provider>
+        </HelmetProvider>
+    </React.StrictMode>,
 );
 ```
 
@@ -144,9 +150,3 @@ That completes the setup. You can now run `python manage.py runserver` to start 
 
 -   Review the [API](/documentation/api/) and create your first `template`.
 -   Create a `client/components/Layout.tsx` component that your templates can reference.
-    Be sure to include links using `Helmet` to your bundled files.
-
-    For your styles:  
-    `` <link rel="stylesheet" type="text/css" href={`${context.STATIC_URL}dist/index.css`} /> ``  
-    For your code:  
-    `` <script defer crossOrigin="anonymous" src={`${context.STATIC_URL}dist/index.js`} /> ``.

@@ -4,8 +4,10 @@ import subprocess
 from pathlib import Path
 from unittest import mock
 
+import pytest
 from django.conf import settings
 from django.core.management import call_command
+from django.urls import path
 
 from reactivated import registry
 
@@ -87,6 +89,57 @@ def test_default_widget(tmp_path):
         tsc_output, tsc_error = tsc_process.communicate()
         assert tsc_process.returncode == 0
     tsconfig.unlink()
+
+
+urlpatterns = [
+    path("", lambda request: HttpResponse("ok")),
+]
+
+
+@pytest.mark.urls("tests.e2e")
+def test_unnamed_urls(tmp_path):
+    from sample.server.apps.samples.templates import HelloWorld
+
+    registry.type_registry.clear()
+    registry.global_types.clear()
+    registry.global_types["Widget"] = registry.DefaultWidgetType
+    registry.global_types["models"] = registry.DefaultModelsType
+    registry.template_registry.clear()
+    registry.interface_registry.clear()
+    registry.value_registry.clear()
+    registry.definitions_registry.clear()
+    registry.rpc_registry.clear()
+
+    tsconfig = Path(settings.BASE_DIR) / "tsconfig.pytest.json"
+    tsconfig.write_text(
+        json.dumps(
+            {
+                "extends": "./tsconfig.json",
+                "include": [
+                    "./client/templates/HelloWorld.tsx",
+                ],
+            }
+        )
+    )
+
+    HelloWorld.register()
+    call_command("generate_client_assets")
+    assert registry.global_types["Widget"] is registry.DefaultWidgetType
+    tsc_process = subprocess.Popen(
+        [
+            "npm",
+            "exec",
+            "tsc",
+            "--",
+            "--noEmit",
+            "--project",
+            tsconfig,
+        ],
+        stdout=subprocess.PIPE,
+        cwd=settings.BASE_DIR,
+    )
+    tsc_output, tsc_error = tsc_process.communicate()
+    assert tsc_process.returncode == 0
 
 
 def test_no_urls(tmp_path):

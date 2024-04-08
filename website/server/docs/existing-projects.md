@@ -39,6 +39,14 @@ the same time.
 
 In your Django settings, add `reactivated` to the _end_ of `INSTALLED_APPS`.
 
+At the very top of your `settings.py` file, also add:
+
+```python
+import django_stubs_ext
+
+django_stubs_ext.monkeypatch()
+```
+
 Configure your `STATIC_DIRS` to include a `static` folder inside `BASE_DIR`. Assuming
 you have no other directories listed, you can just add this to your settings:
 
@@ -102,8 +110,9 @@ Add the following code to `tsconfig.json`:
         "strict": true,
         "sourceMap": true,
         "noEmit": true,
-        "module": "commonjs",
-        "target": "es6",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "target": "es2017",
         "esModuleInterop": true,
         "allowJs": true,
         "jsx": "react",

@@ -39,6 +39,14 @@ the same time.
 
 In your Django settings, add `reactivated` to the _end_ of `INSTALLED_APPS`.
 
+At the very top of your `settings.py` file, also add:
+
+```python
+import django_stubs_ext
+
+django_stubs_ext.monkeypatch()
+```
+
 Configure your `STATIC_DIRS` to include a `static` folder inside `BASE_DIR`. Assuming
 you have no other directories listed, you can just add this to your settings:
 

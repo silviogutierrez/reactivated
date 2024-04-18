@@ -17,6 +17,10 @@ renderer_process_addr: Optional[str] = None
 logger = logging.getLogger("django.server")
 
 
+class SSRError(RuntimeError):
+    pass
+
+
 def wait_and_get_addr() -> str:
     if renderer := os.environ.get("REACTIVATED_RENDERER", None):
         return renderer
@@ -114,4 +118,8 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
         except requests.JSONDecodeError:  # type: ignore[attr-defined]
             raise Exception(response.content)
         else:
-            raise Exception(error["stack"])
+            err_details = error.get("error", {})
+            exc = SSRError(err_details.get("message") or "")
+            stack = err_details.get("stack") or ""
+            exc.add_note(f"Client Stack:\n{stack}")
+            raise exc

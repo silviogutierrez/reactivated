@@ -5,6 +5,7 @@ import http from "node:http";
 import os from "node:os";
 import react from "@vitejs/plugin-react";
 import ReactDOMServer from "react-dom/server";
+import {SSRErrorResponse, serializeError} from "./errors.js";
 import {render} from "./render.mjs";
 
 import {Helmet, HelmetProvider, HelmetServerState} from "react-helmet-async";
@@ -29,7 +30,10 @@ app.use("/_reactivated/", async (req, res) => {
         const rendered = await render(req, "", "production", "index");
         res.status(200).set({"Content-Type": "text/html"}).end(rendered);
     } catch (error) {
-        res.status(500).json({error: {}});
+        const errResp: SSRErrorResponse = {
+            error: serializeError(error as any),
+        };
+        res.status(500).json(errResp);
     }
 });
 

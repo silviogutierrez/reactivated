@@ -6,6 +6,7 @@ import path from "path";
 import react from "@vitejs/plugin-react";
 import ReactDOMServer from "react-dom/server";
 import {define} from "./conf.js";
+import {SSRErrorResponse, serializeError} from "./errors.js";
 import type {render as renderType} from "./render.mjs";
 import type {Options} from "./conf";
 import type {RendererConfig} from "./build.client.mjs";
@@ -98,7 +99,9 @@ app.use("/_reactivated/", async (req, res) => {
         res.status(200).set({"Content-Type": "text/html"}).end(rendered);
     } catch (error) {
         vite.ssrFixStacktrace(error as any);
-        console.error(error);
-        res.status(500).json({error: {}});
+        const errResp: SSRErrorResponse = {
+            error: serializeError(error as any),
+        };
+        res.status(500).json(errResp);
     }
 });

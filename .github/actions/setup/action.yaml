@@ -51,3 +51,6 @@ runs:
           if: runner.os == 'Linux'
           run: nix-shell --command "pip install greenlet==3.0.3 --no-binary greenlet --force-reinstall"
           shell: bash
+        - name: Setup tmate session
+          if: runner.os == 'macOS'
+          uses: mxschmitt/action-tmate@v3

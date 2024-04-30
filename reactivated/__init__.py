@@ -15,6 +15,7 @@ from typing import (
     Mapping,
     NamedTuple,
     Optional,
+    Protocol,
     Sequence,
     Tuple,
     Type,
@@ -64,6 +65,23 @@ def terminate_proc(proc: subprocess.Popen[Any]) -> None:
 original_run = runserver.Command.run
 
 
+generate_callbacks: List[Any] = []
+
+
+class GenerateFunction(Protocol):
+    def __call__(self, *, skip_cache: bool = False) -> None:
+        ...
+
+
+def generate(function: GenerateFunction) -> None:
+    generate_callbacks.append(function)
+
+
+def run_generations(skip_cache: bool = False) -> None:
+    for generate_callback in generate_callbacks:
+        generate_callback()
+
+
 def get_free_port() -> int:
     sock = socket.socket()
     sock.bind(("", 0))
@@ -72,8 +90,6 @@ def get_free_port() -> int:
 
 
 def outer_process(cmd: Any) -> None:
-    from .apps import generate_schema, get_schema
-
     if os.environ.get("REACTIVATED_RENDERER") is not None:
         os.environ["REACTIVATED_SKIP_SERVER"] = "true"
         return
@@ -92,8 +108,7 @@ def outer_process(cmd: Any) -> None:
     os.environ["REACTIVATED_VITE_PORT"] = original_port
     os.environ["REACTIVATED_DJANGO_PORT"] = str(free_port)
 
-    schema = get_schema()
-    generate_schema(schema)
+    run_generations()
 
     vite_process = subprocess.Popen(
         ["npm", "exec", "start_vite"],
@@ -126,8 +141,6 @@ def outer_process(cmd: Any) -> None:
 
 
 def inner_process(cmd: Any) -> None:
-    from .apps import generate_schema, get_schema
-
     # Inner process still needs this rebound for Django's built in runserver
     # though maybe not for django_extensions runserver_plus
     free_port = os.environ["REACTIVATED_DJANGO_PORT"]
@@ -139,8 +152,7 @@ def inner_process(cmd: Any) -> None:
 
     cmd.port = LyingPort(free_port)
 
-    schema = get_schema()
-    generate_schema(schema)
+    run_generations()
 
 
 def patched_run(self: Any, **options: Any) -> Any:

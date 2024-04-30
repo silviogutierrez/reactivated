@@ -8,7 +8,7 @@ from typing import Any, Dict, NamedTuple, Tuple, Type
 from django.apps import AppConfig
 from django.conf import settings
 
-from . import extract_views_from_urlpatterns, types
+from . import extract_views_from_urlpatterns, generate, types
 from .serialization import create_schema, serialize
 from .serialization.registry import (
     definitions_registry,
@@ -169,7 +169,10 @@ class ReactivatedConfig(AppConfig):
         from .serialization import widgets  # noqa
 
 
-def generate_schema(schema: str, skip_cache: bool = False) -> None:
+@generate
+def generate_schema(skip_cache: bool = False) -> None:
+    schema = get_schema()
+
     """
     For development usage only, this requires Node and Python installed
 

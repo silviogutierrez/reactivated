@@ -8,6 +8,7 @@ cd "$SCRIPT_PATH/../"
 rm -rf template
 mkdir template
 rsync -a --filter=':- .gitignore' ../../development/ template/
+ln -s localhost.py template/settings/__init__.py
 cp ../../requirements.nix template
 sed -i s#../requirements#./requirements# template/shell.nix
 sed -i s#../node_modules#./node_modules# template/.eslintrc.json

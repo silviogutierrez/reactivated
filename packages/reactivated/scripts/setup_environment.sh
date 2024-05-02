@@ -33,6 +33,13 @@ fi
 
 if [ ! -d "$POSTGRESQL_DATA" ]; then
     initdb "$POSTGRESQL_DATA"
+
+    if [ -f "$EXTERNAL_PID" ]; then
+        pid_to_kill=$(cat "$EXTERNAL_PID")
+        kill -9 "$pid_to_kill" &>/dev/null || echo "No PostgresSQL process to kill"
+    fi
+
+    rm -rf "$TMP_ENV"
     NEED_DATABASE=true
 fi
 

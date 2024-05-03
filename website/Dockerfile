@@ -69,7 +69,7 @@ COPY --from=builder /app/collected collected
 ENV PYTHONUNBUFFERED 1
 ENV PATH="/app/.venv/bin:$PATH"
 ENV ENVIRONMENT=production
-RUN rm server/settings/__init__.py && echo 'export DJANGO_SETTINGS_MODULE=server.settings.$ENVIRONMENT' > /etc/profile
+RUN rm -f server/settings/__init__.py && echo 'export DJANGO_SETTINGS_MODULE=server.settings.$ENVIRONMENT' > /etc/profile
 ENTRYPOINT ["/bin/sh", "-lc"]
 # SSH commands are weird with fly for now, so we use this dirty script at the root level.
 RUN echo "source /etc/profile; cd /app; python manage.py migrate" > /migrate.sh && chmod +x /migrate.sh

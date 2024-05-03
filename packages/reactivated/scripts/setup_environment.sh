@@ -20,6 +20,13 @@ export PGDATABASE="database"
 export PGHOST=$TMP_ENV
 EXTERNAL_PID="$TMP_ENV/postmaster.pid"
 
+settings_file="server/settings/__init__.py"
+
+# Temporary fix with Nix issues.
+if [ ! -f "$settings_file" ]; then
+    ln -s localhost.py "$settings_file"
+fi
+
 if [ ! -d "$VIRTUAL_ENV" ]; then
     if [ -f "$EXTERNAL_PID" ]; then
         kill -9 "$(cat "$EXTERNAL_PID")"

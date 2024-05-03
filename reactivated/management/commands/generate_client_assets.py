@@ -3,7 +3,7 @@ from typing import Any
 
 from django.core.management.base import BaseCommand
 
-from ...apps import generate_schema, get_schema
+from ... import run_generations
 
 
 class Command(BaseCommand):
@@ -18,6 +18,4 @@ class Command(BaseCommand):
 
     def handle(self, *args: Any, **options: Any) -> None:
         skip_cache: bool = options.get("cached", True)
-
-        schema = get_schema()
-        generate_schema(schema=schema, skip_cache=skip_cache)
+        run_generations(skip_cache)

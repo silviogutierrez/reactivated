@@ -126,5 +126,4 @@ if (watch == null) {
     });
     await fs.unlink("./node_modules/_reactivated/renderer.mjs");
     await fs.unlink("./node_modules/_reactivated/renderer.mjs.map");
-    //# sourceMappingURL=build.client.mjs.map
 }

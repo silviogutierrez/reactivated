@@ -1,33 +1,36 @@
 #!/usr/bin/env node
 
 import react from "@vitejs/plugin-react";
-import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin";
-import { build } from "vite";
-import { builtinModules } from "node:module";
-import { execSync } from 'child_process';
+import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
+import {InlineConfig, build} from "vite";
+import {builtinModules} from "node:module";
+import {execSync} from "child_process";
 import path from "path";
-import { existsSync, mkdirSync, rmSync } from 'fs';
-import { define } from "./conf.js";
+import {existsSync, mkdirSync, rmSync} from "fs";
+import {define, Options} from "./conf.js";
 import * as esbuild from "esbuild";
-import { promises as fs } from "fs";
+import {promises as fs} from "fs";
 
 const REACTIVATED_WATCH = "REACTIVATED_WATCH" in process.env;
 
-const {minify, mode, watch} = REACTIVATED_WATCH == true ? {minify: false, watch: {}, mode: "development"} : {minify: true, watch: undefined, mode: "production"};
+const {minify, mode, watch} =
+    REACTIVATED_WATCH == true
+        ? {minify: false, watch: {}, mode: "development"}
+        : {minify: true, watch: undefined, mode: "production"};
 
 export default function capacitorPlugin() {
-  return {
-    name: 'capacitor-plugin',
+    return {
+        name: "capacitor-plugin",
 
-    writeBundle(a, b, c) {
-        const sourcePath = "static";
-        const targetPath = "capacitor/ios/App/App/public/static";
+        writeBundle() {
+            const sourcePath = "static";
+            const targetPath = "capacitor/ios/App/App/public/static";
 
-        rmSync(targetPath, { force: true, recursive: true });
-        execSync(`cp -R ${sourcePath} ${targetPath}`);
-        console.log("Capacitor files copied")
-    },
-  }
+            rmSync(targetPath, {force: true, recursive: true});
+            execSync(`cp -R ${sourcePath} ${targetPath}`);
+            console.log("Capacitor files copied");
+        },
+    };
 }
 
 const base = process.env.BASE ?? "/";
@@ -54,7 +57,7 @@ const clientConfig = {
             },
         },
     },
-    plugins: [capacitorPlugin(), react(), vanillaExtractPlugin({ identifiers })],
+    plugins: [capacitorPlugin(), react(), vanillaExtractPlugin({identifiers})],
     resolve: {
         alias: {
             "@client": path.resolve(process.cwd(), "./client"),

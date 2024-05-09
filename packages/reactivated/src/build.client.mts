@@ -23,6 +23,10 @@ export default function capacitorPlugin() {
         name: "capacitor-plugin",
 
         writeBundle() {
+            if (watch == null) {
+                return;
+            }
+
             const sourcePath = "static";
             const targetPath = "capacitor/ios/App/App/public/static";
 

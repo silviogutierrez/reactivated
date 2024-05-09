@@ -49,9 +49,6 @@ jobs:
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "python manage.py build"
                   nix-shell --command "scripts/test.sh --all"
-            - name: Setup tmate session
-              if: ${{ failure() }}
-              uses: mxschmitt/action-tmate@v3
     website_tests:
         name: Website tests
         runs-on: ubuntu-22.04
@@ -73,9 +70,6 @@ jobs:
               run: |
                   cd website
                   scripts/deploy.sh --build-only
-            - name: Setup tmate session
-              if: ${{ failure() }}
-              uses: mxschmitt/action-tmate@v3
     docker_tests:
         name: Docker tests
         runs-on: ubuntu-22.04

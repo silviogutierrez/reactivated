@@ -22,6 +22,7 @@ from django import forms as django_forms
 from django.conf import settings
 from django.db import models
 from django.forms.models import ModelChoiceIteratorValue
+from django.utils.functional import LazyObject
 from django.utils.module_loading import import_string
 
 from reactivated import fields, stubs, utils
@@ -1134,6 +1135,10 @@ def serialize(
 ) -> JSON:
     if value is None:
         return None
+
+    # If value is a lazy object, resolve it before continuing.
+    if isinstance(value, LazyObject):
+        value = value.__reduce__()[1][0]
 
     serializer: Serializer
     serializer_path = schema.schema.get("serializer", None)

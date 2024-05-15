@@ -23,6 +23,7 @@ from django.apps.registry import Apps
 from django.db import models as django_models
 from django.db.models import IntegerField, Model, UUIDField
 from django.forms.models import ModelChoiceIteratorValue
+from django.utils.functional import SimpleLazyObject
 from django.utils.translation import gettext, gettext_lazy
 from jsonschema import validate
 
@@ -243,6 +244,12 @@ def test_serialization():
     }
 
     convert_to_json_and_validate(serialized, generated_schema)
+
+
+def test_serialize_lazy_object(snapshot):
+    schema = create_schema(str, {})
+    assert serialize(SimpleLazyObject(lambda: "hello"), schema) == "hello"
+    assert schema == snapshot
 
 
 @pytest.mark.skip
@@ -608,6 +615,7 @@ def test_simple_union(snapshot):
     assert serialize(["1", "2", "3"], schema) == ["1", "2", "3"]
     assert serialize((5, "hello"), schema) == [5, "hello"]
     assert serialize(True, schema) is True
+    assert serialize(SimpleLazyObject(lambda: "hello"), schema) == "hello"
     assert schema == snapshot
 
 

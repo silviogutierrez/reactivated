@@ -58,7 +58,7 @@
         "react-helmet-async": "^2.0.4",
         "terser": "^5.10.0",
         "ts-morph": "^18.0.0",
-        "typescript": "^5.0.4",
+        "typescript": "^5.5.2",
         "vite": "^5.0.12",
         "vite-plugin-cjs-interop": "^2.0.5"
     }

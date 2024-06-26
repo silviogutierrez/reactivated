@@ -13,7 +13,7 @@ jsonschema==3.1.1
 pytest==8.0.1
 pytest-django==4.5.2
 pytest-mypy-plugins==3.0.0
-twine==2.0.0
+twine==5.0.0
 
 playwright==1.41.2
 pytest-playwright==0.2.2

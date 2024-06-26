@@ -1,6 +1,6 @@
 {
     "name": "create-django-app",
-    "version": "0.41.2",
+    "version": "0.42.0",
     "main": "index.js",
     "repository": "https://github.com/silviogutierrez/reactivated/",
     "author": "Silvio J. Gutierrez",

@@ -8,7 +8,6 @@ autoflake==2.3.0
 Werkzeug==3.0.1
 django-extensions==3.2.3
 djangorestframework==3.14.0
-django-stubs==4.2.7
 
 jsonschema==3.1.1
 pytest==8.0.1

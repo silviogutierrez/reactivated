@@ -2,7 +2,7 @@ name: "Setup"
 runs:
     using: "composite"
     steps:
-        - uses: cachix/install-nix-action@v22
+        - uses: cachix/install-nix-action@v26
           with:
               nix_path: nixpkgs=channel:nixos-unstable
         - name: Cache .venv
@@ -51,3 +51,6 @@ runs:
           if: runner.os == 'Linux'
           run: nix-shell --command "pip install greenlet==3.0.3 --no-binary greenlet --force-reinstall"
           shell: bash
+        - name: Setup tmate session
+          if: runner.os == 'macOS'
+          uses: mxschmitt/action-tmate@v3

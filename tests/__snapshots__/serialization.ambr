@@ -731,6 +731,39 @@
     }),
   })
 # ---
+# name: test_null_one_to_one_field
+  dict({
+    'test_null_one_to_one_field.<locals>.Brother_56906733d0': dict({
+      'additionalProperties': False,
+      'properties': dict({
+        'sister': dict({
+          'anyOf': list([
+            dict({
+              'additionalProperties': False,
+              'properties': dict({
+                'id': dict({
+                  'type': 'number',
+                }),
+              }),
+              'required': list([
+                'id',
+              ]),
+              'type': 'object',
+            }),
+            dict({
+              'type': 'null',
+            }),
+          ]),
+        }),
+      }),
+      'required': list([
+        'sister',
+      ]),
+      'title': 'test_null_one_to_one_field.<locals>.Brother_56906733d0',
+      'type': 'object',
+    }),
+  })
+# ---
 # name: test_override_pick_types
   dict({
     'additionalProperties': False,

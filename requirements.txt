@@ -4,6 +4,7 @@ flake8==7.0.0
 isort==5.13.2
 black==22.3.0
 autoflake==2.3.0
+django-stubs==5.0.2
 
 Werkzeug==3.0.1
 django-extensions==3.2.3

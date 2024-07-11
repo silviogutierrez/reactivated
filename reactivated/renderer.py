@@ -7,7 +7,7 @@ import urllib.parse
 from typing import Any, List, Optional
 
 import requests
-import requests_unixsocket  # type: ignore[import-untyped]
+import requests_unixsocket
 import simplejson
 from django.conf import settings
 from django.http import HttpRequest
@@ -72,7 +72,7 @@ def should_respond_with_json(request: HttpRequest) -> bool:
     )
 
 
-session = requests_unixsocket.Session()
+session = requests_unixsocket.Session()  # type: ignore[no-untyped-call]
 
 
 def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
@@ -111,7 +111,7 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
         response = session.post(f"{address}{path}", headers=headers, data=data)
 
     if response.status_code == 200:
-        return response.text  # type: ignore[no-any-return]
+        return response.text
     else:
         try:
             error = response.json()

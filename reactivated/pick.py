@@ -130,7 +130,7 @@ def get_field_descriptor(
             ), f"Do not specify related fields directly for model {model_class} in {pick_name}. Use {field_name}_id if you just want the reference or {field_name}.subfield if you want fields inside the related model"
 
         nested_descriptor, nested_field_names = get_field_descriptor(
-            pick_name, field_descriptor.descriptor.related_model, remaining  # type: ignore[arg-type]
+            pick_name, field_descriptor.annotation or field_descriptor.descriptor.related_model, remaining  # type: ignore[arg-type]
         )
 
         # TODO: Maybe RelatedField replaces all of the above?
@@ -144,9 +144,14 @@ def get_field_descriptor(
             )
         ) or field_descriptor.descriptor.many_to_many is True
 
-        # Note: OneToOneRel, like EmailUser.profile could technically be null, but that usually throws an attribute error or is unlikely.
-        # So we don't count it as null.
+        # Note: OneToOneRel, like EmailUser.profile could technically be null.
+        # In Django world, it throws an exception.  But when serializing, we
+        # always assume null unless manually annotated say, for user profile
+        # because we always know it's not null.
         is_null = (
+            isinstance(field_descriptor.descriptor, models.OneToOneRel)
+            and field_descriptor.annotation is None
+        ) or (
             isinstance(
                 field_descriptor.descriptor, (models.ForeignKey, ComputedRelation)
             )

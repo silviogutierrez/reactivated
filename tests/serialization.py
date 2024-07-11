@@ -754,3 +754,32 @@ def test_nested_null_foreign_keys(settings, snapshot):
     )
 
     assert schema.definitions == snapshot
+
+
+def test_null_one_to_one_field(settings, snapshot):
+    settings.INSTALLED_APPS = ["tests.serialization"]
+    test_apps = Apps(settings.INSTALLED_APPS)
+
+    class Brother(django_models.Model):
+        class Meta:
+            apps = test_apps
+
+    class Sister(django_models.Model):
+        brother = django_models.OneToOneField(
+            Brother,
+            related_name="sister",
+            on_delete=django_models.DO_NOTHING,
+        )
+
+        class Meta:
+            apps = test_apps
+
+    schema = create_schema(
+        Pick[
+            Brother,
+            "sister.id",
+        ],
+        {},
+    )
+
+    assert schema.definitions == snapshot

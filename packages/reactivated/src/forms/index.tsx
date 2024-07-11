@@ -63,8 +63,8 @@ export type FormValues<T extends FieldMap> = {
     [K in keyof T]: T[K] extends {enum: unknown}
         ? T[K]["enum"] | null
         : T[K]["widget"] extends {_reactivated_value_do_not_use?: unknown}
-        ? NonNullable<T[K]["widget"]["_reactivated_value_do_not_use"]>
-        : T[K]["widget"]["value"];
+          ? NonNullable<T[K]["widget"]["_reactivated_value_do_not_use"]>
+          : T[K]["widget"]["value"];
 };
 
 export interface FormHandler<T extends FieldMap> {
@@ -374,8 +374,8 @@ export type CreateFieldHandler<T> = T extends {
 }
     ? SubwidgetHandler<T, U>
     : T extends WidgetLike
-    ? WidgetHandler<T>
-    : never;
+      ? WidgetHandler<T>
+      : never;
 
 export interface SubwidgetHandler<T extends {tag: string; name: string}, U> {
     tag: T["tag"];
@@ -848,22 +848,22 @@ export type UnknownFormValues<T extends FieldMap> = {
 export type FormOrFormSetValues<T> = T extends {tag: "FormGroup"}
     ? Omit<{[K in keyof T]: FormOrFormSetValues<T[K]>}, "tag">
     : T extends FormLike<any>
-    ? UnknownFormValues<T["fields"]>
-    : T extends FormSetLike<any>
-    ? Array<UnknownFormValues<T["empty_form"]["fields"]>>
-    : T extends null
-    ? null
-    : never;
+      ? UnknownFormValues<T["fields"]>
+      : T extends FormSetLike<any>
+        ? Array<UnknownFormValues<T["empty_form"]["fields"]>>
+        : T extends null
+          ? null
+          : never;
 
 export type FormOrFormSetErrors<T> = T extends {tag: "FormGroup"}
     ? Omit<{[K in keyof T]?: FormOrFormSetErrors<T[K]>}, "tag">
     : T extends FormLike<any>
-    ? NonNullable<T["errors"]>
-    : T extends FormSetLike<any>
-    ? Array<NonNullable<T["empty_form"]["errors"]>>
-    : T extends null
-    ? null
-    : never;
+      ? NonNullable<T["errors"]>
+      : T extends FormSetLike<any>
+        ? Array<NonNullable<T["empty_form"]["errors"]>>
+        : T extends null
+          ? null
+          : never;
 
 // Used by Joy, but unsure what this is for.
 export const getValue = (optgroup: Optgroup) => {

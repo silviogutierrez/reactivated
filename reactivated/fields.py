@@ -170,7 +170,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         del kwargs["choices"]
         return name, path, args, kwargs
 
-    def contribute_to_class(self, cls, name, **kwargs):  # type: ignore[no-untyped-def]
+    def contribute_to_class(self, cls: type[models.Model], name: str, **kwargs: Any) -> None:  # type: ignore[override]
         """
         We don't store the enum in the constraint. Instead, we store the fields
         so the autodetection for changed enums works automatically.
@@ -243,7 +243,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
 if TYPE_CHECKING:
 
     @overload
-    def EnumField(  # type: ignore[overload-overlap]
+    def EnumField(
         enum: Type[TEnum],
         default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
         null: Literal[False] = False,

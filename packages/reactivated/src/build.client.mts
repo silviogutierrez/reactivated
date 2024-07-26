@@ -6,8 +6,8 @@ import {InlineConfig, build} from "vite";
 import {builtinModules} from "node:module";
 import {execSync} from "child_process";
 import path from "path";
-import {existsSync, mkdirSync, rmSync} from "fs";
-import {define, Options} from "./conf.js";
+import {rmSync} from "fs";
+import {define} from "./conf.js";
 import * as esbuild from "esbuild";
 import {promises as fs} from "fs";
 

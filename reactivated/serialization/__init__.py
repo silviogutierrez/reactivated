@@ -1079,7 +1079,7 @@ def object_serializer(value: object, schema: Thing, exclude: List[str] = []) -> 
             attribute, Thing(schema=field_schema, definitions=schema.definitions)
         )
 
-    additional_properties_schema = schema.schema["additionalProperties"]
+    additional_properties_schema = schema.schema.get("additionalProperties", None)
 
     if additional_properties_schema and isinstance(value, Mapping):
         return {

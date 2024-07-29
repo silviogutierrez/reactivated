@@ -169,7 +169,6 @@ class ReactivatedConfig(AppConfig):
         from .serialization import widgets  # noqa
 
 
-@generate
 def generate_schema(skip_cache: bool = False) -> None:
     schema = get_schema()
 

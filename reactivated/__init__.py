@@ -81,6 +81,9 @@ def run_generations(skip_cache: bool = False) -> None:
     for generate_callback in generate_callbacks:
         generate_callback()
 
+    from .apps import generate_schema
+    # generate_schema()
+
 
 def get_free_port() -> int:
     sock = socket.socket()

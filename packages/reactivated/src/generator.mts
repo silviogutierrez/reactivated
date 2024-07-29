@@ -375,7 +375,7 @@ export const getTemplate = async ({template_name}: {template_name: string}) => {
 `;
 
 // tslint:disable-next-line
-compile(types, "this is unused").then(async (ts) => {
+compile(types, "this is unused", {additionalProperties: false}).then(async (ts) => {
     process.stdout.write("/* eslint-disable */\n");
     // Needs to be on top, needed for vite typing of import.meta without work
     // by the downstream apps.

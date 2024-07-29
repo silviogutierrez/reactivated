@@ -98,9 +98,7 @@ def convert_to_json_and_validate(instance, schema):
                 }
                 for to_merge in allOf:
                     dereferenced = (
-                        schema.definitions[
-                            to_merge["$ref"].replace("#/definitions/", "")
-                        ]
+                        schema.definitions[to_merge["$ref"].replace("#/$defs/", "")]
                         if "$ref" in to_merge
                         else to_merge
                     )
@@ -119,9 +117,7 @@ def convert_to_json_and_validate(instance, schema):
     # In case the actual schema we're checking itself needs merging.
     merged_schema = merge_all_of(schema.schema)
 
-    validate(
-        instance=converted, schema={"definitions": merged_definitions, **merged_schema}
-    )
+    validate(instance=converted, schema={"$defs": merged_definitions, **merged_schema})
 
 
 @pytest.mark.django_db
@@ -167,7 +163,7 @@ def test_serialization():
     # only tests. Moreover, all other type tests are in tests/types.py.
     assert generated_schema.definitions["tests.serialization.Foo"]["properties"][
         "pick_computed_foreign_key"
-    ] == {"$ref": "#/definitions/Composer_0a7e472ea2"}
+    ] == {"$ref": "#/$defs/Composer_0a7e472ea2"}
     assert generated_schema.definitions["Composer_0a7e472ea2"] == {
         "additionalProperties": False,
         "properties": {
@@ -186,7 +182,7 @@ def test_serialization():
     assert generated_schema.definitions["tests.serialization.Foo"]["properties"][
         "pick_computed_null_foreign_key"
     ] == {
-        "$ref": "#/definitions/Composer_d4f73efbd8",
+        "$ref": "#/$defs/Composer_d4f73efbd8",
     }
     assert generated_schema.definitions["Composer_d4f73efbd8"] == {
         "additionalProperties": False,
@@ -398,7 +394,7 @@ def test_override_pick_types(settings, snapshot):
     Picked = Pick[TestModel, "forced_nullable", "forced_non_nullable", "forced_none"]
     schema = create_schema(Picked, {})
     assert schema.schema == {
-        "$ref": "#/definitions/test_override_pick_types.<locals>.TestModel_fdae93dc88",
+        "$ref": "#/$defs/test_override_pick_types.<locals>.TestModel_fdae93dc88",
     }
     assert (
         schema.definitions["test_override_pick_types.<locals>.TestModel_fdae93dc88"]
@@ -431,7 +427,7 @@ def test_deferred_evaluation_of_types(settings):
     schema = create_schema(Picked, {})
 
     assert schema.schema == {
-        "$ref": "#/definitions/test_deferred_evaluation_of_types.<locals>.TestModel_53f578dd7a"
+        "$ref": "#/$defs/test_deferred_evaluation_of_types.<locals>.TestModel_53f578dd7a"
     }
     assert schema.definitions[
         "test_deferred_evaluation_of_types.<locals>.TestModel_53f578dd7a"

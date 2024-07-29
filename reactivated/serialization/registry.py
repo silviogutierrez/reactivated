@@ -68,7 +68,7 @@ class Thing(NamedTuple):
         if not ref:
             return self.schema
 
-        return self.definitions[ref.replace("#/definitions/", "")]
+        return self.definitions[ref.replace("#/$defs/", "")]
 
     def add_property(
         self, name: str, property_schema: PropertySchema, *, optional: bool = False
@@ -78,7 +78,7 @@ class Thing(NamedTuple):
         if ref is None:
             assert False, "Can only add properties to ref schemas"
 
-        definition_name = ref.replace("#/definitions/", "")
+        definition_name = ref.replace("#/$defs/", "")
         dereferenced = self.definitions[definition_name]
 
         # In case we are replacing a property.

@@ -56,7 +56,9 @@ def get_field_descriptor(
         annotation = overrides.get(field_name, None)
 
         field_descriptor = (
-            FieldDescriptorWrapper(descriptor=model_class._meta.pk, annotation=annotation, target_name="pk")  # type: ignore[arg-type]
+            FieldDescriptorWrapper(
+                descriptor=model_class._meta.pk, annotation=annotation, target_name="pk"
+            )
             if field_name == "pk"
             else FieldDescriptorWrapper(
                 descriptor=model_class._meta.get_field(field_name),  # type: ignore[arg-type]
@@ -292,7 +294,7 @@ class BasePickHolder:
         explicit_name = cls.get_name()
 
         definition_name = explicit_name or cls.get_auto_name()
-        ref = {"$ref": f"#/definitions/{definition_name}"}
+        ref = {"$ref": f"#/$defs/{definition_name}"}
 
         if definition_name in definitions:
             return Thing(schema=ref, definitions=definitions)

@@ -8,7 +8,7 @@ from typing import Any, Dict, NamedTuple, Tuple, Type
 from django.apps import AppConfig
 from django.conf import settings
 
-from . import extract_views_from_urlpatterns, generate, types
+from . import extract_views_from_urlpatterns, types
 from .serialization import create_schema, serialize
 from .serialization.registry import (
     definitions_registry,
@@ -103,7 +103,7 @@ def get_types_schema() -> Any:
     definitions_registry.update(definitions)
 
     return {
-        "definitions": definitions,
+        "$defs": definitions,
         **{
             **definitions["reactivated.apps.ParentTuple"],
             "properties": {
@@ -169,7 +169,6 @@ class ReactivatedConfig(AppConfig):
         from .serialization import widgets  # noqa
 
 
-@generate
 def generate_schema(skip_cache: bool = False) -> None:
     schema = get_schema()
 

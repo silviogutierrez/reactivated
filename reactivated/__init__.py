@@ -81,6 +81,10 @@ def run_generations(skip_cache: bool = False) -> None:
     for generate_callback in generate_callbacks:
         generate_callback()
 
+    from .apps import generate_schema
+
+    generate_schema()
+
 
 def get_free_port() -> int:
     sock = socket.socket()
@@ -455,7 +459,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
                 return definition
             definitions[definition_name] = definition
 
-        return {"$ref": f"#/definitions/{definition_name}"}
+        return {"$ref": f"#/$defs/{definition_name}"}
     elif issubclass(Type, django_forms.formsets.BaseFormSet):
         form_set_schema = create_schema(FormSetType, definitions, ref=False)
         form_schema = create_schema(Type.form, definitions)
@@ -502,7 +506,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
         definitions[definition_name] = {
             "title": Type.__name__,
             "allOf": [
-                {"$ref": "#/definitions/Form"},
+                {"$ref": "#/$defs/Form"},
                 {
                     "type": "object",
                     "properties": {
@@ -529,7 +533,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
             ],
         }
 
-        return {"$ref": f"#/definitions/{definition_name}"}
+        return {"$ref": f"#/$defs/{definition_name}"}
 
     elif issubclass(Type, BasePickHolder):
         return Type.get_json_schema()

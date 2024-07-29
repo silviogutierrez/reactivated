@@ -21,7 +21,7 @@ types_schema = create_schema(Types, {})
 
 schema = simplejson.dumps(
     {
-        "definitions": types_schema.definitions,
+        "$defs": types_schema.definitions,
         **types_schema.dereference(),
         "title": "Types",
     }

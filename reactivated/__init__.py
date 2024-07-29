@@ -82,6 +82,7 @@ def run_generations(skip_cache: bool = False) -> None:
         generate_callback()
 
     from .apps import generate_schema
+
     generate_schema()
 
 

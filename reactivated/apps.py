@@ -8,7 +8,7 @@ from typing import Any, Dict, NamedTuple, Tuple, Type
 from django.apps import AppConfig
 from django.conf import settings
 
-from . import extract_views_from_urlpatterns, generate, types
+from . import extract_views_from_urlpatterns, types
 from .serialization import create_schema, serialize
 from .serialization.registry import (
     definitions_registry,

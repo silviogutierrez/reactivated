@@ -98,9 +98,7 @@ def convert_to_json_and_validate(instance, schema):
                 }
                 for to_merge in allOf:
                     dereferenced = (
-                        schema.definitions[
-                            to_merge["$ref"].replace("#/$defs/", "")
-                        ]
+                        schema.definitions[to_merge["$ref"].replace("#/$defs/", "")]
                         if "$ref" in to_merge
                         else to_merge
                     )
@@ -119,9 +117,7 @@ def convert_to_json_and_validate(instance, schema):
     # In case the actual schema we're checking itself needs merging.
     merged_schema = merge_all_of(schema.schema)
 
-    validate(
-        instance=converted, schema={"$defs": merged_definitions, **merged_schema}
-    )
+    validate(instance=converted, schema={"$defs": merged_definitions, **merged_schema})
 
 
 @pytest.mark.django_db

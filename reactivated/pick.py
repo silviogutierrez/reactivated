@@ -56,7 +56,7 @@ def get_field_descriptor(
         annotation = overrides.get(field_name, None)
 
         field_descriptor = (
-            FieldDescriptorWrapper(descriptor=model_class._meta.pk, annotation=annotation, target_name="pk")  # type: ignore[arg-type]
+            FieldDescriptorWrapper(descriptor=model_class._meta.pk, annotation=annotation, target_name="pk")
             if field_name == "pk"
             else FieldDescriptorWrapper(
                 descriptor=model_class._meta.get_field(field_name),  # type: ignore[arg-type]

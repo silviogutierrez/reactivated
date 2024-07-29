@@ -292,7 +292,7 @@ class BasePickHolder:
         explicit_name = cls.get_name()
 
         definition_name = explicit_name or cls.get_auto_name()
-        ref = {"$ref": f"#/definitions/{definition_name}"}
+        ref = {"$ref": f"#/$defs/{definition_name}"}
 
         if definition_name in definitions:
             return Thing(schema=ref, definitions=definitions)

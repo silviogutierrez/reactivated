@@ -6,7 +6,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.CheckAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.CheckAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -54,7 +54,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.BaseWidgetAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -71,7 +71,7 @@
                 dict({
                   'items': list([
                     dict({
-                      '$ref': '#/definitions/reactivated.serialization.widgets.OptgroupMember',
+                      '$ref': '#/$defs/reactivated.serialization.widgets.OptgroupMember',
                     }),
                   ]),
                   'maxItems': 1,
@@ -136,7 +136,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.MaxLengthAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.MaxLengthAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -358,7 +358,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.BaseWidgetAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -372,12 +372,12 @@
           'selected': dict({
             '_reactivated_union': dict({
               'reactivated.widgets.AutocompleteSelected': dict({
-                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+                '$ref': '#/$defs/reactivated.widgets.AutocompleteSelected',
               }),
             }),
             'anyOf': list([
               dict({
-                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+                '$ref': '#/$defs/reactivated.widgets.AutocompleteSelected',
               }),
               dict({
                 'type': 'null',
@@ -499,13 +499,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/reactivated.widgets.Autocomplete',
+                        '$ref': '#/$defs/reactivated.widgets.Autocomplete',
                       }),
                     }),
                     'required': list([
@@ -527,13 +527,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.CheckboxInput',
+                        '$ref': '#/$defs/django.forms.widgets.CheckboxInput',
                       }),
                     }),
                     'required': list([
@@ -555,13 +555,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.TextInput',
+                        '$ref': '#/$defs/django.forms.widgets.TextInput',
                       }),
                     }),
                     'required': list([
@@ -583,13 +583,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.Select',
+                        '$ref': '#/$defs/django.forms.widgets.Select',
                       }),
                     }),
                     'required': list([
@@ -603,12 +603,12 @@
                       'enum': dict({
                         '_reactivated_union': dict({
                           'sample.server.apps.samples.models.Opera.Style': dict({
-                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                            '$ref': '#/$defs/sample.server.apps.samples.models.Opera.Style',
                           }),
                         }),
                         'anyOf': list([
                           dict({
-                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                            '$ref': '#/$defs/sample.server.apps.samples.models.Opera.Style',
                           }),
                           dict({
                             'type': 'null',
@@ -688,7 +688,7 @@
       }),
     }),
     schema=dict({
-      '$ref': '#/definitions/sample.server.apps.samples.forms.OperaForm',
+      '$ref': '#/$defs/sample.server.apps.samples.forms.OperaForm',
     }),
   )
 # ---
@@ -833,11 +833,11 @@
             'type': 'boolean',
           }),
           'empty_form': dict({
-            '$ref': '#/definitions/tests.forms.ComposerForm',
+            '$ref': '#/$defs/tests.forms.ComposerForm',
           }),
           'forms': dict({
             'items': dict({
-              '$ref': '#/definitions/tests.forms.ComposerForm',
+              '$ref': '#/$defs/tests.forms.ComposerForm',
             }),
             'type': 'array',
           }),
@@ -845,7 +845,7 @@
             'type': 'number',
           }),
           'management_form': dict({
-            '$ref': '#/definitions/django.forms.formsets.ManagementForm',
+            '$ref': '#/$defs/django.forms.formsets.ManagementForm',
           }),
           'max_num': dict({
             'type': 'number',
@@ -932,13 +932,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -960,13 +960,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -988,13 +988,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -1016,13 +1016,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -1097,7 +1097,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.CheckAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.CheckAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -1145,7 +1145,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.BaseWidgetAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -1206,7 +1206,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.BaseWidgetAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -1223,7 +1223,7 @@
                 dict({
                   'items': list([
                     dict({
-                      '$ref': '#/definitions/reactivated.serialization.widgets.OptgroupMember',
+                      '$ref': '#/$defs/reactivated.serialization.widgets.OptgroupMember',
                     }),
                   ]),
                   'maxItems': 1,
@@ -1288,7 +1288,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.MaxLengthAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.MaxLengthAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -1555,7 +1555,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.BaseWidgetAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -1569,12 +1569,12 @@
           'selected': dict({
             '_reactivated_union': dict({
               'reactivated.widgets.AutocompleteSelected': dict({
-                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+                '$ref': '#/$defs/reactivated.widgets.AutocompleteSelected',
               }),
             }),
             'anyOf': list([
               dict({
-                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+                '$ref': '#/$defs/reactivated.widgets.AutocompleteSelected',
               }),
               dict({
                 'type': 'null',
@@ -1696,13 +1696,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/reactivated.widgets.Autocomplete',
+                        '$ref': '#/$defs/reactivated.widgets.Autocomplete',
                       }),
                     }),
                     'required': list([
@@ -1724,13 +1724,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.CheckboxInput',
+                        '$ref': '#/$defs/django.forms.widgets.CheckboxInput',
                       }),
                     }),
                     'required': list([
@@ -1752,13 +1752,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.TextInput',
+                        '$ref': '#/$defs/django.forms.widgets.TextInput',
                       }),
                     }),
                     'required': list([
@@ -1780,13 +1780,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.Select',
+                        '$ref': '#/$defs/django.forms.widgets.Select',
                       }),
                     }),
                     'required': list([
@@ -1800,12 +1800,12 @@
                       'enum': dict({
                         '_reactivated_union': dict({
                           'sample.server.apps.samples.models.Opera.Style': dict({
-                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                            '$ref': '#/$defs/sample.server.apps.samples.models.Opera.Style',
                           }),
                         }),
                         'anyOf': list([
                           dict({
-                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                            '$ref': '#/$defs/sample.server.apps.samples.models.Opera.Style',
                           }),
                           dict({
                             'type': 'null',
@@ -1914,13 +1914,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.TextInput',
+                        '$ref': '#/$defs/django.forms.widgets.TextInput',
                       }),
                     }),
                     'required': list([
@@ -1986,13 +1986,13 @@
         'additionalProperties': False,
         'properties': dict({
           'composer': dict({
-            '$ref': '#/definitions/tests.forms.ComposerForm',
+            '$ref': '#/$defs/tests.forms.ComposerForm',
           }),
           'composers': dict({
-            '$ref': '#/definitions/django.forms.formsets.ComposerFormFormSet',
+            '$ref': '#/$defs/django.forms.formsets.ComposerFormFormSet',
           }),
           'opera': dict({
-            '$ref': '#/definitions/sample.server.apps.samples.forms.OperaForm',
+            '$ref': '#/$defs/sample.server.apps.samples.forms.OperaForm',
           }),
           'tag': dict({
             'enum': list([
@@ -2012,7 +2012,7 @@
       }),
     }),
     schema=dict({
-      '$ref': '#/definitions/tests.forms.OperaFormGroup',
+      '$ref': '#/$defs/tests.forms.OperaFormGroup',
     }),
   )
 # ---
@@ -2351,11 +2351,11 @@
             'type': 'boolean',
           }),
           'empty_form': dict({
-            '$ref': '#/definitions/tests.forms.ComposerForm',
+            '$ref': '#/$defs/tests.forms.ComposerForm',
           }),
           'forms': dict({
             'items': dict({
-              '$ref': '#/definitions/tests.forms.ComposerForm',
+              '$ref': '#/$defs/tests.forms.ComposerForm',
             }),
             'type': 'array',
           }),
@@ -2363,7 +2363,7 @@
             'type': 'number',
           }),
           'management_form': dict({
-            '$ref': '#/definitions/django.forms.formsets.ManagementForm',
+            '$ref': '#/$defs/django.forms.formsets.ManagementForm',
           }),
           'max_num': dict({
             'type': 'number',
@@ -2450,13 +2450,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -2478,13 +2478,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -2506,13 +2506,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -2534,13 +2534,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -2615,7 +2615,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.CheckAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.CheckAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -2663,7 +2663,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.BaseWidgetAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -2724,7 +2724,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.BaseWidgetAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -2741,7 +2741,7 @@
                 dict({
                   'items': list([
                     dict({
-                      '$ref': '#/definitions/reactivated.serialization.widgets.OptgroupMember',
+                      '$ref': '#/$defs/reactivated.serialization.widgets.OptgroupMember',
                     }),
                   ]),
                   'maxItems': 1,
@@ -2806,7 +2806,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.MaxLengthAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.MaxLengthAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -3073,7 +3073,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.BaseWidgetAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -3087,12 +3087,12 @@
           'selected': dict({
             '_reactivated_union': dict({
               'reactivated.widgets.AutocompleteSelected': dict({
-                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+                '$ref': '#/$defs/reactivated.widgets.AutocompleteSelected',
               }),
             }),
             'anyOf': list([
               dict({
-                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+                '$ref': '#/$defs/reactivated.widgets.AutocompleteSelected',
               }),
               dict({
                 'type': 'null',
@@ -3214,13 +3214,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/reactivated.widgets.Autocomplete',
+                        '$ref': '#/$defs/reactivated.widgets.Autocomplete',
                       }),
                     }),
                     'required': list([
@@ -3242,13 +3242,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.CheckboxInput',
+                        '$ref': '#/$defs/django.forms.widgets.CheckboxInput',
                       }),
                     }),
                     'required': list([
@@ -3270,13 +3270,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.TextInput',
+                        '$ref': '#/$defs/django.forms.widgets.TextInput',
                       }),
                     }),
                     'required': list([
@@ -3298,13 +3298,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.Select',
+                        '$ref': '#/$defs/django.forms.widgets.Select',
                       }),
                     }),
                     'required': list([
@@ -3318,12 +3318,12 @@
                       'enum': dict({
                         '_reactivated_union': dict({
                           'sample.server.apps.samples.models.Opera.Style': dict({
-                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                            '$ref': '#/$defs/sample.server.apps.samples.models.Opera.Style',
                           }),
                         }),
                         'anyOf': list([
                           dict({
-                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                            '$ref': '#/$defs/sample.server.apps.samples.models.Opera.Style',
                           }),
                           dict({
                             'type': 'null',
@@ -3432,13 +3432,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.TextInput',
+                        '$ref': '#/$defs/django.forms.widgets.TextInput',
                       }),
                     }),
                     'required': list([
@@ -3504,13 +3504,13 @@
         'additionalProperties': False,
         'properties': dict({
           'composer': dict({
-            '$ref': '#/definitions/tests.forms.ComposerForm',
+            '$ref': '#/$defs/tests.forms.ComposerForm',
           }),
           'composers': dict({
-            '$ref': '#/definitions/django.forms.formsets.ComposerFormFormSet',
+            '$ref': '#/$defs/django.forms.formsets.ComposerFormFormSet',
           }),
           'opera': dict({
-            '$ref': '#/definitions/sample.server.apps.samples.forms.OperaForm',
+            '$ref': '#/$defs/sample.server.apps.samples.forms.OperaForm',
           }),
           'tag': dict({
             'enum': list([
@@ -3530,7 +3530,7 @@
       }),
     }),
     schema=dict({
-      '$ref': '#/definitions/tests.forms.OperaFormGroup',
+      '$ref': '#/$defs/tests.forms.OperaFormGroup',
     }),
   )
 # ---
@@ -3908,13 +3908,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -3936,13 +3936,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -3964,13 +3964,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -3992,13 +3992,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -4073,7 +4073,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.CheckAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.CheckAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -4121,7 +4121,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.BaseWidgetAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -4233,13 +4233,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/reactivated.widgets.Autocomplete',
+                        '$ref': '#/$defs/reactivated.widgets.Autocomplete',
                       }),
                     }),
                     'required': list([
@@ -4261,13 +4261,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.CheckboxInput',
+                        '$ref': '#/$defs/django.forms.widgets.CheckboxInput',
                       }),
                     }),
                     'required': list([
@@ -4289,13 +4289,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.HiddenInput',
+                        '$ref': '#/$defs/django.forms.widgets.HiddenInput',
                       }),
                     }),
                     'required': list([
@@ -4317,13 +4317,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.TextInput',
+                        '$ref': '#/$defs/django.forms.widgets.TextInput',
                       }),
                     }),
                     'required': list([
@@ -4345,13 +4345,13 @@
                 '_reactivated_testing_merge': True,
                 'allOf': list([
                   dict({
-                    '$ref': '#/definitions/reactivated.serialization.FieldType',
+                    '$ref': '#/$defs/reactivated.serialization.FieldType',
                   }),
                   dict({
                     'additionalProperties': False,
                     'properties': dict({
                       'widget': dict({
-                        '$ref': '#/definitions/django.forms.widgets.Select',
+                        '$ref': '#/$defs/django.forms.widgets.Select',
                       }),
                     }),
                     'required': list([
@@ -4365,12 +4365,12 @@
                       'enum': dict({
                         '_reactivated_union': dict({
                           'sample.server.apps.samples.models.Opera.Style': dict({
-                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                            '$ref': '#/$defs/sample.server.apps.samples.models.Opera.Style',
                           }),
                         }),
                         'anyOf': list([
                           dict({
-                            '$ref': '#/definitions/sample.server.apps.samples.models.Opera.Style',
+                            '$ref': '#/$defs/sample.server.apps.samples.models.Opera.Style',
                           }),
                           dict({
                             'type': 'null',
@@ -4446,7 +4446,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.BaseWidgetAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -4463,7 +4463,7 @@
                 dict({
                   'items': list([
                     dict({
-                      '$ref': '#/definitions/reactivated.serialization.widgets.OptgroupMember',
+                      '$ref': '#/$defs/reactivated.serialization.widgets.OptgroupMember',
                     }),
                   ]),
                   'maxItems': 1,
@@ -4528,7 +4528,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.MaxLengthAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.MaxLengthAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -4795,7 +4795,7 @@
         'additionalProperties': False,
         'properties': dict({
           'attrs': dict({
-            '$ref': '#/definitions/reactivated.serialization.widgets.BaseWidgetAttrs',
+            '$ref': '#/$defs/reactivated.serialization.widgets.BaseWidgetAttrs',
           }),
           'is_hidden': dict({
             'type': 'boolean',
@@ -4809,12 +4809,12 @@
           'selected': dict({
             '_reactivated_union': dict({
               'reactivated.widgets.AutocompleteSelected': dict({
-                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+                '$ref': '#/$defs/reactivated.widgets.AutocompleteSelected',
               }),
             }),
             'anyOf': list([
               dict({
-                '$ref': '#/definitions/reactivated.widgets.AutocompleteSelected',
+                '$ref': '#/$defs/reactivated.widgets.AutocompleteSelected',
               }),
               dict({
                 'type': 'null',
@@ -4897,11 +4897,11 @@
             'type': 'boolean',
           }),
           'empty_form': dict({
-            '$ref': '#/definitions/django.forms.widgets.OperaForm',
+            '$ref': '#/$defs/django.forms.widgets.OperaForm',
           }),
           'forms': dict({
             'items': dict({
-              '$ref': '#/definitions/django.forms.widgets.OperaForm',
+              '$ref': '#/$defs/django.forms.widgets.OperaForm',
             }),
             'type': 'array',
           }),
@@ -4909,7 +4909,7 @@
             'type': 'number',
           }),
           'management_form': dict({
-            '$ref': '#/definitions/django.forms.formsets.ManagementForm',
+            '$ref': '#/$defs/django.forms.formsets.ManagementForm',
           }),
           'max_num': dict({
             'type': 'number',
@@ -4958,7 +4958,7 @@
       }),
     }),
     schema=dict({
-      '$ref': '#/definitions/sample.server.apps.samples.forms.OperaFormSet',
+      '$ref': '#/$defs/sample.server.apps.samples.forms.OperaFormSet',
     }),
   )
 # ---

@@ -103,7 +103,7 @@ def get_types_schema() -> Any:
     definitions_registry.update(definitions)
 
     return {
-        "definitions": definitions,
+        "$defs": definitions,
         **{
             **definitions["reactivated.apps.ParentTuple"],
             "properties": {

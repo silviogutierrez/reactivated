@@ -54,7 +54,7 @@
       'additionalProperties': False,
       'properties': dict({
         'request': dict({
-          '$ref': '#/definitions/reactivated.serialization.context_processors.Request',
+          '$ref': '#/$defs/reactivated.serialization.context_processors.Request',
         }),
       }),
       'required': list([
@@ -102,7 +102,7 @@
           'type': 'boolean',
         }),
         'complex': dict({
-          '$ref': '#/definitions/tests.types.ComplexType',
+          '$ref': '#/$defs/tests.types.ComplexType',
         }),
       }),
       'required': list([
@@ -133,7 +133,7 @@
   dict({
     'anyOf': list([
       dict({
-        '$ref': '#/definitions/tests.types.EnumType',
+        '$ref': '#/$defs/tests.types.EnumType',
       }),
       dict({
         'type': 'null',
@@ -156,7 +156,7 @@
 # ---
 # name: test_enum_field_descriptor.2
   dict({
-    '$ref': '#/definitions/tests.types.EnumType',
+    '$ref': '#/$defs/tests.types.EnumType',
   })
 # ---
 # name: test_enum_field_descriptor.3

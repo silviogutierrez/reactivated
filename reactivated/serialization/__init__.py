@@ -276,7 +276,7 @@ class FormType(NamedTuple):
 
         if definition_name in definitions:
             return Thing(
-                schema={"$ref": f"#/definitions/{definition_name}"},
+                schema={"$ref": f"#/$defs/{definition_name}"},
                 definitions=definitions,
             )
         error_definition = create_schema(FormError, definitions).schema
@@ -333,7 +333,7 @@ class FormType(NamedTuple):
         }
 
         return Thing(
-            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+            schema={"$ref": f"#/$defs/{definition_name}"}, definitions=definitions
         )
 
     @classmethod
@@ -418,7 +418,7 @@ class FormSetType(NamedTuple):
 
         if definition_name in definitions:
             return Thing(
-                schema={"$ref": f"#/definitions/{definition_name}"},
+                schema={"$ref": f"#/$defs/{definition_name}"},
                 definitions=definitions,
             )
 
@@ -488,7 +488,7 @@ class FormSetType(NamedTuple):
         }
 
         return Thing(
-            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+            schema={"$ref": f"#/$defs/{definition_name}"}, definitions=definitions
         )
 
     @classmethod
@@ -862,7 +862,7 @@ def enum_type_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
 
     if definition_name in definitions:
         return Thing(
-            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+            schema={"$ref": f"#/$defs/{definition_name}"}, definitions=definitions
         )
 
     required = []
@@ -880,7 +880,7 @@ def enum_type_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
         }
 
     return Thing(
-        schema={"$ref": f"#/definitions/{definition_name}"},
+        schema={"$ref": f"#/$defs/{definition_name}"},
         definitions={
             **definitions,
             definition_name: {
@@ -909,7 +909,7 @@ def enum_schema(Type: Type[enum.Enum], definitions: Definitions) -> Thing:
     definition_name = f"{Type.__module__}.{Type.__qualname__}"
 
     return Thing(
-        schema={"$ref": f"#/definitions/{definition_name}"},
+        schema={"$ref": f"#/$defs/{definition_name}"},
         definitions={
             **definitions,
             definition_name: {
@@ -940,7 +940,7 @@ def named_tuple_schema(
 
     if definition_name in definitions:
         return Thing(
-            schema={"$ref": f"#/definitions/{definition_name}"}, definitions=definitions
+            schema={"$ref": f"#/$defs/{definition_name}"}, definitions=definitions
         )
 
     required = []
@@ -975,7 +975,7 @@ def named_tuple_schema(
             properties[field_name] = field_schema.schema
 
     return Thing(
-        schema={"$ref": f"#/definitions/{definition_name}"},
+        schema={"$ref": f"#/$defs/{definition_name}"},
         definitions={
             **definitions,
             definition_name: {
@@ -1156,7 +1156,7 @@ def serialize(
         )
     elif "$ref" in schema.schema:
         dereferenced_schema = schema.definitions[
-            schema.schema["$ref"].replace("#/definitions/", "")
+            schema.schema["$ref"].replace("#/$defs/", "")
         ]
 
         return serialize(

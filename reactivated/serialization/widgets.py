@@ -79,7 +79,7 @@ class BaseWidget(NamedTuple):
 
         if definition_name in definitions:
             return Thing(
-                schema={"$ref": f"#/definitions/{definition_name}"},
+                schema={"$ref": f"#/$defs/{definition_name}"},
                 definitions=definitions,
             )
 

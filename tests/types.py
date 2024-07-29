@@ -47,7 +47,7 @@ class TypedDictType(TypedDict):
 
 def test_named_tuple():
     assert create_schema(NamedTupleType, {}) == (
-        {"$ref": "#/definitions/tests.types.NamedTupleType"},
+        {"$ref": "#/$defs/tests.types.NamedTupleType"},
         {
             "tests.types.NamedTupleType": {
                 "additionalProperties": False,
@@ -74,7 +74,7 @@ class EnumType(enum.Enum):
 
 def test_enum():
     assert create_schema(EnumType, {}) == (
-        {"$ref": "#/definitions/tests.types.EnumType"},
+        {"$ref": "#/$defs/tests.types.EnumType"},
         {
             "tests.types.EnumType": {
                 "type": "string",
@@ -87,13 +87,13 @@ def test_enum():
 
 def test_enum_type():
     assert create_schema(Type[EnumType], {}) == (
-        {"$ref": "#/definitions/tests.types.EnumTypeEnumType"},
+        {"$ref": "#/$defs/tests.types.EnumTypeEnumType"},
         {
             "tests.types.EnumTypeEnumType": {
                 "additionalProperties": False,
                 "properties": {
                     "CHUNK": {
-                        "$ref": "#/definitions/tests.types.NamedTupleType",
+                        "$ref": "#/$defs/tests.types.NamedTupleType",
                         "serializer": "reactivated.serialization.EnumValueType",
                     },
                     "ONE": {
@@ -156,7 +156,7 @@ def test_literal():
 
 def test_typed_dict():
     assert create_schema(TypedDictType, {}) == (
-        {"$ref": "#/definitions/tests.types.TypedDictType"},
+        {"$ref": "#/$defs/tests.types.TypedDictType"},
         {
             "tests.types.TypedDictType": {
                 "additionalProperties": False,
@@ -233,7 +233,7 @@ def test_form():
     schema = create_schema(forms.OperaForm, {})
 
     assert schema.schema == {
-        "$ref": "#/definitions/sample.server.apps.samples.forms.OperaForm"
+        "$ref": "#/$defs/sample.server.apps.samples.forms.OperaForm"
     }
 
     assert schema.definitions["sample.server.apps.samples.forms.OperaForm"] == {
@@ -337,7 +337,7 @@ def test_form_set():
     schema = create_schema(forms.OperaFormSet, {})
 
     assert schema.schema == {
-        "$ref": "#/definitions/sample.server.apps.samples.forms.OperaFormSet"
+        "$ref": "#/$defs/sample.server.apps.samples.forms.OperaFormSet"
     }
     # Ensure the children of the child form are serialized by passing
     # definitions around without mutating.
@@ -567,13 +567,13 @@ def test_context_processor_type(snapshot):
     assert schema == {
         "allOf": [
             {
-                "$ref": "#/definitions/reactivated.serialization.context_processors.BaseContext"
+                "$ref": "#/$defs/reactivated.serialization.context_processors.BaseContext"
             },
             {
-                "$ref": "#/definitions/reactivated.serialization.context_processors.RequestProcessor"
+                "$ref": "#/$defs/reactivated.serialization.context_processors.RequestProcessor"
             },
-            {"$ref": "#/definitions/tests.types.SampleContextOne"},
-            {"$ref": "#/definitions/tests.types.SampleContextTwo"},
+            {"$ref": "#/$defs/tests.types.SampleContextOne"},
+            {"$ref": "#/$defs/tests.types.SampleContextTwo"},
         ]
     }
     assert definitions == snapshot

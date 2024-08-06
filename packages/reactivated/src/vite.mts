@@ -1,24 +1,18 @@
 #!/usr/bin/env node
 
-import React from "react";
 import express from "express";
 import path from "path";
 import react from "@vitejs/plugin-react";
-import ReactDOMServer from "react-dom/server";
 import {define} from "./conf.js";
 import {SSRErrorResponse, serializeError} from "./errors.js";
 import type {render as renderType} from "./render.mjs";
-import type {Options} from "./conf";
-import type {RendererConfig} from "./build.client.mjs";
-import {resolveConfig, mergeConfig, loadConfigFromFile, InlineConfig} from "vite";
+import {InlineConfig} from "vite";
 
 // @ts-ignore
 import {cjsInterop} from "vite-plugin-cjs-interop";
 
-import {Helmet, HelmetProvider, HelmetServerState} from "react-helmet-async";
 import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 
-const isProduction = process.env.NODE_ENV === "production";
 const port = process.env.REACTIVATED_VITE_PORT ?? 5173;
 const base = process.env.BASE ?? "/";
 const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

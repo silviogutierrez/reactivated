@@ -1,8 +1,7 @@
 import {Request} from "express";
-import {Helmet, HelmetProvider, HelmetServerState} from "react-helmet-async";
+import {HelmetProvider, HelmetServerState} from "react-helmet-async";
 import * as React from "react";
 import * as ReactDOMServer from "react-dom/server";
-import type {Options} from "./conf";
 
 // @ts-ignore
 import {Provider} from "@reactivated";
@@ -79,11 +78,15 @@ export const renderPage = ({
 </html>`;
 };
 
-const defaultConfiguration = {
-    render: (content) => Promise.resolve(content),
-} satisfies Options;
+export type Renderer<T = unknown> = (
+    content: JSX.Element,
+    req: {
+        context: T;
+        props: unknown;
+    },
+) => Promise<JSX.Element>;
 
-export type Renderer = (content: JSX.Element) => Promise<JSX.Element>;
+const defaultRenderer: Renderer = (content) => Promise.resolve(content);
 
 export const render = async (
     req: Request,
@@ -92,7 +95,7 @@ export const render = async (
     entryPoint: string,
 ) => {
     // @ts-ignore
-    const customConfiguration: {default?: Render} | null = import.meta.glob(
+    const customConfiguration: {default?: Renderer} | null = import.meta.glob(
         "@client/renderer.tsx",
         {eager: true},
     )["/client/renderer.tsx"];
@@ -116,7 +119,10 @@ export const render = async (
     );
 
     const html = ReactDOMServer.renderToString(
-        await (customConfiguration?.default ?? defaultConfiguration.render)(content),
+        await (customConfiguration?.default ?? defaultRenderer)(content, {
+            context,
+            props,
+        }),
     );
     const {helmet} = helmetContext;
 

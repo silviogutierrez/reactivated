@@ -81,11 +81,11 @@ app.use(express.json({limit: "200mb"}));
 app.use("/_reactivated/", async (req, res) => {
     const {context, props} = req.body;
 
-    const {render} = (await vite.ssrLoadModule("reactivated/dist/render.mjs")) as {
-        render: typeof renderType;
-    };
-
     try {
+        const {render} = (await vite.ssrLoadModule("reactivated/dist/render.mjs")) as {
+            render: typeof renderType;
+        };
+
         const url = context.request.path;
         const viteHead = await vite.transformIndexHtml(url, "");
         const rendered = await render(req, viteHead, "development", "index");

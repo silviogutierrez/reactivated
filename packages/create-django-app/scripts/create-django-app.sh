@@ -22,7 +22,7 @@ fi
 
 cp -RT "$SCRIPT_PATH/../template" "$PROJECT_NAME"
 chmod -R u+w "$PROJECT_NAME"
-ln -s localhost.py "$PROJECT_NAME/server/settings/__init__.py"
+# ln -s localhost.py "$PROJECT_NAME/server/settings/__init__.py"
 
 cd "$PROJECT_NAME" || exit
 mv gitignore.template .gitignore

@@ -4,7 +4,7 @@ from typing import Optional
 from django.db import models
 
 from reactivated import computed_foreign_key, computed_relation
-from reactivated.fields import EnumField
+from reactivated.fields import EnumField, EnumArrayField
 
 
 class Continent(models.Model):
@@ -86,6 +86,12 @@ class Opera(models.Model):
         BUFFA = "Opera Buffa"
         GRAND = "Grand Opera"
 
+    class Tag(enum.Enum):
+        MELODIC = "Melodic"
+        ROMANTIC = "Romantic"
+        LONG = "Long"
+
+    tags = EnumArrayField(enum=Tag)
     uuid = models.UUIDField(null=True, editable=False)
     name = models.CharField(max_length=100)
     composer = models.ForeignKey(

@@ -405,7 +405,17 @@ else:
         def get_enum_name(self) -> str:
             return f"{self.model._meta.db_table}_{self.name}_enum"
 
+        # def get_db_prep_value(self, value, connection, prepared=False):
+        #     # return f"{{}}::{self.get_enum_name()}[]"
+        #     return "{}"
+        #     assert False
+
+        def get_placeholder(self, value, compiler, connection):
+            placeholder = f"{self.get_enum_name()}[]"
+            return "%s::{}".format(placeholder)
+
         def db_type(self, connection: Any) -> Optional[str]:
+            # return "int[]"
             if connection.settings_dict["ENGINE"] != "django.db.backends.postgresql":
                 raise DatabaseError("EnumField is only supported on PostgreSQL")
             # return f"{self.get_enum_name()}[]"

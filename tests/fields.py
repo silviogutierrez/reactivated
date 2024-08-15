@@ -81,7 +81,7 @@ def test_enum_array_field():
         composer=composer, country=birth_country, was_born=True
     )
     models.ComposerCountry.objects.create(composer=composer, country=other)
-    opera = models.Opera.objects.create(name="Götterdämmerung", composer=composer)
+    opera = models.Opera.objects.create(name="Götterdämmerung", composer=composer, tags=["LONG"])
 
 
 def test_enum_form_field():

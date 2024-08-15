@@ -343,37 +343,97 @@ else:
 
 
 if TYPE_CHECKING:
-    class EnumArrayField(ArrayField[Any, Any]):
-        def __init__(
-            self,
-            # base_field: models.Field[Any, Any],
-            size: int | None = ...,
-            *,
-            verbose_name: _StrOrPromise | None = ...,
-            name: str | None = ...,
-            primary_key: bool = ...,
-            max_length: int | None = ...,
-            unique: bool = ...,
-            blank: bool = ...,
-            null: bool = ...,
-            db_index: bool = ...,
-            default: Any = ...,
-            db_default: type[NOT_PROVIDED] | Expression | _ST = ...,
-            editable: bool = ...,
-            auto_created: bool = ...,
-            serialize: bool = ...,
-            unique_for_date: str | None = ...,
-            unique_for_month: str | None = ...,
-            unique_for_year: str | None = ...,
-            choices: _Choices | None = ...,
-            help_text: _StrOrPromise = ...,
-            db_column: str | None = ...,
-            db_comment: str | None = ...,
-            db_tablespace: str | None = ...,
-            validators: Iterable[_ValidatorCallable] = ...,
-            error_messages: _ErrorMessagesMapping | None = ...,
-        ) -> None:
-            ...
+    @overload
+    def EnumArrayField(
+        enum: Type[TEnum],
+        size: int | None = ...,
+        *,
+        verbose_name: _StrOrPromise | None = ...,
+        name: str | None = ...,
+        primary_key: bool = ...,
+        max_length: int | None = ...,
+        unique: bool = ...,
+        blank: bool = ...,
+        null: Literal[False] = False,
+        db_index: bool = ...,
+        default: Any = ...,
+        db_default: type[NOT_PROVIDED] | Expression | _ST = ...,
+        editable: bool = ...,
+        auto_created: bool = ...,
+        serialize: bool = ...,
+        unique_for_date: str | None = ...,
+        unique_for_month: str | None = ...,
+        unique_for_year: str | None = ...,
+        choices: _Choices | None = ...,
+        help_text: _StrOrPromise = ...,
+        db_column: str | None = ...,
+        db_comment: str | None = ...,
+        db_tablespace: str | None = ...,
+        validators: Iterable[_ValidatorCallable] = ...,
+        error_messages: _ErrorMessagesMapping | None = ...,
+    ) -> models.Field[list[TEnum], list[TEnum]]:
+        ...
+
+    @overload
+    def EnumArrayField(
+        enum: Type[TEnum],
+        size: int | None = ...,
+        *,
+        verbose_name: _StrOrPromise | None = ...,
+        name: str | None = ...,
+        primary_key: bool = ...,
+        max_length: int | None = ...,
+        unique: bool = ...,
+        blank: bool = ...,
+        null: Literal[True] = True,
+        db_index: bool = ...,
+        default: Any = ...,
+        db_default: type[NOT_PROVIDED] | Expression | _ST = ...,
+        editable: bool = ...,
+        auto_created: bool = ...,
+        serialize: bool = ...,
+        unique_for_date: str | None = ...,
+        unique_for_month: str | None = ...,
+        unique_for_year: str | None = ...,
+        choices: _Choices | None = ...,
+        help_text: _StrOrPromise = ...,
+        db_column: str | None = ...,
+        db_comment: str | None = ...,
+        db_tablespace: str | None = ...,
+        validators: Iterable[_ValidatorCallable] = ...,
+        error_messages: _ErrorMessagesMapping | None = ...,
+    ) -> models.Field[list[TEnum] | None, list[TEnum] | None]:
+        ...
+
+    def EnumArrayField(
+        enum: Type[TEnum],
+        size: int | None = ...,
+        *,
+        verbose_name: _StrOrPromise | None = ...,
+        name: str | None = ...,
+        primary_key: bool = ...,
+        max_length: int | None = ...,
+        unique: bool = ...,
+        blank: bool = ...,
+        null: Literal[True, False] = False,
+        db_index: bool = ...,
+        default: Any = ...,
+        db_default: type[NOT_PROVIDED] | Expression | _ST = ...,
+        editable: bool = ...,
+        auto_created: bool = ...,
+        serialize: bool = ...,
+        unique_for_date: str | None = ...,
+        unique_for_month: str | None = ...,
+        unique_for_year: str | None = ...,
+        choices: _Choices | None = ...,
+        help_text: _StrOrPromise = ...,
+        db_column: str | None = ...,
+        db_comment: str | None = ...,
+        db_tablespace: str | None = ...,
+        validators: Iterable[_ValidatorCallable] = ...,
+        error_messages: _ErrorMessagesMapping | None = ...,
+    ) -> models.Field[list[TEnum], list[TEnum]] | models.Field[list[TEnum] | None, list[TEnum] | None]:
+        ...
 else:
     class EnumArrayField(ArrayField):
         def contribute_to_class(self, cls: type[models.Model], name: str, **kwargs: Any) -> None:  # type: ignore[override]
@@ -398,6 +458,14 @@ else:
                     is_array=True,
                 )
             )
+
+        def _from_db_value(self, value, expression, connection):
+            if value is None:
+                tokenized = None
+            else:
+                tokenized = value.strip('{}').split(',')
+
+            return super()._from_db_value(tokenized, expression, connection)
 
         def cast_db_type(self, connection: Any) -> str:
             return self.get_enum_name()

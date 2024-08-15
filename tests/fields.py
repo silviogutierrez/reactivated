@@ -82,6 +82,11 @@ def test_enum_array_field():
     )
     models.ComposerCountry.objects.create(composer=composer, country=other)
     opera = models.Opera.objects.create(name="Götterdämmerung", composer=composer, tags=["LONG"])
+    opera = models.Opera.objects.get(pk=opera.pk)
+    assert opera.tags[0] is models.Opera.Tag.LONG
+    opera = models.Opera.objects.create(name="Götterdämmerung", composer=composer, tags=[models.Opera.Tag.ROMANTIC])
+    opera = models.Opera.objects.get(pk=opera.pk)
+    assert opera.tags[0] is models.Opera.Tag.ROMANTIC
 
 
 def test_enum_form_field():

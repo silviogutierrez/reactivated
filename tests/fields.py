@@ -70,6 +70,20 @@ def test_enum_model_form():
     assert form.instance.hemisphere == models.Continent.Hemisphere.NORTHERN
 
 
+@pytest.mark.django_db
+def test_enum_array_field():
+    continent = models.Continent.objects.create(name="Europe")
+    birth_country = models.Country.objects.create(name="Germany", continent=continent)
+    other = models.Country.objects.create(name="Switzerland", continent=continent)
+
+    composer = models.Composer.objects.create(name="Wagner")
+    models.ComposerCountry.objects.create(
+        composer=composer, country=birth_country, was_born=True
+    )
+    models.ComposerCountry.objects.create(composer=composer, country=other)
+    opera = models.Opera.objects.create(name="Götterdämmerung", composer=composer)
+
+
 def test_enum_form_field():
     class EnumForm(forms.Form):
         enum_form_field = EnumChoiceField(enum=EnumTest)

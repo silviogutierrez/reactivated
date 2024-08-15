@@ -408,8 +408,8 @@ else:
         def db_type(self, connection: Any) -> Optional[str]:
             if connection.settings_dict["ENGINE"] != "django.db.backends.postgresql":
                 raise DatabaseError("EnumField is only supported on PostgreSQL")
-            return f"{self.get_enum_name()}[]"
-            # return super().db_type(connection)
+            # return f"{self.get_enum_name()}[]"
+            return super().db_type(connection)
 
         def __init__(self, *args, **kwargs) -> None:
             self.enum = kwargs.pop("enum")

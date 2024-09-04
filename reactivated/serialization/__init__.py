@@ -760,6 +760,10 @@ class UnionType(NamedTuple):
                     lookup[type(value)],
                 )
             except KeyError:
+                # Escape hatch for new_pick, since the class will be Ref, ugly as sin.
+                if len(lookup.mapping.keys()) == 1:
+                    return serialize(value, lookup[list(lookup.mapping.keys())[0]])
+
                 assert False, "Invariant in union serialization"
 
 

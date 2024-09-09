@@ -87,7 +87,14 @@ app.use("/_reactivated/", async (req, res) => {
         };
 
         const url = context.request.path;
-        const viteHead = await vite.transformIndexHtml(url, "");
+        // For E2E tests, we may want to run them pointing to a running vite
+        // instance for a quick feedback loop. Intead of the traditional python
+        // manage.py build step necessary.  So we ensure vite head always
+        // points to the per-request STATIC_URL.
+        const viteHead = (await vite.transformIndexHtml(url, "")).replace(
+            base,
+            `${context.STATIC_URL}dist/`,
+        );
         const rendered = await render(req, viteHead, "development", "index");
 
         res.status(200).set({"Content-Type": "text/html"}).end(rendered);

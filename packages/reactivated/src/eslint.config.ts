@@ -1,34 +1,51 @@
-import path from "node:path";
-import {fileURLToPath} from "node:url";
-
-import {fixupConfigRules} from "@eslint/compat";
-import {FlatCompat} from "@eslint/eslintrc";
 import eslint from "@eslint/js";
+import type {TSESLint} from "@typescript-eslint/utils";
 import eslintConfigPrettier from "eslint-config-prettier";
+
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-ignore
+import importPlugin from "eslint-plugin-import";
+import reactPlugin from "eslint-plugin-react";
+// @ts-ignore
+import hooksPlugin from "eslint-plugin-react-hooks";
 import unusedImports from "eslint-plugin-unused-imports";
 import tseslint from "typescript-eslint";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: eslint.configs.recommended,
-    allConfig: eslint.configs.all,
-});
-
 export default tseslint.config(
+    {
+        ignores: [
+            ".venv/**/*",
+            "**/*/*.pyc",
+            "**/.DS_Store",
+            ".mypy_cache",
+            ".pytest_cache",
+            "static/dist/**/*",
+        ],
+    },
+
     eslint.configs.recommended,
+    ...(reactPlugin.configs.flat
+        ? [reactPlugin.configs.flat.recommended as TSESLint.FlatConfig.Config]
+        : []),
+
+    {
+        plugins: {
+            /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
+            "react-hooks": hooksPlugin,
+        },
+        /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
+        rules: {
+            /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
+            ...hooksPlugin.configs.recommended.rules,
+        },
+    },
     ...tseslint.configs.recommendedTypeChecked,
     eslintConfigPrettier,
-    ...fixupConfigRules(
-        compat.extends(
-            "plugin:react/recommended",
-            "plugin:react-hooks/recommended",
-            "plugin:import/typescript",
-            "plugin:import/errors",
-            "plugin:import/warnings",
-        ),
-    ),
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+    importPlugin.flatConfigs.typescript as TSESLint.FlatConfig.Config,
+    importPlugin.flatConfigs.errors as TSESLint.FlatConfig.Config,
+    importPlugin.flatConfigs.warnings as TSESLint.FlatConfig.Config,
+    /* eslint-enable @typescript-eslint/no-unsafe-member-access */
     {
         plugins: {
             "unused-imports": unusedImports,

@@ -17,5 +17,5 @@
             "@reactivated/*": ["node_modules/_reactivated/*"]
         }
     },
-    "include": ["./client/**/*"]
+    "include": ["eslint.config.ts", "./client/**/*"]
 }

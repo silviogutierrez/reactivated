@@ -85,7 +85,7 @@ fi
 
 if [[ -n "${CHANGED_TS_JS_FILES// /}" ]]; then
     # shellcheck disable=SC2086
-    npm exec eslint -- --fix $CHANGED_TS_JS_FILES || true
+    npm exec eslint -- --flag unstable_ts_config --fix $CHANGED_TS_JS_FILES || true
 fi
 
 if [[ -n "${CHANGED_PRETTIER_FILES// /}" ]]; then

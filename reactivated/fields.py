@@ -257,8 +257,7 @@ if TYPE_CHECKING:
         db_tablespace: Optional[str] = None,
         validators: Iterable[_ValidatorCallable] = (),
         error_messages: Optional[_ErrorMessagesDict] = None,
-    ) -> _EnumField[TEnum, TEnum]:
-        ...
+    ) -> _EnumField[TEnum, TEnum]: ...
 
     @overload
     def EnumField(
@@ -330,9 +329,9 @@ else:
                 return str(obj.name)
 
         serializers.ModelSerializer.serializer_choice_field = DRFEnumChoiceField
-        serializers.ModelSerializer.serializer_field_mapping[
-            EnumField
-        ] = DRFReadOnlyEnumField
+        serializers.ModelSerializer.serializer_field_mapping[EnumField] = (
+            DRFReadOnlyEnumField
+        )
 
     except ImportError:
         pass

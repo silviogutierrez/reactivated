@@ -22,9 +22,11 @@ class SpecializedHttpRequest(HttpRequest):
 
 
 special_rpc = create_rpc(
-    lambda request: cast(SpecializedHttpRequest, request)
-    if request.user.is_authenticated
-    else False
+    lambda request: (
+        cast(SpecializedHttpRequest, request)
+        if request.user.is_authenticated
+        else False
+    )
 )
 
 anonymous_rpc = create_rpc(lambda request: request)

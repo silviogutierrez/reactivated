@@ -532,8 +532,7 @@ class QuerySetType:
 
 
 class Serializer(Protocol):
-    def __call__(self, value: Any, schema: Thing) -> JSON:
-        ...
+    def __call__(self, value: Any, schema: Thing) -> JSON: ...
 
 
 register(models.BigAutoField)(int)
@@ -983,9 +982,11 @@ def named_tuple_schema(
         definitions={
             **definitions,
             definition_name: {
-                "serializer": type_name
-                if callable(getattr(Type, "get_serialized_value", None))
-                else None,
+                "serializer": (
+                    type_name
+                    if callable(getattr(Type, "get_serialized_value", None))
+                    else None
+                ),
                 "type": "object",
                 "additionalProperties": False,
                 "properties": properties,
@@ -1045,9 +1046,9 @@ def create_schema(Type: Any, definitions: Definitions) -> Thing:
     )
 
     if additional_schema_module is not None:
-        additional_schema: Callable[
-            [Any, Definitions], Optional[Thing]
-        ] = import_string(additional_schema_module)
+        additional_schema: Callable[[Any, Definitions], Optional[Thing]] = (
+            import_string(additional_schema_module)
+        )
         schema = additional_schema(Type, definitions)
 
         if schema is not None:
@@ -1077,7 +1078,7 @@ def object_serializer(value: object, schema: Thing, exclude: List[str] = []) -> 
         )
 
         if isinstance(attribute, MethodType) is True:
-            attribute = attribute()
+            attribute = attribute()  # type:ignore[misc]
 
         representation[field_name] = serialize(
             attribute, Thing(schema=field_schema, definitions=schema.definitions)

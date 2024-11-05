@@ -115,7 +115,7 @@ def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
     else:
         try:
             error = response.json()
-        except requests.JSONDecodeError:  # type: ignore[attr-defined]
+        except requests.JSONDecodeError:
             raise Exception(response.content)
         else:
             err_details = error.get("error", {})

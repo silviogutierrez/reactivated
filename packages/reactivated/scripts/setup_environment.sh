@@ -9,7 +9,7 @@ POSTGRESQL_LOGS="$VIRTUAL_ENV/postgresql/logs.txt"
 # On MacOS, people may run this in /tmp which is actually /private/tmp.
 # To prevent issues with the hash changing for $VIRTUAL_ENV depending on
 # $PWD returning /tmp or /private/tmp, we resolve with readlink.
-TMP_ENV="$TMPDIR/reactivated/$(readlink -f "$VIRTUAL_ENV" | md5sum | awk '{print $1}')"
+TMP_ENV="/tmp/reactivated/$(readlink -f "$VIRTUAL_ENV" | md5sum | awk '{print $1}')"
 
 # https://github.com/python/mypy/issues/13392
 # https://setuptools.pypa.io/en/latest/userguide/development_mode.html#legacy-behavior

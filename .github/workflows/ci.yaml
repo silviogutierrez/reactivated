@@ -36,9 +36,9 @@ jobs:
             - name: Create test project
               run: |
                   scripts/script-create-django-app.sh --name integration
-            - name: Setup tmate session
-              if: ${{ failure() }}
-              uses: mxschmitt/action-tmate@v3
+            # - name: Setup tmate session
+            #   if: ${{ failure() }}
+            #   uses: mxschmitt/action-tmate@v3
             - name: Run tests
               run: |
                   cd integration

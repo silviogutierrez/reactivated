@@ -18,9 +18,6 @@ jobs:
             - uses: ./.github/actions/setup
             - name: Run tests
               run: nix-shell --command "scripts/test.sh"
-            # - name: Setup tmate session
-            #   if: ${{ failure() }}
-            #   uses: mxschmitt/action-tmate@v3
     integration_tests:
         name: Integration tests
         runs-on: ${{ matrix.os }}
@@ -39,6 +36,9 @@ jobs:
             - name: Create test project
               run: |
                   scripts/script-create-django-app.sh --name integration
+            - name: Setup tmate session
+              if: ${{ failure() }}
+              uses: mxschmitt/action-tmate@v3
             - name: Run tests
               run: |
                   cd integration

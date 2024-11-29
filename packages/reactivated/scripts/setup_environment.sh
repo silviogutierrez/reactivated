@@ -9,6 +9,8 @@ POSTGRESQL_LOGS="$VIRTUAL_ENV/postgresql/logs.txt"
 # On MacOS, people may run this in /tmp which is actually /private/tmp.
 # To prevent issues with the hash changing for $VIRTUAL_ENV depending on
 # $PWD returning /tmp or /private/tmp, we resolve with readlink.
+# Can't use $TMPDIR because nested nix-shell calls will put $TMPDIR in a one-off
+# directory just for that shell process.
 TMP_ENV="/tmp/reactivated/$(readlink -f "$VIRTUAL_ENV" | md5sum | awk '{print $1}')"
 
 # https://github.com/python/mypy/issues/13392

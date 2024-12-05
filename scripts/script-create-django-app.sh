@@ -43,7 +43,7 @@ mv packages/create-django-app/monorepo/* packages/create-django-app/monorepo/pyt
 npm -w reactivated run build
 
 # For temporary eslint support.
-sed -i '/export {};/d' packages/reactivated/dist/eslintrc.cjs
+sed -i '/export {};/d' packages/reactivated/dist/eslintrc.js
 
 npm -w reactivated pack --pack-destination packages/create-django-app/monorepo/
 mv packages/create-django-app/monorepo/*.tgz packages/create-django-app/monorepo/node.tgz

@@ -70,7 +70,8 @@
             "name": "Das Rheingold",
             "composer": 1,
             "style": "GRAND",
-            "has_piano_transcription": false
+            "has_piano_transcription": false,
+            "tags": []
         }
     },
     {
@@ -80,7 +81,8 @@
             "name": "Das Rheingold",
             "composer": 1,
             "style": "BUFFA",
-            "has_piano_transcription": false
+            "has_piano_transcription": false,
+            "tags": []
         }
     },
     {
@@ -90,7 +92,8 @@
             "name": "Die Walküre",
             "composer": 1,
             "style": "GRAND",
-            "has_piano_transcription": false
+            "has_piano_transcription": false,
+            "tags": []
         }
     },
     {
@@ -100,7 +103,8 @@
             "name": "Siegfried",
             "composer": 1,
             "style": "GRAND",
-            "has_piano_transcription": false
+            "has_piano_transcription": false,
+            "tags": []
         }
     },
     {
@@ -110,7 +114,8 @@
             "name": "Götterdämmerung",
             "composer": 1,
             "style": "GRAND",
-            "has_piano_transcription": false
+            "has_piano_transcription": false,
+            "tags": []
         }
     }
 ]

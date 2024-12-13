@@ -5,7 +5,7 @@
     "type": "module",
     "exports": {
         ".": "./dist/index.js",
-        "./dist/eslint.config": "./dist/eslint.config.js",
+        "./eslint.config": "./dist/eslint.config.js",
         "./dist/forms": "./dist/forms/index.js",
         "./dist/context": "./dist/context.js",
         "./dist/conf": "./dist/conf.js",

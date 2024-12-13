@@ -13,6 +13,15 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
     {
+        languageOptions: {
+            parserOptions: {
+                project: ["./tsconfig.json"],
+                projectService: true,
+                tsconfigRootDir: __dirname,
+            },
+        },
+    },
+    {
         ignores: [
             ".venv/**/*",
             "**/*/*.pyc",

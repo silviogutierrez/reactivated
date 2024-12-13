@@ -28,7 +28,7 @@ class JSX(BaseEngine):
     def from_string(self, template_code: str) -> Any:
         raise TemplateSyntaxError("Unsupported with JSX")
 
-    def get_template(self, template_name: str) -> "JSXTemplate":  # type: ignore[override]
+    def get_template(self, template_name: str) -> "JSXTemplate":
         adapter = self.template_adapters.get(template_name)
 
         if adapter is not None:

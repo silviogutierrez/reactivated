@@ -163,8 +163,7 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         context_provider: Optional[
             Callable[[THttpRequest, TFirst, TSecond], TContext]
         ] = None,
-    ) -> URLPattern:
-        ...
+    ) -> URLPattern: ...
 
     @overload
     def process(
@@ -177,8 +176,7 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         context_provider: Optional[
             Callable[[THttpRequest, TFirst, TSecond], TContext]
         ] = None,
-    ) -> URLPattern:
-        ...
+    ) -> URLPattern: ...
 
     def process(
         self,
@@ -306,11 +304,11 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             "input": input_name,
             "output": output_name,
             "params": self.url_args_as_params if requires_context else [],
-            "type": "form_group"
-            if issubclass(form_class, FormGroup)
-            else "form"
-            if issubclass(form_class, forms.BaseForm)
-            else "form_set",
+            "type": (
+                "form_group"
+                if issubclass(form_class, FormGroup)
+                else "form" if issubclass(form_class, forms.BaseForm) else "form_set"
+            ),
         }
         route = path(url_path, wrapped_view, name=url_name)
         return route
@@ -320,9 +318,7 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
     # And url in the registry is self.no_context_url_path
     def rpc(
         self,
-        view: Union[
-            Callable[[THttpRequest, TContext], TResponse],
-        ],
+        view: Union[Callable[[THttpRequest, TContext], TResponse],],
     ) -> URLPattern:
         return_type = get_type_hints(view)["return"]
         return_schema = create_schema(return_type, registry.definitions_registry)
@@ -486,11 +482,11 @@ class RPC(Generic[THttpRequest]):
             "input": input_name,
             "output": output_name,
             "params": self.url_args_as_params,
-            "type": "form_group"
-            if issubclass(form_class, FormGroup)
-            else "form"
-            if issubclass(form_class, forms.BaseForm)
-            else "form_set",
+            "type": (
+                "form_group"
+                if issubclass(form_class, FormGroup)
+                else "form" if issubclass(form_class, forms.BaseForm) else "form_set"
+            ),
         }
         route = path(url_path, wrapped_view, name=url_name)
         return route

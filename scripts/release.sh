@@ -56,7 +56,7 @@ python scripts/generate_types.py
 npm -w reactivated run build
 #
 # For temporary eslint support.
-sed -i '/export {};/d' packages/reactivated/dist/eslintrc.cjs
+sed -i '/export {};/d' packages/reactivated/dist/eslint.config.js
 
 cd "${PROJECT_ROOT}/packages/reactivated/"
 

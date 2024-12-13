@@ -28,9 +28,7 @@ export const Code = (props: Props) => (
     >
         <SyntaxHighlighter
             language={props.language}
-            style={
-                style // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-            }
+            style={style}
             customStyle={{fontSize: 14, borderRadius: 10}}
         >
             {props.children}

@@ -73,8 +73,7 @@ def computed_foreign_key(
     null: Literal[True],
 ) -> Callable[
     [Callable[[T], SOptionalInstance]], ComputedRelation[T, S, SOptionalInstance]
-]:
-    ...
+]: ...
 
 
 @overload
@@ -83,8 +82,7 @@ def computed_foreign_key(
     label: Optional[str] = None,
     model: Union[Callable[[], Type[S]], Type[S]],
     null: Literal[False],
-) -> Callable[[Callable[[T], SInstance]], ComputedRelation[T, S, SInstance]]:
-    ...
+) -> Callable[[Callable[[T], SInstance]], ComputedRelation[T, S, SInstance]]: ...
 
 
 def computed_foreign_key(

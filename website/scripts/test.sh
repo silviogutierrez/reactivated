@@ -106,7 +106,7 @@ if [[ $CLIENT -eq 1 ]]; then
 
     if [[ -n "${CHANGED_TS_JS_FILES// /}" ]]; then
         # shellcheck disable=SC2086
-        capture_stdout_and_stderr_if_successful npm exec eslint -- --ignore-path .gitignore $CHANGED_TS_JS_FILES
+        capture_stdout_and_stderr_if_successful npm exec eslint -- --flag unstable_ts_config $CHANGED_TS_JS_FILES
     fi
     capture_stdout_and_stderr_if_successful npm exec prettier -- --ignore-path .gitignore --check '**/*.{js,jsx,ts,tsx,yaml,json,md}'
     capture_stdout_and_stderr_if_successful npm exec tsc

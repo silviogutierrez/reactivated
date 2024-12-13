@@ -69,8 +69,7 @@ generate_callbacks: List[Any] = []
 
 
 class GenerateFunction(Protocol):
-    def __call__(self, *, skip_cache: bool = False) -> None:
-        ...
+    def __call__(self, *, skip_cache: bool = False) -> None: ...
 
 
 def generate(function: GenerateFunction) -> None:
@@ -319,8 +318,7 @@ def ssr(
     *, props: Type[P], params: None = None
 ) -> Callable[
     [NoArgsView[P]], Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse]
-]:
-    ...
+]: ...
 
 
 @overload
@@ -328,13 +326,10 @@ def ssr(
     *, props: Type[P], params: Type[K]
 ) -> Callable[
     [View[K, P]], Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse]
-]:
-    ...
+]: ...
 
 
-def ssr(
-    *, props: Type[P], params: Optional[Type[K]] = None
-) -> Union[
+def ssr(*, props: Type[P], params: Optional[Type[K]] = None) -> Union[
     Callable[
         [NoArgsView[P]],
         Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse],
@@ -383,7 +378,6 @@ class TypeHint(abc.ABC):
 
 
 def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> Any:
-
     if isinstance(Type, _GenericAlias):
         if Type.__origin__ == tuple:
             *tuple_args, last_arg = Type.__args__
@@ -443,7 +437,6 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
                 field_schema = create_schema(SubType, definitions, ref=ref)
 
                 if field_schema is not None:
-
                     required.append(field_name)
                     properties[field_name] = field_schema
 
@@ -599,6 +592,7 @@ def extract_views_from_urlpatterns(  # type: ignore[no-untyped-def]
     for p in urlpatterns:
         if isinstance(p, URLPattern):
             try:
+                name: str | None
                 if not p.name:
                     name = p.name
                 elif namespace:

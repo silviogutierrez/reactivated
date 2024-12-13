@@ -1,1 +1,1 @@
-export {default} from "reactivated/eslint.config";
+export {default} from "reactivated/dist/eslint.config";

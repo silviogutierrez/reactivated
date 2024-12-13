@@ -4,10 +4,13 @@ on:
         branches:
             - main
     pull_request:
+    pull_request_target:
+        types: [opened, synchronize, reopened, labeled]
 
 jobs:
     code_tests:
         name: Code tests
+        if: github.event_name != 'pull_request_target'
         runs-on: ubuntu-22.04
         env:
             NIX_BUILD_SHELL: bash
@@ -20,6 +23,7 @@ jobs:
               run: nix-shell --command "scripts/test.sh"
     integration_tests:
         name: Integration tests
+        if: github.event_name != 'pull_request_target'
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
@@ -52,10 +56,29 @@ jobs:
     website_tests:
         name: Website tests
         runs-on: ubuntu-22.04
+        if: |
+            github.event_name == 'push' ||
+            (github.event_name == 'pull_request_target' && 
+             (github.repository_owner == github.actor || contains(github.event.pull_request.labels.*.name, 'website')))
         steps:
+            - name: Remove website label
+              if: contains(github.event.pull_request.labels.*.name, 'website')
+              run: |
+                  curl --silent --fail \
+                      -X DELETE \
+                      -H 'Accept: application/vnd.github.v3+json' \
+                      -H 'Authorization: token ${{ github.token }}' \
+                      'https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/labels/website'
             - uses: actions/checkout@v3
+              if: github.event_name == 'push'
               with:
                   fetch-depth: 0
+            - uses: actions/checkout@v3
+              if: github.event_name == 'pull_request_target'
+              with:
+                  fetch-depth: 0
+                  # See: https://github.com/actions/checkout/issues/518
+                  ref: "refs/pull/${{ github.event.number }}/merge"
             - uses: ./.github/actions/setup
             - name: Run tests
               run: |
@@ -64,7 +87,6 @@ jobs:
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "scripts/test.sh --all"
             - name: Run build
-              if: github.repository_owner == github.actor
               env:
                   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
               run: |
@@ -72,6 +94,7 @@ jobs:
                   scripts/deploy.sh --build-only
     docker_tests:
         name: Docker tests
+        if: github.event_name != 'pull_request_target'
         runs-on: ubuntu-22.04
         steps:
             - uses: actions/checkout@v3

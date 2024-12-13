@@ -82,7 +82,6 @@ jobs:
             - uses: ./.github/actions/setup
             - name: Run tests
               run: |
-                  sed -i '/export {};/d' packages/reactivated/dist/eslint.config.js
                   cd website
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "scripts/test.sh --all"

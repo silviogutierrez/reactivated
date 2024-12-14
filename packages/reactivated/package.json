@@ -43,7 +43,7 @@
         "@vanilla-extract/esbuild-plugin": "^2.3.11",
         "@vanilla-extract/recipes": "^0.5.5",
         "@vanilla-extract/sprinkles": "^1.6.3",
-        "@vanilla-extract/vite-plugin": "^4.0.17",
+        "@vanilla-extract/vite-plugin": "3.9.5",
         "@vitejs/plugin-react": "^4.3.3",
         "eslint": "^9.14.0",
         "eslint-config-prettier": "^9.1.0",

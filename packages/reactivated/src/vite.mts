@@ -48,6 +48,9 @@ const rendererConfig: InlineConfig = {
         hmr: {
             server,
         },
+        watch: {
+            ignored: ["**/.venv/**", "**/capacitor/**"],
+        },
     },
     define: define(),
     appType: "custom",

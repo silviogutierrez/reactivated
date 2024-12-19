@@ -1,4 +1,4 @@
-import React from "react";
+import React, {type JSX} from "react";
 
 import {templates} from "@reactivated";
 import {Helmet} from "react-helmet-async";

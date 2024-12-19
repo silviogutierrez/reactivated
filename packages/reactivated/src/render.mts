@@ -1,7 +1,7 @@
 import {Request} from "express";
 import {HelmetProvider, HelmetServerState} from "react-helmet-async";
-import * as React from "react";
-import * as ReactDOMServer from "react-dom/server";
+import React, {type JSX} from "react";
+import ReactDOMServer from "react-dom/server";
 
 // @ts-ignore
 import {Provider} from "@reactivated";

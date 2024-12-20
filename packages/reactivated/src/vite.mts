@@ -20,7 +20,7 @@ const reactivatedEndpoint = "/_reactivated/".replace(/[.*+?^${}()|[\]\\]/g, "\\$
 
 const app = express();
 
-// Server goes first so we can pass it to HMR / Vite.
+// Server goes first so we can pass it to HMR / Vite..
 // Not sure if there are race conditions here but I doubt it.
 const server = app.listen(port, () => {
     console.log("Reactivated vite process started\n");

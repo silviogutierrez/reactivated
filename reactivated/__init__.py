@@ -69,8 +69,7 @@ generate_callbacks: List[Any] = []
 
 
 class GenerateFunction(Protocol):
-    def __call__(self, *, skip_cache: bool = False) -> None:
-        ...
+    def __call__(self, *, skip_cache: bool = False) -> None: ...
 
 
 def generate(function: GenerateFunction) -> None:
@@ -322,8 +321,7 @@ def ssr(
     *, props: Type[P], params: None = None
 ) -> Callable[
     [NoArgsView[P]], Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse]
-]:
-    ...
+]: ...
 
 
 @overload
@@ -331,13 +329,10 @@ def ssr(
     *, props: Type[P], params: Type[K]
 ) -> Callable[
     [View[K, P]], Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse]
-]:
-    ...
+]: ...
 
 
-def ssr(
-    *, props: Type[P], params: Optional[Type[K]] = None
-) -> Union[
+def ssr(*, props: Type[P], params: Optional[Type[K]] = None) -> Union[
     Callable[
         [NoArgsView[P]],
         Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse],

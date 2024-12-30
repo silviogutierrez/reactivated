@@ -77,12 +77,15 @@ def generate(function: GenerateFunction) -> None:
 
 
 def run_generations(skip_cache: bool = False) -> None:
+    if "REACTIVATED_SKIP_GENERATIONS" in os.environ:
+        return
+
     for generate_callback in generate_callbacks:
-        generate_callback()
+        generate_callback(skip_cache)
 
     from .apps import generate_schema
 
-    generate_schema()
+    generate_schema(skip_cache)
 
 
 def get_free_port() -> int:

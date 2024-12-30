@@ -69,7 +69,8 @@ generate_callbacks: List[Any] = []
 
 
 class GenerateFunction(Protocol):
-    def __call__(self, *, skip_cache: bool = False) -> None: ...
+    def __call__(self, *, skip_cache: bool = False) -> None:
+        ...
 
 
 def generate(function: GenerateFunction) -> None:
@@ -77,12 +78,15 @@ def generate(function: GenerateFunction) -> None:
 
 
 def run_generations(skip_cache: bool = False) -> None:
+    if "REACTIVATED_SKIP_GENERATIONS" in os.environ:
+        return
+
     for generate_callback in generate_callbacks:
-        generate_callback()
+        generate_callback(skip_cache)
 
     from .apps import generate_schema
 
-    generate_schema()
+    generate_schema(skip_cache)
 
 
 def get_free_port() -> int:
@@ -318,7 +322,8 @@ def ssr(
     *, props: Type[P], params: None = None
 ) -> Callable[
     [NoArgsView[P]], Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse]
-]: ...
+]:
+    ...
 
 
 @overload
@@ -326,10 +331,13 @@ def ssr(
     *, props: Type[P], params: Type[K]
 ) -> Callable[
     [View[K, P]], Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse]
-]: ...
+]:
+    ...
 
 
-def ssr(*, props: Type[P], params: Optional[Type[K]] = None) -> Union[
+def ssr(
+    *, props: Type[P], params: Optional[Type[K]] = None
+) -> Union[
     Callable[
         [NoArgsView[P]],
         Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse],

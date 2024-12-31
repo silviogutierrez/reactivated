@@ -1,7 +1,6 @@
 import React from "react";
 
 import {classNames, templates} from "@reactivated";
-import {Helmet} from "react-helmet-async";
 import ReactMarkdown from "react-markdown";
 
 import {Code} from "@client/components/Code";
@@ -109,9 +108,7 @@ export const Template = (props: templates.Documentation) => {
                             h1: ({children}) => {
                                 return (
                                     <>
-                                        <Helmet>
-                                            <title>{children[0]} | Reactivated</title>
-                                        </Helmet>
+                                        <title>{children[0]} | Reactivated</title>
                                         <h1>{children}</h1>
                                     </>
                                 );

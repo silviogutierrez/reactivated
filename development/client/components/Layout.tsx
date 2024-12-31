@@ -1,7 +1,6 @@
 import React, {type JSX} from "react";
 
 import {Context, classNames} from "@reactivated";
-import {Helmet} from "react-helmet-async";
 
 import * as styles from "@client/styles.css";
 
@@ -24,21 +23,19 @@ export const Layout = (props: Props) => {
 
     return (
         <>
-            <Helmet>
-                <meta charSet="utf-8" />
-                <title>{props.title}</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <link
-                    rel="icon"
-                    href={`${context.STATIC_URL}favicon.ico`}
-                    type="image/x-icon"
-                />
-                <link
-                    rel="stylesheet"
-                    type="text/css"
-                    href={`${context.STATIC_URL}admin/css/fonts.css`}
-                />
-            </Helmet>
+            <meta charSet="utf-8" />
+            <title>{props.title}</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <link
+                rel="icon"
+                href={`${context.STATIC_URL}favicon.ico`}
+                type="image/x-icon"
+            />
+            <link
+                rel="stylesheet"
+                type="text/css"
+                href={`${context.STATIC_URL}admin/css/fonts.css`}
+            />
             <header className={styles.header}>
                 <a href="/" rel="noopener">
                     django reactivated

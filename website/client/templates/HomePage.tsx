@@ -1,7 +1,6 @@
 import React, {type JSX} from "react";
 
 import {templates} from "@reactivated";
-import {Helmet} from "react-helmet-async";
 
 import outdent from "outdent";
 
@@ -97,9 +96,7 @@ const DOCKER = `
 
 export const Template = (props: templates.HomePage) => (
     <Site title="Reactivated — Zero-configuration Django and React">
-        <Helmet>
-            <script>{DOCKER}</script>
-        </Helmet>
+        <script>{DOCKER}</script>
         <div
             style={{
                 backgroundColor: styles.colors.background,

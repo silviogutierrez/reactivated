@@ -59,12 +59,7 @@ const rendererConfig: InlineConfig = {
         vanillaExtractPlugin(),
         cjsInterop({
             // List of CJS dependencies that require interop
-            dependencies: [
-                "react-syntax-highlighter",
-                "lz-string",
-                "react-use",
-                "react-helmet-async",
-            ],
+            dependencies: ["react-syntax-highlighter", "lz-string", "react-use"],
         }),
     ],
     resolve: {

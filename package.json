@@ -8,6 +8,9 @@
         "website",
         "development"
     ],
+    "scripts": {
+        "postinstall": "patch-package"
+    },
     "overrides": {
         "react": "^19.0.0"
     }

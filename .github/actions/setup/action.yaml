@@ -36,7 +36,7 @@ runs:
           id: npm-cache
           with:
               path: ${{ steps.npm-cache-dir.outputs.dir }}
-              key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+              key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', 'patches/*.patch') }}
         - name: "MacOS python venv issue"
           # On macOS, the first time you setup venv a really weird issue happens
           # and site-packages is not in sys.path. I cannot figure out why, no files

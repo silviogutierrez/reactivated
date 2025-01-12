@@ -4,6 +4,17 @@ const serJSON = (data: any): string => {
     return JSON.stringify(data).replace(/</g, "\\u003c");
 };
 
+export function App() {
+    return <html>
+        <body>
+            Hello 2
+            <button onClick={() => {
+                console.log("Done");
+            }}>Done</button>
+        </body>
+    </html>
+}
+
 export const PageShell = (
     props: React.PropsWithChildren<{
         vite: string;
@@ -13,6 +24,7 @@ export const PageShell = (
         entryPoint: string;
     }>,
 ) => {
+    /*
     const scriptNonce = props.preloadContext.request.csp_nonce
         ? `nonce="${props.preloadContext.request.csp_nonce}"`
         : "";
@@ -35,24 +47,11 @@ export const PageShell = (
                 : ""
         }
     `.trim();
+    */
     return (
         <html>
-            <head dangerouslySetInnerHTML={{__html: headHTML}} />
             <body>
-                <div id="root">{props.children}</div>
-                {props.mode == "production" ? (
-                    <script
-                        type="module"
-                        src={`${STATIC_URL}dist/${props.entryPoint}.js`}
-                        defer
-                        crossOrigin="anonymous"
-                    ></script>
-                ) : (
-                    <script
-                        type="module"
-                        src={`${STATIC_URL}dist/client/${props.entryPoint}.tsx`}
-                    ></script>
-                )}
+                Hello
             </body>
         </html>
     );

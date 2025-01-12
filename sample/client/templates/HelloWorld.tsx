@@ -10,29 +10,22 @@ const Paragraph = (props: {children?: React.ReactNode}) => (
 
 export const Template = (props: templates.HelloWorld) => {
     const [showStyle, setShowStyle] = React.useState(false);
+    const id = React.useId();
 
     return (
-        <Layout title="Hello world!">
-            <h1>Hello World!</h1>
-            <Paragraph>
-                The <span className={styles.testing}>best</span> opera is{" "}
-                <strong>{props.opera.name}</strong> by{" "}
-                <strong>{props.opera.composer.name}</strong>.
-            </Paragraph>
-            {showStyle === false ? (
-                <Paragraph>
-                    Click{" "}
-                    <a href="#" onClick={() => setShowStyle(true)}>
-                        here
-                    </a>{" "}
-                    to see what <span className={styles.more}>style</span> of opera it
-                    is.
-                </Paragraph>
-            ) : (
-                <Paragraph>
-                    <strong>Style:</strong> {props.opera.style}
-                </Paragraph>
-            )}
-        </Layout>
+        <div>
+            <h1>Hello World! {id} 3</h1>
+            <style type="text/css">{`
+        @font-face {
+           font-family: Montserrat;
+           font-style: "normal";
+           font-weight: 500;
+           src: url('/static/fonts/montserrat-v14-latin-500.woff2') format('woff2');
+        }
+
+            
+            
+            body { background-color: red; }`}</style>
+        </div>
     );
 };

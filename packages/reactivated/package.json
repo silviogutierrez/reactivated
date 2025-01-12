@@ -10,6 +10,7 @@
         "./dist/context": "./dist/context.js",
         "./dist/conf": "./dist/conf.js",
         "./dist/vite.mjs": "./dist/vite.mjs",
+        "./dist/shell": "./dist/shell.js",
         "./dist/render.mjs": "./dist/render.mjs",
         "./dist/server.mjs": "./dist/server.mjs",
         "./dist/rpc": "./dist/rpc.js"

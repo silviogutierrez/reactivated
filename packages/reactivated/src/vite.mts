@@ -93,9 +93,9 @@ app.use("/_reactivated/", async (req, res) => {
             base,
             `${context.STATIC_URL}dist/`,
         );
-        const rendered = await render(req, viteHead, "development", "index");
+        const rendered = await render(req, viteHead, "development", "index", res);
 
-        res.status(200).set({"Content-Type": "text/html"}).end(rendered);
+        // res.status(200).set({"Content-Type": "text/html"}).end(rendered);
     } catch (error) {
         vite.ssrFixStacktrace(error as any);
         const errResp: SSRErrorResponse = {

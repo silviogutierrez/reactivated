@@ -108,7 +108,8 @@ export const Template = (props: templates.Documentation) => {
                             h1: ({children}) => {
                                 return (
                                     <>
-                                        <title>{children[0]} | Reactivated</title>
+                                        {/* eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions */}
+                                        <title>{`${children[0]} | Reactivated`}</title>
                                         <h1>{children}</h1>
                                     </>
                                 );

@@ -79,10 +79,8 @@ window.__vite_plugin_react_preamble_installed__ = true
         // window.__PRELOADED_CONTEXT__ = ${serJSON(context)};
         // `,
         bootstrapModules: ["/static/dist/@vite/client", script],
-        onAllReady() {
+        onShellReady() {
             res.setHeader("content-type", "text/html");
-            pipe(res);
-            /*
             const transformStream = new Transform({
                 transform(chunk, encoding, callback) {
                     res.write(chunk, encoding);
@@ -93,13 +91,12 @@ window.__vite_plugin_react_preamble_installed__ = true
             // const [htmlStart, htmlEnd] = template.split(`<!--app-html-->`)
 
             transformStream.on("finish", () => {
-                res.end("")
-                // res.end(vite);
+                // res.end("")
+                res.end(vite);
                 // res.end(htmlEnd)
             });
 
             pipe(transformStream);
-            */
         },
     });
 

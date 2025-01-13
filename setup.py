@@ -24,8 +24,8 @@ setuptools.setup(
     install_requires=[
         "requests>=2.25.0",
         "requests-unixsocket2>=0.4.0",
-        "mypy~=1.13.0",
-        "django-stubs~=5.1.1",
+        "mypy~=1.14",
+        "django-stubs~=5.1",
         "simplejson>=3.16.0",
     ],
     classifiers=[

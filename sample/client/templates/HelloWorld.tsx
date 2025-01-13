@@ -15,18 +15,18 @@ export const Template = (props: templates.HelloWorld) => {
 
     return (
         <html>
-            <head>
-
-            </head>
+            <head></head>
             <body>
-
-            Hello 5 {context.request.path}
-            <button onClick={() => {
-                console.log("Done");
-            }}>Done</button>
-
-            <h1>Hello World! {id} 10</h1>
-            <style type="text/css">{`
+                Hello 5 {context.request.path}
+                <button
+                    onClick={() => {
+                        console.log("Done");
+                    }}
+                >
+                    Done
+                </button>
+                <h1>Hello World! {id} 11</h1>
+                <style type="text/css">{`
         @font-face {
            font-family: Montserrat;
            font-style: "normal";

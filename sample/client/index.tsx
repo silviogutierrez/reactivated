@@ -9,7 +9,6 @@ const {props, context} = getServerData();
 const Template = await getTemplate({template_name: "HelloWorld"});
 console.log(context);
 
-
 ReactDOM.hydrateRoot(
     document,
     <React.StrictMode>
@@ -17,7 +16,7 @@ ReactDOM.hydrateRoot(
             <Template />
         </Provider>
     </React.StrictMode>,
-    );
+);
 
 /*
 import {Provider, getTemplate, getServerData} from "@reactivated";

@@ -41,76 +41,54 @@ export const render = async (
 
     const {context, props} = req.body;
     const Template = await getTemplate(context);
-
-    /*
-    const content = React.createElement(
-        React.StrictMode,
-        {},
-        React.createElement(
-            App,
-            {},
-            React.createElement(Template, {}),
-        ),
-    );
-    */
+    const scriptNonce = context.request.csp_nonce ?? undefined;
 
     const {STATIC_URL} = context;
 
     if (STATIC_URL == null) {
         console.error("Ensure your context processor includes STATIC_URL");
     }
+    const css =
+        mode == "production"
+            ? `<link rel="stylesheet" type="text/css" href="${STATIC_URL}dist/${entryPoint}.css">`
+            : "";
+    const js =
+        mode == "production"
+            ? `<script type="module" src="${STATIC_URL}dist/${entryPoint}.js" defer crossOrigin="anonymous"></script>`
+            : `<script type="module" src="${STATIC_URL}dist/client/${entryPoint}.tsx"></script>`;
 
-    const script =
-        props.mode == "production"
-            ? `${STATIC_URL}dist/${entryPoint}.js`
-            : `${STATIC_URL}dist/client/${entryPoint}.tsx`;
+    const content = React.createElement(
+        Provider,
+        {value: context},
+        React.createElement(Template),
+    );
 
-    const preamble = `
-    <script type="module">
-import RefreshRuntime from "/static/dist/@react-refresh"
-RefreshRuntime.injectIntoGlobalHook(window)
-window.$RefreshReg$ = () => {}
-window.$RefreshSig$ = () => (type) => type
-window.__vite_plugin_react_preamble_installed__ = true
-</script>
-`;
-
-
-    const {pipe} = renderToPipeableStream(React.createElement(Provider, {value: context}, React.createElement(Template)), {
-        bootstrapScriptContent: `
-        window.__PRELOADED_PROPS__ = ${serJSON(props)};
-        window.__PRELOADED_CONTEXT__ = ${serJSON(context)};
-        `,
-        bootstrapModules: ["/static/dist/@vite/client", script],
-        onShellReady() {
-            res.setHeader("content-type", "text/html");
-            const transformStream = new Transform({
-                transform(chunk, encoding, callback) {
-                    res.write(chunk, encoding);
-                    callback();
-                },
-            });
-
-            // const [htmlStart, htmlEnd] = template.split(`<!--app-html-->`)
-
-            transformStream.on("finish", () => {
-                // res.end("")
-                res.end(vite);
-                // res.end(htmlEnd)
-            });
-
-            pipe(transformStream);
-        },
-    });
-
-    /*
-
-    const html = ReactDOMServer.renderToString(
+    const {pipe} = renderToPipeableStream(
         await (customConfiguration?.default ?? defaultRenderer)(content, {
             context,
             props,
         }),
+
+        {
+            nonce: scriptNonce,
+            bootstrapScriptContent: `
+        window.__PRELOADED_PROPS__ = ${serJSON(props)};
+        window.__PRELOADED_CONTEXT__ = ${serJSON(context)};
+        `,
+            onShellReady() {
+                res.setHeader("content-type", "text/html");
+                const transformStream = new Transform({
+                    transform(chunk, encoding, callback) {
+                        res.write(chunk, encoding);
+                        callback();
+                    },
+                });
+                transformStream.on("finish", () => {
+                    res.end(vite + css + js);
+                });
+
+                pipe(transformStream);
+            },
+        },
     );
-    return `<!DOCTYPE html>\n${html}`;
-    */
 };

@@ -5,15 +5,21 @@ const serJSON = (data: any): string => {
 };
 
 export function App(props: {children?: React.ReactNode}) {
-    return <html>
-        <body>
-            Hello 5
-            <button onClick={() => {
-                console.log("Done");
-            }}>Done</button>
-            {props.children}
-        </body>
-    </html>
+    return (
+        <html>
+            <body>
+                Hello 5
+                <button
+                    onClick={() => {
+                        console.log("Done");
+                    }}
+                >
+                    Done
+                </button>
+                {props.children}
+            </body>
+        </html>
+    );
 }
 
 export const PageShell = (
@@ -51,9 +57,7 @@ export const PageShell = (
     */
     return (
         <html>
-            <body>
-                Hello
-            </body>
+            <body>Hello</body>
         </html>
     );
 };

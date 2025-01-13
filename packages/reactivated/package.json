@@ -30,7 +30,7 @@
     },
     "license": "ISC",
     "peerDependencies": {
-        "@eslint/js": "^9.14.0",
+        "@eslint/js": "^9.18.0",
         "@types/eslint__eslintrc": "^2.1.2",
         "@types/eslint__js": "^8.42.3",
         "@types/eslint-config-prettier": "^6.11.3",

@@ -14,7 +14,7 @@ export const Template = (props: templates.HelloWorld) => {
 
     return (
         <div>
-            <h1>Hello World! {id} 3</h1>
+            <h1>Hello World! {id} 7</h1>
             <style type="text/css">{`
         @font-face {
            font-family: Montserrat;

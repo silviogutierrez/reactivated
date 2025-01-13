@@ -4,13 +4,14 @@ const serJSON = (data: any): string => {
     return JSON.stringify(data).replace(/</g, "\\u003c");
 };
 
-export function App() {
+export function App(props: {children?: React.ReactNode}) {
     return <html>
         <body>
             Hello 5
             <button onClick={() => {
                 console.log("Done");
             }}>Done</button>
+            {props.children}
         </body>
     </html>
 }

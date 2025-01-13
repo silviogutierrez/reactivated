@@ -47,6 +47,8 @@ export const render = async (
         {},
         React.createElement(
             App,
+            {},
+            React.createElement(Template, {}),
         ),
     );
 

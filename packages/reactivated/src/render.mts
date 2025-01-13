@@ -42,6 +42,7 @@ export const render = async (
     const {context, props} = req.body;
     const Template = await getTemplate(context);
 
+    /*
     const content = React.createElement(
         React.StrictMode,
         {},
@@ -51,6 +52,7 @@ export const render = async (
             React.createElement(Template, {}),
         ),
     );
+    */
 
     const {STATIC_URL} = context;
 
@@ -74,12 +76,11 @@ window.__vite_plugin_react_preamble_installed__ = true
 `;
 
 
-    console.log(vite);
-    const {pipe} = renderToPipeableStream(content, {
-        // bootstrapScriptContent: `
-        // window.__PRELOADED_PROPS__ = ${serJSON(props)};
-        // window.__PRELOADED_CONTEXT__ = ${serJSON(context)};
-        // `,
+    const {pipe} = renderToPipeableStream(React.createElement(Provider, {value: context}, React.createElement(Template)), {
+        bootstrapScriptContent: `
+        window.__PRELOADED_PROPS__ = ${serJSON(props)};
+        window.__PRELOADED_CONTEXT__ = ${serJSON(context)};
+        `,
         bootstrapModules: ["/static/dist/@vite/client", script],
         onShellReady() {
             res.setHeader("content-type", "text/html");

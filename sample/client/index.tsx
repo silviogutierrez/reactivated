@@ -5,14 +5,17 @@ import {App} from "reactivated/dist/shell";
 
 import {Provider, getTemplate, getServerData} from "@reactivated";
 
-// const {props, context} = getServerData();
+const {props, context} = getServerData();
 const Template = await getTemplate({template_name: "HelloWorld"});
+console.log(context);
 
 
 ReactDOM.hydrateRoot(
     document,
     <React.StrictMode>
-        <App><Template /></App>
+        <Provider value={context}>
+            <Template />
+        </Provider>
     </React.StrictMode>,
     );
 

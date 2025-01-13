@@ -1,7 +1,7 @@
 import React from "react";
 
 import {Layout} from "@client/Layout";
-import {templates} from "@reactivated";
+import {templates, Context} from "@reactivated";
 import * as styles from "@client/styles.css";
 
 const Paragraph = (props: {children?: React.ReactNode}) => (
@@ -11,10 +11,21 @@ const Paragraph = (props: {children?: React.ReactNode}) => (
 export const Template = (props: templates.HelloWorld) => {
     const [showStyle, setShowStyle] = React.useState(false);
     const id = React.useId();
+    const context = React.useContext(Context);
 
     return (
-        <div>
-            <h1>Hello World! {id} 7</h1>
+        <html>
+            <head>
+
+            </head>
+            <body>
+
+            Hello 5 {context.request.path}
+            <button onClick={() => {
+                console.log("Done");
+            }}>Done</button>
+
+            <h1>Hello World! {id} 10</h1>
             <style type="text/css">{`
         @font-face {
            font-family: Montserrat;
@@ -26,6 +37,7 @@ export const Template = (props: templates.HelloWorld) => {
             
             
             body { background-color: red; }`}</style>
-        </div>
+            </body>
+        </html>
     );
 };

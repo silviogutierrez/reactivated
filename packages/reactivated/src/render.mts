@@ -97,7 +97,9 @@ export const render = async (
                     return;
                 }
                 res.status(200);
-                res.setHeader("content-type", "text/html");
+                // Seems like the renderer.py, at least for unix socket, requires a charset
+                // unlike the React docs
+                res.setHeader("content-type", "text/html; charset=utf-8");
                 const transformStream = new Transform({
                     transform(chunk, encoding, callback) {
                         res.write(chunk, encoding);

@@ -12,8 +12,7 @@ const app = express();
 app.use(express.json({limit: "200mb"}));
 app.use("/_reactivated/", async (req, res) => {
     try {
-        const rendered = await render(req, "", "production", "index", res);
-        res.status(200).set({"Content-Type": "text/html"}).end(rendered);
+        render(req, res, "", "production", "index");
     } catch (error) {
         const errResp: SSRErrorResponse = {
             error: serializeError(error as any),

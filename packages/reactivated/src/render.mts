@@ -5,12 +5,11 @@ import ReactDOMServer from "react-dom/server";
 import {renderToPipeableStream} from "react-dom/server";
 import {Transform} from "node:stream";
 
+import {SSRErrorResponse, serializeError} from "./errors.js";
 // @ts-ignore
 import {Provider} from "@reactivated";
 // @ts-ignore
 import {getTemplate} from "@reactivated/template";
-
-import {PageShell, App} from "./shell";
 
 export type Renderer<T = unknown> = (
     content: JSX.Element,
@@ -28,10 +27,11 @@ function serJSON(data: unknown): string {
 
 export const render = async (
     req: Request,
+    res: Response,
     vite: string,
     mode: "production" | "development",
     entryPoint: string,
-    res: Response,
+    ssrFixStacktrace?: (error: Error) => void,
 ) => {
     // @ts-ignore
     const customConfiguration: {default?: Renderer} | null = import.meta.glob(
@@ -63,6 +63,8 @@ export const render = async (
         React.createElement(Template),
     );
 
+    let hasError = false;
+
     const {pipe} = renderToPipeableStream(
         await (customConfiguration?.default ?? defaultRenderer)(content, {
             context,
@@ -75,7 +77,22 @@ export const render = async (
         window.__PRELOADED_PROPS__ = ${serJSON(props)};
         window.__PRELOADED_CONTEXT__ = ${serJSON(context)};
         `,
-            onShellReady() {
+            onError(error) {
+                hasError = true;
+                if (ssrFixStacktrace) {
+                    console.log("fixing stacktrace");
+                    ssrFixStacktrace(error as any);
+                }
+                const errResp: SSRErrorResponse = {
+                    error: serializeError(error as any),
+                };
+                res.status(500).json(errResp);
+            },
+            onAllReady() {
+                if (hasError) {
+                    return;
+                }
+                res.status(200);
                 res.setHeader("content-type", "text/html");
                 const transformStream = new Transform({
                     transform(chunk, encoding, callback) {

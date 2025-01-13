@@ -145,6 +145,7 @@ export const Template = (props: templates.Documentation) => {
                                         match != null ? (match[1] as "tsx") : undefined;
                                     return (
                                         <Code language={language}>
+                                            {/* eslint-disable-next-line @typescript-eslint/no-base-to-string */}
                                             {String(children).replace(/\n$/, "")}
                                         </Code>
                                     );

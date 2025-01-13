@@ -7,6 +7,7 @@ from unittest import mock
 import pytest
 from django.conf import settings
 from django.core.management import call_command
+from django.http import HttpResponse
 from django.urls import path
 
 from reactivated import registry
@@ -29,7 +30,7 @@ def test_end_to_end(client, live_server, page):
     call_command("build")
 
     page.goto(live_server.url)
-    assert "<h1>Hello World!</h1>" in page.content()
+    assert "<h1>Hello World! It’s good to be here.</h1>" in page.content()
 
 
 def test_default_widget(tmp_path):

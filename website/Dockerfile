@@ -22,6 +22,7 @@ COPY package-lock.json .
 
 RUN npm install
 RUN npm install ./monorepo/node.tgz
+COPY complex-types.ts node_modules/react-markdown/lib/complex-types.ts
 
 # RUN rm -rf node_modules/reactivated/*
 # COPY node_modules/reactivated node_modules/reactivated

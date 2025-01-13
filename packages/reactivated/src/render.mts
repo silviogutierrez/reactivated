@@ -57,16 +57,15 @@ export const render = async (
             ? `<script type="module" src="${STATIC_URL}dist/${entryPoint}.js" defer crossOrigin="anonymous"></script>`
             : `<script type="module" src="${STATIC_URL}dist/client/${entryPoint}.tsx"></script>`;
 
-
     const content = React.createElement(
-         React.StrictMode,
-         {},
-         React.createElement(
-                 Provider,
-                 {value: context},
-                 React.createElement(Template, props),
-         ),
-     );
+        React.StrictMode,
+        {},
+        React.createElement(
+            Provider,
+            {value: context},
+            React.createElement(Template, props),
+        ),
+    );
 
     let hasError = false;
 

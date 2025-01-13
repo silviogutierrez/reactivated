@@ -32,6 +32,7 @@ cp package-lock.json website_build_context/
 sed -i s'#-e ..#./monorepo/python#' website_build_context/requirements.txt
 sed -i s'#../requirements#./requirements#' website_build_context/shell.nix
 
+cp node_modules/react-markdown/lib/complex-types.ts website_build_context/
 cd website_build_context/
 
 # Ensure we are logged in.

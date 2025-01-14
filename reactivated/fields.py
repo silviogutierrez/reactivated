@@ -1,5 +1,7 @@
 from enum import Enum
 from enum import unique as ensure_unique
+from django.contrib.postgres.fields import ArrayField
+from django.db.models.expressions import Combinable, Expression
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -23,8 +25,9 @@ from .constraints import EnumConstraint
 
 if TYPE_CHECKING:
     from django.core.validators import _ValidatorCallable
-    from django.db.models.fields import _ErrorMessagesDict
+    from django.db.models.fields import _ErrorMessagesDict, _ErrorMessagesMapping
     from django.utils.functional import _StrOrPromise
+    from django.utils.choices import _Choices
 else:
 
     class _ValidatorCallable:
@@ -241,7 +244,6 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
 
 
 if TYPE_CHECKING:
-
     @overload
     def EnumField(
         enum: Type[TEnum],
@@ -294,6 +296,8 @@ if TYPE_CHECKING:
     ) -> Union[_EnumField[TEnum, TEnum], _EnumField[Optional[TEnum], Optional[TEnum]]]:  # type: ignore[type-var]
         return _EnumField[TEnum, TEnum](enum=enum, default=default, null=null)
 
+
+    # EnumArrayField = ArrayField
 else:
 
     class EnumField(_EnumField):
@@ -335,3 +339,164 @@ else:
 
     except ImportError:
         pass
+
+
+if TYPE_CHECKING:
+    @overload
+    def EnumArrayField(
+        enum: Type[TEnum],
+        size: int | None = ...,
+        *,
+        verbose_name: _StrOrPromise | None = ...,
+        name: str | None = ...,
+        primary_key: bool = ...,
+        max_length: int | None = ...,
+        unique: bool = ...,
+        blank: bool = ...,
+        null: Literal[False] = False,
+        db_index: bool = ...,
+        default: Any = ...,
+        db_default: type[NOT_PROVIDED] | Expression | _ST = ...,
+        editable: bool = ...,
+        auto_created: bool = ...,
+        serialize: bool = ...,
+        unique_for_date: str | None = ...,
+        unique_for_month: str | None = ...,
+        unique_for_year: str | None = ...,
+        choices: _Choices | None = ...,
+        help_text: _StrOrPromise = ...,
+        db_column: str | None = ...,
+        db_comment: str | None = ...,
+        db_tablespace: str | None = ...,
+        validators: Iterable[_ValidatorCallable] = ...,
+        error_messages: _ErrorMessagesMapping | None = ...,
+    ) -> models.Field[list[TEnum], list[TEnum]]:
+        ...
+
+    @overload
+    def EnumArrayField(
+        enum: Type[TEnum],
+        size: int | None = ...,
+        *,
+        verbose_name: _StrOrPromise | None = ...,
+        name: str | None = ...,
+        primary_key: bool = ...,
+        max_length: int | None = ...,
+        unique: bool = ...,
+        blank: bool = ...,
+        null: Literal[True] = True,
+        db_index: bool = ...,
+        default: Any = ...,
+        db_default: type[NOT_PROVIDED] | Expression | _ST = ...,
+        editable: bool = ...,
+        auto_created: bool = ...,
+        serialize: bool = ...,
+        unique_for_date: str | None = ...,
+        unique_for_month: str | None = ...,
+        unique_for_year: str | None = ...,
+        choices: _Choices | None = ...,
+        help_text: _StrOrPromise = ...,
+        db_column: str | None = ...,
+        db_comment: str | None = ...,
+        db_tablespace: str | None = ...,
+        validators: Iterable[_ValidatorCallable] = ...,
+        error_messages: _ErrorMessagesMapping | None = ...,
+    ) -> models.Field[list[TEnum] | None, list[TEnum] | None]:
+        ...
+
+    def EnumArrayField(
+        enum: Type[TEnum],
+        size: int | None = ...,
+        *,
+        verbose_name: _StrOrPromise | None = ...,
+        name: str | None = ...,
+        primary_key: bool = ...,
+        max_length: int | None = ...,
+        unique: bool = ...,
+        blank: bool = ...,
+        null: Literal[True, False] = False,
+        db_index: bool = ...,
+        default: Any = ...,
+        db_default: type[NOT_PROVIDED] | Expression | _ST = ...,
+        editable: bool = ...,
+        auto_created: bool = ...,
+        serialize: bool = ...,
+        unique_for_date: str | None = ...,
+        unique_for_month: str | None = ...,
+        unique_for_year: str | None = ...,
+        choices: _Choices | None = ...,
+        help_text: _StrOrPromise = ...,
+        db_column: str | None = ...,
+        db_comment: str | None = ...,
+        db_tablespace: str | None = ...,
+        validators: Iterable[_ValidatorCallable] = ...,
+        error_messages: _ErrorMessagesMapping | None = ...,
+    ) -> models.Field[list[TEnum], list[TEnum]] | models.Field[list[TEnum] | None, list[TEnum] | None]:
+        ...
+else:
+    class EnumArrayField(ArrayField):
+        def contribute_to_class(self, cls: type[models.Model], name: str, **kwargs: Any) -> None:  # type: ignore[override]
+            """
+            We don't store the enum in the constraint. Instead, we store the fields
+            so the autodetection for changed enums works automatically.
+            """
+            super().contribute_to_class(cls, name, **kwargs)
+            if "constraints" not in cls._meta.original_attrs:
+                cls._meta.original_attrs["constraints"] = []
+
+            # Note that we cannot use the constraint name interpolation syntax
+            # because it's too late at this point. It's the metaclass that actually
+            # interpolates the values.
+            #
+            # Fortunately, we can create a name dynamically.
+            cls._meta.constraints.append(
+                EnumConstraint(
+                    members=self.enum._member_names_,
+                    field_name=name,
+                    name=self.get_enum_name(),
+                    is_array=True,
+                )
+            )
+
+        def _from_db_value(self, value, expression, connection):
+            if value is None:
+                tokenized = None
+            else:
+                tokenized = value.strip('{}').split(',')
+
+            return super()._from_db_value(tokenized, expression, connection)
+
+        def cast_db_type(self, connection: Any) -> str:
+            return self.get_enum_name()
+
+        def get_enum_name(self) -> str:
+            return f"{self.model._meta.db_table}_{self.name}_enum"
+
+        # def get_db_prep_value(self, value, connection, prepared=False):
+        #     # return f"{{}}::{self.get_enum_name()}[]"
+        #     return "{}"
+        #     assert False
+
+        def get_placeholder(self, value, compiler, connection):
+            placeholder = f"{self.get_enum_name()}[]"
+            return "%s::{}".format(placeholder)
+
+        def db_type(self, connection: Any) -> Optional[str]:
+            # return "int[]"
+            if connection.settings_dict["ENGINE"] != "django.db.backends.postgresql":
+                raise DatabaseError("EnumField is only supported on PostgreSQL")
+            # return f"{self.get_enum_name()}[]"
+            return super().db_type(connection)
+
+        def __init__(self, *args, **kwargs) -> None:
+            self.enum = kwargs.pop("enum")
+            kwargs["base_field"] = EnumField(enum=self.enum)
+
+            super().__init__(*args, **kwargs)
+            # assert False
+            pass
+
+        def deconstruct(self) -> Any:
+            name, path, args, kwargs = super().deconstruct()
+            kwargs["enum"] = self.enum
+            return name, path, args, kwargs

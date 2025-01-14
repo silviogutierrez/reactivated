@@ -1,11 +1,19 @@
 {
     "name": "main",
-    "dependencies": {},
+    "dependencies": {
+        "patch-package": "^8.0.0"
+    },
     "workspaces": [
         "packages/reactivated",
         "packages/create-django-app",
         "sample",
         "website",
         "development"
-    ]
+    ],
+    "scripts": {
+        "postinstall": "patch-package"
+    },
+    "overrides": {
+        "react": "^19.0.0"
+    }
 }

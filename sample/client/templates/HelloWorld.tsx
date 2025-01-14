@@ -13,7 +13,9 @@ export const Template = (props: templates.HelloWorld) => {
 
     return (
         <Layout title="Hello world!">
-            <h1>Hello World!</h1>
+            <div>
+                <h1>Hello World! It’s good to be here.</h1>
+            </div>
             <Paragraph>
                 The <span className={styles.testing}>best</span> opera is{" "}
                 <strong>{props.opera.name}</strong> by{" "}

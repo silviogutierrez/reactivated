@@ -59,12 +59,7 @@ const rendererConfig: InlineConfig = {
         vanillaExtractPlugin(),
         cjsInterop({
             // List of CJS dependencies that require interop
-            dependencies: [
-                "react-syntax-highlighter",
-                "lz-string",
-                "react-use",
-                "react-helmet-async",
-            ],
+            dependencies: ["react-syntax-highlighter", "lz-string", "react-use"],
         }),
     ],
     resolve: {
@@ -98,9 +93,7 @@ app.use("/_reactivated/", async (req, res) => {
             base,
             `${context.STATIC_URL}dist/`,
         );
-        const rendered = await render(req, viteHead, "development", "index");
-
-        res.status(200).set({"Content-Type": "text/html"}).end(rendered);
+        render(req, res, viteHead, "development", "index", vite.ssrFixStacktrace);
     } catch (error) {
         vite.ssrFixStacktrace(error as any);
         const errResp: SSRErrorResponse = {

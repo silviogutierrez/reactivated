@@ -107,7 +107,7 @@ export const render = async (
                         callback();
                     },
                 });
-                transformStream.on("sh", () => {
+                transformStream.on("finish", () => {
                     res.end(vite + js);
                 });
 

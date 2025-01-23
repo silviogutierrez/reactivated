@@ -100,14 +100,15 @@ export const render = async (
                 // Seems like the renderer.py, at least for unix socket, requires a charset
                 // unlike the React docs
                 res.setHeader("content-type", "text/html; charset=utf-8");
+                res.write(css);
                 const transformStream = new Transform({
                     transform(chunk, encoding, callback) {
                         res.write(chunk, encoding);
                         callback();
                     },
                 });
-                transformStream.on("finish", () => {
-                    res.end(vite + css + js);
+                transformStream.on("sh", () => {
+                    res.end(vite + js);
                 });
 
                 pipe(transformStream);

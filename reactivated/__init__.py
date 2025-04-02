@@ -357,7 +357,7 @@ def ssr(*, props: Type[P], params: Optional[Type[K]] = None) -> Union[
         return wrapper
 
     def wrap_with_jsx(
-        original: View[K, P]
+        original: View[K, P],
     ) -> Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse]:
         def wrapper(request: HttpRequest, **kwargs: Any) -> HttpResponse:
             props = original(request, cast(Any, params)(**kwargs))
@@ -380,10 +380,10 @@ class TypeHint(abc.ABC):
         pass
 
 
-def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> Any:
-    if isinstance(Type, _GenericAlias):
-        if Type.__origin__ == tuple:
-            *tuple_args, last_arg = Type.__args__
+def create_schema(_Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> Any:
+    if isinstance(_Type, _GenericAlias):
+        if _Type.__origin__ == tuple:
+            *tuple_args, last_arg = _Type.__args__
 
             if last_arg is Ellipsis:
                 return {
@@ -394,49 +394,51 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
             return {
                 "type": "array",
                 "items": [
-                    create_schema(Subtype, definitions) for Subtype in Type.__args__
+                    create_schema(Subtype, definitions) for Subtype in _Type.__args__
                 ],
             }
 
     if (
-        getattr(Type, "__origin__", None) == Union
-        or str(Type.__class__) == "typing.Union"
+        getattr(_Type, "__origin__", None) == Union
+        or str(_Type.__class__) == "typing.Union"
     ):  # TODO: find a better way to do this.
-        return {"anyOf": [create_schema(field, definitions) for field in Type.__args__]}
-    elif str(Type.__class__) == "typing.Any":  # TODO: find a better way to do this.
+        return {
+            "anyOf": [create_schema(field, definitions) for field in _Type.__args__]
+        }
+    elif str(_Type.__class__) == "typing.Any":  # TODO: find a better way to do this.
         return {}
-    elif Type == Any:  # TODO: find a better way to do this.
+    elif _Type == Any:  # TODO: find a better way to do this.
         return {}
-    elif getattr(Type, "_name", None) == "Dict":
+    elif getattr(_Type, "_name", None) == "Dict":
         return {
             "type": "object",
-            "additionalProperties": create_schema(Type.__args__[1], definitions),
+            "additionalProperties": create_schema(_Type.__args__[1], definitions),
         }
-    elif getattr(Type, "_name", None) == "List":
-        return {"type": "array", "items": create_schema(Type.__args__[0], definitions)}
-    elif issubclass(Type, List):
-        return {"type": "array", "items": create_schema(Type.__args__[0], definitions)}
-    elif issubclass(Type, Dict):
+    elif getattr(_Type, "_name", None) == "List":
+        return {"type": "array", "items": create_schema(_Type.__args__[0], definitions)}
+    elif issubclass(_Type, List):
+        return {"type": "array", "items": create_schema(_Type.__args__[0], definitions)}
+    elif issubclass(_Type, Dict):
         return {
             "type": "object",
-            "additionalProperties": create_schema(Type.__args__[1], definitions),
+            "additionalProperties": create_schema(_Type.__args__[1], definitions),
         }
-    elif issubclass(Type, bool):
+    elif issubclass(_Type, bool):
         return {"type": "boolean"}
-    elif issubclass(Type, int):
+    elif issubclass(_Type, int):
         return {"type": "number"}
-    elif issubclass(Type, str):
+    elif issubclass(_Type, str):
         return {"type": "string"}
-    elif Type is type(None):  # noqa: E721
+    elif _Type is type(None):  # noqa: E721
         return {"type": "null"}
-    elif hasattr(Type, "_asdict"):
-        definition_name = f"{Type.__module__}.{Type.__qualname__}"
+    elif hasattr(_Type, "_asdict"):
+        definition_name = f"{_Type.__module__}.{_Type.__qualname__}"
 
         if ref is False or definition_name not in definitions:
             required = []
             properties = {}
 
-            for field_name, SubType in Type.__annotations__.items():
+            for field_name, SubType in _Type.__annotations__.items():
                 field_schema = create_schema(SubType, definitions, ref=ref)
 
                 if field_schema is not None:
@@ -444,7 +446,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
                     properties[field_name] = field_schema
 
             definition = {
-                # "title": Type.__name__,
+                # "title": _Type.__name__,
                 "type": "object",
                 "additionalProperties": False,
                 "properties": properties,
@@ -456,9 +458,9 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
             definitions[definition_name] = definition
 
         return {"$ref": f"#/$defs/{definition_name}"}
-    elif issubclass(Type, django_forms.formsets.BaseFormSet):
+    elif issubclass(_Type, django_forms.formsets.BaseFormSet):
         form_set_schema = create_schema(FormSetType, definitions, ref=False)
-        form_schema = create_schema(Type.form, definitions)
+        form_schema = create_schema(_Type.form, definitions)
 
         # We use our own management form because base_fields is set dynamically
         # by Django in django.forms.formsets.
@@ -479,8 +481,8 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
             },
         }
 
-    elif issubclass(Type, django_forms.BaseForm):
-        definition_name = f"{Type.__module__}.{Type.__qualname__}"
+    elif issubclass(_Type, django_forms.BaseForm):
+        definition_name = f"{_Type.__module__}.{_Type.__qualname__}"
         required = []
         properties = {}
         error_properties = {}
@@ -489,7 +491,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
         # We manually build errors using type augmentation.
         error_schema = create_schema(FormError, definitions)
 
-        for field_name, SubType in Type.base_fields.items():
+        for field_name, SubType in _Type.base_fields.items():
             required.append(field_name)
             properties[field_name] = field_schema
             error_properties[field_name] = error_schema
@@ -500,7 +502,7 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
             "additionalProperties": False,
         }
         definitions[definition_name] = {
-            "title": Type.__name__,
+            "title": _Type.__name__,
             "allOf": [
                 {"$ref": "#/$defs/Form"},
                 {
@@ -531,10 +533,10 @@ def create_schema(Type: Any, definitions: Dict[Any, Any], ref: bool = True) -> A
 
         return {"$ref": f"#/$defs/{definition_name}"}
 
-    elif issubclass(Type, BasePickHolder):
-        return Type.get_json_schema()
-    elif issubclass(Type, TypeHint):
-        return {"tsType": Type.name}
+    elif issubclass(_Type, BasePickHolder):
+        return _Type.get_json_schema()
+    elif issubclass(_Type, TypeHint):
+        return {"tsType": _Type.name}
     assert False
 
 

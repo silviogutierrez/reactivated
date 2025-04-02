@@ -17,7 +17,7 @@ class Request(NamedTuple):
 
     @classmethod
     def get_serialized_value(
-        Type: Type["Request"], value: HttpRequest, schema: Thing
+        _Type: Type["Request"], value: HttpRequest, schema: Thing
     ) -> JSON:
         serialized = serialize(value, schema, suppress_custom_serializer=True)
 

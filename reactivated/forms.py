@@ -150,7 +150,6 @@ def get_form_from_form_set_or_form(
     ],
     descriptor: FormOrFormSetDescriptor,
 ) -> Optional[django_forms.BaseForm]:
-
     for key, item in context_data.items():
         if isinstance(item, django_forms.BaseForm) and item.prefix == descriptor.prefix:
             return item
@@ -241,12 +240,12 @@ class FormGroup:
         )
 
     @classmethod
-    def get_json_schema(Type, definitions: registry.Definitions) -> registry.Thing:
-        return serialization.named_tuple_schema(Type, definitions, exclude=["errors"])
+    def get_json_schema(_Type, definitions: registry.Definitions) -> registry.Thing:
+        return serialization.named_tuple_schema(_Type, definitions, exclude=["errors"])
 
     @classmethod
     def get_serialized_value(
-        Type: Type["FormGroup"],
+        _Type: Type["FormGroup"],
         class_or_instance: Union[Type["FormGroup"], "FormGroup"],
         schema: registry.Thing,
     ) -> registry.JSON:

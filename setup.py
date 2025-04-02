@@ -2,10 +2,10 @@ import json
 
 import setuptools
 
-with open("README.md", "r") as fh:
+with open("README.md") as fh:
     long_description = fh.read()
 
-with open("packages/reactivated/package.json", "r") as package:
+with open("packages/reactivated/package.json") as package:
     version = json.load(package)["version"]
 
 setuptools.setup(

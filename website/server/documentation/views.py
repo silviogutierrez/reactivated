@@ -1,4 +1,4 @@
-from typing import Optional, cast
+from typing import cast
 
 import requests
 from django.conf import settings
@@ -44,7 +44,7 @@ def home_page(request: HttpRequest) -> HttpResponse:
     return templates.HomePage(stars=cast(str, stars)).render(request)
 
 
-def install(request: HttpRequest, *, tag: Optional[str] = None) -> HttpResponse:
+def install(request: HttpRequest, *, tag: str | None = None) -> HttpResponse:
     tag = tag or cache.get_or_set("tag", get_latest_tag)
 
     return HttpResponse(

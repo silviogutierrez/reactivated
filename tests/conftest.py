@@ -9,7 +9,7 @@ def pytest_configure(config: Any) -> None:
     for file_name, line_numbers in FILES:
         file_path = f"{site_packages}/{file_name}.pyi"
 
-        with open(file_path, "r") as file_in:
+        with open(file_path) as file_in:
             file_lines = []
 
             for index, line in enumerate(file_in.readlines()):

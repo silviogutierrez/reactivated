@@ -1,16 +1,12 @@
 import enum
 import re
+from collections.abc import Callable, Sequence
 from enum import unique
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Dict,
     Literal,
     NamedTuple,
-    Optional,
-    Sequence,
-    Type,
     TypeVar,
     Union,
     cast,
@@ -52,21 +48,21 @@ class EnumChoiceField(django_forms.TypedChoiceField):
     def __init__(
         self,
         *,
-        coerce: Optional[Callable[[Any], Optional[_GT]]] = None,
-        empty_value: Optional[str] = "",
-        enum: Optional[Type[_GT]] = None,
-        choices: Optional[EnumChoiceIterator[_GT]] = None,
+        coerce: Callable[[Any], _GT | None] | None = None,
+        empty_value: str | None = "",
+        enum: type[_GT] | None = None,
+        choices: EnumChoiceIterator[_GT] | None = None,
         required: bool = True,
-        widget: Optional[Union[Widget, Type[Widget]]] = None,
-        label: Optional[str] = None,
-        initial: Optional[_GT] = None,
+        widget: Widget | type[Widget] | None = None,
+        label: str | None = None,
+        initial: _GT | None = None,
         help_text: str = "",
-        error_messages: Optional[Any] = None,
+        error_messages: Any | None = None,
         show_hidden_initial: bool = False,
         validators: Sequence[Any] = (),
         localize: bool = False,
         disabled: bool = False,
-        label_suffix: Optional[Any] = None,
+        label_suffix: Any | None = None,
     ) -> None:
         """When instantiated by a model form, choices will be populated and
         enum will not, as Django strips all but a defined set of kwargs.
@@ -110,7 +106,7 @@ class EnumChoiceField(django_forms.TypedChoiceField):
     handled by the `choices` argument in form and model fields.
     """
 
-    def prepare_value(self, value: Optional[enum.Enum]) -> Optional[str]:
+    def prepare_value(self, value: enum.Enum | None) -> str | None:
         if isinstance(value, enum.Enum):
             return value.name
         return value
@@ -120,7 +116,7 @@ T = TypeVar("T")
 
 
 class FormOrFormSetDescriptor(NamedTuple):
-    prefix: Optional[str]
+    prefix: str | None
     field_name: str
 
 
@@ -144,12 +140,12 @@ def get_form_or_form_set_descriptor(prefixed_name: str) -> FormOrFormSetDescript
 
 
 def get_form_from_form_set_or_form(
-    context_data: Dict[
+    context_data: dict[
         str,
-        Union[django_forms.BaseForm, django_forms.formsets.BaseFormSet[Any], object],
+        django_forms.BaseForm | django_forms.formsets.BaseFormSet[Any] | object,
     ],
     descriptor: FormOrFormSetDescriptor,
-) -> Optional[django_forms.BaseForm]:
+) -> django_forms.BaseForm | None:
     for key, item in context_data.items():
         if isinstance(item, django_forms.BaseForm) and item.prefix == descriptor.prefix:
             return item
@@ -245,8 +241,8 @@ class FormGroup:
 
     @classmethod
     def get_serialized_value(
-        _Type: Type["FormGroup"],
-        class_or_instance: Union[Type["FormGroup"], "FormGroup"],
+        _Type: type["FormGroup"],
+        class_or_instance: Union[type["FormGroup"], "FormGroup"],
         schema: registry.Thing,
     ) -> registry.JSON:
         # if isinstance(class_or_instance, FormGroup):

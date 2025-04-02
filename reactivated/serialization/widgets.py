@@ -1,16 +1,4 @@
-from typing import (
-    Any,
-    Dict,
-    List,
-    Literal,
-    NamedTuple,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    get_type_hints,
-)
+from typing import Any, Literal, NamedTuple, Tuple, TypeVar, get_type_hints
 
 from django import forms
 
@@ -30,12 +18,12 @@ Override = TypeVar("Override")
 
 class OptgroupMember(NamedTuple):
     name: str
-    value: Union[str, int, bool, None]
+    value: str | int | bool | None
     label: str
     selected: bool
 
 
-Optgroup = Tuple[None, Tuple[OptgroupMember], int]
+Optgroup = tuple[None, tuple[OptgroupMember], int]
 
 
 class BaseWidgetAttrs(NamedTuple):
@@ -52,7 +40,7 @@ class BaseWidget(NamedTuple):
     name: str
     is_hidden: bool
     required: bool
-    value: Optional[str]
+    value: str | None
     attrs: BaseWidgetAttrs
 
     @staticmethod
@@ -61,14 +49,16 @@ class BaseWidget(NamedTuple):
 
     @classmethod
     def get_json_schema(
-        Proxy: Type["BaseWidget"],
+        Proxy: type["BaseWidget"],
         instance: forms.Widget,
         definitions: Definitions,
     ) -> "Thing":
         from . import create_schema, named_tuple_schema
 
         # Subwidgets come to us as a class already.
-        widget_class: Type[forms.Widget] = instance if isinstance(instance, type) else instance.__class__  # type: ignore[assignment]
+        widget_class: type[forms.Widget] = (
+            instance if isinstance(instance, type) else instance.__class__  # type: ignore[assignment]
+        )
         tag = f"{widget_class.__module__}.{widget_class.__qualname__}"
 
         if Proxy is BaseWidget:
@@ -114,7 +104,8 @@ class BaseWidget(NamedTuple):
             }
 
             for subwidget_key, subwidget in zip(
-                subwidget_keys, subwidgets_tuple.__args__  # type: ignore[attr-defined]
+                subwidget_keys,
+                subwidgets_tuple.__args__,  # type: ignore[attr-defined]
             ):
                 value_schema = create_schema(subwidget, base.definitions).dereference()[
                     "properties"
@@ -131,7 +122,7 @@ class BaseWidget(NamedTuple):
         base = base.add_property(
             "tag", create_schema(Literal[tag], base.definitions).schema
         )
-        GlobalWidget: Dict[str, Any] = (
+        GlobalWidget: dict[str, Any] = (
             global_types["Widget"]
             if global_types["Widget"] is not DefaultWidgetType
             else {
@@ -152,7 +143,7 @@ class BaseWidget(NamedTuple):
 
     @classmethod
     def get_serialized_value(
-        Proxy: Type["BaseWidget"], value: Any, schema: "Thing"
+        Proxy: type["BaseWidget"], value: Any, schema: "Thing"
     ) -> JSON:
         from . import object_serializer
 
@@ -290,8 +281,8 @@ class Textarea(BaseWidget):
 @register(forms.Select)
 class Select(BaseWidget):
     template_name: Literal["django/forms/widgets/select.html"]
-    optgroups: List[Optgroup]
-    value: Union[str, None]
+    optgroups: list[Optgroup]
+    value: str | None
 
     @staticmethod
     def coerce_value(context: Any) -> Any:
@@ -305,8 +296,8 @@ class SelectMultipleAttrs(BaseWidgetAttrs):
 @register(forms.SelectMultiple)
 class SelectMultiple(BaseWidget):
     attrs: SelectMultipleAttrs
-    optgroups: List[Optgroup]
-    value: List[str]  # type: ignore[assignment]
+    optgroups: list[Optgroup]
+    value: list[str]  # type: ignore[assignment]
 
 
 @register(forms.ClearableFileInput)
@@ -322,9 +313,9 @@ class ClearableFileInput(BaseWidget):
 
 
 class SelectDateWidgetValue(NamedTuple):
-    year: Optional[Union[str, int]]
-    month: Optional[Union[str, int]]
-    day: Optional[Union[str, int]]
+    year: str | int | None
+    month: str | int | None
+    day: str | int | None
 
 
 class SelectDateWidgetSubwidgets(NamedTuple):
@@ -343,5 +334,5 @@ class SelectDateWidget(BaseWidget):
 @register(forms.SplitDateTimeWidget)
 class SplitDateTimeWidget(BaseWidget):
     template_name: Literal["django/forms/widgets/splitdatetime.html"]
-    subwidgets: Tuple[forms.DateInput, forms.TimeInput]
+    subwidgets: tuple[forms.DateInput, forms.TimeInput]
     value: Any

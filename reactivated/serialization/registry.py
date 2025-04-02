@@ -1,30 +1,20 @@
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Literal,
-    Mapping,
-    NamedTuple,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-)
+from collections.abc import Callable, Mapping
+from typing import Any, Literal, NamedTuple, TypeVar
 
 from reactivated import types, utils
 
 DefaultWidgetType = {"tsType": 'generated.Types["Widget"]'}
 DefaultModelsType = {"type": "null"}
 
-type_registry: Dict[str, Tuple[Any]] = {}
-global_types: Dict[str, Any] = {
+type_registry: dict[str, tuple[Any]] = {}
+global_types: dict[str, Any] = {
     "Widget": DefaultWidgetType,
     "models": DefaultModelsType,
 }
-template_registry: Dict[str, Tuple[Any]] = {}
-interface_registry: Dict[str, Tuple[Any]] = {}
-value_registry: Dict[str, Tuple[Any, Literal["primitive", "class", "enum"]]] = {}
-definitions_registry: Dict[Any, Any] = {}
+template_registry: dict[str, tuple[Any]] = {}
+interface_registry: dict[str, tuple[Any]] = {}
+value_registry: dict[str, tuple[Any, Literal["primitive", "class", "enum"]]] = {}
+definitions_registry: dict[Any, Any] = {}
 rpc_registry: types.RPCRegistry = {}
 
 PROXIES = utils.ClassLookupDict({})
@@ -33,7 +23,7 @@ PROXIES = utils.ClassLookupDict({})
 Override = TypeVar("Override")
 
 
-def register(proxied: Type[object]) -> Callable[[Override], Override]:
+def register(proxied: type[object]) -> Callable[[Override], Override]:
     def inner(proxy: Override) -> Override:
         PROXIES[proxied] = proxy
         return proxy
@@ -73,7 +63,7 @@ class Thing(NamedTuple):
     def add_property(
         self, name: str, property_schema: PropertySchema, *, optional: bool = False
     ) -> "Thing":
-        ref: Optional[str] = self.schema.get("$ref")
+        ref: str | None = self.schema.get("$ref")
 
         if ref is None:
             assert False, "Can only add properties to ref schemas"

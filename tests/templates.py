@@ -1,5 +1,5 @@
 import pickle
-from typing import Dict, NamedTuple, Optional
+from typing import NamedTuple
 
 import simplejson
 
@@ -48,7 +48,7 @@ def test_union_with_pick():
 
     @template
     class Test(NamedTuple):
-        union: Optional[Pick[models.Continent, "name"]]
+        union: Pick[models.Continent, "name"] | None
 
     context = Test(union=instance)
     response = context.render(None)
@@ -61,7 +61,7 @@ def test_union_with_pick():
 def test_non_class_based_members():
     @template
     class NonClass(NamedTuple):
-        non_class_member: Dict[str, str]
+        non_class_member: dict[str, str]
 
     context = NonClass(non_class_member={"a": "b"})
     response = context.render(None)

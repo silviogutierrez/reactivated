@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import subprocess
-from typing import Any, Dict, NamedTuple, Tuple, Type
+from typing import Any, NamedTuple
 
 from django.apps import AppConfig
 from django.conf import settings
@@ -25,7 +25,7 @@ logger = logging.getLogger("django.server")
 GENERATED_DIRECTORY = f"{settings.BASE_DIR}/node_modules/_reactivated"
 
 
-def get_urls_schema() -> Dict[str, Any]:
+def get_urls_schema() -> dict[str, Any]:
     urlconf = importlib.import_module(settings.ROOT_URLCONF)
     urlpatterns = urlconf.urlpatterns
 
@@ -120,22 +120,22 @@ def get_types_schema() -> Any:
     }
 
 
-def get_templates() -> Dict[str, Tuple[Any]]:
+def get_templates() -> dict[str, tuple[Any]]:
     return template_registry
 
 
-def get_interfaces() -> Dict[str, Tuple[Any]]:
+def get_interfaces() -> dict[str, tuple[Any]]:
     return interface_registry
 
 
-def get_values() -> Dict[str, Any]:
+def get_values() -> dict[str, Any]:
     serialized = {}
 
     for key, (value, serialize_as_is) in value_registry.items():
         if serialize_as_is == "primitive":
             serialized[key] = value
         elif serialize_as_is == "enum":
-            generated_schema = create_schema(Type[value], {})
+            generated_schema = create_schema(type[value], {})
             serialized[key] = serialize(value, generated_schema)
         else:
             generated_schema = create_schema(value, {})

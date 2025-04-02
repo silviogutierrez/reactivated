@@ -1,5 +1,3 @@
-from typing import Optional
-
 import simplejson
 from django.http import HttpRequest, JsonResponse
 from django.urls import path
@@ -8,7 +6,7 @@ from .apps import get_schema
 from .utils import get_attribute
 
 
-def schema(request: HttpRequest, query: Optional[str] = None) -> JsonResponse:
+def schema(request: HttpRequest, query: str | None = None) -> JsonResponse:
     _schema = simplejson.loads(get_schema())
 
     if query:

@@ -1,4 +1,4 @@
-from typing import List, NamedTuple, Optional
+from typing import NamedTuple
 
 from reactivated import Pick, template
 
@@ -12,14 +12,14 @@ class DjangoDefault(NamedTuple):
 
 @template
 class PollsIndex(NamedTuple):
-    latest_question_list: List[Pick[models.Question, "id", "question_text"]]
+    latest_question_list: list[Pick[models.Question, "id", "question_text"]]
 
 
 @template
 class EditPoll(NamedTuple):
     form: forms.Poll
     choice_form_set: forms.ChoiceFormSet
-    existing_poll: Optional[Pick[models.Question, "id"]] = None
+    existing_poll: Pick[models.Question, "id"] | None = None
 
 
 @template
@@ -31,7 +31,7 @@ class PollDetail(NamedTuple):
         "choices.id",
         "choices.choice_text",
     ]
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 @template

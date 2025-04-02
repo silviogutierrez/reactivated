@@ -1,5 +1,3 @@
-from typing import Type
-
 from . import registry
 
 
@@ -7,7 +5,7 @@ from . import registry
 class Int:
     @classmethod
     def get_json_schema(
-        Proxy: Type["Int"],
+        Proxy: type["Int"],
         instance: int,
         definitions: registry.Definitions,
     ) -> registry.Thing:
@@ -18,7 +16,7 @@ class Int:
 class Bool:
     @classmethod
     def get_json_schema(
-        Proxy: Type["Bool"],
+        Proxy: type["Bool"],
         instance: bool,
         definitions: registry.Definitions,
     ) -> registry.Thing:
@@ -29,7 +27,7 @@ class Bool:
 class Float:
     @classmethod
     def get_json_schema(
-        Proxy: Type["Float"],
+        Proxy: type["Float"],
         instance: float,
         definitions: registry.Definitions,
     ) -> registry.Thing:
@@ -40,7 +38,7 @@ class Float:
 class String:
     @classmethod
     def get_json_schema(
-        Proxy: Type["String"],
+        Proxy: type["String"],
         instance: str,
         definitions: registry.Definitions,
     ) -> registry.Thing:

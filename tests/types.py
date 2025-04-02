@@ -1,17 +1,6 @@
 import enum
 from io import StringIO
-from typing import (
-    Any,
-    Dict,
-    List,
-    Literal,
-    NamedTuple,
-    Optional,
-    Tuple,
-    Type,
-    TypedDict,
-    Union,
-)
+from typing import Any, Literal, NamedTuple, TypedDict, Union
 
 import pytest
 import simplejson
@@ -86,7 +75,7 @@ def test_enum():
 
 
 def test_enum_type():
-    assert create_schema(Type[EnumType], {}) == (
+    assert create_schema(type[EnumType], {}) == (
         {"$ref": "#/$defs/tests.types.EnumTypeEnumType"},
         {
             "tests.types.EnumTypeEnumType": {
@@ -127,7 +116,7 @@ def test_enum_type():
 
 def test_enum_does_not_clobber_enum_type():
     schema = create_schema(EnumType, {})
-    schema = create_schema(Type[EnumType], schema.definitions)
+    schema = create_schema(type[EnumType], schema.definitions)
     assert "tests.types.EnumType" in schema.definitions
     assert "tests.types.EnumTypeEnumType" in schema.definitions
 
@@ -175,7 +164,7 @@ def test_typed_dict():
 
 
 def test_fixed_tuple():
-    assert create_schema(Tuple[str, str], {}) == (
+    assert create_schema(tuple[str, str], {}) == (
         {
             "items": [{"type": "string"}, {"type": "string"}],
             "minItems": 2,
@@ -187,26 +176,26 @@ def test_fixed_tuple():
 
 
 def test_open_tuple():
-    assert create_schema(Tuple[str, ...], {}) == (
+    assert create_schema(tuple[str, ...], {}) == (
         {"items": {"type": "string"}, "type": "array"},
         {},
     )
 
 
 def test_list():
-    assert create_schema(List[str], {}) == (
+    assert create_schema(list[str], {}) == (
         {"type": "array", "items": {"type": "string"}},
         {},
     )
 
 
 def test_dict():
-    assert create_schema(Dict[str, Any], {}) == (
+    assert create_schema(dict[str, Any], {}) == (
         {"type": "object", "properties": {}, "additionalProperties": {}},
         {},
     )
 
-    assert create_schema(Dict[str, str], {}) == (
+    assert create_schema(dict[str, str], {}) == (
         {
             "type": "object",
             "properties": {},
@@ -357,8 +346,8 @@ class CustomField:
     pass
 
 
-def custom_schema(Type, definitions):
-    if issubclass(Type, CustomField):
+def custom_schema(_Type, definitions):
+    if issubclass(_Type, CustomField):
         return create_schema(str, definitions)
 
     return None
@@ -517,7 +506,7 @@ def test_generate_client_assets(settings):
 
 class ComplexType(TypedDict):
     required: int
-    optional: Optional[bool]
+    optional: bool | None
 
 
 class SampleContextOne(TypedDict):

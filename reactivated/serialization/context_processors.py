@@ -1,4 +1,4 @@
-from typing import Any, List, Literal, NamedTuple, Optional, Type, get_type_hints
+from typing import Any, Literal, NamedTuple, get_type_hints
 
 from django.http import HttpRequest
 from django.utils.module_loading import import_string
@@ -13,11 +13,11 @@ class Request(NamedTuple):
 
     # If django-csp is in use, include the CSP nonce for the request
     # See https://django-csp.readthedocs.io/en/latest/nonce.html#using-the-generated-csp-nonce
-    csp_nonce: Optional[str]
+    csp_nonce: str | None
 
     @classmethod
     def get_serialized_value(
-        _Type: Type["Request"], value: HttpRequest, schema: Thing
+        _Type: type["Request"], value: HttpRequest, schema: Thing
     ) -> JSON:
         serialized = serialize(value, schema, suppress_custom_serializer=True)
 
@@ -43,7 +43,7 @@ class Message(NamedTuple):
 
 
 class MessagesProcessor(NamedTuple):
-    messages: List[Message]
+    messages: list[Message]
 
 
 class CSRFProcessor(NamedTuple):
@@ -76,7 +76,7 @@ def get_annotation_or_type_hints(item: Any) -> Any:
     return get_type_hints(item)
 
 
-def create_context_processor_type(context_processors: List[str]) -> Any:
+def create_context_processor_type(context_processors: list[str]) -> Any:
     types = [BaseContext]
 
     for context_processor in context_processors:

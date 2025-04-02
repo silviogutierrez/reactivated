@@ -1,5 +1,5 @@
 import enum
-from typing import Dict, Literal, Union, cast
+from typing import Literal, cast
 
 import pytest
 from django import forms
@@ -151,7 +151,7 @@ class OperaForm(forms.ModelForm[models.Opera]):
 @opera.process
 def update_opera(
     request: HttpRequest, opera: models.Opera, form: OperaForm
-) -> Dict[str, Union[str, int]]:
+) -> dict[str, str | int]:
     return {
         "from_context": opera.pk,
         "from_form": form.cleaned_data["name"],
@@ -284,7 +284,7 @@ def test_denied(client):
 
 
 @create_rpc
-def unauthorized_rpc(request: HttpRequest) -> Union[HttpRequest, Literal[False]]:
+def unauthorized_rpc(request: HttpRequest) -> HttpRequest | Literal[False]:
     return False
 
 

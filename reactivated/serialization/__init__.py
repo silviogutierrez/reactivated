@@ -1,22 +1,9 @@
 import datetime
 import enum
+import types
 import uuid
-from types import MethodType
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Literal,
-    Mapping,
-    NamedTuple,
-    Optional,
-    Protocol,
-    Sequence,
-    Type,
-    Union,
-    get_type_hints,
-)
+from collections.abc import Callable, Mapping, Sequence
+from typing import Any, Literal, NamedTuple, Optional, Protocol, Union, get_type_hints
 
 from django import forms as django_forms
 from django.conf import settings
@@ -34,9 +21,9 @@ from . import builtins  # noqa: F401
 from . import widgets  # noqa: F401
 from .registry import JSON, PROXIES, Definitions, Schema, Thing, register
 
-FormError = List[str]
+FormError = list[str]
 
-FormErrors = Dict[str, FormError]
+FormErrors = dict[str, FormError]
 
 
 class ComputedField(NamedTuple):
@@ -46,7 +33,7 @@ class ComputedField(NamedTuple):
 
     @classmethod
     def get_serialized_value(
-        _Type: Type["ComputedField"], value: Any, schema: "Thing"
+        _Type: type["ComputedField"], value: Any, schema: "Thing"
     ) -> JSON:
         called_value = value() if callable(value) is True else value
         called_value_schema = {**schema.schema}
@@ -77,13 +64,13 @@ FieldDescriptor = Union[
 class ForeignKeyType:
     @classmethod
     def get_serialized_value(
-        _Type: Type["ForeignKeyType"], value: models.Model, schema: Thing
+        _Type: type["ForeignKeyType"], value: models.Model, schema: Thing
     ) -> JSON:
         return value.pk
 
     @classmethod
     def get_json_schema(
-        Proxy: Type["ForeignKeyType"],
+        Proxy: type["ForeignKeyType"],
         _Type: "models.ForeignKey[Any, Any]",
         definitions: Definitions,
     ) -> "Thing":
@@ -97,11 +84,11 @@ class ForeignKeyType:
 
 
 class BaseIntersectionHolder:
-    types: List[Type[NamedTuple]] = []
+    types: list[type[NamedTuple]] = []
 
     @classmethod
     def get_json_schema(
-        cls: Type["BaseIntersectionHolder"], definitions: Definitions
+        cls: type["BaseIntersectionHolder"], definitions: Definitions
     ) -> Thing:
         schemas = []
         for context_processor in cls.types:
@@ -118,8 +105,8 @@ class BaseIntersectionHolder:
 
 class Intersection:
     def __class_getitem__(
-        cls: Type["Intersection"], item: List[Type[NamedTuple]]
-    ) -> Type[BaseIntersectionHolder]:
+        cls: type["Intersection"], item: list[type[NamedTuple]]
+    ) -> type[BaseIntersectionHolder]:
         class IntersectionHolder(BaseIntersectionHolder):
             types = item
 
@@ -130,7 +117,7 @@ class Intersection:
 class FieldType(NamedTuple):
     name: str
     label: str
-    help_text: Optional[str]
+    help_text: str | None
 
     # TODO: way to mark this as a custom property we define. This is just so it is
     # marked as required.
@@ -141,7 +128,7 @@ class FieldType(NamedTuple):
 
     @classmethod
     def get_json_schema(
-        Proxy: Type["FieldType"],
+        Proxy: type["FieldType"],
         instance: django_forms.Field,
         definitions: Definitions,
     ) -> "Thing":
@@ -200,7 +187,7 @@ class FieldType(NamedTuple):
 
     @classmethod
     def get_serialized_value(
-        _Type: Type["FieldType"], value: django_forms.BoundField, schema: Thing
+        _Type: type["FieldType"], value: django_forms.BoundField, schema: Thing
     ) -> JSON:
         field = value
         field.field.widget._render = lambda template_name, context, renderer: context[
@@ -216,7 +203,7 @@ class FieldType(NamedTuple):
         return serialized
 
 
-def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
+def extract_widget_context(field: django_forms.BoundField) -> dict[str, Any]:
     """
     Previously we used a custom FormRenderer but there is *no way* to avoid
     the built in render method from piping this into `mark_safe`.
@@ -261,15 +248,15 @@ def extract_widget_context(field: django_forms.BoundField) -> Dict[str, Any]:
 @register(django_forms.BaseForm)
 class FormType(NamedTuple):
     name: str
-    errors: Optional[FormErrors]
-    fields: Dict[str, FieldType]
-    iterator: List[str]
+    errors: FormErrors | None
+    fields: dict[str, FieldType]
+    iterator: list[str]
     prefix: str
 
     @classmethod
     def get_json_schema(
-        Proxy: Type["FormType"],
-        _Type: Type[django_forms.BaseForm],
+        Proxy: type["FormType"],
+        _Type: type[django_forms.BaseForm],
         definitions: Definitions,
     ) -> "Thing":
         definition_name = f"{_Type.__module__}.{_Type.__qualname__}"
@@ -338,8 +325,8 @@ class FormType(NamedTuple):
 
     @classmethod
     def get_serialized_value(
-        _Type: Type["FormType"],
-        class_or_instance: Union[Type[django_forms.BaseForm], django_forms.BaseForm],
+        _Type: type["FormType"],
+        class_or_instance: type[django_forms.BaseForm] | django_forms.BaseForm,
         schema: Thing,
     ) -> JSON:
         value = (
@@ -401,17 +388,17 @@ class FormSetType(NamedTuple):
     min_num: int
     can_delete: bool
     can_order: bool
-    non_form_errors: List[str]
+    non_form_errors: list[str]
 
-    forms: List[django_forms.BaseForm]
+    forms: list[django_forms.BaseForm]
     empty_form: django_forms.BaseForm
     management_form: django_forms.formsets.ManagementForm
     prefix: str
 
     @classmethod
     def get_json_schema(
-        Proxy: Type["FormSetType"],
-        _Type: Type[django_forms.BaseFormSet[Any]],
+        Proxy: type["FormSetType"],
+        _Type: type[django_forms.BaseFormSet[Any]],
         definitions: Definitions,
     ) -> "Thing":
         definition_name = f"{_Type.__module__}.{_Type.__qualname__}"
@@ -493,10 +480,8 @@ class FormSetType(NamedTuple):
 
     @classmethod
     def get_serialized_value(
-        _Type: Type["FormSetType"],
-        value: Union[
-            Type[django_forms.BaseFormSet[Any]], django_forms.BaseFormSet[Any]
-        ],
+        _Type: type["FormSetType"],
+        value: type[django_forms.BaseFormSet[Any]] | django_forms.BaseFormSet[Any],
         schema: Thing,
     ) -> JSON:
         if isinstance(value, django_forms.BaseFormSet):
@@ -520,7 +505,7 @@ class FormSetType(NamedTuple):
 class QuerySetType:
     @classmethod
     def get_serialized_value(
-        _Type: Type["QuerySetType"], value: "models.QuerySet[Any]", schema: Thing
+        _Type: type["QuerySetType"], value: "models.QuerySet[Any]", schema: Thing
     ) -> JSON:
         return [
             serialize(
@@ -566,7 +551,7 @@ register(models.FloatField)(float)
 class UUIDFieldType:
     @classmethod
     def get_json_schema(
-        Proxy: Type["UUIDFieldType"],
+        Proxy: type["UUIDFieldType"],
         _Type: "models.UUIDField[Any, Any]",
         definitions: Definitions,
     ) -> "Thing":
@@ -580,7 +565,7 @@ class UUIDFieldType:
 
     @classmethod
     def get_serialized_value(
-        _Type: Type["UUIDFieldType"], value: uuid.UUID, schema: Thing
+        _Type: type["UUIDFieldType"], value: uuid.UUID, schema: Thing
     ) -> JSON:
         return str(value)
 
@@ -589,7 +574,7 @@ class UUIDFieldType:
 class EnumFieldType:
     @classmethod
     def get_json_schema(
-        Proxy: Type["EnumFieldType"],
+        Proxy: type["EnumFieldType"],
         _Type: fields._EnumField[Any, Any],
         definitions: Definitions,
     ) -> "Thing":
@@ -615,11 +600,13 @@ class EnumFieldType:
 class UnionType(NamedTuple):
     @classmethod
     def get_json_schema(
-        Proxy: Type["UnionType"], _Type: stubs._GenericAlias, definitions: Definitions
+        Proxy: type["UnionType"],
+        _Type: stubs._GenericAlias | types.UnionType,
+        definitions: Definitions,
     ) -> "Thing":
         from reactivated.pick import BasePickHolder
 
-        class_mapping: Dict[str, Any] = {}
+        class_mapping: dict[str, Any] = {}
         subschemas: Sequence[Thing] = ()
         typed_dicts = []
         none_subschema = None
@@ -685,13 +672,11 @@ class UnionType(NamedTuple):
         elif len(typed_dicts) > 1:
             keys = set.intersection(
                 *[
-                    set(
-                        [
-                            key
-                            for key in schema.dereference()["properties"].keys()
-                            if "enum" in schema.dereference()["properties"][key]
-                        ]
-                    )
+                    {
+                        key
+                        for key in schema.dereference()["properties"].keys()
+                        if "enum" in schema.dereference()["properties"][key]
+                    }
                     for schema in subschemas
                 ]
             )
@@ -720,7 +705,7 @@ class UnionType(NamedTuple):
 
     @classmethod
     def get_serialized_value(
-        _Type: Type["UnionType"], value: Any, schema: Thing
+        _Type: type["UnionType"], value: Any, schema: Thing
     ) -> JSON:
         if isinstance(value, fields.EnumChoice):
             return str(value)
@@ -766,10 +751,13 @@ class UnionType(NamedTuple):
                 assert False, "Invariant in union serialization"
 
 
-def generic_alias_schema(_Type: stubs._GenericAlias, definitions: Definitions) -> Thing:
+def generic_alias_schema(
+    _Type: stubs._GenericAlias | types.GenericAlias,
+    definitions: Definitions,
+) -> Thing:
     subschemas: Sequence[Schema]
 
-    if _Type.__origin__ == tuple:
+    if _Type.__origin__ is tuple:
         *tuple_args, last_arg = _Type.__args__
 
         if last_arg is Ellipsis:
@@ -796,15 +784,15 @@ def generic_alias_schema(_Type: stubs._GenericAlias, definitions: Definitions) -
             },
             definitions=definitions,
         )
-    elif _Type.__origin__ == Union:
+    elif isinstance(_Type, stubs._GenericAlias) and _Type.__origin__ == Union:
         return UnionType.get_json_schema(_Type, definitions)
-    elif _Type.__origin__ == list:
+    elif _Type.__origin__ is list:
         subschema = create_schema(_Type.__args__[0], definitions=definitions)
         return Thing(
             schema={"type": "array", "items": subschema.schema},
             definitions=subschema.definitions,
         )
-    elif _Type.__origin__ == dict:
+    elif _Type.__origin__ is dict:
         subschema = create_schema(_Type.__args__[1], definitions=definitions)
 
         return Thing(
@@ -829,7 +817,7 @@ def generic_alias_schema(_Type: stubs._GenericAlias, definitions: Definitions) -
             schema={"enum": list(_Type.__args__)},
             definitions=definitions,
         )
-    elif _Type.__origin__ == type and issubclass(
+    elif _Type.__origin__ is type and issubclass(
         (enum_type := _Type.__args__[0]), enum.Enum
     ):
         return enum_type_schema(enum_type, definitions)
@@ -840,7 +828,7 @@ def generic_alias_schema(_Type: stubs._GenericAlias, definitions: Definitions) -
 class EnumValueType(NamedTuple):
     @classmethod
     def get_serialized_value(
-        _Type: Type["EnumValueType"], value: enum.Enum, schema: Thing
+        _Type: type["EnumValueType"], value: enum.Enum, schema: Thing
     ) -> JSON:
         enum_value = value.value
         enum_value_schema = {**schema.schema}
@@ -854,13 +842,13 @@ class EnumValueType(NamedTuple):
 class EnumMemberType(NamedTuple):
     @classmethod
     def get_serialized_value(
-        _Type: Type["EnumMemberType"], value: enum.Enum, schema: Thing
+        _Type: type["EnumMemberType"], value: enum.Enum, schema: Thing
     ) -> JSON:
         member = value.name
         return serialize(value.name, create_schema(type(member), schema.definitions))
 
 
-def enum_type_schema(_Type: Type[enum.Enum], definitions: Definitions) -> Thing:
+def enum_type_schema(_Type: type[enum.Enum], definitions: Definitions) -> Thing:
     definition_name = f"{_Type.__module__}.{_Type.__qualname__}EnumType"
 
     if definition_name in definitions:
@@ -908,7 +896,7 @@ def enum_type_schema(_Type: Type[enum.Enum], definitions: Definitions) -> Thing:
     # EnumNamedTuple.__module__ = enum_type.__module__
 
 
-def enum_schema(_Type: Type[enum.Enum], definitions: Definitions) -> Thing:
+def enum_schema(_Type: type[enum.Enum], definitions: Definitions) -> Thing:
     definition_name = f"{_Type.__module__}.{_Type.__qualname__}"
 
     return Thing(
@@ -928,8 +916,8 @@ def named_tuple_schema(
     _Type: Any,
     definitions: Definitions,
     *,
-    definition_name: Optional[str] = None,
-    exclude: Optional[List[str]] = None,
+    definition_name: str | None = None,
+    exclude: list[str] | None = None,
 ) -> Thing:
     if exclude is None:
         exclude = []
@@ -1018,7 +1006,7 @@ def create_schema(_Type: Any, definitions: Definitions) -> Thing:
     except KeyError:
         pass
 
-    if isinstance(_Type, stubs._GenericAlias):
+    if isinstance(_Type, stubs._GenericAlias) or isinstance(_Type, types.GenericAlias):
         return generic_alias_schema(_Type, definitions)
     elif isinstance(_Type, models.Field):
         pass
@@ -1028,6 +1016,13 @@ def create_schema(_Type: Any, definitions: Definitions) -> Thing:
         return Thing(schema={}, definitions=definitions)
     elif callable(getattr(_Type, "get_json_schema", None)):
         return _Type.get_json_schema(definitions)  # type: ignore[no-any-return]
+
+    elif isinstance(_Type, types.UnionType):
+        return UnionType.get_json_schema(_Type, definitions)
+
+    elif _Type is type(None) or _Type is None:  # noqa: E721
+        return Thing(schema={"type": "null"}, definitions={})
+
     elif issubclass(_Type, tuple) and callable(getattr(_Type, "_asdict", None)):
         return named_tuple_schema(_Type, definitions)
     elif type(_Type) is stubs._TypedDictMeta:
@@ -1036,18 +1031,16 @@ def create_schema(_Type: Any, definitions: Definitions) -> Thing:
         return Thing(schema={"type": "string"}, definitions={})
     elif issubclass(_Type, datetime.date):
         return Thing(schema={"type": "string"}, definitions={})
-    elif _Type is type(None):  # noqa: E721
-        return Thing(schema={"type": "null"}, definitions={})
     elif issubclass(_Type, enum.Enum):
         return enum_schema(_Type, definitions)
 
-    additional_schema_module: Optional[str] = getattr(
+    additional_schema_module: str | None = getattr(
         settings, "REACTIVATED_SERIALIZATION", None
     )
 
     if additional_schema_module is not None:
-        additional_schema: Callable[[Any, Definitions], Optional[Thing]] = (
-            import_string(additional_schema_module)
+        additional_schema: Callable[[Any, Definitions], Thing | None] = import_string(
+            additional_schema_module
         )
         schema = additional_schema(_Type, definitions)
 
@@ -1057,7 +1050,7 @@ def create_schema(_Type: Any, definitions: Definitions) -> Thing:
     assert False, f"Unsupported type {_Type}"
 
 
-def object_serializer(value: object, schema: Thing, exclude: List[str] = []) -> JSON:
+def object_serializer(value: object, schema: Thing, exclude: list[str] = []) -> JSON:
     representation = {}
 
     for field_name, field_schema in schema.schema["properties"].items():
@@ -1077,7 +1070,7 @@ def object_serializer(value: object, schema: Thing, exclude: List[str] = []) -> 
             else getattr(value, field_name, None)
         )
 
-        if isinstance(attribute, MethodType) is True:
+        if isinstance(attribute, types.MethodType) is True:
             attribute = attribute()  # type:ignore[misc]
 
         representation[field_name] = serialize(
@@ -1124,7 +1117,7 @@ def array_serializer(value: Sequence[Any], schema: Thing) -> JSON:
     ]
 
 
-SERIALIZERS: Dict[str, Serializer] = {
+SERIALIZERS: dict[str, Serializer] = {
     "any": lambda value, schema: value,
     "object": object_serializer,
     "string": lambda value, schema: str(value),

@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Type
+from typing import Any
 
 from django.db import models
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
@@ -8,19 +8,19 @@ from django.db.utils import DEFAULT_DB_ALIAS
 
 
 class EnumConstraint(models.constraints.BaseConstraint):
-    def __init__(self, *, members: List[str], name: str, field_name: str) -> None:
+    def __init__(self, *, members: list[str], name: str, field_name: str) -> None:
         self.members = members
         self.field_name = field_name
 
         # Other libraries, like django extensions, depend on this instance variable.
-        self.fields: List[str] = []
+        self.fields: list[str] = []
 
         super().__init__(name=name)
 
     def constraint_sql(
         self,
-        model: Optional[Type[Model]],
-        schema_editor: Optional[BaseDatabaseSchemaEditor],
+        model: type[Model] | None,
+        schema_editor: BaseDatabaseSchemaEditor | None,
     ) -> str:
         """We leave this blank as the migration code tries to inject
         constraint code inline with the field, which doesn't work for custom
@@ -28,7 +28,7 @@ class EnumConstraint(models.constraints.BaseConstraint):
         """
         return ""
 
-    def create_sql(self, model: Optional[Type[Model]], schema_editor: Optional[BaseDatabaseSchemaEditor]) -> Statement:  # type: ignore[override]
+    def create_sql(self, model: type[Model] | None, schema_editor: BaseDatabaseSchemaEditor | None) -> Statement:  # type: ignore[override]
         columns = self.members
         assert model is not None
         assert schema_editor is not None
@@ -45,7 +45,7 @@ class EnumConstraint(models.constraints.BaseConstraint):
             columns=", ".join([f"'{column}'" for column in columns]),
         )
 
-    def remove_sql(self, model: Optional[Type[Model]], schema_editor: Optional[BaseDatabaseSchemaEditor]) -> Statement:  # type: ignore[override]
+    def remove_sql(self, model: type[Model] | None, schema_editor: BaseDatabaseSchemaEditor | None) -> Statement:  # type: ignore[override]
         assert model is not None
         assert schema_editor is not None
 
@@ -57,7 +57,7 @@ class EnumConstraint(models.constraints.BaseConstraint):
         )
 
     def __repr__(self) -> str:
-        return "<%s: members='%r' name=%r>" % (
+        return "<{}: members='{!r}' name={!r}>".format(
             self.__class__.__name__,
             self.members,
             self.name,
@@ -78,7 +78,7 @@ class EnumConstraint(models.constraints.BaseConstraint):
 
     def validate(
         self,
-        model: Type[models.Model],
+        model: type[models.Model],
         instance: models.Model,
         exclude: list[str] | None = None,
         using: Any = DEFAULT_DB_ALIAS,

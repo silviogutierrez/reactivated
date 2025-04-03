@@ -1,14 +1,14 @@
-from typing import TYPE_CHECKING, Any, List, Optional, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Optional, TypeVar
 
 if TYPE_CHECKING:
     T = TypeVar("T")
 
     class _GenericAlias:
-        __origin__: Union[type, Any]
-        __args__: List[Any]
+        __origin__: type | Any
+        __args__: list[Any]
 
     class _LiteralGenericAlias:
-        __args__: List[Any]
+        __args__: list[Any]
 
     class _TypedDictMeta:
         pass
@@ -22,7 +22,7 @@ else:
         type: Any
 
         @classmethod
-        def get_json_schema(cls: Type["BaseUndefinedHolder"], definitions: Any) -> Any:
+        def get_json_schema(cls: type["BaseUndefinedHolder"], definitions: Any) -> Any:
             from .serialization import create_schema
 
             return create_schema(cls.type, definitions)
@@ -30,7 +30,7 @@ else:
     class Undefined:
         wrapped: Any
 
-        def __class_getitem__(cls: Type["Undefined"], item: Any) -> Any:
+        def __class_getitem__(cls: type["Undefined"], item: Any) -> Any:
             class Undefined(BaseUndefinedHolder):
                 type = item
 

@@ -4,7 +4,7 @@ import os
 import re
 import subprocess
 import urllib.parse
-from typing import Any, List, Optional
+from typing import Any
 
 import requests
 import requests_unixsocket
@@ -13,7 +13,7 @@ from django.conf import settings
 from django.http import HttpRequest
 from django.utils.html import escape
 
-renderer_process_addr: Optional[str] = None
+renderer_process_addr: str | None = None
 logger = logging.getLogger("django.server")
 
 
@@ -53,14 +53,14 @@ def wait_and_get_addr() -> str:
     assert False, "Could not bind to renderer"
 
 
-def get_accept_list(request: HttpRequest) -> List[str]:
+def get_accept_list(request: HttpRequest) -> list[str]:
     """
     Given the incoming request, return a tokenized list of media
     type strings.
 
     From https://github.com/encode/django-rest-framework/blob/master/rest_framework/negotiation.py
     """
-    header = request.META.get("HTTP_ACCEPT", "*/*")
+    header = request.headers.get("accept", "*/*")
     return [token.strip() for token in header.split(",")]
 
 

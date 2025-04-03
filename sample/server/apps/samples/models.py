@@ -99,7 +99,7 @@ class Opera(models.Model):
     def __str__(self) -> str:
         return f"{self.name}: {self.composer.name}"
 
-    def get_birthplace_of_composer(self) -> Optional[str]:
+    def get_birthplace_of_composer(self) -> str | None:
         country = self.composer.countries.filter(
             composer_countries__was_born=True
         ).first()

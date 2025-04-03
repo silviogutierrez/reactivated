@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Literal, NamedTuple, Optional, Union, cast
+from typing import Any, Literal, NamedTuple, cast
 
 from django import forms
 from django.core.exceptions import ValidationError
@@ -12,8 +12,8 @@ class Autocomplete(forms.Select):
     template_name: Literal["reactivated/autocomplete"] = "reactivated/autocomplete"
 
     def get_context(
-        self, name: str, value: Any, attrs: Optional[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, name: str, value: Any, attrs: dict[str, Any] | None
+    ) -> dict[str, Any]:
         choices = cast(ModelChoiceIterator, self.choices)
 
         assert choices.queryset is not None
@@ -44,11 +44,11 @@ class Autocomplete(forms.Select):
 
 
 class AutocompleteSelected(NamedTuple):
-    value: Union[str, int]
+    value: str | int
     label: str
 
 
 @register(Autocomplete)
 class AutocompleteType(BaseWidget):
-    value: List[str]  # type: ignore[assignment]
-    selected: Optional[AutocompleteSelected]
+    value: list[str]  # type: ignore[assignment]
+    selected: AutocompleteSelected | None

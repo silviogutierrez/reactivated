@@ -2,18 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import inspect
+from collections.abc import Sequence
 from types import ModuleType
-from typing import (
-    Any,
-    List,
-    Literal,
-    NamedTuple,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    get_type_hints,
-)
+from typing import Any, Literal, NamedTuple, get_type_hints
 
 from django.apps import apps
 from django.core.exceptions import FieldDoesNotExist
@@ -31,18 +22,18 @@ from .serialization.registry import (
 )
 from .stubs import _LiteralGenericAlias
 
-FieldSegment = Tuple[str, bool, bool]
+FieldSegment = tuple[str, bool, bool]
 
 
 class FieldDescriptorWrapper(NamedTuple):
     descriptor: FieldDescriptor
-    target_name: Optional[str] = None
-    annotation: Optional[Any] = None
+    target_name: str | None = None
+    annotation: Any | None = None
 
 
 def get_field_descriptor(
-    pick_name: str, model_class: Type[models.Model], field_chain: List[str]
-) -> Tuple[FieldDescriptorWrapper, Sequence[FieldSegment]]:
+    pick_name: str, model_class: type[models.Model], field_chain: list[str]
+) -> tuple[FieldDescriptorWrapper, Sequence[FieldSegment]]:
     field_name, *remaining = field_chain
 
     resolved_hints = (
@@ -253,13 +244,13 @@ def build_nested_schema(
 
 
 class BasePickHolder:
-    model_class: Type[models.Model]
+    model_class: type[models.Model]
     module: ModuleType
-    fields: List[str] = []
+    fields: list[str] = []
 
     @classmethod
-    def get_name(cls: Type[BasePickHolder]) -> Optional[str]:
-        pick_name: Optional[str] = None
+    def get_name(cls: type[BasePickHolder]) -> str | None:
+        pick_name: str | None = None
 
         for var_name, var_val in inspect.getmembers(cls.module):
             if (
@@ -282,7 +273,7 @@ class BasePickHolder:
         return None
 
     @classmethod
-    def get_auto_name(cls: Type[BasePickHolder]) -> str:
+    def get_auto_name(cls: type[BasePickHolder]) -> str:
         model_name = f"{cls.model_class.__module__}.{cls.model_class.__qualname__}"
         fields = "_".join(sorted(cls.fields))
         unhashed = f"{model_name}{fields}"
@@ -290,7 +281,7 @@ class BasePickHolder:
         return f"{cls.model_class.__qualname__}_{hash}"
 
     @classmethod
-    def get_json_schema(cls: Type[BasePickHolder], definitions: Definitions) -> Thing:
+    def get_json_schema(cls: type[BasePickHolder], definitions: Definitions) -> Thing:
         explicit_name = cls.get_name()
 
         definition_name = explicit_name or cls.get_auto_name()
@@ -368,7 +359,7 @@ class Pick:
                 nested_fields.append(f"{related_field}.{nested_field}")
             return nested_fields
 
-        flattened_fields: List[str] = []
+        flattened_fields: list[str] = []
 
         for field_or_literal in meta_fields:
             if isinstance(field_or_literal, str):

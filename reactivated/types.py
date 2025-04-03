@@ -1,27 +1,27 @@
-from typing import Dict, List, Literal, NamedTuple, Optional, Tuple, TypedDict, Union
+from typing import Literal, NamedTuple, TypedDict, Union
 
 from django import forms
 
 
 class RPC(TypedDict):
-    params: List[Tuple[str, str]]
+    params: list[tuple[str, str]]
     url: str
-    input: Optional[str]
+    input: str | None
     output: str
     type: Literal["form", "form_set", "form_group"]
 
 
-RPCRegistry = Dict[str, RPC]
+RPCRegistry = dict[str, RPC]
 
 
 class OptgroupMember(NamedTuple):
     name: str
-    value: Union[str, int, bool, None]
+    value: str | int | bool | None
     label: str
     selected: bool
 
 
-Optgroup = Tuple[None, Tuple[OptgroupMember], int]
+Optgroup = tuple[None, tuple[OptgroupMember], int]
 
 
 Widget = Union[
@@ -45,10 +45,10 @@ Widget = Union[
 
 class URL(TypedDict):
     route: str
-    args: Dict[str, str]
+    args: dict[str, str]
 
 
-URLSchema = Dict[str, URL]
+URLSchema = dict[str, URL]
 
 
 class Types(NamedTuple):

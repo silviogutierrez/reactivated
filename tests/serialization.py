@@ -3,18 +3,7 @@ from __future__ import annotations
 import datetime
 import enum
 import uuid
-from typing import (
-    Any,
-    List,
-    Literal,
-    NamedTuple,
-    Optional,
-    Tuple,
-    Type,
-    TypedDict,
-    Union,
-    get_type_hints,
-)
+from typing import Any, Literal, NamedTuple, TypedDict, Union, get_type_hints
 
 import pytest
 import simplejson
@@ -33,7 +22,7 @@ from sample.server.apps.samples import forms, models
 
 
 class Spam(NamedTuple):
-    thing: List[str]
+    thing: list[str]
     again: str
 
 
@@ -64,11 +53,11 @@ class Foo(NamedTuple):
     bar: Bar
     spam: Spam
 
-    slim_enum_type: Type[SlimEnum]
-    chunky_enum_type: Type[ChunkyEnum]
+    slim_enum_type: type[SlimEnum]
+    chunky_enum_type: type[ChunkyEnum]
 
     pick: Pick[models.Composer, "name", "operas.name"]
-    pick_many: List[Pick[models.Composer, "name", "operas.name"]]
+    pick_many: list[Pick[models.Composer, "name", "operas.name"]]
     pick_method: Pick[models.Opera, "name", "get_birthplace_of_composer"]
     pick_property: Pick[models.Composer, "did_live_in_more_than_one_country"]
     pick_literal: Pick[models.Composer, Literal["name", "operas.name"]]
@@ -79,8 +68,8 @@ class Foo(NamedTuple):
     pick_computed_null_foreign_key: Pick[models.Composer, "favorite_opera.name"]
     pick_nested: Pick[models.Composer, "name", Pick[Literal["operas"], Opera]]
     pick_enum: Pick[models.Continent, "hemisphere"]
-    fixed_tuple_different_types: Tuple[str, int]
-    fixed_tuple_same_types: Tuple[str, str]
+    fixed_tuple_different_types: tuple[str, int]
+    fixed_tuple_same_types: tuple[str, str]
     complex_type_we_do_not_type: Any
 
 
@@ -384,7 +373,7 @@ def test_override_pick_types(settings, snapshot):
     test_apps = Apps(settings.INSTALLED_APPS)
 
     class TestModel(Model):
-        forced_nullable: Optional[int] = IntegerField()
+        forced_nullable: int | None = IntegerField()
         forced_non_nullable: int = IntegerField(null=True)
         forced_none: None = IntegerField()
 
@@ -576,7 +565,7 @@ def test_tagged_union():
 
 def test_invalid_union():
     with pytest.raises(AssertionError, match="must be uniquely"):
-        create_schema(Union[Tuple[Literal[True]], Tuple[Literal[False]]], {})
+        create_schema(Union[tuple[Literal[True]], tuple[Literal[False]]], {})
 
 
 class Parent(NamedTuple):
@@ -602,7 +591,7 @@ def test_union_with_translated_string():
 
 def test_simple_union(snapshot):
     schema = create_schema(
-        Union[datetime.date, List[str], Tuple[int, str], int, str, bool, None], {}
+        Union[datetime.date, list[str], tuple[int, str], int, str, bool, None], {}
     )
     # assert schema.schema == {'anyOf': [{'type': 'string'}, {'type': 'string'}, {'type': 'null'}]}
     assert serialize(None, schema) is None
@@ -643,7 +632,7 @@ def test_union_with_literal(snapshot):
 
 
 def test_pick_union():
-    schema = create_schema(Union[List[int], NamedPick, int, None], {})
+    schema = create_schema(Union[list[int], NamedPick, int, None], {})
     assert serialize(models.Opera(name="My Opera"), schema) == {"name": "My Opera"}
     assert serialize(10, schema) == 10.0
     assert serialize(None, schema) is None

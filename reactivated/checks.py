@@ -1,11 +1,11 @@
-from typing import Any, List
+from typing import Any
 
 from django.conf import settings
 from django.core.checks import Error, register
 
 
 @register()
-def check_installed_app_order(app_configs: Any, **kwargs: Any) -> List[Error]:
+def check_installed_app_order(app_configs: Any, **kwargs: Any) -> list[Error]:
     if False and settings.INSTALLED_APPS[-1] != "reactivated":
         return [
             Error(

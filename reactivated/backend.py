@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict, List, NamedTuple, Optional
+from collections.abc import Callable
+from typing import Any, NamedTuple
 
 from django.conf import settings
 from django.http import HttpRequest
@@ -37,7 +38,7 @@ class JSX(BaseEngine):
         raise TemplateDoesNotExist([], backend=self)  # type: ignore[arg-type]
 
     @cached_property
-    def template_adapters(self) -> Dict[str, NamedTuple]:
+    def template_adapters(self) -> dict[str, NamedTuple]:
         adapters = {}
 
         [
@@ -48,7 +49,7 @@ class JSX(BaseEngine):
         return adapters
 
     @cached_property
-    def template_context_processors(self) -> List[Callable[[HttpRequest], Any]]:
+    def template_context_processors(self) -> list[Callable[[HttpRequest], Any]]:
         return [import_string(path) for path in self.context_processors]
 
 
@@ -57,7 +58,7 @@ class JSXTemplate:
         self.jsx_template_name = jsx_template_name
         self.backend = backend
 
-    def render(self, context: Any = None, request: Optional[HttpRequest] = None) -> str:
+    def render(self, context: Any = None, request: HttpRequest | None = None) -> str:
         template_name = self.jsx_template_name.replace(".tsx", "").replace(".jsx", "")
         from .serialization.context_processors import (
             BaseContext,
@@ -90,7 +91,7 @@ class AdapterTemplate(JSXTemplate):
         self.adapter = adapter
         super().__init__(f"{self.adapter.__name__}.tsx", backend)
 
-    def render(self, context: Any = None, request: Optional[HttpRequest] = None) -> str:
+    def render(self, context: Any = None, request: HttpRequest | None = None) -> str:
         to_be_serialized = self.adapter(**context)
         jsx_context = to_be_serialized.get_serialized()
         return super().render(context=jsx_context, request=request)

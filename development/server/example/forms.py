@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from django import forms
 
@@ -23,7 +23,7 @@ class ExampleForm(forms.Form):
     boolean_field = forms.BooleanField()
     hidden_field = forms.CharField(widget=forms.HiddenInput)
 
-    def clean(self) -> Dict[str, Any]:
+    def clean(self) -> dict[str, Any]:
         raise forms.ValidationError(
             "Non-field error",
         )

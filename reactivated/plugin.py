@@ -1,4 +1,5 @@
-from typing import Callable, Optional
+from collections.abc import Callable
+from typing import Optional
 from typing import Type as TypingType
 from typing import TypeVar
 
@@ -14,7 +15,7 @@ CB = Optional[Callable[[T], None]]
 class ReactivatedPlugin(Plugin):
     def get_type_analyze_hook(
         self, fullname: str
-    ) -> Optional[Callable[[AnalyzeTypeContext], Type]]:
+    ) -> Callable[[AnalyzeTypeContext], Type] | None:
         if fullname == "reactivated.pick.Pick":
             return analyze_pick
 
@@ -22,7 +23,7 @@ class ReactivatedPlugin(Plugin):
 
     def get_class_decorator_hook(
         self, fullname: str
-    ) -> Optional[Callable[[ClassDefContext], None]]:
+    ) -> Callable[[ClassDefContext], None] | None:
         if fullname in [
             "reactivated.templates.template",
             "reactivated.templates.interface",

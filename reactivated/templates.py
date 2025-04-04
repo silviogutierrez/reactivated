@@ -1,4 +1,4 @@
-from typing import Any, Dict, NamedTuple, Optional, Type, TypeVar
+from typing import Any, NamedTuple, TypeVar
 
 from django import forms
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -33,7 +33,7 @@ class LazySerializationResponse(TemplateResponse):
     def __init__(
         self,
         request: HttpRequest,
-        template: Type[T],
+        template: type[T],
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -61,13 +61,13 @@ class LazySerializationResponse(TemplateResponse):
         del obj_dict["template"]  # type: ignore[attr-defined]
         return obj_dict
 
-    def resolve_context(self, context: Optional[Dict[str, Any]]) -> JSON:
+    def resolve_context(self, context: dict[str, Any] | None) -> JSON:
 
         generated_schema = create_schema(self.template, definitions_registry)
         return serialize(context, generated_schema)
 
 
-def template(cls: Type[T]) -> Type[T]:
+def template(cls: type[T]) -> type[T]:
     type_name = f"{cls.__name__}Props"
 
     class Augmented(cls):  # type: ignore[misc, valid-type]
@@ -109,9 +109,9 @@ class Action(NamedTuple):
 
 
 class Extracted(NamedTuple):
-    context_forms: Dict[str, forms.BaseForm]
-    context_form_sets: Dict[str, forms.BaseFormSet[Any]]
-    context_actions: Dict[str, Action]
+    context_forms: dict[str, forms.BaseForm]
+    context_form_sets: dict[str, forms.BaseFormSet[Any]]
+    context_actions: dict[str, Action]
 
 
 def extract_forms_form_sets_and_actions(interface: Any) -> Extracted:
@@ -143,7 +143,7 @@ def extract_forms_form_sets_and_actions(interface: Any) -> Extracted:
     )
 
 
-def interface(cls: Type[T]) -> Type[T]:
+def interface(cls: type[T]) -> type[T]:
     type_name = f"{cls.__name__}Props"
 
     class Augmented(cls):  # type: ignore[misc, valid-type]

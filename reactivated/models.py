@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from typing import Any  # noqa
-from typing import Callable, Generic, Literal, Optional, Type, TypeVar, Union, overload
+from typing import Generic, Literal, TypeVar, Union, overload
 
 from django.db import models
 
@@ -15,9 +16,9 @@ class ComputedRelation(Generic[T, S, Z]):
     def __init__(
         self,
         *,
-        label: Optional[str] = None,
+        label: str | None = None,
         fget: Callable[[T], Z],
-        model: Union[Callable[[], Type[S]], Type[S]],
+        model: Callable[[], type[S]] | type[S],
         many: bool,
         null: bool,
     ) -> None:
@@ -30,21 +31,21 @@ class ComputedRelation(Generic[T, S, Z]):
         self.null = null
 
     @property
-    def related_model(self) -> Type[S]:
+    def related_model(self) -> type[S]:
         return self._model if isinstance(self._model, type) else self._model()
 
     @overload
-    def __get__(self, instance: None, own: Type[T]) -> "ComputedRelation[T, S, Z]":
+    def __get__(self, instance: None, own: type[T]) -> "ComputedRelation[T, S, Z]":
         pass
 
     @overload
-    def __get__(self, instance: T, own: Type[T]) -> Z:
+    def __get__(self, instance: T, own: type[T]) -> Z:
         pass
 
     def __get__(
         self,
-        instance: Union[T, None],
-        own: Type[T],
+        instance: T | None,
+        own: type[T],
     ) -> Union["ComputedRelation[T, S, Z]", Z]:
         if instance is None:
             return self
@@ -54,8 +55,8 @@ class ComputedRelation(Generic[T, S, Z]):
 
 def computed_relation(
     *,
-    label: Optional[str] = None,
-    model: Union[Callable[[], Type[S]], Type[S]],
+    label: str | None = None,
+    model: Callable[[], type[S]] | type[S],
 ) -> Callable[[Callable[[T], SQuerySet]], ComputedRelation[T, S, SQuerySet]]:
     def inner(fget: Callable[[T], SQuerySet]) -> ComputedRelation[T, S, SQuerySet]:
         return ComputedRelation(
@@ -68,8 +69,8 @@ def computed_relation(
 @overload
 def computed_foreign_key(
     *,
-    label: Optional[str] = None,
-    model: Union[Callable[[], Type[S]], Type[S]],
+    label: str | None = None,
+    model: Callable[[], type[S]] | type[S],
     null: Literal[True],
 ) -> Callable[
     [Callable[[T], SOptionalInstance]], ComputedRelation[T, S, SOptionalInstance]
@@ -79,23 +80,23 @@ def computed_foreign_key(
 @overload
 def computed_foreign_key(
     *,
-    label: Optional[str] = None,
-    model: Union[Callable[[], Type[S]], Type[S]],
+    label: str | None = None,
+    model: Callable[[], type[S]] | type[S],
     null: Literal[False],
 ) -> Callable[[Callable[[T], SInstance]], ComputedRelation[T, S, SInstance]]: ...
 
 
 def computed_foreign_key(
     *,
-    label: Optional[str] = None,
-    model: Union[Callable[[], Type[S]], Type[S]],
+    label: str | None = None,
+    model: Callable[[], type[S]] | type[S],
     null: bool = False,
-) -> Union[
-    Callable[[Callable[[T], SInstance]], ComputedRelation[T, S, SInstance]],
-    Callable[
+) -> (
+    Callable[[Callable[[T], SInstance]], ComputedRelation[T, S, SInstance]]
+    | Callable[
         [Callable[[T], SOptionalInstance]], ComputedRelation[T, S, SOptionalInstance]
-    ],
-]:
+    ]
+):
     def inner(
         fget: Callable[[T], SOptionalInstance]
     ) -> ComputedRelation[T, S, SOptionalInstance]:

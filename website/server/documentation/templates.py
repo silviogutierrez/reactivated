@@ -1,4 +1,4 @@
-from typing import NamedTuple, Tuple
+from typing import NamedTuple
 
 from reactivated import template
 
@@ -11,5 +11,5 @@ class HomePage(NamedTuple):
 @template
 class Documentation(NamedTuple):
     content: str
-    toc: Tuple[Tuple[str, str], ...]
+    toc: tuple[tuple[str, str], ...]
     path: str

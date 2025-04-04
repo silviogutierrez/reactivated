@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from django import forms
 
@@ -62,7 +62,7 @@ class StoryboardForm(forms.Form):
     enum_field = EnumChoiceField(enum=models.Opera.Style)
     boolean_field = forms.BooleanField(help_text="Not blank")
 
-    def clean(self) -> Dict[str, Any]:
+    def clean(self) -> dict[str, Any]:
         raise forms.ValidationError(
             "Non-field error",
         )

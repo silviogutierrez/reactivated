@@ -1,16 +1,13 @@
+from collections.abc import Iterable
 from enum import Enum
 from enum import unique as ensure_unique
 from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
-    Iterable,
     Literal,
     Optional,
-    Tuple,
-    Type,
     TypeVar,
-    Union,
     cast,
     overload,
 )
@@ -50,9 +47,9 @@ class EnumChoice(Generic[_GT]):
         """
         Used by DRF when creating choices in `rest_framework/fields.py`
         """
-        return hash((self.choice))
+        return hash(self.choice)
 
-    def __eq__(self, other: Union[_GT, Any, str]) -> bool:
+    def __eq__(self, other: _GT | Any | str) -> bool:
         if isinstance(other, str):
             return str(self.choice) == other
         elif isinstance(other, Enum):
@@ -61,10 +58,10 @@ class EnumChoice(Generic[_GT]):
 
 
 def convert_enum_to_choices(
-    *, enum: Type[Enum], include_blank: bool = False
-) -> Iterable[Tuple[Union[EnumChoice[Enum], Literal[""]], str]]:
+    *, enum: type[Enum], include_blank: bool = False
+) -> Iterable[tuple[EnumChoice[Enum] | Literal[""], str]]:
     if include_blank is True:
-        yield cast(Tuple[Literal[""], str], BLANK_CHOICE_DASH[0])
+        yield cast(tuple[Literal[""], str], BLANK_CHOICE_DASH[0])
     for member in enum:
         yield (EnumChoice(member), str(member.value))
 
@@ -74,7 +71,7 @@ class EnumChoiceIterator(Generic[_GT]):
     we can use the "choices" argument that triggers special Django behaviors,
     but leave our enum intact for reference."""
 
-    def __init__(self, *, enum: Type[_GT], include_blank: bool = False) -> None:
+    def __init__(self, *, enum: type[_GT], include_blank: bool = False) -> None:
         self.enum = enum
         self.include_blank = include_blank
 
@@ -83,8 +80,8 @@ class EnumChoiceIterator(Generic[_GT]):
 
 
 def coerce_to_enum(
-    enum: Type[_GT], value: Union[_GT, EnumChoice[_GT], str, None]
-) -> Optional[_GT]:
+    enum: type[_GT], value: _GT | EnumChoice[_GT] | str | None
+) -> _GT | None:
     if isinstance(value, EnumChoice):
         return value.choice
     elif isinstance(value, enum):
@@ -99,7 +96,7 @@ models.CharField.__class_getitem__ = classmethod(  # type: ignore[attr-defined]
 )
 
 
-def parse_enum(enum: Type[_GT], value: Optional[str]) -> Optional[_GT]:
+def parse_enum(enum: type[_GT], value: str | None) -> _GT | None:
     if value is None:
         return None
 
@@ -123,8 +120,8 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     def __init__(
         self,
         *,
-        enum: Type[_GT],
-        default: Union[Type[NOT_PROVIDED], _GT, None] = NOT_PROVIDED,
+        enum: type[_GT],
+        default: type[NOT_PROVIDED] | _GT | None = NOT_PROVIDED,
         null: bool = False,
         verbose_name: Optional["_StrOrPromise"] = None,
         unique: bool = False,
@@ -132,10 +129,10 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         db_index: bool = False,
         editable: bool = True,
         help_text: str = "",
-        db_column: Optional[str] = None,
-        db_tablespace: Optional[str] = None,
+        db_column: str | None = None,
+        db_tablespace: str | None = None,
         validators: Iterable[_ValidatorCallable] = (),
-        error_messages: Optional[_ErrorMessagesDict] = None,
+        error_messages: _ErrorMessagesDict | None = None,
     ):
         ensure_unique(enum)
 
@@ -198,20 +195,20 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     def cast_db_type(self, connection: Any) -> str:
         return self.get_enum_name()
 
-    def db_type(self, connection: Any) -> Optional[str]:
+    def db_type(self, connection: Any) -> str | None:
         if connection.settings_dict["ENGINE"] != "django.db.backends.postgresql":
             raise DatabaseError("EnumField is only supported on PostgreSQL")
         return super().db_type(connection)
 
     def from_db_value(
-        self, value: Optional[str], expression: Any, connection: Any
-    ) -> Optional[_GT]:
+        self, value: str | None, expression: Any, connection: Any
+    ) -> _GT | None:
         return parse_enum(self.enum, value)
 
-    def to_python(self, value: Union[_GT, EnumChoice[_GT], str, None]) -> Optional[_GT]:
+    def to_python(self, value: _GT | EnumChoice[_GT] | str | None) -> _GT | None:
         return coerce_to_enum(self.enum, value)
 
-    def get_prep_value(self, value: Union[_GT, str, None]) -> Optional[str]:
+    def get_prep_value(self, value: _GT | str | None) -> str | None:
         member = self.to_python(value)
         if member is None:
             return None
@@ -244,54 +241,54 @@ if TYPE_CHECKING:
 
     @overload
     def EnumField(
-        enum: Type[TEnum],
-        default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
+        enum: type[TEnum],
+        default: type[NOT_PROVIDED] | TEnum | None = NOT_PROVIDED,
         null: Literal[False] = False,
-        verbose_name: Optional[Union[str, bytes]] = None,
+        verbose_name: str | bytes | None = None,
         unique: bool = False,
         blank: bool = False,
         db_index: bool = False,
         editable: bool = True,
         help_text: str = "",
-        db_column: Optional[str] = None,
-        db_tablespace: Optional[str] = None,
+        db_column: str | None = None,
+        db_tablespace: str | None = None,
         validators: Iterable[_ValidatorCallable] = (),
-        error_messages: Optional[_ErrorMessagesDict] = None,
+        error_messages: _ErrorMessagesDict | None = None,
     ) -> _EnumField[TEnum, TEnum]: ...
 
     @overload
     def EnumField(
-        enum: Type[TEnum],
-        default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
+        enum: type[TEnum],
+        default: type[NOT_PROVIDED] | TEnum | None = NOT_PROVIDED,
         null: Literal[True] = True,
-        verbose_name: Optional[Union[str, bytes]] = None,
+        verbose_name: str | bytes | None = None,
         unique: bool = False,
         blank: bool = False,
         db_index: bool = False,
         editable: bool = True,
         help_text: str = "",
-        db_column: Optional[str] = None,
-        db_tablespace: Optional[str] = None,
+        db_column: str | None = None,
+        db_tablespace: str | None = None,
         validators: Iterable[_ValidatorCallable] = (),
-        error_messages: Optional[_ErrorMessagesDict] = None,
-    ) -> _EnumField[Optional[TEnum], Optional[TEnum]]:  # type: ignore[type-var]
+        error_messages: _ErrorMessagesDict | None = None,
+    ) -> _EnumField[TEnum | None, TEnum | None]:  # type: ignore[type-var]
         ...
 
     def EnumField(
-        enum: Type[TEnum],
-        default: Union[Type[NOT_PROVIDED], TEnum, None] = NOT_PROVIDED,
+        enum: type[TEnum],
+        default: type[NOT_PROVIDED] | TEnum | None = NOT_PROVIDED,
         null: Literal[True, False] = False,
-        verbose_name: Optional[Union[str, bytes]] = None,
+        verbose_name: str | bytes | None = None,
         unique: bool = False,
         blank: bool = False,
         db_index: bool = False,
         editable: bool = True,
         help_text: str = "",
-        db_column: Optional[str] = None,
-        db_tablespace: Optional[str] = None,
+        db_column: str | None = None,
+        db_tablespace: str | None = None,
         validators: Iterable[_ValidatorCallable] = (),
-        error_messages: Optional[_ErrorMessagesDict] = None,
-    ) -> Union[_EnumField[TEnum, TEnum], _EnumField[Optional[TEnum], Optional[TEnum]]]:  # type: ignore[type-var]
+        error_messages: _ErrorMessagesDict | None = None,
+    ) -> _EnumField[TEnum, TEnum] | _EnumField[TEnum | None, TEnum | None]:  # type: ignore[type-var]
         return _EnumField[TEnum, TEnum](enum=enum, default=default, null=null)
 
 else:

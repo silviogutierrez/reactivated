@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import collections.abc
 import inspect
-from typing import TYPE_CHECKING, Any, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Manager
@@ -47,7 +48,7 @@ def get_attribute(instance: Any, attrs: Sequence[str]) -> Any:
                 # as an omitted field in `Field.get_attribute()`. Instead we
                 # raise a ValueError to ensure the exception is not masked.
                 raise ValueError(
-                    'Exception raised in callable attribute "{0}"; original exception was: {1}'.format(
+                    'Exception raised in callable attribute "{}"; original exception was: {}'.format(
                         attr, exc
                     )
                 )

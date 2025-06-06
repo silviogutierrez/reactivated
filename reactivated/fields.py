@@ -181,6 +181,7 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         # interpolates the values.
         #
         # Fortunately, we can create a name dynamically.
+        cls._meta.constraints = list(cls._meta.constraints)
         cls._meta.constraints.append(
             EnumConstraint(
                 members=self.enum._member_names_,

@@ -53,7 +53,7 @@ pytest-playwright==0.5.2
 python-slugify==8.0.4
 pytz==2024.1
 PyYAML==6.0.1
--e git+ssh://git@github.com/silviogutierrez/reactivated.git@25996289df6844f0aeaa1d47ee72b7a8232be718#egg=reactivated
+-e .
 readme_renderer==44.0
 regex==2024.7.24
 requests==2.32.3

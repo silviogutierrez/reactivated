@@ -15,5 +15,6 @@ mkShell {
     fi
 
     source $setup_script
+    pip install -e .. --config-settings editable_mode=compat
   '';
 }

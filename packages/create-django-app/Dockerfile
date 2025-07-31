@@ -4,10 +4,12 @@ RUN apt update
 RUN apt install -y curl xz-utils
 RUN useradd -m guest
 RUN mkdir /nix && mkdir /app && chown guest /nix && chown guest /app && mkdir /reactivated && chown guest /reactivated
+RUN mkdir /etc/nix && echo 'filter-syscalls = false' >> /etc/nix/nix.conf
 
 WORKDIR /app
 USER guest
 ENV USER=guest
+
 RUN curl -L https://nixos.org/nix/install | sh
 
 ENV PATH="/home/guest/.nix-profile/bin:/reactivated/scripts/:${PATH}"

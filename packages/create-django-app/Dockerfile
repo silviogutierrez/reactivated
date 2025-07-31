@@ -8,6 +8,8 @@ RUN mkdir /nix && mkdir /app && chown guest /nix && chown guest /app && mkdir /r
 WORKDIR /app
 USER guest
 ENV USER=guest
+
+RUN echo 'filter-syscalls = false' >> /etc/nix/nix.conf
 RUN curl -L https://nixos.org/nix/install | sh
 
 ENV PATH="/home/guest/.nix-profile/bin:/reactivated/scripts/:${PATH}"

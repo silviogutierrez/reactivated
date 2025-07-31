@@ -80,6 +80,11 @@ jobs:
                   # See: https://github.com/actions/checkout/issues/518
                   ref: "refs/pull/${{ github.event.number }}/merge"
             - uses: ./.github/actions/setup
+            # I don't know why this suddenly stopped working, including SETUPTOOLS_ENABLE_FEATURES
+            - name: Fix local install
+              run: |
+                  cd website
+                  nix-shell --command "pip install -e .. --config-settings editable_mode=compat"
             - name: Run tests
               run: |
                   cd website

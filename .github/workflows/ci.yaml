@@ -85,9 +85,6 @@ jobs:
                   cd website
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "scripts/test.sh --all"
-            - name: Setup tmate session
-              if: ${{ failure() }}
-              uses: mxschmitt/action-tmate@v3
             - name: Run build
               env:
                   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

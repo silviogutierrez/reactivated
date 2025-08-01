@@ -30,7 +30,7 @@ if [ ! -d "$VIRTUAL_ENV" ]; then
 
     rm -rf "$TMP_ENV"
     python -m venv "$VIRTUAL_ENV"
-    pip install -r requirements.txt
+    pip install -r requirements.txt --config-settings editable_mode=compat
 fi
 
 if [ ! -d "$POSTGRESQL_DATA" ]; then

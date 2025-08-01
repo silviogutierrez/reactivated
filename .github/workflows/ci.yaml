@@ -59,7 +59,8 @@ jobs:
         if: |
             github.event_name == 'push' ||
             (github.event_name == 'pull_request_target' && 
-             (github.repository_owner == github.actor || contains(github.event.pull_request.labels.*.name, 'website')))
+             (github.event.action != 'labeled' && github.repository_owner == github.actor) || 
+             (github.event.action == 'labeled' && contains(github.event.pull_request.labels.*.name, 'website')))
         steps:
             - name: Remove website label
               if: contains(github.event.pull_request.labels.*.name, 'website')

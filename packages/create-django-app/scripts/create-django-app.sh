@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -p jq git nix cacert bash python39 --pure -i bash --keep NIX_PATH --keep REACTIVATED_NODE --keep REACTIVATED_PYTHON --keep IS_DOCKER
+#! nix-shell -p jq git nix cacert bash --pure -i bash --keep NIX_PATH --keep REACTIVATED_NODE --keep REACTIVATED_PYTHON --keep IS_DOCKER
 set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"

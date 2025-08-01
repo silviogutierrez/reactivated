@@ -55,8 +55,8 @@ STATICFILES_DIRS = (BASE_DIR / "static/",)
 ```
 
 > **Warning**: If your current setup of static files includes a folder `dist`, you need
-> to rename that folder. Vite's build process relies on the `dist`
-> folder so Reactivated intercepts all requests for static content from that folder.
+> to rename that folder. Vite's build process relies on the `dist` folder so Reactivated
+> intercepts all requests for static content from that folder.
 
 Now add the `JSX` template backend to your `TEMPLATES` setting. Assuming you want to
 keep your regular Django templates as well, it would look something like this:

@@ -860,12 +860,12 @@ def enum_type_schema(_Type: type[enum.Enum], definitions: Definitions) -> Thing:
     properties = {}
     definitions = {**definitions}
 
-    for member in _Type:
+    for member_name, member in _Type.__members__.items():
         member_schema = create_schema(type(member.value), definitions)
         definitions = {**definitions, **member_schema.definitions}
 
-        required.append(member.name)
-        properties[member.name] = {
+        required.append(member_name)
+        properties[member_name] = {
             **member_schema.schema,
             "serializer": "reactivated.serialization.EnumValueType",
         }
@@ -905,7 +905,7 @@ def enum_schema(_Type: type[enum.Enum], definitions: Definitions) -> Thing:
             **definitions,
             definition_name: {
                 "type": "string",
-                "enum": list(member.name for member in _Type),
+                "enum": list(_Type.__members__.keys()),
                 "serializer": "reactivated.serialization.EnumMemberType",
             },
         },

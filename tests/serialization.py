@@ -36,6 +36,15 @@ class SlimEnum(enum.Enum):
     SECOND = "Great"
 
 
+class EnumWithAliases(enum.Enum):
+    RED = "red"
+    GREEN = "green"
+    BLUE = "blue"
+    # Aliases
+    CRIMSON = "red"  # Alias for RED
+    LIME = "green"  # Alias for GREEN
+
+
 class ChunkyEnumMember(NamedTuple):
     is_important: bool
     title: str
@@ -768,3 +777,53 @@ def test_null_one_to_one_field(settings, snapshot):
     )
 
     assert schema.definitions == snapshot
+
+
+def test_enum_with_aliases():
+    schema = create_schema(EnumWithAliases, {})
+
+    # Schema should include all members including aliases
+    expected_enum_values = ["RED", "GREEN", "BLUE", "CRIMSON", "LIME"]
+    actual_enum_values = schema.definitions["tests.serialization.EnumWithAliases"][
+        "enum"
+    ]
+
+    assert set(actual_enum_values) == set(expected_enum_values)
+
+    # Test serialization - aliases serialize to their canonical names (Python enum behavior)
+    assert serialize(EnumWithAliases.RED, schema) == "RED"
+    assert (
+        serialize(EnumWithAliases.CRIMSON, schema) == "RED"
+    )  # Alias resolves to canonical name
+    assert (
+        serialize(EnumWithAliases.LIME, schema) == "GREEN"
+    )  # Alias resolves to canonical name
+
+    # But we can verify that the aliases exist in the schema enum list
+    assert "CRIMSON" in actual_enum_values
+    assert "LIME" in actual_enum_values
+
+
+def test_enum_type_with_aliases():
+    schema = create_schema(type[EnumWithAliases], {})
+
+    # Schema should include all members including aliases in the enum type schema
+    definition_name = "tests.serialization.EnumWithAliasesEnumType"
+    enum_type_def = schema.definitions[definition_name]
+
+    expected_properties = ["RED", "GREEN", "BLUE", "CRIMSON", "LIME"]
+    actual_properties = list(enum_type_def["properties"].keys())
+
+    assert set(actual_properties) == set(expected_properties)
+    assert set(enum_type_def["required"]) == set(expected_properties)
+
+    # Test serialization of the enum type
+    serialized = serialize(EnumWithAliases, schema)
+    expected_serialized = {
+        "RED": "red",
+        "GREEN": "green",
+        "BLUE": "blue",
+        "CRIMSON": "red",  # Alias has same value as RED
+        "LIME": "green",  # Alias has same value as GREEN
+    }
+    assert serialized == expected_serialized

@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Iterable
 from enum import Enum
 from enum import unique as ensure_unique
@@ -34,6 +35,27 @@ else:
 TEnum = TypeVar("TEnum", bound=Enum)
 _ST = TypeVar("_ST", bound=Enum)
 _GT = TypeVar("_GT", bound=Enum)
+
+logger = logging.getLogger(__name__)
+is_migrating: bool = False
+
+
+def set_migrating_flag(sender: Any, **kwargs: Any) -> None:
+    """
+    Sets a flag to indicate that a migration is in progress.
+    """
+    global is_migrating
+    is_migrating = True
+    logger.debug("Migration started - setting is_migrating flag to True")
+
+
+def clear_migrating_flag(sender: Any, **kwargs: Any) -> None:
+    """
+    Clears the flag when migration is complete.
+    """
+    global is_migrating
+    is_migrating = False
+    logger.debug("Migration completed - setting is_migrating flag to False")
 
 
 class EnumChoice(Generic[_GT]):
@@ -200,7 +222,11 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
     def db_type(self, connection: Any) -> str | None:
         if connection.settings_dict["ENGINE"] != "django.db.backends.postgresql":
             raise DatabaseError("EnumField is only supported on PostgreSQL")
-        return super().db_type(connection)
+
+        if is_migrating:
+            return super().db_type(connection)
+
+        return self.cast_db_type(connection)
 
     def from_db_value(
         self, value: str | None, expression: Any, connection: Any

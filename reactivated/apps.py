@@ -165,8 +165,15 @@ class ReactivatedConfig(AppConfig):
         the first start. TODO: handle noreload.
         """
 
+        # Connect signal handlers for migration detection
+        from django.db.models.signals import post_migrate, pre_migrate
+
         from .checks import check_installed_app_order  # NOQA
+        from .fields import clear_migrating_flag, set_migrating_flag
         from .serialization import widgets  # noqa
+
+        pre_migrate.connect(set_migrating_flag)
+        post_migrate.connect(clear_migrating_flag)
 
 
 def generate_schema(skip_cache: bool = False) -> None:

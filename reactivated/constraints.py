@@ -33,8 +33,14 @@ class EnumConstraint(models.constraints.BaseConstraint):
         assert model is not None
         assert schema_editor is not None
 
+        # https://github.com/django/django/commit/41d8ef18ac2d983bea5ef919615687308ffe41c1
+        # This introduced some sort of double create statement appearing when
+        # you have params or things like GeneratedField.  So before dropping the
+        # enum, we need to alter the column to varchar to be safe. Otherwise we
+        # won't be able to drop.
         return Statement(
             """
+            ALTER TABLE %(table)s ALTER COLUMN %(field_name)s TYPE varchar(63);
             DROP TYPE IF EXISTS %(enum_type)s;
             CREATE TYPE %(enum_type)s AS ENUM (%(columns)s);
             ALTER TABLE %(table)s ALTER COLUMN %(field_name)s TYPE %(enum_type)s USING %(field_name)s::%(enum_type)s;

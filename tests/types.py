@@ -205,6 +205,80 @@ def test_dict():
     )
 
 
+def test_set():
+    assert create_schema(set[str], {}) == (
+        {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
+        {},
+    )
+
+    assert create_schema(set[int], {}) == (
+        {"type": "array", "items": {"type": "number"}, "uniqueItems": True},
+        {},
+    )
+
+
+def test_frozenset():
+    assert create_schema(frozenset[str], {}) == (
+        {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
+        {},
+    )
+
+    assert create_schema(frozenset[int], {}) == (
+        {"type": "array", "items": {"type": "number"}, "uniqueItems": True},
+        {},
+    )
+
+
+# Type aliases using PEP 695 syntax (Python 3.12+)
+type StringAlias = str
+type IntAlias = int
+type ListStringAlias = list[str]
+type UnionAlias = str | int
+type DictAlias = dict[str, int]
+
+
+def test_type_alias():
+    # Test simple type alias
+    assert create_schema(StringAlias, {}) == (
+        {"type": "string"},
+        {},
+    )
+
+    assert create_schema(IntAlias, {}) == (
+        {"type": "number"},
+        {},
+    )
+
+    # Test generic type alias
+    assert create_schema(ListStringAlias, {}) == (
+        {"type": "array", "items": {"type": "string"}},
+        {},
+    )
+
+    # Test union type alias
+    assert create_schema(UnionAlias, {}) == (
+        {
+            "anyOf": [{"type": "string"}, {"type": "number"}],
+            "serializer": "reactivated.serialization.UnionType",
+            "_reactivated_union": {
+                "builtins.str": {"type": "string"},
+                "builtins.int": {"type": "number"},
+            },
+        },
+        {},
+    )
+
+    # Test dict type alias
+    assert create_schema(DictAlias, {}) == (
+        {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": {"type": "number"},
+        },
+        {},
+    )
+
+
 def test_none():
     assert create_schema(type(None), {}) == ({"type": "null"}, {})
 

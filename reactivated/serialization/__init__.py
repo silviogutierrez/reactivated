@@ -3,7 +3,16 @@ import enum
 import types
 import uuid
 from collections.abc import Callable, Mapping, Sequence
-from typing import Any, Literal, NamedTuple, Optional, Protocol, Union, get_type_hints
+from typing import (
+    Any,
+    Literal,
+    NamedTuple,
+    Optional,
+    Protocol,
+    TypeAliasType,
+    Union,
+    get_type_hints,
+)
 
 from django import forms as django_forms
 from django.conf import settings
@@ -792,6 +801,12 @@ def generic_alias_schema(
             schema={"type": "array", "items": subschema.schema},
             definitions=subschema.definitions,
         )
+    elif _Type.__origin__ is set or _Type.__origin__ is frozenset:
+        subschema = create_schema(_Type.__args__[0], definitions=definitions)
+        return Thing(
+            schema={"type": "array", "items": subschema.schema, "uniqueItems": True},
+            definitions=subschema.definitions,
+        )
     elif _Type.__origin__ is dict:
         subschema = create_schema(_Type.__args__[1], definitions=definitions)
 
@@ -1022,6 +1037,11 @@ def create_schema(_Type: Any, definitions: Definitions) -> Thing:
 
     elif _Type is type(None) or _Type is None:  # noqa: E721
         return Thing(schema={"type": "null"}, definitions={})
+
+    # Handle TypeAliasType
+    elif isinstance(_Type, TypeAliasType):
+        # TypeAliasType has __value__ attribute containing the actual type
+        return create_schema(_Type.__value__, definitions)
 
     elif issubclass(_Type, tuple) and callable(getattr(_Type, "_asdict", None)):
         return named_tuple_schema(_Type, definitions)

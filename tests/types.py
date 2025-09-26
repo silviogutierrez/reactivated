@@ -229,6 +229,56 @@ def test_frozenset():
     )
 
 
+# Type aliases using PEP 695 syntax (Python 3.12+)
+type StringAlias = str
+type IntAlias = int
+type ListStringAlias = list[str]
+type UnionAlias = str | int
+type DictAlias = dict[str, int]
+
+
+def test_type_alias():
+    # Test simple type alias
+    assert create_schema(StringAlias, {}) == (
+        {"type": "string"},
+        {},
+    )
+
+    assert create_schema(IntAlias, {}) == (
+        {"type": "number"},
+        {},
+    )
+
+    # Test generic type alias
+    assert create_schema(ListStringAlias, {}) == (
+        {"type": "array", "items": {"type": "string"}},
+        {},
+    )
+
+    # Test union type alias
+    assert create_schema(UnionAlias, {}) == (
+        {
+            "anyOf": [{"type": "string"}, {"type": "number"}],
+            "serializer": "reactivated.serialization.UnionType",
+            "_reactivated_union": {
+                "builtins.str": {"type": "string"},
+                "builtins.int": {"type": "number"},
+            },
+        },
+        {},
+    )
+
+    # Test dict type alias
+    assert create_schema(DictAlias, {}) == (
+        {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": {"type": "number"},
+        },
+        {},
+    )
+
+
 def test_none():
     assert create_schema(type(None), {}) == ({"type": "null"}, {})
 

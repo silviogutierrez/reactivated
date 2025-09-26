@@ -205,6 +205,30 @@ def test_dict():
     )
 
 
+def test_set():
+    assert create_schema(set[str], {}) == (
+        {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
+        {},
+    )
+
+    assert create_schema(set[int], {}) == (
+        {"type": "array", "items": {"type": "number"}, "uniqueItems": True},
+        {},
+    )
+
+
+def test_frozenset():
+    assert create_schema(frozenset[str], {}) == (
+        {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
+        {},
+    )
+
+    assert create_schema(frozenset[int], {}) == (
+        {"type": "array", "items": {"type": "number"}, "uniqueItems": True},
+        {},
+    )
+
+
 def test_none():
     assert create_schema(type(None), {}) == ({"type": "null"}, {})
 

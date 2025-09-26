@@ -792,6 +792,12 @@ def generic_alias_schema(
             schema={"type": "array", "items": subschema.schema},
             definitions=subschema.definitions,
         )
+    elif _Type.__origin__ is set or _Type.__origin__ is frozenset:
+        subschema = create_schema(_Type.__args__[0], definitions=definitions)
+        return Thing(
+            schema={"type": "array", "items": subschema.schema, "uniqueItems": True},
+            definitions=subschema.definitions,
+        )
     elif _Type.__origin__ is dict:
         subschema = create_schema(_Type.__args__[1], definitions=definitions)
 

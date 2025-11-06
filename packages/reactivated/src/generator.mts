@@ -332,6 +332,7 @@ export type models = _Types["globals"]["models"];
 export type {FieldHandler} from "./forms";
 export {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} from "reactivated/dist/forms";
 export {Iterator, CSRFToken, createRenderer} from "./forms";
+export {getTemplate} from "./template";
 `);
 
 const formsContent = `
@@ -386,7 +387,7 @@ compile(types, "this is unused", {additionalProperties: false}).then(async (ts) 
 
             statements.push(`
 
-import type {Template as ${name}Implementation} from "@client/templates/${name}"
+import {Template as ${name}Implementation} from "@client/templates/${name}"
 export type ${name}Check = Checker<_Types["${propsName}"], typeof ${name}Implementation>;
 
 export namespace templates {

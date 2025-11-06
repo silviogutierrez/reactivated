@@ -363,11 +363,12 @@ export const Context = React.createContext<TMutableContext>(null!);
 `;
 
 const templateContent = `
-export const getTemplate = async ({template_name}: {template_name: string}) => {
-    const templates = import.meta.glob("@client/templates/*.tsx");
+// @ts-ignore
+const templates = import.meta.glob("@client/templates/*.tsx", {eager: true});
 
+export const getTemplate = async ({template_name}: {template_name: string}) => {
     const templatePath = \`/client/templates/\${template_name}.tsx\`;
-    const TemplateModule = await templates[templatePath]() as {Template: React.ComponentType<any>};
+    const TemplateModule = templates[templatePath] as {Template: React.ComponentType<any>}
     return TemplateModule.Template;
 }
 `;

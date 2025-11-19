@@ -7,6 +7,7 @@
         ".": "./dist/index.js",
         "./dist/eslint.config": "./dist/eslint.config.js",
         "./dist/forms": "./dist/forms/index.js",
+        "./dist/generated": "./dist/generated.js",
         "./dist/context": "./dist/context.js",
         "./dist/conf": "./dist/conf.js",
         "./dist/vite.mjs": "./dist/vite.mjs",

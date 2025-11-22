@@ -332,8 +332,13 @@ export type models = _Types["globals"]["models"];
 export type {FieldHandler} from "./forms";
 export {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} from "reactivated/dist/forms";
 export {Iterator, CSRFToken, createRenderer} from "./forms";
+`);
+
+if (!("REACTIVATED_NO_GET_TEMPLATE" in process.env)) {
+    sourceFile.addStatements(`
 export {getTemplate} from "./template";
 `);
+}
 
 const formsContent = `
 import type {_Types} from "./index";
@@ -363,11 +368,12 @@ export const Context = React.createContext<TMutableContext>(null!);
 `;
 
 const templateContent = `
-export const getTemplate = async ({template_name}: {template_name: string}) => {
-    const templates = import.meta.glob("@client/templates/*.tsx");
+// @ts-ignore
+const templates = import.meta.glob("@client/templates/*.tsx", {eager: true});
 
+export const getTemplate = async ({template_name}: {template_name: string}) => {
     const templatePath = \`/client/templates/\${template_name}.tsx\`;
-    const TemplateModule = await templates[templatePath]() as {Template: React.ComponentType<any>};
+    const TemplateModule = templates[templatePath] as {Template: React.ComponentType<any>}
     return TemplateModule.Template;
 }
 `;

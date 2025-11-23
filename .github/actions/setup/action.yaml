@@ -6,6 +6,7 @@ runs:
           with:
               nix_path: nixpkgs=channel:nixos-unstable
         - name: Cache .venv
+          if: runner.os != 'macOS'
           id: cache-venv
           uses: actions/cache@v3
           with:
@@ -20,6 +21,7 @@ runs:
               echo "::set-output name=dir::$(pip3 cache dir)"
           shell: bash
         - name: pip cache
+          if: runner.os != 'macOS'
           uses: actions/cache@v3
           with:
               path: |
@@ -33,6 +35,7 @@ runs:
               echo "::set-output name=dir::$(npm config get cache)"
           shell: bash
         - uses: actions/cache@v3
+          if: runner.os != 'macos'
           id: npm-cache
           with:
               path: ${{ steps.npm-cache-dir.outputs.dir }}

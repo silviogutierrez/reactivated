@@ -2,7 +2,7 @@ let
   pkgs = import (fetchTarball
     "https://github.com/NixOS/nixpkgs/archive/3cb4ae6689d2.tar.gz") { };
   unstable = import (fetchTarball
-    "https://github.com/NixOS/nixpkgs/archive/3cb4ae6689d2.tar.gz") { };
+    "https://github.com/NixOS/nixpkgs/archive/117cc7f94e80.tar.gz") { };
 
 in with pkgs; {
   inherit pkgs;

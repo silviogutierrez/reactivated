@@ -1,6 +1,6 @@
 {
     "name": "reactivated",
-    "version": "0.47.7",
+    "version": "0.47.8",
     "description": "",
     "type": "module",
     "exports": {
@@ -46,7 +46,7 @@
         "@vanilla-extract/sprinkles": "1.6.3",
         "@vanilla-extract/vite-plugin": "3.9.5",
         "@vitejs/plugin-react": "4.3.4",
-        "eslint": "~9.18.0",
+        "eslint": "^9.18.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-import-resolver-typescript": "^3.6.3",
         "eslint-plugin-import": "^2.31.0",

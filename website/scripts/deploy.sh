@@ -38,7 +38,7 @@ cd website_build_context/
 # Ensure we are logged in.
 (flyctl auth whoami &>/dev/null) || (echo "You must first login with 'flyctl auth login' and try again" && exit 1)
 
-flyctl deploy --remote-only $BUILD_ONLY
+flyctl deploy --remote-only $BUILD_ONLY --depot=false
 
 # Currently this does not work on GitHub actions, but also is not necessary for the docs site.
 # It needs to do fly console ssh issue but that fails with API auth.

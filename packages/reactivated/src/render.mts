@@ -3,6 +3,7 @@ import React, {type JSX} from "react";
 import {Response} from "express";
 import ReactDOMServer from "react-dom/server";
 import {renderToPipeableStream} from "react-dom/server";
+import {preinit, preinitModule} from "react-dom";
 import {Transform} from "node:stream";
 
 import {SSRErrorResponse, serializeError} from "./errors.js";
@@ -23,6 +24,25 @@ const defaultRenderer: Renderer = (content) => Promise.resolve(content);
 
 function serJSON(data: unknown): string {
     return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
+function ResourceLoader({
+    mode,
+    staticUrl,
+    entryPoint,
+    children,
+}: React.PropsWithChildren<{
+    mode: "production" | "development";
+    staticUrl: string;
+    entryPoint: string;
+}>) {
+    if (mode === "production") {
+        preinit(`${staticUrl}dist/${entryPoint}.css`, {as: "style"});
+        preinitModule(`${staticUrl}dist/${entryPoint}.js`, {crossOrigin: "anonymous"});
+    } else {
+        preinitModule(`${staticUrl}dist/client/${entryPoint}.tsx`);
+    }
+    return children;
 }
 
 export const render = async (
@@ -48,22 +68,18 @@ export const render = async (
     if (STATIC_URL == null) {
         console.error("Ensure your context processor includes STATIC_URL");
     }
-    const css =
-        mode == "production"
-            ? `<link rel="stylesheet" type="text/css" href="${STATIC_URL}dist/${entryPoint}.css">`
-            : "";
-    const js =
-        mode == "production"
-            ? `<script type="module" src="${STATIC_URL}dist/${entryPoint}.js" defer crossOrigin="anonymous"></script>`
-            : `<script type="module" src="${STATIC_URL}dist/client/${entryPoint}.tsx"></script>`;
 
     const content = React.createElement(
         React.StrictMode,
         {},
         React.createElement(
-            Provider,
-            {value: context},
-            React.createElement(Template, props),
+            ResourceLoader,
+            {mode, staticUrl: STATIC_URL, entryPoint},
+            React.createElement(
+                Provider,
+                {value: context},
+                React.createElement(Template, props),
+            ),
         ),
     );
 
@@ -107,7 +123,7 @@ export const render = async (
                     },
                 });
                 transformStream.on("finish", () => {
-                    res.end(vite + css + js);
+                    res.end(vite);
                 });
 
                 pipe(transformStream);

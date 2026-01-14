@@ -51,7 +51,7 @@ export const render = async (
 
     // CSS must be loaded via preinit INSIDE a component (during render)
     // JS is loaded via bootstrapModules in renderToPipeableStream options
-    const CSSLoader = ({children}: {children: React.ReactNode}) => {
+    const CSSLoader: React.FC<React.PropsWithChildren> = ({children}) => {
         if (mode === "production") {
             preinit(`${STATIC_URL}dist/${entryPoint}.css`, {as: "style"});
         }
@@ -60,10 +60,10 @@ export const render = async (
 
     const content = React.createElement(
         React.StrictMode,
-        {},
+        null,
         React.createElement(
             CSSLoader,
-            {},
+            null,
             React.createElement(
                 Provider,
                 {value: context},

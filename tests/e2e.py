@@ -35,6 +35,7 @@ def test_end_to_end(client, live_server, page):
 
     page.goto(live_server.url)
     content = page.content()
+    print(f"PLAYWRIGHT CONTENT (after JS): {content}")
 
     # Check that CSS is loaded via preinit (data-precedence is added by React's preinit)
     assert 'href="/static/dist/index.css"' in content

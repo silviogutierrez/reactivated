@@ -35,13 +35,14 @@ function ResourceLoader({
     mode: "production" | "development";
     staticUrl: string;
     entryPoint: string;
-}>) {
+}>): React.ReactElement {
     if (mode === "production") {
         preinit(`${staticUrl}dist/${entryPoint}.css`, {as: "style"});
         preinitModule(`${staticUrl}dist/${entryPoint}.js`, {crossOrigin: "anonymous"});
     } else {
         preinitModule(`${staticUrl}dist/client/${entryPoint}.tsx`);
     }
+    // Return children directly - wrapping in Fragment causes issues with React 19 streaming SSR on Linux
     return children as React.ReactElement;
 }
 

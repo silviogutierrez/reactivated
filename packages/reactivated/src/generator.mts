@@ -289,7 +289,6 @@ export type Renderer = GenericRenderer<_Types["Context"]>;
 
 export const rpc = new RPC(typeof window != "undefined" ? rpcUtils.defaultRequester : null as any);
 import React from "react"
-import {preinit, preinitModule} from "react-dom"
 import * as generated from "reactivated/dist/generated";
 import * as rpcUtils from "reactivated/dist/rpc";
 import {constants} from "./constants";
@@ -319,25 +318,6 @@ export const Provider = (props: {value: _Types["Context"]; children: React.React
             {props.children}
         </Context.Provider>
     );
-};
-
-export const ResourceLoader = ({
-    mode,
-    staticUrl,
-    entryPoint,
-    children,
-}: React.PropsWithChildren<{
-    mode: "production" | "development";
-    staticUrl: string;
-    entryPoint: string;
-}>) => {
-    if (mode === "production") {
-        preinit(\`\${staticUrl}dist/\${entryPoint}.css\`, {as: "style"});
-        preinitModule(\`\${staticUrl}dist/\${entryPoint}.js\`, {crossOrigin: "anonymous"});
-    } else {
-        preinitModule(\`\${staticUrl}dist/client/\${entryPoint}.tsx\`);
-    }
-    return children;
 };
 
 export const getServerData = () => {

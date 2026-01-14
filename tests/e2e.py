@@ -30,7 +30,23 @@ def test_end_to_end(client, live_server, page):
     call_command("build")
 
     page.goto(live_server.url)
-    assert "<h1>Hello World! It’s good to be here.</h1>" in page.content()
+    content = page.content()
+
+    # Check that CSS is loaded via preinit (data-precedence is added by React's preinit)
+    assert 'href="/static/dist/index.css"' in content
+    assert 'data-precedence="default"' in content
+
+    # Fetch and verify CSS contains expected styles from vanilla-extract
+    import requests
+
+    css_response = requests.get(f"{live_server.url}/static/dist/index.css")
+    assert css_response.status_code == 200
+    css_content = css_response.text
+    assert "max-width:" in css_content  # from layout style
+    assert "color:" in css_content  # from multiple styles
+
+    # Check that the page content is rendered
+    assert "<h1>Hello World! It’s good to be here.</h1>" in content
 
 
 def test_default_widget(tmp_path):

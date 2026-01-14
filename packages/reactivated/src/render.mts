@@ -2,11 +2,12 @@ import {Request} from "express";
 import React, {type JSX} from "react";
 import {Response} from "express";
 import {renderToPipeableStream} from "react-dom/server";
+import {preinit} from "react-dom";
 import {Transform} from "node:stream";
 
 import {SSRErrorResponse, serializeError} from "./errors.js";
 // @ts-ignore
-import {Provider, ResourceLoader} from "@reactivated";
+import {Provider} from "@reactivated";
 // @ts-ignore
 import {getTemplate} from "@reactivated/template";
 
@@ -48,17 +49,20 @@ export const render = async (
         console.error("Ensure your context processor includes STATIC_URL");
     }
 
+    // Load CSS via preinit (goes in <head>)
+    if (mode === "production") {
+        preinit(`${STATIC_URL}dist/${entryPoint}.css`, {as: "style"});
+    }
+
+    // JS is loaded via bootstrapModules in renderToPipeableStream options
+
     const content = React.createElement(
         React.StrictMode,
         {},
         React.createElement(
-            ResourceLoader,
-            {mode, staticUrl: STATIC_URL, entryPoint},
-            React.createElement(
-                Provider,
-                {value: context},
-                React.createElement(Template, props),
-            ),
+            Provider,
+            {value: context},
+            React.createElement(Template, props),
         ),
     );
 
@@ -76,6 +80,10 @@ export const render = async (
         window.__PRELOADED_PROPS__ = ${serJSON(props)};
         window.__PRELOADED_CONTEXT__ = ${serJSON(context)};
         `,
+            bootstrapModules:
+                mode === "production"
+                    ? [`${STATIC_URL}dist/${entryPoint}.js`]
+                    : [`${STATIC_URL}dist/client/${entryPoint}.tsx`],
             onError(error) {
                 hasError = true;
                 if (ssrFixStacktrace) {

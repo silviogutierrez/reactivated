@@ -1,8 +1,8 @@
 import {Request} from "express";
 import React, {type JSX} from "react";
 import {Response} from "express";
-import ReactDOMServer from "react-dom/server";
 import {renderToPipeableStream} from "react-dom/server";
+import {preinit} from "react-dom";
 import {Transform} from "node:stream";
 
 import {SSRErrorResponse, serializeError} from "./errors.js";
@@ -48,22 +48,27 @@ export const render = async (
     if (STATIC_URL == null) {
         console.error("Ensure your context processor includes STATIC_URL");
     }
-    const css =
-        mode == "production"
-            ? `<link rel="stylesheet" type="text/css" href="${STATIC_URL}dist/${entryPoint}.css">`
-            : "";
-    const js =
-        mode == "production"
-            ? `<script type="module" src="${STATIC_URL}dist/${entryPoint}.js" defer crossOrigin="anonymous"></script>`
-            : `<script type="module" src="${STATIC_URL}dist/client/${entryPoint}.tsx"></script>`;
+
+    // CSS must be loaded via preinit INSIDE a component (during render)
+    // JS is loaded via bootstrapModules in renderToPipeableStream options
+    const CSSLoader: React.FC<React.PropsWithChildren> = ({children}) => {
+        if (mode === "production") {
+            preinit(`${STATIC_URL}dist/${entryPoint}.css`, {as: "style"});
+        }
+        return children;
+    };
 
     const content = React.createElement(
         React.StrictMode,
-        {},
+        null,
         React.createElement(
-            Provider,
-            {value: context},
-            React.createElement(Template, props),
+            CSSLoader,
+            null,
+            React.createElement(
+                Provider,
+                {value: context},
+                React.createElement(Template, props),
+            ),
         ),
     );
 
@@ -81,6 +86,10 @@ export const render = async (
         window.__PRELOADED_PROPS__ = ${serJSON(props)};
         window.__PRELOADED_CONTEXT__ = ${serJSON(context)};
         `,
+            bootstrapModules:
+                mode === "production"
+                    ? [`${STATIC_URL}dist/${entryPoint}.js`]
+                    : [`${STATIC_URL}dist/client/${entryPoint}.tsx`],
             onError(error) {
                 hasError = true;
                 if (ssrFixStacktrace) {
@@ -107,7 +116,7 @@ export const render = async (
                     },
                 });
                 transformStream.on("finish", () => {
-                    res.end(vite + css + js);
+                    res.end(vite);
                 });
 
                 pipe(transformStream);

@@ -26,24 +26,23 @@ function serJSON(data: unknown): string {
     return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 
-function ResourceLoader({
+// Separate component just for preloading resources
+function ResourcePreloader({
     mode,
     staticUrl,
     entryPoint,
-    children,
-}: React.PropsWithChildren<{
+}: {
     mode: "production" | "development";
     staticUrl: string;
     entryPoint: string;
-}>): React.ReactElement {
+}): null {
     if (mode === "production") {
         preinit(`${staticUrl}dist/${entryPoint}.css`, {as: "style"});
         preinitModule(`${staticUrl}dist/${entryPoint}.js`, {crossOrigin: "anonymous"});
     } else {
         preinitModule(`${staticUrl}dist/client/${entryPoint}.tsx`);
     }
-    // Return children directly - wrapping in Fragment causes issues with React 19 streaming SSR on Linux
-    return children as React.ReactElement;
+    return null;
 }
 
 export const render = async (
@@ -73,14 +72,11 @@ export const render = async (
     const content = React.createElement(
         React.StrictMode,
         {},
+        React.createElement(ResourcePreloader, {mode, staticUrl: STATIC_URL, entryPoint}),
         React.createElement(
-            ResourceLoader,
-            {mode, staticUrl: STATIC_URL, entryPoint},
-            React.createElement(
-                Provider,
-                {value: context},
-                React.createElement(Template, props),
-            ),
+            Provider,
+            {value: context},
+            React.createElement(Template, props),
         ),
     );
 

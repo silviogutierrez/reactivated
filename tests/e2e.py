@@ -29,6 +29,10 @@ def test_end_to_end(client, live_server, page):
     call_command("generate_client_assets")
     call_command("build")
 
+    # Debug: Get raw HTML before JS runs (using Django test client)
+    raw_response = client.get("/")
+    print(f"RAW HTML (no JS): {raw_response.content.decode()}")
+
     page.goto(live_server.url)
     content = page.content()
 

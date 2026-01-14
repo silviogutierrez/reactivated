@@ -49,20 +49,26 @@ export const render = async (
         console.error("Ensure your context processor includes STATIC_URL");
     }
 
-    // Load CSS via preinit (goes in <head>)
-    if (mode === "production") {
-        preinit(`${STATIC_URL}dist/${entryPoint}.css`, {as: "style"});
-    }
-
+    // CSS must be loaded via preinit INSIDE a component (during render)
     // JS is loaded via bootstrapModules in renderToPipeableStream options
+    const CSSLoader = ({children}: {children: React.ReactNode}) => {
+        if (mode === "production") {
+            preinit(`${STATIC_URL}dist/${entryPoint}.css`, {as: "style"});
+        }
+        return children;
+    };
 
     const content = React.createElement(
         React.StrictMode,
         {},
         React.createElement(
-            Provider,
-            {value: context},
-            React.createElement(Template, props),
+            CSSLoader,
+            {},
+            React.createElement(
+                Provider,
+                {value: context},
+                React.createElement(Template, props),
+            ),
         ),
     );
 

@@ -42,7 +42,7 @@ function ResourceLoader({
     } else {
         preinitModule(`${staticUrl}dist/client/${entryPoint}.tsx`);
     }
-    return React.createElement(React.Fragment, null, children);
+    return children as React.ReactElement;
 }
 
 export const render = async (

@@ -1,14 +1,12 @@
 import {Request} from "express";
 import React, {type JSX} from "react";
 import {Response} from "express";
-import ReactDOMServer from "react-dom/server";
 import {renderToPipeableStream} from "react-dom/server";
-import {preinit} from "react-dom";
 import {Transform} from "node:stream";
 
 import {SSRErrorResponse, serializeError} from "./errors.js";
 // @ts-ignore
-import {Provider} from "@reactivated";
+import {Provider, ResourceLoader} from "@reactivated";
 // @ts-ignore
 import {getTemplate} from "@reactivated/template";
 
@@ -24,12 +22,6 @@ const defaultRenderer: Renderer = (content) => Promise.resolve(content);
 
 function serJSON(data: unknown): string {
     return JSON.stringify(data).replace(/</g, "\\u003c");
-}
-
-// Component to preload CSS during SSR
-function CSSPreloader({cssUrl}: {cssUrl: string}): null {
-    preinit(cssUrl, {as: "style"});
-    return null;
 }
 
 export const render = async (
@@ -56,24 +48,17 @@ export const render = async (
         console.error("Ensure your context processor includes STATIC_URL");
     }
 
-    // Preload CSS during SSR (only in production, dev uses Vite HMR)
-    const cssUrl =
-        mode === "production" ? `${STATIC_URL}dist/${entryPoint}.css` : null;
-
-    // JS module URL for bootstrapModules
-    const jsUrl =
-        mode === "production"
-            ? `${STATIC_URL}dist/${entryPoint}.js`
-            : `${STATIC_URL}dist/client/${entryPoint}.tsx`;
-
     const content = React.createElement(
         React.StrictMode,
         {},
-        cssUrl ? React.createElement(CSSPreloader, {cssUrl}) : null,
         React.createElement(
-            Provider,
-            {value: context},
-            React.createElement(Template, props),
+            ResourceLoader,
+            {mode, staticUrl: STATIC_URL, entryPoint},
+            React.createElement(
+                Provider,
+                {value: context},
+                React.createElement(Template, props),
+            ),
         ),
     );
 
@@ -87,7 +72,6 @@ export const render = async (
 
         {
             nonce: scriptNonce,
-            bootstrapModules: [jsUrl],
             bootstrapScriptContent: `
         window.__PRELOADED_PROPS__ = ${serJSON(props)};
         window.__PRELOADED_CONTEXT__ = ${serJSON(context)};

@@ -38,7 +38,7 @@ def test_end_to_end(client, live_server, page):
     print(f"PLAYWRIGHT CONTENT (after JS): {content}")
 
     # Check that CSS is loaded via preinit (data-precedence is added by React's preinit)
-    assert 'href="/static/dist/index.css"' in content
+    assert 'href="/static/dist/index.css?v=' in content
     assert 'data-precedence="default"' in content
 
     # Fetch and verify CSS contains expected styles from vanilla-extract

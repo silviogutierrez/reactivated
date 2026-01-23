@@ -53,7 +53,10 @@ export const render = async (
     // JS is loaded via bootstrapModules in renderToPipeableStream options
     const CSSLoader: React.FC<React.PropsWithChildren> = ({children}) => {
         if (mode === "production") {
-            preinit(`${STATIC_URL}dist/${entryPoint}.css`, {as: "style"});
+            preinit(
+                `${STATIC_URL}dist/${entryPoint}.css?v=${process.env.RELEASE_VERSION ?? ""}`,
+                {as: "style"},
+            );
         }
         return children;
     };
@@ -88,7 +91,9 @@ export const render = async (
         `,
             bootstrapModules:
                 mode === "production"
-                    ? [`${STATIC_URL}dist/${entryPoint}.js`]
+                    ? [
+                          `${STATIC_URL}dist/${entryPoint}.js?v=${process.env.RELEASE_VERSION ?? ""}`,
+                      ]
                     : [`${STATIC_URL}dist/client/${entryPoint}.tsx`],
             onError(error) {
                 hasError = true;

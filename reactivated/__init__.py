@@ -192,17 +192,39 @@ if "MYPY_CONFIG_FILE_DIR" not in os.environ:
         runserver_plus.Command.inner_run = patched_run_plus
 
 
-def export(var: Any) -> None:
-    if inspect.isclass(var) and issubclass(var, enum.Enum):
-        name = f"{var.__module__}.{var.__qualname__}"
-        registry.value_registry.update({name: (var, "enum")})
-        return
+@overload
+def export[T](arg: T) -> T: ...
 
-    """See: https://stackoverflow.com/a/18425523"""
-    callers_local_vars = inspect.currentframe().f_back.f_locals.items()  # type: ignore[union-attr]
-    name = [var_name for var_name, var_val in callers_local_vars if var_val is var][0]
 
-    registry.value_registry.update({name: (var, "primitive")})
+@overload
+def export[T](arg: None = None) -> Callable[[T], T]: ...
+
+
+def export[T](arg: T | None = None) -> T | Callable[[T], T]:
+    def _export(var: T, var_name: str | None = None) -> T:
+        if var_name:
+            registry.value_registry.update({var_name: (var, "primitive")})
+        elif inspect.isclass(var) and issubclass(var, enum.Enum):
+            name = f"{var.__module__}.{var.__qualname__}"
+            registry.value_registry.update({name: (var, "enum")})
+
+        return var
+
+    # For backwards compatability
+    # This enables old usage (e.g. `export(enum)`) to keep working
+    if arg is not None:
+        if inspect.isclass(arg) and issubclass(arg, enum.Enum):
+            return _export(arg)
+
+        """See: https://stackoverflow.com/a/18425523"""
+        callers_local_vars = inspect.currentframe().f_back.f_locals.items()  # type: ignore[union-attr]
+        name = [var_name for var_name, var_val in callers_local_vars if var_val is arg][
+            0
+        ]
+
+        return _export(arg, var_name=name)
+    else:
+        return _export
 
 
 # def export_type(var: Any) -> None:

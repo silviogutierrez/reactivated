@@ -332,13 +332,8 @@ export type models = _Types["globals"]["models"];
 export type {FieldHandler} from "./forms";
 export {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} from "reactivated/dist/forms";
 export {Iterator, CSRFToken, createRenderer} from "./forms";
+${"REACTIVATED_NO_GET_TEMPLATE" in process.env ? "" : `export {getTemplate} from "./template";`}
 `);
-
-if (!("REACTIVATED_NO_GET_TEMPLATE" in process.env)) {
-    sourceFile.addStatements(`
-export {getTemplate} from "./template";
-`);
-}
 
 const formsContent = `
 import type {_Types} from "./index";

@@ -1,4 +1,4 @@
-FROM nixos/nix as builder
+FROM nixos/nix:2.33.2 as builder
 
 RUN mkdir /app
 WORKDIR /app
@@ -36,7 +36,7 @@ RUN .venv/bin/python manage.py collectstatic --no-input
 RUN rm collected/dist/*.map
 
 
-FROM alpine
+FROM alpine:3.23.3
 
 # Nix package is very heavy and includes the full DB.
 RUN apk add postgresql-client

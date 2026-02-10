@@ -61,3 +61,17 @@ def test_export_enum():
         "FIRST": {"ranking": 1},
         "SECOND": {"ranking": 2},
     }
+
+
+def test_decorator_export():
+    @export()
+    class DecoratedEnum(enum.Enum):
+        FIRST = "First"
+        SECOND = "Second"
+
+    assert get_values()[
+        "tests.exports.test_decorator_export.<locals>.DecoratedEnum"
+    ] == {
+        "FIRST": "First",
+        "SECOND": "Second",
+    }

@@ -49,6 +49,16 @@ jobs:
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "python manage.py build"
                   nix-shell --command "scripts/test.sh --all"
+            - name: Test server renders home page
+              run: |
+                  cd integration
+                  nix-shell --command "python manage.py runserver 8000 &"
+                  sleep 20
+                  curl -f http://localhost:8000/ | grep -q "The install worked successfully"
+                  kill %1 || true
+            - name: Run tests after removing example
+              run: |
+                  cd integration
                   nix-shell --command "scripts/remove_example.sh"
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "python manage.py build"

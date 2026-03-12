@@ -39,11 +39,11 @@ you'll have to sign up. Go ahead and do so.
 
 This script will:
 
--   Create a _free_ PostgreSQL instance on Fly.
--   Create an application instance.
--   Attach the instance to the database.
--   Build the `Dockerfile` remotely and deploy it to the instance.
--   Run database migrations.
+- Create a _free_ PostgreSQL instance on Fly.
+- Create an application instance.
+- Attach the instance to the database.
+- Build the `Dockerfile` remotely and deploy it to the instance.
+- Run database migrations.
 
 > **Warning**: Initial deploys to Fly are still spotty. If anything goes wrong, delete
 > the `fly.toml` file that is created and re-rerun `scripts/launch.sh`. **Make sure** to

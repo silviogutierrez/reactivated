@@ -8,7 +8,7 @@ in with pkgs; {
   inherit pkgs;
   inherit unstable;
 
-  production_dependencies = [ pkgs.python312 pkgs.nodejs-18_x ];
+  production_dependencies = [ pkgs.python312 unstable.nodejs_20 ];
   development_dependencies = [
     unstable.flyctl
 

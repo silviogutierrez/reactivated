@@ -418,14 +418,18 @@ interface BaseRendererProps<T extends FieldMap, F extends WidgetLike> {
     children: (field: FieldHandler<F>) => React.ReactNode;
 }
 
-interface IncludeRendererProps<T extends FieldMap, F extends WidgetLike>
-    extends BaseRendererProps<T, F> {
+interface IncludeRendererProps<
+    T extends FieldMap,
+    F extends WidgetLike,
+> extends BaseRendererProps<T, F> {
     fields?: Array<Extract<keyof T, string>>;
     exclude?: never;
 }
 
-interface ExcludeRendererProps<T extends FieldMap, F extends WidgetLike>
-    extends BaseRendererProps<T, F> {
+interface ExcludeRendererProps<
+    T extends FieldMap,
+    F extends WidgetLike,
+> extends BaseRendererProps<T, F> {
     fields?: never;
     exclude: Array<Extract<keyof T, string>>;
 }

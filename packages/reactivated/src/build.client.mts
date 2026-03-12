@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import react from "@vitejs/plugin-react";
-import {produce} from "immer";
 import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
 import {InlineConfig, build} from "vite";
 import {builtinModules} from "node:module";
@@ -72,13 +71,23 @@ const clientConfig = {
     base,
 } satisfies InlineConfig;
 
-const adminConfig = produce(clientConfig, (draft) => {
-    draft.build.emptyOutDir = false as true;
-    draft.build.rollupOptions.input = "/client/django.admin.tsx";
-    draft.build.rollupOptions.output.entryFileNames = "django.admin.js";
-    draft.build.rollupOptions.output.chunkFileNames = "django.admin.js";
-    draft.build.rollupOptions.output.assetFileNames = "django.admin.[ext]";
-});
+const adminConfig: InlineConfig = {
+    ...clientConfig,
+    build: {
+        ...clientConfig.build,
+        emptyOutDir: false,
+        rollupOptions: {
+            ...clientConfig.build.rollupOptions,
+            input: "/client/django.admin.tsx",
+            output: {
+                ...clientConfig.build.rollupOptions.output,
+                entryFileNames: "django.admin.js",
+                chunkFileNames: "django.admin.js",
+                assetFileNames: "django.admin.[ext]",
+            },
+        },
+    },
+};
 
 const otherExternals: string[] = [];
 const external = [

@@ -8,6 +8,7 @@ COPY requirements.nix requirements.nix
 
 RUN mkdir -p /output/store
 RUN nix-env -f shell.nix -i -A buildInputs
+RUN echo "=== DEBUG: PATH=$PATH ===" && which node && which npm && ls -la $(which node) && ls -la $(which npm) || echo "=== npm or node not found ==="
 RUN nix-env -f shell.nix -i -A dependencies --profile /output/profile
 RUN cp -va $(nix-store -qR /output/profile) /output/store
 

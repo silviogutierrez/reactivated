@@ -12,6 +12,9 @@ in with pkgs; {
   development_dependencies = [
     unstable.flyctl
 
+    # Needed for pip-installed wheels with native extensions (e.g. greenlet) on Linux.
+    pkgs.stdenv.cc.cc.lib
+
     # Needed for psycopg on MacOS Silicon... maybe? Maybe psycopg 3 doesn't need it.
     pkgs.openssl
 

@@ -1,19 +1,16 @@
 let
   pkgs = import (fetchTarball
-    "https://github.com/NixOS/nixpkgs/archive/50ab793786d9.tar.gz") { };
+    "https://github.com/NixOS/nixpkgs/archive/3cb4ae6689d2.tar.gz") { };
   unstable = import (fetchTarball
-    "https://github.com/NixOS/nixpkgs/archive/400de68cd101.tar.gz") { };
+    "https://github.com/NixOS/nixpkgs/archive/117cc7f94e80.tar.gz") { };
 
 in with pkgs; {
   inherit pkgs;
   inherit unstable;
 
-  production_dependencies = [ pkgs.python312 pkgs.nodejs_22 ];
+  production_dependencies = [ pkgs.python312 unstable.nodejs_20 ];
   development_dependencies = [
     unstable.flyctl
-
-    # Needed for pip-installed wheels with native extensions (e.g. greenlet) on Linux.
-    pkgs.stdenv.cc.cc.lib
 
     # Needed for psycopg on MacOS Silicon... maybe? Maybe psycopg 3 doesn't need it.
     pkgs.openssl

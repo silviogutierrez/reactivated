@@ -11,7 +11,6 @@ mkShell {
       requirements.pkgs.nix
     ];
   shellHook = ''
-    export LD_LIBRARY_PATH="${requirements.pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
     source "./packages/reactivated/scripts/setup_environment.sh"
   '';
 }

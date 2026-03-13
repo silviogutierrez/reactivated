@@ -4,6 +4,9 @@ in with requirements.pkgs;
 
 mkShell {
   dependencies = requirements.production_dependencies;
+  # Everything needed to build inside Docker (no dev tools).
+  buildDeps = requirements.production_dependencies
+    ++ [ requirements.pkgs.cacert ];
   buildInputs = requirements.production_dependencies
     ++ requirements.development_dependencies
     ++ requirements.contributing_dependencies;

@@ -7,14 +7,7 @@ COPY shell.nix shell.nix
 COPY requirements.nix requirements.nix
 
 RUN mkdir -p /output/store
-RUN nix-env -f shell.nix -i -A buildInputs
-RUN echo "=== DEBUG: PATH=$PATH ===" && \
-    echo "=== /root/.nix-profile/bin contents ===" && ls /root/.nix-profile/bin/ | head -30 && \
-    echo "=== /nix/var/nix/profiles/default/bin contents ===" && ls /nix/var/nix/profiles/default/bin/ | head -30 && \
-    echo "=== Profile link ===" && ls -la /root/.nix-profile && ls -la /nix/var/nix/profiles/default* && \
-    echo "=== Looking for node in nix store ===" && find /nix/store -maxdepth 2 -name "node" -path "*/bin/*" 2>/dev/null | head -5 && \
-    echo "=== nix-env query ===" && nix-env -q | head -20 && \
-    echo "=== which python ===" && which python || echo "python not found"
+RUN nix-env -f shell.nix -i -A buildDeps
 RUN nix-env -f shell.nix -i -A dependencies --profile /output/profile
 RUN cp -va $(nix-store -qR /output/profile) /output/store
 

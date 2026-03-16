@@ -49,5 +49,5 @@ runs:
           shell: bash
         - name: Fix greenlet
           if: runner.os == 'Linux'
-          run: nix-shell --command "pip install greenlet==3.0.3 --no-binary greenlet --force-reinstall"
+          run: nix-shell --command "pip install greenlet==3.1.1 --no-binary greenlet --no-cache-dir --force-reinstall"
           shell: bash

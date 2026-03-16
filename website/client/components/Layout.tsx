@@ -2,7 +2,6 @@ import React from "react";
 
 import {Context} from "@reactivated";
 
-
 interface Props {
     title: string | null;
     children: React.ReactNode;

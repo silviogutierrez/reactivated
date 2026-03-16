@@ -129,9 +129,7 @@ export const Template = (props: templates.Documentation) => {
                                 ).includes("Warning");
                                 return (
                                     <blockquote
-                                        className={
-                                            isWarning ? "warning" : undefined
-                                        }
+                                        className={isWarning ? "warning" : undefined}
                                     >
                                         {props.children}
                                     </blockquote>
@@ -152,10 +150,7 @@ export const Template = (props: templates.Documentation) => {
                                 }
                                 return (
                                     <code
-                                        className={classNames(
-                                            "inlineCode",
-                                            className,
-                                        )}
+                                        className={classNames("inlineCode", className)}
                                         {...props}
                                     >
                                         {children}

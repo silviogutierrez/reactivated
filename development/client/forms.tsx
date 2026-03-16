@@ -14,9 +14,7 @@ export const Field = (props: {field: FieldHandler}) => {
         <label className="forms">
             <div className="font-bold">{field.label}</div>
             {renderedWidget}
-            {field.error != null && (
-                <div className="text-[#cf0000]">{field.error}</div>
-            )}
+            {field.error != null && <div className="text-[#cf0000]">{field.error}</div>}
         </label>
     );
 };

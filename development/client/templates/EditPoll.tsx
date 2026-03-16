@@ -22,10 +22,7 @@ export const Template = (props: templates.EditPoll) => {
                 <ManagementForm formSet={formSet.schema} />
 
                 {formSet.forms.map((form) => (
-                    <forms.Fieldset
-                        key={form.form.prefix}
-                        className="flex gap-2.5"
-                    >
+                    <forms.Fieldset key={form.form.prefix} className="flex gap-2.5">
                         <Iterator form={form}>
                             {(field) => <forms.Field field={field} />}
                         </Iterator>

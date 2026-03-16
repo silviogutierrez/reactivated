@@ -8,10 +8,10 @@ other packages.
 
 ## Requirements
 
--   Python 3.11
--   Node.js 18
--   PostgreSQL 10 or higher
--   Django 4.3
+- Python 3.11
+- Node.js 18
+- PostgreSQL 10 or higher
+- Django 4.3
 
 Make sure the `python` and `node` executables are available in your `PATH`. Reactivated
 will invoke them as needed.
@@ -158,5 +158,5 @@ That completes the setup. You can now run `python manage.py runserver` to start 
 
 ## Next steps
 
--   Review the [API](/documentation/api/) and create your first `template`.
--   Create a `client/components/Layout.tsx` component that your templates can reference.
+- Review the [API](/documentation/api/) and create your first `template`.
+- Create a `client/components/Layout.tsx` component that your templates can reference.

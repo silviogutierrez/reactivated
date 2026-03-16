@@ -8,9 +8,9 @@ Think of `create-react-app` but for Django+React.
 
 ### Requirements
 
--   Nix 2.4 or later. [Why Nix?](/documentation/why-nix/)
--   MacOS Monterey, MacOS Big Sur, or any modern Linux distribution.
--   Windows may work but it's untested.
+- Nix 2.4 or later. [Why Nix?](/documentation/why-nix/)
+- MacOS Monterey, MacOS Big Sur, or any modern Linux distribution.
+- Windows may work but it's untested.
 
 ### Installation
 

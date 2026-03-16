@@ -7,7 +7,7 @@ COPY shell.nix shell.nix
 COPY requirements.nix requirements.nix
 
 RUN mkdir -p /output/store
-RUN nix-env -f shell.nix -i -A buildInputs
+RUN nix-env -f shell.nix -i -A dependencies
 RUN nix-env -f shell.nix -i -A dependencies --profile /output/profile
 RUN cp -va $(nix-store -qR /output/profile) /output/store
 

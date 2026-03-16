@@ -41,7 +41,7 @@ def test_end_to_end(client, live_server, page):
     assert 'href="/static/dist/index.css?v=' in content
     assert 'data-precedence="default"' in content
 
-    # Fetch and verify CSS contains expected styles from vanilla-extract
+    # Fetch and verify CSS contains expected styles from tailwind
     import requests
 
     css_response = requests.get(f"{live_server.url}/static/dist/index.css")

@@ -7,18 +7,17 @@ import outdent from "outdent";
 import {Code} from "@client/components/Code";
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
-import * as styles from "@client/styles.css";
 
 const Highlight = (props: JSX.IntrinsicElements["div"]) => (
-    <div {...props} className={styles.Highlight} />
+    <div {...props} className="Highlight" />
 );
 
 const InstallationCommand = (props: JSX.IntrinsicElements["pre"]) => (
-    <pre {...props} className={styles.InstallationCommand} />
+    <pre {...props} className="InstallationCommand" />
 );
 
 const Links = (props: JSX.IntrinsicElements["ul"]) => (
-    <ul {...props} className={styles.Links} />
+    <ul {...props} className="Links" />
 );
 
 const Site = (props: {title: string; children: React.ReactNode}) => (
@@ -99,10 +98,10 @@ export const Template = (props: templates.HomePage) => (
         <script>{DOCKER}</script>
         <div
             style={{
-                backgroundColor: styles.colors.background,
+                backgroundColor: "var(--color-background)",
             }}
         >
-            <div className={styles.homePageHeader}>
+            <div className="homePageHeader">
                 <div
                     style={{
                         display: "flex",
@@ -145,7 +144,7 @@ export const Template = (props: templates.HomePage) => (
                         docker run -itv $PWD:/app silviogutierrez/reactivated install my_app
                         `}
                     </InstallationCommand>
-                    <div className={styles.homePageButtons}>
+                    <div className="homePageButtons">
                         <forms.ButtonLink href="/documentation/getting-started/">
                             Get Started
                         </forms.ButtonLink>
@@ -167,14 +166,14 @@ export const Template = (props: templates.HomePage) => (
                             </span>
                         </forms.ButtonLink>
                         <forms.ButtonLink
-                            className={styles.hideOnMobile}
+                            className="hideOnMobile"
                             href="https://nixos.org/download.html"
                         >
                             Install Nix
                         </forms.ButtonLink>
                     </div>
                     <p id="docker-option" style={{marginTop: -20}}>
-                        Don‘t have Nix?{" "}
+                        Don't have Nix?{" "}
                         <a id="docker" href="#">
                             Use Docker
                         </a>
@@ -243,7 +242,7 @@ export const Template = (props: templates.HomePage) => (
                     gap: 40,
                 }}
             >
-                <div className={styles.homePageFeatures}>
+                <div className="homePageFeatures">
                     <div>
                         <h2>Type Safe</h2>
                         <p>TypeScript and Mypy built-in. Catch mistakes early.</p>
@@ -283,7 +282,7 @@ export const Template = (props: templates.HomePage) => (
                 >
                     <h2>The full power of Django</h2>
                     <p>
-                        Nothing — that’s right, <em>nothing</em> — approaches the
+                        Nothing — that's right, <em>nothing</em> — approaches the
                         productivity of a mature framework like Django.
                     </p>
                     <p>
@@ -410,7 +409,7 @@ export const Template = (props: templates.HomePage) => (
                     `}</Code>
                     </div>
                 </Highlight>
-                <div className={styles.homePageLinks}>
+                <div className="homePageLinks">
                     <div>
                         <h3>Documentation</h3>
                         <Links>

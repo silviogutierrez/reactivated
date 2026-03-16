@@ -4,17 +4,9 @@ import {templates} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
-import * as styles from "@client/styles.css";
 
 export const Template = (props: templates.PollsIndex) => (
-    <Layout
-        title="Polls"
-        className={styles.sprinkles({
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-        })}
-    >
+    <Layout title="Polls" className="flex flex-col gap-2.5">
         <h1>Polls</h1>
         {props.latest_question_list.length > 0 ? (
             <ul>

@@ -4,7 +4,6 @@ import {CSRFToken, Context, reverse, templates, useForm} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
-import * as styles from "@client/styles.css";
 
 export const Template = (props: templates.PollComments) => {
     const {question} = props;
@@ -42,11 +41,7 @@ export const Template = (props: templates.PollComments) => {
             <form
                 action={request.path}
                 method="post"
-                className={styles.sprinkles({
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 10,
-                })}
+                className="flex flex-col gap-2.5"
                 onSubmit={onSubmit}
             >
                 <h1>{title}</h1>
@@ -70,7 +65,7 @@ export const Template = (props: templates.PollComments) => {
 
                 <forms.Fields form={form} />
 
-                <div className={styles.sprinkles({display: "flex", gap: 10})}>
+                <div className="flex gap-2.5">
                     <forms.Button type="submit">Comment</forms.Button>
                     <forms.ButtonLink
                         href={reverse("poll_detail", {question_id: question.id})}

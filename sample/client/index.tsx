@@ -3,6 +3,8 @@ import ReactDOM from "react-dom/client";
 
 import {Provider, getTemplate, getServerData} from "@reactivated";
 
+import "./styles.css";
+
 const {props, context} = getServerData();
 const Template = await getTemplate({template_name: "HelloWorld"});
 

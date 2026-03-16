@@ -3,6 +3,8 @@ import ReactDOM from "react-dom/client";
 
 import {Provider, getServerData, getTemplate} from "@reactivated";
 
+import "./styles.css";
+
 import {createRoot} from "react-dom/client";
 
 const {props, context} = getServerData();

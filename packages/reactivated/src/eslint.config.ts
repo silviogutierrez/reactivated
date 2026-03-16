@@ -133,6 +133,7 @@ export default tseslint.config(
                 },
             ],
             // React overrides
+            "react/no-unescaped-entities": ["error", {forbid: [">", '"', "}"]}],
             "react/prop-types": "off",
             // We create way too many components dynamically.
             "react/display-name": "off",

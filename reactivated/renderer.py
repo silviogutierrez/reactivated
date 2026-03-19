@@ -33,7 +33,7 @@ def wait_and_get_addr() -> str:
     renderer_process = subprocess.Popen(
         [
             "node",
-            f"{settings.BASE_DIR}/node_modules/_reactivated/renderer.js",
+            f"{settings.BASE_DIR}/node_modules/_reactivated/renderer.mjs",
         ],
         encoding="utf-8",
         stdout=subprocess.PIPE,

@@ -4,116 +4,94 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Reactivated is a Django + React framework that enables zero-configuration full-stack development. It provides a statically typed bridge between Django backends and React frontends, allowing developers to use both technologies without webpack configuration or complex tooling setup.
+Reactivated is a Django + React framework providing a statically typed bridge between Django backends and React frontends. Python types (via `NamedTuple` classes decorated with `@template`, `@interface`, `@export`) are automatically converted to TypeScript interfaces, enabling zero-configuration full-stack development.
 
-The codebase is structured as a monorepo with multiple workspaces:
-- `packages/reactivated/` - Core TypeScript package
-- `sample/` - Example application
-- `website/` - Documentation site
-- `development/` - Development environment
-- `reactivated/` - Python Django package
+Monorepo workspaces: `packages/reactivated/` (core TS package), `reactivated/` (Python Django package), `sample/` (example app), `development/` (test environment), `website/` (docs).
 
 ## Development Commands
 
 ### Testing
 ```bash
-# Run all tests (Python, linting, formatting)
-./scripts/test.sh
+./scripts/test.sh              # Run all checks (Python tests, lint, format, types)
+./scripts/test.sh --server     # Python only: pytest, flake8, isort, black, mypy
+./scripts/test.sh --client     # TypeScript only: prettier check
+./scripts/test.sh --infrastructure  # Shell (shellcheck/shfmt) and Nix (nixfmt)
+# E2E (--e2e) is currently a no-op
 
-# Run specific test categories
-./scripts/test.sh --server    # Python tests only
-./scripts/test.sh --client    # Frontend linting only
-./scripts/test.sh --e2e       # E2E tests
-./scripts/test.sh --infrastructure  # Shell/Nix linting
+# Run a single Python test
+pytest tests/forms.py
+pytest tests/serialization.py -k "test_specific_name"
+
+# Type checking
+mypy --no-incremental .
+npm exec tsc -- --noEmit
 ```
 
 ### Code Formatting
 ```bash
-# Auto-fix formatting issues
-./scripts/fix.sh
-
-# Fix specific file
-./scripts/fix.sh path/to/file.py
+./scripts/fix.sh               # Auto-fix all git-changed files (py, ts, sh, nix)
+./scripts/fix.sh path/to/file  # Fix a specific file
+# Under the hood: autoflake + isort + black for Python, prettier for TS/JSON/YAML
 ```
 
-### Python Development
+### Building
 ```bash
-# Run Python tests
-pytest
-
-# Type checking
-mypy --no-incremental .
-
-# Code formatting
-black .
-isort .
-flake8 .
-```
-
-### TypeScript Development
-```bash
-# Build TypeScript package
-cd packages/reactivated && npm run build
-
-# Type checking
-npm exec tsc -- --noEmit
-
-# Formatting
-npm exec prettier -- --check '**/*.{ts,tsx,yaml,json}'
+cd packages/reactivated && npm run build  # Compile TS src/ → dist/ (just runs tsc)
 ```
 
 ## Architecture
 
-### Core Components
+### Type Generation Pipeline (the core mechanism)
 
-**Python Side (`reactivated/`):**
-- `templates.py` - Template and interface decorators for React components
-- `forms.py` - Enhanced Django forms with React integration
-- `serialization/` - Type-safe serialization between Django and React
-- `backend.py` - JSX template engine integration
-- `renderer.py` - Server-side rendering coordination
+This is the most important architectural concept. Python types flow to TypeScript through this pipeline:
 
-**TypeScript Side (`packages/reactivated/`):**
-- Vite-based build system with React and Vanilla Extract CSS
-- Type generation from Django models and forms
-- Client-side form handling and validation
-- SSR coordination with Django
+1. **Registration**: `@template`, `@interface`, and `@export` decorators register types in global registries (`template_registry`, `interface_registry`, `value_registry` in `reactivated/serialization/registry.py`)
+2. **Schema generation**: `reactivated/apps.py:get_schema()` collects all registered types, URLs, and context processors into a JSON Schema
+3. **Code generation**: Schema is piped via stdin to `packages/reactivated/src/generator.mts`, which uses `json-schema-to-typescript` + `ts-morph` to produce TypeScript files
+4. **Output**: Generated code lands in `node_modules/_reactivated/` (index.tsx, forms.tsx, context.tsx, urls.tsx, constants.tsx, template.tsx) — these are gitignored, regenerated on dev server start and on changes
 
-### Key Patterns
+### Dev Server Flow
 
-**Template System:**
-- Use `@template` decorator for React components that render full pages
-- Use `@interface` decorator for React components that return JSON APIs
-- Templates are automatically registered and typed
+When `manage.py runserver` runs, `reactivated/__init__.py` patches the process:
+- Assigns Django to an internal port, gives Vite the user-facing port
+- Runs type generation (`run_generations()`)
+- Spawns Vite dev server (`npm exec start_vite`) which proxies non-asset requests to Django
+- Spawns `tsc --watch --noEmit` for continuous type checking
 
-**Form Integration:**
-- Django forms are automatically serialized with full type safety
-- React components receive typed form props
-- Client-side validation mirrors Django form validation
+### Key Python APIs (`reactivated/`)
 
-**Type Safety:**
-- Python types are automatically converted to TypeScript interfaces
-- `Pick` utility for selective model field exposure
-- `export()` function to expose Python values to React
+- **`@template`** (`templates.py`): Decorates a `NamedTuple` to create a full-page React component. Adds `.render(request) -> TemplateResponse`. Component file must be at `client/templates/ClassName.tsx`.
+- **`@interface`** (`templates.py`): Like `@template` but returns JSON (or HTML preview). Adds `.render(request)` and `.as_json(request)`.
+- **`@export`** / **`export()`** (`__init__.py`): Exposes Python values (enums, primitives) to TypeScript as `constants` object.
+- **`Pick[Model, "field1", "field2.nested"]`** (`pick.py`): Type-safe selective model field exposure with dot-path traversal support.
+- **`serialization/`**: `create_schema()` converts Python types to JSON Schema definitions; `serialize()` converts instances to JSON-safe dicts. `registry.py` holds all global registries and `PROXIES` for built-in types.
 
-## Project Structure
+### Key TypeScript modules (`packages/reactivated/src/`)
 
-- `reactivated/__init__.py` - Main entry point with development server patching
-- `reactivated/management/commands/` - Django management commands for builds
-- `packages/reactivated/src/` - TypeScript source (gets compiled to `dist/`)
-- `sample/` - Complete example showing typical usage patterns
-- `development/` - Test environment for framework development
+- `generator.mts` — The CLI that reads JSON schema from stdin and generates all `_reactivated` files
+- `render.mts` — SSR using React 19 `renderToPipeableStream`; loads templates via `getTemplate`
+- `vite.mts` — Vite dev server with Express middleware, proxies to Django
+- `build.client.mts` — Production build: client bundle, optional django admin bundle, SSR renderer bundle
+- `server.mts` — Production SSR server (Unix socket + Express)
+- `forms/`, `components/` — Form and widget React components
 
-## Environment Setup
+### SSR Flow
 
-The project uses Nix for dependency management. Key environment variables:
-- `REACTIVATED_RENDERER` - Controls SSR behavior
-- `REACTIVATED_SKIP_SERVER` - Disables development server modifications
-- `REACTIVATED_VITE_PORT` / `REACTIVATED_DJANGO_PORT` - Port coordination
+- **Dev**: Django's `renderer.py` sends JSON payload via HTTP to Vite dev server (`/_reactivated/`), which SSR-renders via `render.mts`
+- **Production**: `renderer.py` sends payload via Unix socket to `server.mts`, which runs the bundled renderer
 
-## Build Process
+## Testing
 
-1. TypeScript compilation creates `packages/reactivated/dist/`
-2. Django management commands generate client assets
-3. Vite handles bundling and development server
-4. Python package includes compiled TypeScript assets
+- **pytest** with `DJANGO_SETTINGS_MODULE=sample.server.settings`, test files in `tests/`
+- **pytest-mypy-plugins**: Type-level tests (custom mypy.ini at `tests/mypy/mypy.ini`)
+- **syrupy**: Snapshot testing (snapshots in `tests/__snapshots__/`)
+- **Mypy plugin**: `reactivated/plugin.py` — hooks for `Pick` type analysis and `@template`/`@interface` decorator typing
+
+## Environment
+
+Uses Nix (`shell.nix`) for dependency management. Key env vars:
+- `REACTIVATED_RENDERER` — SSR server address (skips spawning Vite if set)
+- `REACTIVATED_SKIP_SERVER` — Disables dev server patching
+- `REACTIVATED_SKIP_GENERATIONS` — Skips type generation
+- `REACTIVATED_VITE_PORT` / `REACTIVATED_DJANGO_PORT` — Port coordination
+- Django settings: `REACTIVATED_BUNDLES` (entry points, default `["index"]`), `REACTIVATED_ADAPTERS`, `REACTIVATED_IGNORED_URL_NAMESPACES` (default `["admin"]`)

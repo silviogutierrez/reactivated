@@ -25,7 +25,6 @@
         "setup_environment.sh": "./scripts/setup_environment.sh",
         "generate_client_assets": "./dist/generator.mjs",
         "generate_client_constants": "./dist/generator/constants.mjs",
-        "generate_client_configuration": "./dist/generator/configuration.mjs",
         "build.client": "./dist/build.client.mjs",
         "start_vite": "./dist/vite.mjs"
     },
@@ -41,7 +40,6 @@
         "@tailwindcss/vite": "^4.1.3",
         "tailwindcss": "^4.1.3",
         "@vitejs/plugin-react": "5.2.0",
-        "esbuild": "^0.27.0",
         "eslint": "~9.18.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-import-resolver-typescript": "^3.6.3",

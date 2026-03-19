@@ -2,13 +2,13 @@ let
   pkgs = import (fetchTarball
     "https://github.com/NixOS/nixpkgs/archive/3cb4ae6689d2.tar.gz") { };
   unstable = import (fetchTarball
-    "https://github.com/NixOS/nixpkgs/archive/a07d4ce6bee6.tar.gz") { };
+    "https://github.com/NixOS/nixpkgs/archive/69ba8f9b9132.tar.gz") { };
 
 in with pkgs; {
   inherit pkgs;
   inherit unstable;
 
-  production_dependencies = [ pkgs.python312 unstable.nodejs_20 ];
+  production_dependencies = [ pkgs.python312 unstable.nodejs_22 ];
   development_dependencies = [
     unstable.flyctl
 

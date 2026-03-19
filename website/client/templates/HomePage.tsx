@@ -81,21 +81,8 @@ const GitHub = () => (
     </svg>
 );
 
-const DOCKER = `
-    window.addEventListener('DOMContentLoaded', () => {
-        document.getElementById("docker").onclick = (event) => {
-            event.preventDefault();
-            document.getElementById("docker-command").style.display = ""
-            document.getElementById("docker-option").style.display = "none"
-            document.getElementById("nix-command").style.display = "none"
-            document.getElementById("docker-warning").style.display = ""
-        };
-    });
-`;
-
 export const Template = (props: templates.HomePage) => (
     <Site title="Reactivated — Zero-configuration Django and React">
-        <script>{DOCKER}</script>
         <div
             style={{
                 backgroundColor: "var(--color-background)",
@@ -132,17 +119,9 @@ export const Template = (props: templates.HomePage) => (
                         </p>
                         <p>No webpack, no config, no tooling. Just React and Django.</p>
                     </div>
-                    <InstallationCommand id="nix-command">
+                    <InstallationCommand>
                         nix-shell -E &quot;$(curl -L
                         https://reactivated.io/install/)&quot;
-                    </InstallationCommand>
-                    <InstallationCommand
-                        id="docker-command"
-                        style={{display: "none", fontSize: 13.5}}
-                    >
-                        {outdent`
-                        docker run -itv $PWD:/app silviogutierrez/reactivated install my_app
-                        `}
                     </InstallationCommand>
                     <div className="homePageButtons">
                         <forms.ButtonLink href="/documentation/getting-started/">
@@ -172,16 +151,6 @@ export const Template = (props: templates.HomePage) => (
                             Install Nix
                         </forms.ButtonLink>
                     </div>
-                    <p id="docker-option" style={{marginTop: -20}}>
-                        Don't have Nix?{" "}
-                        <a id="docker" href="#">
-                            Use Docker
-                        </a>
-                    </p>
-                    <p id="docker-warning" style={{marginTop: -20, display: "none"}}>
-                        But you really should be{" "}
-                        <a href="/documentation/why-nix/">using Nix</a>.
-                    </p>
                 </div>
                 <div
                     style={{

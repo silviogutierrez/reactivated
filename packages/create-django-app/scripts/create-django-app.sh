@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -p jq git nix cacert bash --pure -i bash --keep NIX_PATH --keep REACTIVATED_NODE --keep REACTIVATED_PYTHON --keep IS_DOCKER
+#! nix-shell -p jq git nix cacert bash --pure -i bash --keep NIX_PATH --keep REACTIVATED_NODE --keep REACTIVATED_PYTHON
 set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
@@ -62,11 +62,5 @@ echo ""
 echo "All done. You can start your project by running"
 echo ""
 echo "cd $PROJECT_NAME"
-
-if [ "$IS_DOCKER" = true ]; then
-    echo "docker run -itp 8000:8000 -v \$PWD:/app --name $PROJECT_NAME silviogutierrez/reactivated nix-shell"
-    echo "python manage.py runserver 0.0.0.0:8000"
-else
-    echo "nix-shell"
-    echo "python manage.py runserver"
-fi
+echo "nix-shell"
+echo "python manage.py runserver"

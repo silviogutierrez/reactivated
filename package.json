@@ -1,9 +1,9 @@
 {
     "name": "main",
     "dependencies": {
-        "@tailwindcss/vite": "^4.2.1",
+        "@tailwindcss/vite": "4.2.2",
         "patch-package": "^8.0.0",
-        "tailwindcss": "^4.2.1"
+        "tailwindcss": "4.2.2"
     },
     "workspaces": [
         "packages/reactivated",

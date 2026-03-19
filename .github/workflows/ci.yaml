@@ -102,29 +102,3 @@ jobs:
               run: |
                   cd website
                   scripts/deploy.sh --build-only
-    docker_tests:
-        name: Docker tests
-        if: github.event_name != 'pull_request_target'
-        runs-on: ubuntu-22.04
-        steps:
-            - uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0
-            - uses: ./.github/actions/setup
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
-            # Note that we do not log in for tests, as forks cannot access credentials
-            - name: "Prepare docker context"
-              run: scripts/build-create-django-app-docker.sh
-            - name: Build and push
-              uses: docker/build-push-action@v6
-              with:
-                  context: website_build_context
-                  platforms: linux/amd64,linux/arm64
-                  file: website_build_context/Dockerfile
-                  push: false
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
-                  tags: silviogutierrez/reactivated:ci

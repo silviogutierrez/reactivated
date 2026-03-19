@@ -48,7 +48,7 @@ const clientConfig = {
         emptyOutDir: true,
         outDir: "static/dist",
         manifest: false,
-        rollupOptions: {
+        rolldownOptions: {
             input: "/client/index.tsx",
             output: {
                 inlineDynamicImports: true,
@@ -73,11 +73,11 @@ const adminConfig: InlineConfig = {
     build: {
         ...clientConfig.build,
         emptyOutDir: false,
-        rollupOptions: {
-            ...clientConfig.build.rollupOptions,
+        rolldownOptions: {
+            ...clientConfig.build.rolldownOptions,
             input: "/client/django.admin.tsx",
             output: {
-                ...clientConfig.build.rollupOptions.output,
+                ...clientConfig.build.rolldownOptions.output,
                 entryFileNames: "django.admin.js",
                 chunkFileNames: "django.admin.js",
                 assetFileNames: "django.admin.[ext]",
@@ -104,7 +104,7 @@ const rendererConfig = {
         outDir: "./node_modules/_reactivated/",
         ssr: true,
         manifest: false,
-        rollupOptions: {
+        rolldownOptions: {
             input: "reactivated/dist/server.mjs",
             output: {
                 inlineDynamicImports: true,

@@ -8,9 +8,6 @@ import {SSRErrorResponse, serializeError} from "./errors.js";
 import type {render as renderType} from "./render.mjs";
 import {InlineConfig} from "vite";
 
-// @ts-ignore
-import {cjsInterop} from "vite-plugin-cjs-interop";
-
 import tailwindcss from "@tailwindcss/vite";
 
 const port = process.env.REACTIVATED_VITE_PORT ?? 5173;
@@ -54,14 +51,7 @@ const rendererConfig: InlineConfig = {
     },
     define: define(),
     appType: "custom",
-    plugins: [
-        react(),
-        tailwindcss(),
-        cjsInterop({
-            // List of CJS dependencies that require interop
-            dependencies: ["react-syntax-highlighter", "lz-string", "react-use"],
-        }),
-    ],
+    plugins: [react(), tailwindcss()],
     resolve: {
         alias: {
             "@client": path.resolve(process.cwd(), "./client"),

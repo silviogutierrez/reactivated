@@ -416,6 +416,8 @@ export namespace interfaces {
 
     process.stdout.write(sourceFile.getText());
 
+    fs.mkdirSync("./node_modules/_reactivated", {recursive: true});
+
     await fsPromises.writeFile(
         "./node_modules/_reactivated/context.tsx",
         contextContent,

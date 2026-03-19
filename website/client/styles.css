@@ -1,0 +1,403 @@
+@import "tailwindcss";
+@import "./fonts.css";
+
+@theme {
+    --color-background: #d4f1f4;
+    --color-dark-background: #c7e7eb;
+    --color-header: #05445e;
+    --color-text-with-color: #127387;
+    --color-warning-border: #edbc9b;
+    --color-warning-background: #fdf6f2;
+    --color-warning-text: #b15a20;
+    --color-warning-dark-background: #f8e5d8;
+}
+
+@layer base {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    html {
+        line-height: 1.15;
+        height: 100%;
+    }
+
+    body {
+        color: #2e3440;
+        font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto,
+            "Helvetica Neue", Arial, sans-serif;
+        height: 100%;
+        margin: 0;
+        font-size: 15px;
+    }
+
+    a {
+        color: #189ab4;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    ul {
+        padding: 0;
+        margin: 0;
+        font-weight: 400;
+        list-style-type: none;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        color: var(--color-header);
+        font-family: "Suez One", serif;
+    }
+
+    hr {
+        border-color: var(--color-header);
+        border-width: 0.5px;
+        border-style: solid;
+        margin: 0;
+    }
+
+    input[type="text"] {
+        font: inherit;
+        padding: 10px;
+        border: 1px solid #ccc;
+        width: 100%;
+    }
+
+    pre {
+        margin: 0 !important;
+        padding: 0;
+        border-radius: 15px;
+    }
+
+    #root {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+}
+
+@layer components {
+    .hideOnMobile {
+        @media (max-width: 1200px) {
+            display: none !important;
+        }
+    }
+
+    .Fieldset {
+        border: 1px solid #bbb;
+        border-radius: 5px;
+        padding: 20px;
+    }
+
+    .Button {
+        border-width: 2px;
+        border-style: solid;
+        border-color: var(--color-header);
+        border-radius: 5px;
+        background-color: var(--color-header);
+        padding: 10px 15px;
+        font: inherit;
+        text-transform: lowercase;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        color: white;
+        display: flex;
+        align-items: center;
+    }
+
+    .Highlight {
+        display: flex;
+        gap: 15px;
+        padding-left: 50px;
+        padding-right: 50px;
+    }
+
+    @media (max-width: 1200px) {
+        .Highlight {
+            flex-direction: column;
+            padding-left: 0;
+            padding-right: 0;
+        }
+    }
+
+    .Highlight p {
+        font-size: 17px;
+    }
+
+    .Highlight > * {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .InstallationCommand {
+        margin: 0;
+        padding: 15px;
+        font-size: 14px;
+        font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+        background-color: var(--color-dark-background);
+        inline-size: min-content;
+        border-radius: 10px;
+        color: var(--color-header);
+        line-height: 1.5;
+        overflow: hidden;
+        max-width: 100%;
+        text-overflow: ellipsis;
+    }
+
+    .Links {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .homePageHeader {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-top: 100px;
+        padding-bottom: 75px;
+        display: flex;
+        gap: 30px;
+    }
+
+    @media (max-width: 1200px) {
+        .homePageHeader {
+            flex-direction: column;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+    }
+
+    .homePageButtons {
+        display: flex;
+        gap: 15px;
+    }
+
+    @media (max-width: 1200px) {
+        .homePageButtons {
+            justify-content: center;
+        }
+    }
+
+    .homePageFeatures {
+        display: flex;
+        padding-left: 40px;
+        padding-right: 40px;
+        gap: 30px;
+    }
+
+    @media (max-width: 1200px) {
+        .homePageFeatures {
+            flex-direction: column;
+            padding: 0;
+        }
+    }
+
+    .homePageFeatures > * {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .homePageLinks {
+        padding-left: 50px;
+        padding-right: 50px;
+        display: flex;
+    }
+
+    @media (max-width: 1200px) {
+        .homePageLinks {
+            flex-direction: column;
+            gap: 15px;
+        }
+    }
+
+    .homePageLinks > * {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .Hamburger {
+        background: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 0;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgb(14 14 33 / 20%);
+    }
+
+    @media (min-width: 1201px) {
+        .Hamburger {
+            display: none !important;
+        }
+    }
+
+    .Menu {
+        width: 300px;
+        background-color: var(--color-background);
+        padding-top: 30px;
+        padding-bottom: 30px;
+        padding-left: 10px;
+        padding-right: 10px;
+        position: relative;
+    }
+
+    @media (max-width: 1200px) {
+        .Menu {
+            padding: 15px;
+            display: flex;
+            width: auto;
+        }
+    }
+
+    .menu {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        gap: 20px;
+        margin-left: 20px;
+        font-size: 17px;
+    }
+
+    @media (max-width: 1200px) {
+        .menu {
+            margin-left: -10px;
+            align-items: center;
+            gap: 10px;
+        }
+    }
+
+    #menu:not(:checked) ~ .menu {
+        @media (max-width: 1200px) {
+            display: none !important;
+        }
+    }
+
+    .documentationLayout {
+        display: flex;
+        flex: 1;
+    }
+
+    @media (max-width: 1200px) {
+        .documentationLayout {
+            flex-direction: column;
+        }
+    }
+
+    .Documentation {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        flex: 1;
+        max-width: 800px;
+        margin: 0 auto;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    @media (max-width: 1200px) {
+        .Documentation {
+            max-width: 100%;
+        }
+    }
+
+    .Documentation blockquote {
+        border-left: 5px solid var(--color-text-with-color);
+        margin: 0;
+        padding: 15px 20px;
+    }
+
+    .Documentation ul {
+        list-style-type: disc;
+        margin-left: 20px;
+        line-height: 22px;
+    }
+
+    .Documentation p {
+        line-height: 22px;
+    }
+
+    .ReactMarkdown {
+        display: flex;
+        flex-direction: column;
+        position: sticky;
+        top: 30px;
+        gap: 10px;
+    }
+
+    .ReactMarkdown a {
+        text-decoration: none;
+    }
+
+    .ReactMarkdown h2 a {
+        color: var(--color-header);
+    }
+
+    .ReactMarkdown h2 {
+        color: var(--color-header);
+        font-size: 18px;
+    }
+
+    .ReactMarkdown h3 a {
+        color: var(--color-text-with-color);
+    }
+
+    .ReactMarkdown h3 {
+        font-family: inherit;
+        font-size: 16px;
+        color: var(--color-text-with-color);
+    }
+
+    .warning {
+        border-color: var(--color-warning-border) !important;
+        background-color: var(--color-warning-background);
+    }
+
+    .warning .inlineCode {
+        color: var(--color-warning-text);
+        background-color: var(--color-warning-dark-background);
+    }
+
+    .warning a {
+        color: var(--color-warning-text);
+    }
+
+    .inlineCode {
+        font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+        padding: 1px 3px;
+        font-size: 14px;
+        border-radius: 5px;
+        background-color: var(--color-background);
+        color: var(--color-text-with-color);
+    }
+
+    h3 .inlineCode {
+        font-size: 18px;
+    }
+}

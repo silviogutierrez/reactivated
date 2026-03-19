@@ -2,8 +2,6 @@ import React, {type JSX} from "react";
 
 import {FieldHandler, Widget} from "@reactivated";
 
-import * as styles from "@client/styles.css";
-
 export const Field = (props: {field: FieldHandler}) => {
     const {field} = props;
     const renderedWidget = <Widget field={field} />;
@@ -40,9 +38,9 @@ export const Field = (props: {field: FieldHandler}) => {
 };
 
 export const Button = (props: JSX.IntrinsicElements["button"]) => (
-    <button {...props} className={styles.Button} />
+    <button {...props} className="Button" />
 );
 
 export const ButtonLink = (props: JSX.IntrinsicElements["a"]) => (
-    <a {...props} className={styles.Button} />
+    <a {...props} className="Button" />
 );

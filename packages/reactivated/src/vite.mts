@@ -11,7 +11,7 @@ import {InlineConfig} from "vite";
 // @ts-ignore
 import {cjsInterop} from "vite-plugin-cjs-interop";
 
-import {vanillaExtractPlugin} from "@vanilla-extract/vite-plugin";
+import tailwindcss from "@tailwindcss/vite";
 
 const port = process.env.REACTIVATED_VITE_PORT ?? 5173;
 const base = process.env.BASE ?? "/";
@@ -56,7 +56,7 @@ const rendererConfig: InlineConfig = {
     appType: "custom",
     plugins: [
         react(),
-        vanillaExtractPlugin(),
+        tailwindcss(),
         cjsInterop({
             // List of CJS dependencies that require interop
             dependencies: ["react-syntax-highlighter", "lz-string", "react-use"],

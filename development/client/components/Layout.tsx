@@ -2,14 +2,12 @@ import React, {type JSX} from "react";
 
 import {Context, classNames} from "@reactivated";
 
-import * as styles from "@client/styles.css";
-
 const Option = (props: JSX.IntrinsicElements["a"]) => (
-    <a {...props} className={styles.Option} />
+    <a {...props} className="Option" />
 );
 
 const ScreenReader = (props: {children?: React.ReactNode}) => (
-    <span className={styles.ScreenReader}>{props.children}</span>
+    <span className="sr-only">{props.children}</span>
 );
 
 interface Props {
@@ -39,7 +37,7 @@ export const Layout = (props: Props) => {
                 />
             </head>
             <body>
-                <header className={styles.header}>
+                <header className="header">
                     <a href="/" rel="noopener">
                         django reactivated
                     </a>
@@ -55,10 +53,10 @@ export const Layout = (props: Props) => {
                         for Django {context.django_version}
                     </p>
                 </header>
-                <main className={classNames(styles.main, props.className)}>
+                <main className={classNames("main", props.className)}>
                     {props.children}
                 </main>
-                <footer className={styles.Footer}>
+                <footer className="Footer">
                     <Option
                         className="option"
                         href={`https://docs.djangoproject.com/en/${context.django_version}/`}
@@ -74,7 +72,7 @@ export const Layout = (props: Props) => {
                             </span>
                             <ScreenReader>.</ScreenReader>
                             <br />
-                            Topics, references, &amp; how-to’s
+                            Topics, references, &amp; how-to's
                         </p>
                     </Option>
                     <Option

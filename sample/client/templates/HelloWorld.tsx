@@ -2,10 +2,9 @@ import React from "react";
 
 import {Layout} from "@client/Layout";
 import {templates} from "@reactivated";
-import * as styles from "@client/styles.css";
 
 const Paragraph = (props: {children?: React.ReactNode}) => (
-    <p className={styles.Paragraph}>{props.children}</p>
+    <p className="text-[#444]">{props.children}</p>
 );
 
 export const Template = (props: templates.HelloWorld) => {
@@ -14,10 +13,10 @@ export const Template = (props: templates.HelloWorld) => {
     return (
         <Layout title="Hello world!">
             <div>
-                <h1>Hello World! It’s good to be here.</h1>
+                <h1>Hello World! It's good to be here.</h1>
             </div>
             <Paragraph>
-                The <span className={styles.testing}>best</span> opera is{" "}
+                The <span className="text-yellow-400">best</span> opera is{" "}
                 <strong>{props.opera.name}</strong> by{" "}
                 <strong>{props.opera.composer.name}</strong>.
             </Paragraph>
@@ -27,7 +26,7 @@ export const Template = (props: templates.HelloWorld) => {
                     <a href="#" onClick={() => setShowStyle(true)}>
                         here
                     </a>{" "}
-                    to see what <span className={styles.more}>style</span> of opera it
+                    to see what <span className="text-red-500">style</span> of opera it
                     is.
                 </Paragraph>
             ) : (

@@ -4,18 +4,13 @@ import {CSRFToken, reverse, templates} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
-import * as styles from "@client/styles.css";
 
 export const Template = ({error_message, question}: templates.PollDetail) => (
     <Layout title={question.question_text}>
         <form
             action={reverse("vote", {question_id: question.id})}
             method="post"
-            className={styles.sprinkles({
-                display: "flex",
-                gap: 10,
-                flexDirection: "column",
-            })}
+            className="flex gap-2.5 flex-col"
         >
             <CSRFToken />
             <forms.Fieldset>
@@ -40,7 +35,7 @@ export const Template = ({error_message, question}: templates.PollDetail) => (
                     </React.Fragment>
                 ))}
             </forms.Fieldset>
-            <div className={styles.sprinkles({display: "flex", gap: 10})}>
+            <div className="flex gap-2.5">
                 <forms.Button type="submit">Vote</forms.Button>
                 <forms.ButtonLink
                     href={reverse("update_poll", {question_id: question.id})}

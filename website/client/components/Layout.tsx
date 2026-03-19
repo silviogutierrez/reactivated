@@ -2,8 +2,6 @@ import React from "react";
 
 import {Context} from "@reactivated";
 
-import "@client/fonts.css";
-
 interface Props {
     title: string | null;
     children: React.ReactNode;

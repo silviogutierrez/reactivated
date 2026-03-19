@@ -5,7 +5,6 @@ import ReactMarkdown from "react-markdown";
 
 import {Code} from "@client/components/Code";
 import {Layout} from "@client/components/Layout";
-import * as styles from "@client/styles.css";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getAnchor = (children: any) => {
@@ -23,7 +22,7 @@ const getAnchor = (children: any) => {
 
 export const Hamburger = () => {
     return (
-        <label className={styles.Hamburger} htmlFor="menu">
+        <label className="Hamburger" htmlFor="menu">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="2em"
@@ -38,7 +37,7 @@ export const Hamburger = () => {
 
 const Menu = (props: templates.Documentation) => {
     return (
-        <aside className={styles.Menu}>
+        <aside className="Menu">
             <Hamburger />
             <input
                 type="checkbox"
@@ -47,13 +46,13 @@ const Menu = (props: templates.Documentation) => {
                     display: "none",
                 }}
             />
-            <ul className={styles.menu}>
+            <ul className="menu">
                 <li>
                     <h1>
                         <a
                             href="/"
                             style={{
-                                color: styles.colors.header,
+                                color: "var(--color-header)",
                                 textDecoration: "none",
                             }}
                         >
@@ -69,19 +68,19 @@ const Menu = (props: templates.Documentation) => {
                             key={link}
                             style={{
                                 paddingLeft: 8,
-                                borderColor: styles.colors.background,
+                                borderColor: "var(--color-background)",
                                 borderLeftWidth: 3,
                                 borderLeftStyle: "solid",
                                 ...(href == props.path
                                     ? {
-                                          borderColor: styles.colors.textWithColor,
+                                          borderColor: "var(--color-text-with-color)",
                                       }
                                     : {}),
                             }}
                         >
                             <a
                                 style={{
-                                    color: styles.colors.header,
+                                    color: "var(--color-header)",
                                 }}
                                 href={href}
                             >
@@ -100,9 +99,9 @@ export const Template = (props: templates.Documentation) => {
 
     return (
         <Layout title={null}>
-            <div className={styles.documentationLayout}>
+            <div className="documentationLayout">
                 <Menu {...props} />
-                <div className={styles.Documentation}>
+                <div className="Documentation">
                     <ReactMarkdown
                         components={{
                             h1: ({children}) => {
@@ -130,9 +129,7 @@ export const Template = (props: templates.Documentation) => {
                                 ).includes("Warning");
                                 return (
                                     <blockquote
-                                        className={
-                                            isWarning ? styles.warning : undefined
-                                        }
+                                        className={isWarning ? "warning" : undefined}
                                     >
                                         {props.children}
                                     </blockquote>
@@ -153,10 +150,7 @@ export const Template = (props: templates.Documentation) => {
                                 }
                                 return (
                                     <code
-                                        className={classNames(
-                                            styles.inlineCode,
-                                            className,
-                                        )}
+                                        className={classNames("inlineCode", className)}
                                         {...props}
                                     >
                                         {children}
@@ -175,10 +169,10 @@ export const Template = (props: templates.Documentation) => {
                             paddingRight: 30,
                             width: 250,
                         }}
-                        className={styles.hideOnMobile}
+                        className="hideOnMobile"
                     >
                         <ReactMarkdown
-                            className={styles.ReactMarkdown}
+                            className="ReactMarkdown"
                             components={{
                                 h2: ({children}) => {
                                     const anchor = getAnchor(children);

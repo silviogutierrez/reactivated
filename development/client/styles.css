@@ -1,0 +1,314 @@
+@import "tailwindcss";
+
+@layer base {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    html {
+        line-height: 1.15;
+    }
+
+    a {
+        color: #19865c;
+    }
+
+    body {
+        max-width: 960px;
+        color: #525252;
+        font-family: Roboto, sans-serif;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 996px) {
+        body {
+            max-width: 780px;
+        }
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    ul,
+    p {
+        padding: 0;
+        margin: 0;
+        font-weight: 400;
+        list-style-type: none;
+    }
+
+    h1 {
+        font-size: 1.375rem;
+    }
+
+    input[type="text"] {
+        font: inherit;
+        padding: 10px;
+        border: 1px solid #ccc;
+        width: 100%;
+    }
+}
+
+@layer components {
+    .Option {
+        display: grid;
+        grid-template-columns: min-content 1fr;
+        gap: 10px;
+        box-sizing: border-box;
+        text-decoration: none;
+    }
+
+    .Option svg {
+        width: 2.2rem;
+        height: 2.2rem;
+        fill: gray;
+        border: 1px solid #d6d6d6;
+        padding: 5px;
+        border-radius: 100%;
+    }
+
+    .Option p {
+        font-weight: 300;
+        line-height: 1.25;
+        color: #525252;
+        display: table;
+    }
+
+    .Option .option__heading {
+        color: #19865c;
+        font-size: 1.25rem;
+        font-weight: 400;
+    }
+
+    .forms {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .forms textarea {
+        width: 100%;
+        min-height: 100px;
+    }
+
+    .Fieldset {
+        border: 1px solid #bbb;
+        border-radius: 5px;
+        padding: 20px;
+    }
+
+    .Button {
+        border: 1px solid #bbb;
+        border-radius: 5px;
+        padding: 10px 15px;
+        font: inherit;
+        text-transform: lowercase;
+        font-weight: 700;
+        background-color: white;
+        color: #444;
+        cursor: pointer;
+    }
+
+    .ButtonLink {
+        display: inline-block;
+        border: 1px solid #bbb;
+        border-radius: 5px;
+        padding: 10px 15px;
+        font: inherit;
+        text-transform: lowercase;
+        font-weight: 700;
+        background-color: white;
+        color: #444;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .djangoDefaultMain {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    @media (max-width: 800px) {
+        .djangoDefaultMain {
+            padding: 0 25px;
+        }
+    }
+
+    .djangoDefaultMain p {
+        line-height: 1.25;
+        max-width: 26rem;
+    }
+
+    .djangoDefaultMain ul {
+        text-align: left;
+        line-height: 1.25;
+        max-width: 26rem;
+    }
+
+    .djangoDefaultMain h1 {
+        font-size: 1.375rem;
+        max-width: 32rem;
+    }
+
+    @media (max-width: 800px) {
+        .djangoDefaultMain h1 {
+            font-size: 1.25rem;
+        }
+    }
+
+    .djangoDefaultMainSvg {
+        margin-top: 19vh;
+        max-width: 265px;
+        position: relative;
+        z-index: -9;
+        overflow: visible;
+    }
+
+    @media (max-width: 800px) {
+        .djangoDefaultMainSvg {
+            margin-top: 10px;
+        }
+    }
+
+    @media (min-width: 801px) and (max-height: 730px) {
+        .djangoDefaultMainSvg {
+            margin-top: 80px;
+        }
+    }
+
+    @media (min-width: 801px) and (max-height: 600px) {
+        .djangoDefaultMainSvg {
+            margin-top: 50px;
+        }
+    }
+
+    .smokePath {
+        animation: smokeAnimation 0.1s 70 ease-in-out alternate;
+    }
+
+    .thrustPath {
+        animation: thrustAnimation 70ms 100 ease-in-out alternate;
+    }
+
+    .burnPath {
+        animation: burnAnimation 0.1s 70 ease-in-out alternate;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .smokePath,
+        .thrustPath,
+        .burnPath {
+            animation: none;
+        }
+    }
+
+    .main {
+        padding: 20px 0;
+    }
+
+    @media (max-width: 800px) {
+        .main {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+    }
+
+    .header {
+        border-bottom: 1px solid #efefef;
+        display: grid;
+        grid-template-columns: auto auto;
+        align-items: self-end;
+        justify-content: space-between;
+        gap: 7px;
+        padding-top: 20px;
+        padding-bottom: 10px;
+    }
+
+    @media (max-width: 800px) {
+        .header {
+            grid-template-columns: 1fr;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+    }
+
+    .header > a {
+        font-weight: 700;
+        font-size: 1.375rem;
+        text-decoration: none;
+    }
+
+    .Footer {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 5px;
+        padding: 25px 0;
+        position: fixed;
+        box-sizing: border-box;
+        left: 50%;
+        bottom: 0;
+        width: 960px;
+        transform: translateX(-50%);
+        transform-style: preserve-3d;
+        border-top: 1px solid #efefef;
+    }
+
+    @media (max-width: 996px) {
+        .Footer {
+            max-width: 780px;
+        }
+    }
+
+    @media (max-width: 800px) {
+        .Footer {
+            height: 100%;
+            grid-template-columns: 1fr;
+            gap: 60px;
+            position: relative;
+            padding: 25px;
+            width: 100%;
+            margin-top: 50px;
+        }
+    }
+
+    @media (min-width: 801px) and (max-height: 600px) {
+        .Footer {
+            position: relative;
+            margin: 135px auto 0;
+        }
+    }
+}
+
+@keyframes smokeAnimation {
+    0% {
+        transform: translate3d(-5px, 0, 0);
+    }
+    100% {
+        transform: translate3d(5px, 0, 0);
+    }
+}
+
+@keyframes thrustAnimation {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes burnAnimation {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+    100% {
+        transform: translate3d(0, 3px, 0);
+    }
+}

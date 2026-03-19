@@ -1,5 +1,4 @@
 import React from "react";
-import * as styles from "@client/styles.css";
 
 interface Props {
     title: string;
@@ -18,7 +17,7 @@ export const Layout = (props: Props) => {
                 />
             </head>
             <body>
-                <div className={styles.layout}>{props.children}</div>
+                <div className="mx-auto max-w-[1000px]">{props.children}</div>
             </body>
         </html>
     );

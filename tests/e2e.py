@@ -51,7 +51,7 @@ def test_end_to_end(client, live_server, page):
     assert "color:" in css_content  # from multiple styles
 
     # Check that the page content is rendered
-    assert "<h1>Hello World! It’s good to be here.</h1>" in content
+    assert "<h1>Hello World! It's good to be here.</h1>" in content
 
 
 def test_default_widget(tmp_path):

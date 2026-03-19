@@ -22,4 +22,6 @@ COPY --chown=guest monorepo* /reactivated/monorepo/
 
 ENV IS_DOCKER=true
 
-RUN install populate_cache && rm -rf populate_cache
+ARG TARGETARCH
+RUN if [ "$TARGETARCH" = "arm64" ]; then export NAPI_RS_FORCE_WASI=error; fi && \
+    install populate_cache && rm -rf populate_cache

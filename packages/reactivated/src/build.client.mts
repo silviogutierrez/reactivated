@@ -110,7 +110,7 @@ const rendererConfig = {
                 inlineDynamicImports: true,
                 entryFileNames: `renderer.mjs`,
                 chunkFileNames: `renderer.mjs`,
-                assetFileNames: `renderer.[ext]`,
+                assetFileNames: `[name].[ext]`,
             },
             external,
         },

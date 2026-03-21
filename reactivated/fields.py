@@ -14,7 +14,7 @@ from typing import (
 )
 
 from django.core.exceptions import ValidationError
-from django.db import DatabaseError, models
+from django.db import models
 from django.db.models.fields import BLANK_CHOICE_DASH, NOT_PROVIDED
 
 from .constraints import EnumConstraint
@@ -37,6 +37,11 @@ _ST = TypeVar("_ST", bound=Enum)
 _GT = TypeVar("_GT", bound=Enum)
 
 logger = logging.getLogger(__name__)
+
+# Set by Django's pre/post_migrate signals. When True, db_type() returns
+# varchar(63) on PostgreSQL so migrations use the EnumConstraint's CREATE TYPE
+# rather than referencing the enum type inline (which would fail if it doesn't
+# exist yet).
 is_migrating: bool = False
 
 
@@ -220,13 +225,13 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         return self.get_enum_name()
 
     def db_type(self, connection: Any) -> str | None:
-        if connection.settings_dict["ENGINE"] != "django.db.backends.postgresql":
-            raise DatabaseError("EnumField is only supported on PostgreSQL")
-
-        if is_migrating:
-            return super().db_type(connection)
-
-        return self.cast_db_type(connection)
+        if connection.vendor == "postgresql":
+            # During migrations, use varchar(63) so Django can apply ALTER
+            # COLUMN via the EnumConstraint instead of inline type references.
+            if is_migrating:
+                return super().db_type(connection)
+            return self.cast_db_type(connection)
+        return super().db_type(connection)
 
     def from_db_value(
         self, value: str | None, expression: Any, connection: Any

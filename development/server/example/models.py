@@ -1,6 +1,7 @@
 import enum
 
 from django.db import models
+
 from reactivated.fields import EnumField
 
 

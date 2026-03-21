@@ -14,7 +14,7 @@ from typing import (
 )
 
 from django.core.exceptions import ValidationError
-from django.db import DatabaseError, models
+from django.db import models
 from django.db.models.fields import BLANK_CHOICE_DASH, NOT_PROVIDED
 
 from .constraints import EnumConstraint
@@ -220,13 +220,11 @@ class _EnumField(models.CharField[_ST, _GT]):  # , Generic[_ST, _GT]):
         return self.get_enum_name()
 
     def db_type(self, connection: Any) -> str | None:
-        if connection.settings_dict["ENGINE"] != "django.db.backends.postgresql":
-            raise DatabaseError("EnumField is only supported on PostgreSQL")
-
-        if is_migrating:
-            return super().db_type(connection)
-
-        return self.cast_db_type(connection)
+        if connection.settings_dict["ENGINE"] == "django.db.backends.postgresql":
+            if is_migrating:
+                return super().db_type(connection)
+            return self.cast_db_type(connection)
+        return super().db_type(connection)
 
     def from_db_value(
         self, value: str | None, expression: Any, connection: Any

@@ -22,16 +22,29 @@ class EnumConstraint(models.constraints.BaseConstraint):
         model: type[Model] | None,
         schema_editor: BaseDatabaseSchemaEditor | None,
     ) -> str:
-        """We leave this blank as the migration code tries to inject
-        constraint code inline with the field, which doesn't work for custom
-        types in PostgreSQL.
+        """For PostgreSQL, we leave this blank as the migration code tries to
+        inject constraint code inline with the field, which doesn't work for
+        custom types in PostgreSQL.
+
+        For other backends (e.g. SQLite), we return a CHECK constraint that
+        enforces valid enum values.
         """
-        return ""
+        if schema_editor is None or schema_editor.connection.vendor == "postgresql":
+            return ""
+        columns = ", ".join([f"'{column}'" for column in self.members])
+        return "CHECK ({field_name} IN ({columns}))".format(
+            field_name=schema_editor.quote_name(self.field_name),
+            columns=columns,
+        )
 
     def create_sql(self, model: type[Model] | None, schema_editor: BaseDatabaseSchemaEditor | None) -> Statement:  # type: ignore[override]
-        columns = self.members
         assert model is not None
         assert schema_editor is not None
+
+        if schema_editor.connection.vendor != "postgresql":
+            return Statement("")
+
+        columns = self.members
 
         # https://github.com/django/django/commit/41d8ef18ac2d983bea5ef919615687308ffe41c1
         # This introduced some sort of double create statement appearing when
@@ -54,6 +67,9 @@ class EnumConstraint(models.constraints.BaseConstraint):
     def remove_sql(self, model: type[Model] | None, schema_editor: BaseDatabaseSchemaEditor | None) -> Statement:  # type: ignore[override]
         assert model is not None
         assert schema_editor is not None
+
+        if schema_editor.connection.vendor != "postgresql":
+            return Statement("")
 
         return Statement(
             "ALTER TABLE %(table)s ALTER COLUMN %(field_name)s TYPE varchar(63); DROP TYPE %(enum_type)s;",

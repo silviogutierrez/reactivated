@@ -378,7 +378,7 @@ compile(types, "this is unused", {additionalProperties: false}).then(async (ts) 
     process.stdout.write("/* eslint-disable */\n");
     // Needs to be on top, needed for vite typing of import.meta without work
     // by the downstream apps.
-    process.stdout.write(`/// <reference types="vite/client.d.ts" />`);
+    process.stdout.write(`/// <reference types="vite/client" />`);
     process.stdout.write(ts);
     const statements = [];
 

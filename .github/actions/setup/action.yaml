@@ -34,3 +34,7 @@ runs:
         - name: Build
           run: nix-shell --command "npm install && python scripts/generate_types.py && npm exec -w reactivated tsc && playwright install && npm install"
           shell: bash
+        - name: Fix greenlet
+          if: runner.os == 'Linux'
+          run: nix-shell --command "uv pip install greenlet==3.1.1 --no-binary greenlet --no-cache-dir --reinstall"
+          shell: bash

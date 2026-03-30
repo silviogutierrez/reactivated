@@ -8,7 +8,6 @@ license = "MIT"
 authors = [{ name = "Silvio Gutierrez", email = "silviogutierrez@gmail.com" }]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 dependencies = [

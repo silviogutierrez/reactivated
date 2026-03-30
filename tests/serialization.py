@@ -372,9 +372,7 @@ def test_typed_choices_non_enum(settings):
         "tests.serialization.test_typed_choices_non_enum.<locals>.TestForm"
     ]["properties"]["fields"]["properties"]["non_enum_typed_field"]["properties"][
         "widget"
-    ] == {
-        "tsType": "widgets.Select"
-    }
+    ] == {"tsType": "widgets.Select"}
 
 
 def test_override_pick_types(settings, snapshot):

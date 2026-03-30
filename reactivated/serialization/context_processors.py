@@ -84,9 +84,9 @@ def create_context_processor_type(context_processors: list[str]) -> Any:
         annotations = get_annotation_or_type_hints(definition)
 
         annotation = annotations.get("return", None)
-        assert (
-            annotation
-        ), f"No annotations found for context processor {context_processor}"
+        assert annotation, (
+            f"No annotations found for context processor {context_processor}"
+        )
         types.append(annotation)
 
     return Intersection[types]  # type: ignore[misc]

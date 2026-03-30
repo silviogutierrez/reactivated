@@ -5,10 +5,7 @@ requires-python = ">=3.12"
 dependencies = [
     "Django==5.0.2",
     "psycopg[binary]==3.1.18",
-    "flake8==7.0.0",
-    "isort==5.13.2",
-    "black==22.3.0",
-    "autoflake==2.3.0",
+    "ruff>=0.11",
     "pytest==8.0.1",
     "pytest-django==4.5.2",
     "gunicorn==22.0.0",
@@ -18,3 +15,13 @@ dependencies = [
 
 [tool.uv.sources]
 reactivated = { path = "..", editable = true }
+
+[tool.ruff.lint]
+ignore = [
+    "E501",  # Line too long: formatter handles this.
+    "F403",  # Wildcard imports: mypy analyzes these.
+    "F821",  # Undefined names: used in Pick literals.
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["server"]

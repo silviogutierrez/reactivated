@@ -60,7 +60,8 @@ def analyze_template(ctx: ClassDefContext) -> None:
             Instance(http_request.node, []),  # type: ignore[union-attr, arg-type]
         ),
         type_annotation=Instance(
-            http_request.node, []  # type: ignore[union-attr, arg-type]
+            http_request.node,
+            [],  # type: ignore[union-attr, arg-type]
         ),
         initializer=None,
         kind=ARG_POS,
@@ -71,7 +72,8 @@ def analyze_template(ctx: ClassDefContext) -> None:
         "render",
         args=[request_arg],
         return_type=Instance(
-            template_response.node, []  # type: ignore[union-attr, arg-type]
+            template_response.node,
+            [],  # type: ignore[union-attr, arg-type]
         ),
     )
 

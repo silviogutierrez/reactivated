@@ -357,9 +357,9 @@ class FormType(NamedTuple):
                 callable(field.field.initial)
                 and schema.definitions.get("is_static_context") is True  # type: ignore[comparison-overlap]
             ):
-                assert (
-                    False
-                ), f"Callables are not supported in initial/default values for field {field.name} in form {name}"
+                assert False, (
+                    f"Callables are not supported in initial/default values for field {field.name} in form {name}"
+                )
 
         form = value
         context = form.get_context()
@@ -675,9 +675,9 @@ class UnionType(NamedTuple):
         }
 
         if len(typed_dicts) > 1 and len(subschemas) != len(typed_dicts):
-            assert (
-                False
-            ), "Unions with TypedDict must have only TypedDict members and a discriminant"
+            assert False, (
+                "Unions with TypedDict must have only TypedDict members and a discriminant"
+            )
         elif len(typed_dicts) > 1:
             keys = set.intersection(
                 *[
@@ -824,9 +824,9 @@ def generic_alias_schema(
 
         for arg in _Type.__args__:
             if not isinstance(arg, (type(None), int, str, float, bool)):
-                assert (
-                    False
-                ), f"Unsupported Literal {_Type}. Only simple members are supported."
+                assert False, (
+                    f"Unsupported Literal {_Type}. Only simple members are supported."
+                )
 
         return Thing(
             schema={"enum": list(_Type.__args__)},

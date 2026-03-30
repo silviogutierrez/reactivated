@@ -83,9 +83,9 @@ class ClassLookupDict:
             elif getattr(base_class, "rpartition", False):
                 base_class = str
             else:
-                assert (
-                    False
-                ), "Unsupported proxy / lazy promise type. See django/utils/functional.py"
+                assert False, (
+                    "Unsupported proxy / lazy promise type. See django/utils/functional.py"
+                )
 
         # DRF uses this, we do not.
         # if hasattr(key, "_proxy_class"):

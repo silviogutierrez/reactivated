@@ -339,7 +339,9 @@ def ssr(
 ]: ...
 
 
-def ssr(*, props: type[P], params: type[K] | None = None) -> (
+def ssr(
+    *, props: type[P], params: type[K] | None = None
+) -> (
     Callable[
         [NoArgsView[P]],
         Callable[[Arg(HttpRequest, "request"), KwArg(Any)], HttpResponse],

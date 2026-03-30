@@ -1,7 +1,0 @@
-[flake8]
-ignore = E501, W503, E203, E231, F405, F403, E701, E704, E731, F821
-exclude =
-    .git,
-    __pycache__
-    .venv
-    node_modules

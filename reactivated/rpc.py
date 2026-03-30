@@ -138,7 +138,9 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
         def inner_context_provider(
             request: THttpRequest, *args: Any, **kwargs: Any
         ) -> Any:
-            return context_provider(request, self.context_provider(request, *args, **kwargs))  # type: ignore[call-arg]
+            return context_provider(
+                request, self.context_provider(request, *args, **kwargs)
+            )  # type: ignore[call-arg]
 
         inner_context_provider.__annotations__ = self.context_provider.__annotations__
         inner_context_provider.__name__ = context_provider.__name__
@@ -155,9 +157,8 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             | Callable[[THttpRequest, None], TResponse]
         ),
         *,
-        context_provider: None | (
-            Callable[[THttpRequest, TFirst, TSecond], TContext]
-        ) = None,
+        context_provider: None
+        | (Callable[[THttpRequest, TFirst, TSecond], TContext]) = None,
     ) -> URLPattern: ...
 
     @overload
@@ -168,9 +169,8 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             | Callable[[THttpRequest, None, TForm], TResponse]
         ),
         *,
-        context_provider: None | (
-            Callable[[THttpRequest, TFirst, TSecond], TContext]
-        ) = None,
+        context_provider: None
+        | (Callable[[THttpRequest, TFirst, TSecond], TContext]) = None,
     ) -> URLPattern: ...
 
     def process(
@@ -182,9 +182,8 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             | Callable[[THttpRequest, None, TForm], TResponse]
         ),
         *,
-        context_provider: None | (
-            Callable[[THttpRequest, TFirst, TSecond], TContext]
-        ) = None,
+        context_provider: None
+        | (Callable[[THttpRequest, TFirst, TSecond], TContext]) = None,
     ) -> URLPattern:
         return_type = get_type_hints(view)["return"]
         return_schema = create_schema(return_type, registry.definitions_registry)
@@ -248,9 +247,12 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             if request.method == "POST":
                 if form.is_valid():
                     try:
-                        response = view(request, context, form) if form_type is not None else view(request, context)  # type: ignore[arg-type, call-arg]
+                        response = (
+                            view(request, context, form)
+                            if form_type is not None
+                            else view(request, context)
+                        )  # type: ignore[arg-type, call-arg]
                     except forms.ValidationError as error:
-
                         if hasattr(error, "error_dict"):
                             return JsonResponse(
                                 error.message_dict, status=400, safe=False
@@ -302,7 +304,9 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
             "type": (
                 "form_group"
                 if issubclass(form_class, FormGroup)
-                else "form" if issubclass(form_class, forms.BaseForm) else "form_set"
+                else "form"
+                if issubclass(form_class, forms.BaseForm)
+                else "form_set"
             ),
         }
         route = path(url_path, wrapped_view, name=url_name)
@@ -480,7 +484,9 @@ class RPC(Generic[THttpRequest]):
             "type": (
                 "form_group"
                 if issubclass(form_class, FormGroup)
-                else "form" if issubclass(form_class, forms.BaseForm) else "form_set"
+                else "form"
+                if issubclass(form_class, forms.BaseForm)
+                else "form_set"
             ),
         }
         route = path(url_path, wrapped_view, name=url_name)
@@ -506,6 +512,6 @@ class RPC(Generic[THttpRequest]):
 
 
 def create_rpc(
-    authentication: Callable[[HttpRequest], THttpRequest | enum.Enum | Literal[False]]
+    authentication: Callable[[HttpRequest], THttpRequest | enum.Enum | Literal[False]],
 ) -> RPC[THttpRequest]:
     return RPC[THttpRequest](authentication)

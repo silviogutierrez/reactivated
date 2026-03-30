@@ -8,7 +8,6 @@ import reactivated.fields
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("example", "0001_initial"),
     ]

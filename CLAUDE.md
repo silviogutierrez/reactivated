@@ -87,6 +87,10 @@ When `manage.py runserver` runs, `reactivated/__init__.py` patches the process:
 - **syrupy**: Snapshot testing (snapshots in `tests/__snapshots__/`)
 - **Mypy plugin**: `reactivated/plugin.py` — hooks for `Pick` type analysis and `@template`/`@interface` decorator typing
 
+## CI
+
+When monitoring CI after a push, only wait for "Code tests" and the ubuntu integration test to pass. The macOS integration tests (macos-14, macos-15) are slow and verified manually — don't block on them.
+
 ## Environment
 
 Uses Nix (`shell.nix`) for dependency management. Key env vars:

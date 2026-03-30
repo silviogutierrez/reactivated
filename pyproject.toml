@@ -24,11 +24,8 @@ dev = [
     "django-extensions==3.2.3",
     "django-stubs-ext==5.1.1",
     "djangorestframework==3.14.0",
-    "flake8==7.1.1",
     "greenlet==3.1.1",
-    "isort==5.13.2",
-    "black==24.10.0",
-    "autoflake==2.3.1",
+    "ruff>=0.11",
     "jsonschema==3.1.1",
     "Jinja2==3.1.4",
     "playwright==1.48.0",
@@ -59,3 +56,16 @@ include = ["reactivated*"]
 
 [tool.setuptools.package-data]
 reactivated = ["py.typed", "templates/**/*"]
+
+[tool.ruff.lint]
+ignore = [
+    "E501",  # Line too long: formatter handles this.
+    "F405",  # May be undefined from star import.
+    "F403",  # Wildcard imports: mypy analyzes these.
+    "E731",  # Do not assign a lambda.
+    "F821",  # Undefined names: used in Pick literals.
+    "E721",  # Type comparison: used in generic alias origin checks.
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["reactivated"]

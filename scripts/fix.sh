@@ -50,13 +50,10 @@ cd "$PROJECT_ROOT"
 
 if [[ -n "${CHANGED_PY_FILES// /}" ]]; then
     # shellcheck disable=SC2086
-    autoflake --exclude node_modules,.venv -i -r --remove-all-unused-imports $CHANGED_PY_FILES
+    ruff check --force-exclude --fix $CHANGED_PY_FILES || true
 
     # shellcheck disable=SC2086
-    isort $CHANGED_PY_FILES
-
-    # shellcheck disable=SC2086
-    black $CHANGED_PY_FILES
+    ruff format --force-exclude $CHANGED_PY_FILES
 fi
 
 if [[ -n "${CHANGED_PRETTIER_FILES// /}" ]]; then

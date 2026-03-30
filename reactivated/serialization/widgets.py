@@ -164,9 +164,9 @@ class BaseWidget(NamedTuple):
             )
 
             for index, subwidget_class in enumerate(subwidgets_to_enumerate):
-                serialized["subwidgets"][index][
-                    "tag"
-                ] = f"{subwidget_class.__module__}.{subwidget_class.__qualname__}"
+                serialized["subwidgets"][index]["tag"] = (
+                    f"{subwidget_class.__module__}.{subwidget_class.__qualname__}"
+                )
 
         return serialized
 

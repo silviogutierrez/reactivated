@@ -96,9 +96,3 @@ jobs:
                   cd website
                   nix-shell --command "python manage.py generate_client_assets"
                   nix-shell --command "scripts/test.sh --all"
-            - name: Run build
-              env:
-                  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-              run: |
-                  cd website
-                  scripts/deploy.sh --build-only

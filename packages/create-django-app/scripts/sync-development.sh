@@ -11,6 +11,7 @@ rsync -a --filter=':- .gitignore' ../../development/ template/
 cp ../../requirements.nix template
 sed -i s#../requirements#./requirements# template/shell.nix
 sed -i s#../node_modules#./node_modules# template/eslint.config.ts
+sed -i '/\[tool\.uv\.sources\]/,/^$/d' template/pyproject.toml
 rm template/server/settings/__init__.py
 rm template/package.json
 cp template/.gitignore template/gitignore.template

@@ -19,7 +19,7 @@ cd ..
 rm -rf website_build_context
 cp -R website website_build_context
 cp requirements.nix website_build_context/
-python setup.py sdist -d website_build_context/monorepo/
+uv build --sdist --out-dir website_build_context/monorepo/
 mv website_build_context/monorepo/*.tar.gz website_build_context/monorepo/python.tar.gz
 tar xzf website_build_context/monorepo/python.tar.gz -C website_build_context/monorepo
 rm website_build_context/monorepo/python.tar.gz
@@ -29,7 +29,7 @@ npm -w reactivated pack --pack-destination website_build_context/monorepo/
 mv website_build_context/monorepo/*.tgz website_build_context/monorepo/node.tgz
 cp package-lock.json website_build_context/
 
-sed -i s'#-e ..#./monorepo/python#' website_build_context/requirements.txt
+sed -i '/\[tool\.uv\.sources\]/,/^$/d' website_build_context/pyproject.toml
 sed -i s'#../requirements#./requirements#' website_build_context/shell.nix
 
 cp node_modules/react-markdown/lib/complex-types.ts website_build_context/

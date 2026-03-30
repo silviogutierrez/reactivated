@@ -122,7 +122,7 @@ function sync_template() {
     local PROJECT_PATH
     PROJECT_PATH="$SCRIPT_PATH/.."
     cp "$PROJECT_PATH/packages/create-django-app/template/shell.nix" shell.nix
-    cp "$PROJECT_PATH/packages/create-django-app/template/requirements.txt" requirements.txt
+    cp "$PROJECT_PATH/packages/create-django-app/template/pyproject.toml" pyproject.toml
     cp "$PROJECT_PATH/packages/create-django-app/template/server/settings/localhost.py" server/settings/localhost.py
     cp -RT "$PROJECT_PATH/packages/create-django-app/template/client" client
     cp -RT "$PROJECT_PATH/packages/create-django-app/template/server/example" server/example

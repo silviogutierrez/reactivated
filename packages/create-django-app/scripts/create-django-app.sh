@@ -26,7 +26,7 @@ ln -s localhost.py "$PROJECT_NAME/server/settings/__init__.py"
 
 cd "$PROJECT_NAME" || exit
 mv gitignore.template .gitignore
-sed -i "s/reactivated==\(.*\)/reactivated==$PIP_CURRENT_VERSION/" requirements.txt
+sed -i "s/reactivated==\(.*\)\"/reactivated==$PIP_CURRENT_VERSION\"/" pyproject.toml
 
 git init --initial-branch=main
 
@@ -34,10 +34,10 @@ nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = "
 
 if [ -d "$SCRIPT_PATH/../monorepo" ]; then
     nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install $SCRIPT_PATH/../monorepo/node.tgz"
-    nix-shell --command "pip install $SCRIPT_PATH/../monorepo/python"
+    nix-shell --command "uv pip install $SCRIPT_PATH/../monorepo/python"
 else
     nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install -E reactivated@${CURRENT_VERSION}"
-    echo "reactivated==$PIP_CURRENT_VERSION" >>requirements.txt
+    sed -i "s/reactivated==\(.*\)\"/reactivated==$PIP_CURRENT_VERSION\"/" pyproject.toml
 fi
 
 # Empty command for odd MacOS venv bug.

@@ -10,6 +10,7 @@ in with pkgs; {
 
   production_dependencies = [ pkgs.python312 unstable.nodejs_22 ];
   development_dependencies = [
+    unstable.uv
     unstable.flyctl
 
     # Needed for psycopg on MacOS Silicon... maybe? Maybe psycopg 3 doesn't need it.

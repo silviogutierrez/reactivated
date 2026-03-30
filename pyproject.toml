@@ -41,7 +41,6 @@ dev = [
     "python-slugify==8.0.4",
     "PyYAML==6.0.1",
     "syrupy==4.7.2",
-    "twine==5.0.0",
     "types-PyYAML==6.0.12.20240724",
     "types-requests==2.32.0.20241016",
     "types-simplejson==3.19.0.20240801",

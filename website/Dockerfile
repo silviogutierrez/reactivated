@@ -1,6 +1,6 @@
 FROM nixos/nix:2.33.2 as builder
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 RUN mkdir /app
 WORKDIR /app
@@ -50,7 +50,7 @@ RUN apk add postgresql-client
 COPY --from=builder /output/store /nix/store
 COPY --from=builder /output/profile/ /usr/local/
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 RUN mkdir /app
 WORKDIR /app

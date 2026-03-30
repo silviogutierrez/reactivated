@@ -13,7 +13,7 @@ runs:
                   .venv
                   node_modules
                   !.venv/postgresql
-              key: ${{ runner.os }}-nix-cache-${{ hashFiles('**/uv.lock') }}-${{ hashFiles('**/*.nix') }}
+              key: ${{ runner.os }}-nix-cache-${{ hashFiles('**/uv.lock') }}-${{ hashFiles('**/*.nix') }}-${{ hashFiles('**/pyproject.toml') }}
         - name: Get npm cache directory
           id: npm-cache-dir
           run: |

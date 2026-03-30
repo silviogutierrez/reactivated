@@ -100,7 +100,7 @@ echo "Published version $NEW_VERSION to NPM"
 
 sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
 uv build
-uv publish
+uv publish --token "$TWINE_PASSWORD"
 echo "Published version $NEW_VERSION to PyPI"
 
 # Populate PyPI by forcing an install till it works.

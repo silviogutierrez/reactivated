@@ -248,10 +248,10 @@ class RPCContext(Generic[THttpRequest, TContext, TFirst, TSecond, TQuerySet]):
                 if form.is_valid():
                     try:
                         response = (
-                            view(request, context, form)
+                            view(request, context, form)  # type: ignore[arg-type, call-arg]
                             if form_type is not None
                             else view(request, context)
-                        )  # type: ignore[arg-type, call-arg]
+                        )
                     except forms.ValidationError as error:
                         if hasattr(error, "error_dict"):
                             return JsonResponse(

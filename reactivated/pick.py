@@ -124,8 +124,8 @@ def get_field_descriptor(
 
         nested_descriptor, nested_field_names = get_field_descriptor(
             pick_name,
-            field_descriptor.annotation or field_descriptor.descriptor.related_model,
-            remaining,  # type: ignore[arg-type]
+            field_descriptor.annotation or field_descriptor.descriptor.related_model,  # type: ignore[arg-type]
+            remaining,
         )
 
         # TODO: Maybe RelatedField replaces all of the above?

@@ -37,9 +37,9 @@ class EnumConstraint(models.constraints.BaseConstraint):
             columns=columns,
         )
 
-    def create_sql(
+    def create_sql(  # type: ignore[override]
         self, model: type[Model] | None, schema_editor: BaseDatabaseSchemaEditor | None
-    ) -> Statement:  # type: ignore[override]
+    ) -> Statement:
         assert model is not None
         assert schema_editor is not None
 
@@ -66,9 +66,9 @@ class EnumConstraint(models.constraints.BaseConstraint):
             columns=", ".join([f"'{column}'" for column in columns]),
         )
 
-    def remove_sql(
+    def remove_sql(  # type: ignore[override]
         self, model: type[Model] | None, schema_editor: BaseDatabaseSchemaEditor | None
-    ) -> Statement:  # type: ignore[override]
+    ) -> Statement:
         assert model is not None
         assert schema_editor is not None
 

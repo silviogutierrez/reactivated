@@ -1,0 +1,207 @@
+# Tests for the reactivated mypy plugin.
+#
+# These tests verify that the plugin correctly:
+# 1. Adds render() methods to @template and @interface decorated NamedTuples
+# 2. Preserves NamedTuple field types after decoration
+# 3. Resolves Pick[Model, "field"] to the model type
+#
+# The plugin uses get_class_decorator_hook_2 (not get_class_decorator_hook)
+# and adds render() only to info.names (not to defs.body) to avoid corrupting
+# NamedTuple class info during mypy's semantic analysis passes. See the
+# detailed comments in plugin.py for the rationale.
+
+- case: template_adds_render_method
+  main: |
+    from typing import NamedTuple
+    from reactivated import template
+
+    @template
+    class MyTemplate(NamedTuple):
+        title: str
+
+    t = MyTemplate(title="hello")
+    reveal_type(t.render)  # N: Revealed type is "def (request: django.http.request.HttpRequest) -> django.template.response.TemplateResponse"
+
+- case: template_preserves_namedtuple_fields
+  main: |
+    from typing import NamedTuple
+    from reactivated import template
+
+    @template
+    class MyTemplate(NamedTuple):
+        name: str
+        quantity: int
+        active: bool
+
+    t = MyTemplate(name="hi", quantity=1, active=True)
+    reveal_type(t.name)  # N: Revealed type is "builtins.str"
+    reveal_type(t.quantity)  # N: Revealed type is "builtins.int"
+    reveal_type(t.active)  # N: Revealed type is "builtins.bool"
+
+- case: template_render_returns_template_response
+  main: |
+    from typing import NamedTuple
+    from django.http import HttpRequest
+    from reactivated import template
+
+    @template
+    class MyTemplate(NamedTuple):
+        value: int
+
+    t = MyTemplate(value=42)
+    request = HttpRequest()
+    response = t.render(request)
+    reveal_type(response)  # N: Revealed type is "django.template.response.TemplateResponse"
+
+- case: interface_adds_render_method
+  main: |
+    from typing import NamedTuple
+    from reactivated import interface
+
+    @interface
+    class MyInterface(NamedTuple):
+        data: str
+
+    i = MyInterface(data="test")
+    reveal_type(i.render)  # N: Revealed type is "def (request: django.http.request.HttpRequest) -> django.template.response.TemplateResponse"
+
+- case: multiple_templates_in_same_file
+  main: |
+    from typing import NamedTuple
+    from reactivated import template
+
+    @template
+    class First(NamedTuple):
+        a: str
+
+    @template
+    class Second(NamedTuple):
+        b: int
+
+    @template
+    class Third(NamedTuple):
+        c: bool
+
+    # All three should have render and preserve their fields
+    reveal_type(First(a="x").a)  # N: Revealed type is "builtins.str"
+    reveal_type(Second(b=1).b)  # N: Revealed type is "builtins.int"
+    reveal_type(Third(c=True).c)  # N: Revealed type is "builtins.bool"
+    reveal_type(First(a="x").render)  # N: Revealed type is "def (request: django.http.request.HttpRequest) -> django.template.response.TemplateResponse"
+    reveal_type(Second(b=1).render)  # N: Revealed type is "def (request: django.http.request.HttpRequest) -> django.template.response.TemplateResponse"
+    reveal_type(Third(c=True).render)  # N: Revealed type is "def (request: django.http.request.HttpRequest) -> django.template.response.TemplateResponse"
+
+- case: pick_resolves_to_model_type
+  files:
+    - path: pickmodels.py
+      content: |
+        from django.db import models
+        class Continent(models.Model):
+            name = models.CharField(max_length=100)
+            class Meta:
+                app_label = "myapp"
+  main: |
+    from reactivated import Pick
+    from pickmodels import Continent
+    x: Pick[Continent, "name"]
+    reveal_type(x)  # N: Revealed type is "pickmodels.Continent"
+
+- case: template_with_cross_module_model_references
+  # This test exercises the scenario that triggers infinite re-analysis with
+  # the old plugin: @template classes in a module that imports Django models
+  # with complex relationships. The model import chain forces mypy to
+  # re-analyze the module containing the @template class multiple times.
+  # With the old add_method() approach, each re-analysis would corrupt the
+  # NamedTuple body, causing fields to be lost and triggering further
+  # re-analysis in an infinite loop.
+  files:
+    - path: mymodels.py
+      content: |
+        from django.db import models
+        class Author(models.Model):
+            name = models.CharField(max_length=100)
+            class Meta:
+                app_label = "myapp"
+        class Book(models.Model):
+            title = models.CharField(max_length=200)
+            author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="books")
+            class Meta:
+                app_label = "myapp"
+    - path: myviews.py
+      content: |
+        from typing import NamedTuple
+        from reactivated import Pick, template
+        from mymodels import Author, Book
+
+        @template
+        class AuthorDetail(NamedTuple):
+            author: Pick[Author, "name"]
+            is_preview: bool
+
+        @template
+        class BookDetail(NamedTuple):
+            book: Pick[Book, "title"]
+            is_preview: bool
+  main: |
+    from myviews import AuthorDetail, BookDetail
+    from mymodels import Author, Book
+
+    a = AuthorDetail(author=Author(), is_preview=False)
+    reveal_type(a.author)  # N: Revealed type is "mymodels.Author"
+    reveal_type(a.is_preview)  # N: Revealed type is "builtins.bool"
+    reveal_type(a.render)  # N: Revealed type is "def (request: django.http.request.HttpRequest) -> django.template.response.TemplateResponse"
+
+    b = BookDetail(book=Book(), is_preview=True)
+    reveal_type(b.book)  # N: Revealed type is "mymodels.Book"
+    reveal_type(b.is_preview)  # N: Revealed type is "builtins.bool"
+    reveal_type(b.render)  # N: Revealed type is "def (request: django.http.request.HttpRequest) -> django.template.response.TemplateResponse"
+
+- case: template_with_pick_field
+  files:
+    - path: tpfmodels.py
+      content: |
+        from django.db import models
+        class Continent(models.Model):
+            name = models.CharField(max_length=100)
+            class Meta:
+                app_label = "myapp"
+  main: |
+    from typing import NamedTuple
+    from reactivated import Pick, template
+    from tpfmodels import Continent
+
+    @template
+    class ContinentView(NamedTuple):
+        continent: Pick[Continent, "name"]
+        is_preview: bool
+
+    t = ContinentView(continent=Continent(name="Asia"), is_preview=False)
+    reveal_type(t.continent)  # N: Revealed type is "tpfmodels.Continent"
+    reveal_type(t.is_preview)  # N: Revealed type is "builtins.bool"
+    reveal_type(t.render)  # N: Revealed type is "def (request: django.http.request.HttpRequest) -> django.template.response.TemplateResponse"
+
+- case: template_rejects_non_namedtuple
+  # @template's TypeVar is bounded to NamedTuple, so plain classes
+  # should produce a type error.
+  main: |
+    from reactivated import template
+
+    @template
+    class PlainTemplate:  # E: Value of type variable "T" of "template" cannot be "PlainTemplate"  [type-var]
+        def __init__(self, title: str) -> None:
+            self.title = title
+
+- case: template_with_existing_render_method
+  # If a class already defines its own render(), the plugin should
+  # override it with the correct signature.
+  main: |
+    from typing import NamedTuple
+    from reactivated import template
+
+    @template
+    class HasRender(NamedTuple):
+        value: int
+        def render(self) -> str:
+            return ""
+
+    t = HasRender(value=1)
+    reveal_type(t.render)  # N: Revealed type is "def (request: django.http.request.HttpRequest) -> django.template.response.TemplateResponse"

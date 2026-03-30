@@ -35,7 +35,7 @@ export REACTIVATED_PYTHON
 ./packages/create-django-app/scripts/sync-development.sh
 
 rm -rf packages/create-django-app/monorepo/
-python setup.py sdist -d packages/create-django-app/monorepo/
+uv build --sdist --out-dir packages/create-django-app/monorepo/
 mv packages/create-django-app/monorepo/*.tar.gz packages/create-django-app/monorepo/python.tar.gz
 tar xzf packages/create-django-app/monorepo/python.tar.gz -C packages/create-django-app/monorepo/
 rm packages/create-django-app/monorepo/python.tar.gz

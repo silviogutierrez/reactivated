@@ -77,6 +77,7 @@ if [ "$VERSIONING" != "snapshot" ]; then
 
     # Need to update the monorepo package-lock.json
     npm install
+    sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
     git commit -am "v${NEW_VERSION}"
     git tag "v${NEW_VERSION}"
 
@@ -95,17 +96,16 @@ else
     npm version --no-git-tag-version --new-version "${NEW_VERSION}"
     npm publish --tag cd
     cd "$PROJECT_ROOT"
+    sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
 fi
 echo "Published version $NEW_VERSION to NPM"
-
-pip install wheel
-python setup.py sdist bdist_wheel
-twine upload dist/*
+uv build
+uv publish --token "$TWINE_PASSWORD"
 echo "Published version $NEW_VERSION to PyPI"
 
 # Populate PyPI by forcing an install till it works.
 # shellcheck disable=SC2015
-for _ in 1 2 3 4 5; do pip install --ignore-installed "reactivated==$NEW_VERSION" && break || sleep 15; done
+for _ in 1 2 3 4 5; do uv pip install --reinstall "reactivated==$NEW_VERSION" && break || sleep 15; done
 
 echo "::set-output name=VERSION_TAG::v$NEW_VERSION"
 echo "::set-output name=SNAPSHOT_OR_RELEASE::$SNAPSHOT_OR_RELEASE"

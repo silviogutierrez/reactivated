@@ -7,15 +7,17 @@ COPY shell.nix shell.nix
 COPY requirements.nix requirements.nix
 
 RUN mkdir -p /output/store
-RUN nix-env -f shell.nix -i -A dependencies
+RUN nix-env -f shell.nix -i -A buildDeps
 RUN nix-env -f shell.nix -i -A dependencies --profile /output/profile
 RUN cp -va $(nix-store -qR /output/profile) /output/store
 
-COPY requirements.txt requirements.txt
+COPY pyproject.toml uv.lock ./
 COPY monorepo* monorepo/
 
 ENV PATH="/app/.venv/bin:${PATH}"
-RUN python -m venv .venv && pip install wheel && pip install --no-cache-dir -r requirements.txt
+RUN uv venv .venv --python python3
+RUN uv pip install --no-cache -r pyproject.toml
+RUN uv pip install --no-cache ./monorepo/python
 
 COPY package.json .
 COPY package-lock.json .
@@ -52,11 +54,8 @@ WORKDIR /app
 
 ENV NODE_ENV production
 
-COPY requirements.txt requirements.txt
-COPY monorepo* monorepo/
-
+COPY --from=builder /app/.venv .venv
 ENV PATH="/app/.venv/bin:${PATH}"
-RUN python -m venv .venv && pip install wheel && pip install --no-cache-dir -r requirements.txt
 
 COPY manage.py .
 COPY server server

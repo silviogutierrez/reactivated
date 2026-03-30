@@ -13,10 +13,6 @@ POSTGRESQL_LOGS="$VIRTUAL_ENV/postgresql/logs.txt"
 # directory just for that shell process.
 TMP_ENV="/tmp/reactivated/$(readlink -f "$VIRTUAL_ENV" | md5sum | awk '{print $1}')"
 
-# https://github.com/python/mypy/issues/13392
-# https://setuptools.pypa.io/en/latest/userguide/development_mode.html#legacy-behavior
-export SETUPTOOLS_ENABLE_FEATURES="legacy-editable"
-
 export PGPORT=1
 export PGDATABASE="database"
 export PGHOST=$TMP_ENV
@@ -29,9 +25,10 @@ if [ ! -d "$VIRTUAL_ENV" ]; then
     fi
 
     rm -rf "$TMP_ENV"
-    python -m venv "$VIRTUAL_ENV"
-    pip install -r requirements.txt --config-settings editable_mode=compat
+    uv venv "$VIRTUAL_ENV"
 fi
+
+uv sync --config-setting editable_mode=compat
 
 if [ ! -d "$POSTGRESQL_DATA" ]; then
     initdb "$POSTGRESQL_DATA"

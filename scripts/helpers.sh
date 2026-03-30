@@ -116,18 +116,6 @@ function start_database() {
     pg_ctl -D "$POSTGRESQL_DATA" start
 }
 
-function sync_template() {
-    local SCRIPT_PATH
-    SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-    local PROJECT_PATH
-    PROJECT_PATH="$SCRIPT_PATH/.."
-    cp "$PROJECT_PATH/packages/create-django-app/template/shell.nix" shell.nix
-    cp "$PROJECT_PATH/packages/create-django-app/template/requirements.txt" requirements.txt
-    cp "$PROJECT_PATH/packages/create-django-app/template/server/settings/localhost.py" server/settings/localhost.py
-    cp -RT "$PROJECT_PATH/packages/create-django-app/template/client" client
-    cp -RT "$PROJECT_PATH/packages/create-django-app/template/server/example" server/example
-}
-
 function clear_github_cache() {
     # Modified from https://hn.mrugesh.dev/how-to-delete-github-actions-caches-with-github-cli
     gh api -H "Accept: application/vnd.github+json" '/repos/{owner}/{repo}/actions/caches' -q '.actions_caches[] | {id} | .[]' --paginate |

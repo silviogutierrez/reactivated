@@ -35,7 +35,7 @@ nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = "
 if [ -d "$SCRIPT_PATH/../monorepo" ]; then
     MONOREPO_PYTHON_PATH="$(cd "$SCRIPT_PATH/../monorepo/python" && pwd)"
     nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install $SCRIPT_PATH/../monorepo/node.tgz"
-    printf '\n[tool.uv.sources]\nreactivated = { path = "%s" }\n' "$MONOREPO_PYTHON_PATH" >> pyproject.toml
+    printf '\n[tool.uv.sources]\nreactivated = { path = "%s" }\n' "$MONOREPO_PYTHON_PATH" >>pyproject.toml
 else
     nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install -E reactivated@${CURRENT_VERSION}"
 fi

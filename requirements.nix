@@ -9,6 +9,7 @@ in with pkgs; {
   inherit unstable;
 
   production_dependencies = [ pkgs.python312 unstable.nodejs_22 ];
+  build_dependencies = [ pkgs.python312 unstable.nodejs_22 unstable.uv pkgs.cacert ];
   development_dependencies = [
     unstable.uv
     unstable.flyctl

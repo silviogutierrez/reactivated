@@ -26,18 +26,18 @@ ln -s localhost.py "$PROJECT_NAME/server/settings/__init__.py"
 
 cd "$PROJECT_NAME" || exit
 mv gitignore.template .gitignore
-sed -i "s/reactivated==\(.*\)\"/reactivated==$PIP_CURRENT_VERSION\"/" pyproject.toml
+sed -i "s/\"reactivated\"/\"reactivated==$PIP_CURRENT_VERSION\"/" pyproject.toml
 
 git init --initial-branch=main
 
 nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm init --yes && npm pkg set type='module' && git add -A"
 
 if [ -d "$SCRIPT_PATH/../monorepo" ]; then
+    MONOREPO_PYTHON_PATH="$(cd "$SCRIPT_PATH/../monorepo/python" && pwd)"
     nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install $SCRIPT_PATH/../monorepo/node.tgz"
-    nix-shell --command "uv pip install $SCRIPT_PATH/../monorepo/python"
+    printf '\n[tool.uv.sources]\nreactivated = { path = "%s" }\n' "$MONOREPO_PYTHON_PATH" >> pyproject.toml
 else
     nix-shell -E '(import ./shell.nix).overrideAttrs ( oldAttrs: rec { shellHook = ""; })' --command "npm install -E reactivated@${CURRENT_VERSION}"
-    sed -i "s/reactivated==\(.*\)\"/reactivated==$PIP_CURRENT_VERSION\"/" pyproject.toml
 fi
 
 # Empty command for odd MacOS venv bug.

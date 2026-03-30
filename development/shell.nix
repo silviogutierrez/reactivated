@@ -4,6 +4,7 @@ in with requirements.pkgs;
 
 mkShell {
   dependencies = requirements.production_dependencies;
+  buildDeps = requirements.build_dependencies;
   buildInputs = requirements.production_dependencies
     ++ requirements.development_dependencies
     ++ requirements.contributing_dependencies;

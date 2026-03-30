@@ -1,7 +1,5 @@
 FROM nixos/nix:2.33.2 as builder
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
-
 RUN mkdir /app
 WORKDIR /app
 
@@ -9,7 +7,7 @@ COPY shell.nix shell.nix
 COPY requirements.nix requirements.nix
 
 RUN mkdir -p /output/store
-RUN nix-env -f shell.nix -i -A dependencies
+RUN nix-env -f shell.nix -i -A buildDeps
 RUN nix-env -f shell.nix -i -A dependencies --profile /output/profile
 RUN cp -va $(nix-store -qR /output/profile) /output/store
 
@@ -19,6 +17,7 @@ COPY monorepo* monorepo/
 ENV PATH="/app/.venv/bin:${PATH}"
 RUN uv venv .venv --python python3
 RUN uv pip install --no-cache -r pyproject.toml
+RUN uv pip install --no-cache ./monorepo/python
 
 COPY package.json .
 COPY package-lock.json .
@@ -50,19 +49,13 @@ RUN apk add postgresql-client
 COPY --from=builder /output/store /nix/store
 COPY --from=builder /output/profile/ /usr/local/
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
-
 RUN mkdir /app
 WORKDIR /app
 
 ENV NODE_ENV production
 
-COPY pyproject.toml uv.lock ./
-COPY monorepo* monorepo/
-
+COPY --from=builder /app/.venv .venv
 ENV PATH="/app/.venv/bin:${PATH}"
-RUN uv venv .venv --python python3
-RUN uv pip install --no-cache -r pyproject.toml
 
 COPY manage.py .
 COPY server server

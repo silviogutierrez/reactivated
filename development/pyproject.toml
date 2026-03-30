@@ -18,10 +18,3 @@ dependencies = [
 
 [tool.uv.sources]
 reactivated = { path = "..", editable = true }
-
-[tool.setuptools]
-packages = []
-
-[build-system]
-requires = ["setuptools>=64"]
-build-backend = "setuptools.build_meta"

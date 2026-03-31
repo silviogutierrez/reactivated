@@ -9,7 +9,6 @@ import sample.server.apps.samples.models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []

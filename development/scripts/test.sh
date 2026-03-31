@@ -94,9 +94,8 @@ cd "$PROJECT_ROOT"
 
 if [[ $SERVER -eq 1 ]]; then
     capture_stdout_and_stderr_if_successful pytest
-    capture_stdout_and_stderr_if_successful flake8 .
-    capture_stdout_and_stderr_if_successful isort -c .
-    capture_stdout_and_stderr_if_successful black . --check
+    capture_stdout_and_stderr_if_successful ruff check --force-exclude .
+    capture_stdout_and_stderr_if_successful ruff format --force-exclude --check .
     capture_stdout_and_stderr_if_successful mypy --no-incremental .
     capture_stdout_and_stderr_if_successful python manage.py makemigrations --dry-run --check
 fi

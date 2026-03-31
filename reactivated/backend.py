@@ -81,9 +81,9 @@ class JSXTemplate:
 
             return render_jsx_to_string(request, serialized_context, props)
 
-        assert (
-            False
-        ), "At this time, only templates with the request object can be rendered with reactivated"
+        assert False, (
+            "At this time, only templates with the request object can be rendered with reactivated"
+        )
 
 
 class AdapterTemplate(JSXTemplate):

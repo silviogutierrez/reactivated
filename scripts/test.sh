@@ -69,9 +69,8 @@ if [[ $SERVER -eq 1 ]]; then
     # See: https://github.com/microsoft/playwright/issues/5501
     PATH="$VIRTUAL_ENV/bin:/bin:/sbin/:$PATH"
     capture_stdout_and_stderr_if_successful pytest
-    capture_stdout_and_stderr_if_successful flake8 .
-    capture_stdout_and_stderr_if_successful isort -c .
-    capture_stdout_and_stderr_if_successful black . --check
+    capture_stdout_and_stderr_if_successful ruff check --force-exclude .
+    capture_stdout_and_stderr_if_successful ruff format --force-exclude --check .
     capture_stdout_and_stderr_if_successful mypy --no-incremental .
     PATH="$OLD_PATH"
 fi

@@ -98,7 +98,7 @@ def computed_foreign_key(
     ]
 ):
     def inner(
-        fget: Callable[[T], SOptionalInstance]
+        fget: Callable[[T], SOptionalInstance],
     ) -> ComputedRelation[T, S, SOptionalInstance]:
         return ComputedRelation(
             fget=fget, label=label, model=model, many=False, null=null

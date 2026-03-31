@@ -97,9 +97,9 @@ def get_field_descriptor(
     ):
         if len(remaining) == 0:
             if isinstance(field_descriptor.descriptor, ForeignObjectRel):
-                assert (
-                    False
-                ), f"You cannot Pick reverse relationships. Specify which fields from {field_name} you want, such as {field_name}.example_field"
+                assert False, (
+                    f"You cannot Pick reverse relationships. Specify which fields from {field_name} you want, such as {field_name}.example_field"
+                )
 
             if (
                 isinstance(field_descriptor.descriptor, (models.ForeignKey))
@@ -118,12 +118,14 @@ def get_field_descriptor(
                     (),
                 )
 
-            assert (
-                False
-            ), f"Do not specify related fields directly for model {model_class} in {pick_name}. Use {field_name}_id if you just want the reference or {field_name}.subfield if you want fields inside the related model"
+            assert False, (
+                f"Do not specify related fields directly for model {model_class} in {pick_name}. Use {field_name}_id if you just want the reference or {field_name}.subfield if you want fields inside the related model"
+            )
 
         nested_descriptor, nested_field_names = get_field_descriptor(
-            pick_name, field_descriptor.annotation or field_descriptor.descriptor.related_model, remaining  # type: ignore[arg-type]
+            pick_name,
+            field_descriptor.annotation or field_descriptor.descriptor.related_model,  # type: ignore[arg-type]
+            remaining,
         )
 
         # TODO: Maybe RelatedField replaces all of the above?

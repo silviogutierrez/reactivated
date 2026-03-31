@@ -1,7 +1,6 @@
 from typing import Any
 
 from django import forms
-
 from reactivated.forms import ModelFormSetFactory
 
 from . import models

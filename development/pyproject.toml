@@ -24,4 +24,4 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["server", "reactivated"]
+known-first-party = ["server"]

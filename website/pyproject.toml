@@ -24,6 +24,3 @@ ignore = [
     "F403",  # Wildcard imports: mypy analyzes these.
     "F821",  # Undefined names: used in Pick literals.
 ]
-
-[tool.ruff.lint.isort]
-known-first-party = ["server"]

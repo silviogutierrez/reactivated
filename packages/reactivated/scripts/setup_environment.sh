@@ -26,7 +26,7 @@ if [ ! -d "$VIRTUAL_ENV" ]; then
 
     rm -rf "$TMP_ENV"
     uv venv "$VIRTUAL_ENV"
-    uv sync
+    uv sync --config-setting editable_mode=compat
 fi
 
 if [ ! -d "$POSTGRESQL_DATA" ]; then

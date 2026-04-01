@@ -26,16 +26,15 @@ if [ ! -d "$VIRTUAL_ENV" ]; then
 
     rm -rf "$TMP_ENV"
     uv venv "$VIRTUAL_ENV"
+    uv sync
 fi
-
-uv sync --config-setting editable_mode=compat
 
 if [ ! -d "$POSTGRESQL_DATA" ]; then
     initdb "$POSTGRESQL_DATA"
 
     if [ -f "$EXTERNAL_PID" ]; then
         pid_to_kill=$(cat "$EXTERNAL_PID")
-        kill -9 "$pid_to_kill" &>/dev/null || echo "No PostgresSQL process to kill"
+        kill -9 "$pid_to_kill" &>/dev/null || echo "No PostgreSQL process to kill"
     fi
 
     rm -rf "$TMP_ENV"
@@ -44,10 +43,13 @@ fi
 
 mkdir -p "$TMP_ENV"
 
-if [ ! -f "$EXTERNAL_PID" ]; then
+if ! pg_ctl status -D "$POSTGRESQL_DATA" &>/dev/null; then
+    rm -f "$EXTERNAL_PID"
     pg_ctl -o "-p 1 -k \"$PGHOST\" -c listen_addresses=\"\" -c external_pid_file=\"$EXTERNAL_PID\"" -D "$POSTGRESQL_DATA" -l "$POSTGRESQL_LOGS" start &>/dev/null
 fi
 
 if [ "$NEED_DATABASE" == true ]; then
     createdb $PGDATABASE &>/dev/null
 fi
+
+export DATABASE_URL="postgres:///database?host=$TMP_ENV&port=1"

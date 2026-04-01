@@ -4,9 +4,9 @@ As an open source project, Reactivated welcomes contributions of many forms.
 
 Examples of contributions include:
 
-* Code patches
-* Documentation improvements
-* Bug reports and patch reviews
+- Code patches
+- Documentation improvements
+- Bug reports and patch reviews
 
 Philosophy guidelines are available online at:
 

@@ -135,6 +135,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-citext"
+version = "1.0.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6a/63/dcb42e0b4c8b61f0d6da2145ec853893565d75660d6c99357a19e49f2ba4/django_citext-1.0.3.tar.gz", hash = "sha256:aaec55853c84cd48de1668fb059acba98bef4e343a4420b0e670773498e0aedd", size = 4427, upload-time = "2025-12-01T12:28:54.024Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d2/b2/82162fd3270def4b8f79e752e6bafe22815fe70c07b29a245b6a2a752f7e/django_citext-1.0.3-py3-none-any.whl", hash = "sha256:30167d71369438ee27b76643466cf0d35a9dad43b3f4c8d1924efd9ba2f88dcd", size = 5295, upload-time = "2025-12-01T12:28:52.747Z" },
+]
+
+[[package]]
 name = "django-extensions"
 version = "3.2.3"
 source = { registry = "https://pypi.org/simple" }
@@ -679,6 +691,7 @@ name = "reactivated"
 version = "0.49.1"
 source = { editable = "." }
 dependencies = [
+    { name = "django-citext" },
     { name = "django-stubs" },
     { name = "mypy" },
     { name = "requests" },
@@ -714,6 +727,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "django-citext", specifier = ">=1.0.3" },
     { name = "django-stubs", specifier = "~=5.1" },
     { name = "mypy", specifier = "~=1.14" },
     { name = "requests", specifier = ">=2.25.0" },

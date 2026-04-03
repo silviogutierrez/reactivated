@@ -11,6 +11,7 @@ Monorepo workspaces: `packages/reactivated/` (core TS package), `reactivated/` (
 ## Development Commands
 
 ### Testing
+
 ```bash
 ./scripts/test.sh              # Run all checks (Python tests, lint, format, types)
 ./scripts/test.sh --server     # Python only: pytest, flake8, isort, black, mypy
@@ -28,6 +29,7 @@ npm exec tsc -- --noEmit
 ```
 
 ### Code Formatting
+
 ```bash
 ./scripts/fix.sh               # Auto-fix all git-changed files (py, ts, sh, nix)
 ./scripts/fix.sh path/to/file  # Fix a specific file
@@ -35,6 +37,7 @@ npm exec tsc -- --noEmit
 ```
 
 ### Building
+
 ```bash
 cd packages/reactivated && npm run build  # Compile TS src/ → dist/ (just runs tsc)
 ```
@@ -53,6 +56,7 @@ This is the most important architectural concept. Python types flow to TypeScrip
 ### Dev Server Flow
 
 When `manage.py runserver` runs, `reactivated/__init__.py` patches the process:
+
 - Assigns Django to an internal port, gives Vite the user-facing port
 - Runs type generation (`run_generations()`)
 - Spawns Vite dev server (`npm exec start_vite`) which proxies non-asset requests to Django
@@ -94,6 +98,7 @@ When monitoring CI after a push, only wait for "Code tests" and the ubuntu integ
 ## Environment
 
 Uses Nix (`shell.nix`) for dependency management. Key env vars:
+
 - `REACTIVATED_RENDERER` — SSR server address (skips spawning Vite if set)
 - `REACTIVATED_SKIP_SERVER` — Disables dev server patching
 - `REACTIVATED_SKIP_GENERATIONS` — Skips type generation

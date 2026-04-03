@@ -31,6 +31,8 @@
         height: 100%;
         margin: 0;
         font-size: 15px;
+        display: flex;
+        flex-direction: column;
     }
 
     a {
@@ -49,6 +51,30 @@
         margin: 0;
         font-weight: 400;
         list-style-type: none;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    h2 {
+        font-size: 1.5em;
+    }
+
+    h3 {
+        font-size: 1.17em;
+    }
+
+    h4 {
+        font-size: 1em;
+    }
+
+    h5 {
+        font-size: 0.83em;
+    }
+
+    h6 {
+        font-size: 0.67em;
     }
 
     h1,
@@ -81,11 +107,6 @@
         border-radius: 15px;
     }
 
-    #root {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
 }
 
 @layer components {

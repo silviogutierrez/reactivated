@@ -39,9 +39,10 @@ export const render = async (
         {eager: true},
     )["/client/renderer.tsx"];
 
-    const {context, props} = req.body;
+    const {context, props, entry_point: requestEntryPoint} = req.body;
     const Template = await getTemplate(context);
     const scriptNonce = context.request.csp_nonce ?? undefined;
+    const resolvedEntryPoint = requestEntryPoint ?? entryPoint;
 
     const {STATIC_URL} = context;
 
@@ -54,7 +55,7 @@ export const render = async (
     const CSSLoader: React.FC<React.PropsWithChildren> = ({children}) => {
         if (mode === "production") {
             preinit(
-                `${STATIC_URL}dist/${entryPoint}.css?v=${process.env.RELEASE_VERSION ?? ""}`,
+                `${STATIC_URL}dist/${resolvedEntryPoint}.css?v=${process.env.RELEASE_VERSION ?? ""}`,
                 {as: "style"},
             );
         }
@@ -92,9 +93,9 @@ export const render = async (
             bootstrapModules:
                 mode === "production"
                     ? [
-                          `${STATIC_URL}dist/${entryPoint}.js?v=${process.env.RELEASE_VERSION ?? ""}`,
+                          `${STATIC_URL}dist/${resolvedEntryPoint}.js?v=${process.env.RELEASE_VERSION ?? ""}`,
                       ]
-                    : [`${STATIC_URL}dist/client/${entryPoint}.tsx`],
+                    : [`${STATIC_URL}dist/client/${resolvedEntryPoint}.tsx`],
             onError(error) {
                 hasError = true;
                 if (ssrFixStacktrace) {

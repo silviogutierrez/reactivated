@@ -66,7 +66,7 @@ When `manage.py runserver` runs, `reactivated/__init__.py` patches the process:
 
 - **`@template`** (`templates.py`): Decorates a `NamedTuple` to create a full-page React component. Adds `.render(request) -> TemplateResponse`. Component file must be at `client/templates/ClassName.tsx`.
 - **`@interface`** (`templates.py`): Like `@template` but returns JSON (or HTML preview). Adds `.render(request)` and `.as_json(request)`.
-- **`@export`** / **`export()`** (`__init__.py`): Exposes Python values (enums, primitives) to TypeScript as `constants` object.
+- **`@export`** / **`export()`** (`__init__.py`): Exposes Python values (enums, primitives) to TypeScript as `constants` object. Use `@export(value=True)` on an `Enum` to make it available as `constants["app.Model.Enum"]` on the frontend, mapping enum names to values (e.g. `{NEW: "New", QUALIFIED: "Qualified"}`). Enums are serialized by **name** in JSON (e.g. `"NEW"`), not by value. When accepting an enum in an RPC input, type the field as the enum class directly (e.g. `status: Lead.Status`) — Pydantic validates automatically, no manual mapping needed.
 - **`Pick[Model, "field1", "field2.nested"]`** (`pick.py`): Type-safe selective model field exposure with dot-path traversal support.
 - **`serialization/`**: `create_schema()` converts Python types to JSON Schema definitions; `serialize()` converts instances to JSON-safe dicts. `registry.py` holds all global registries and `PROXIES` for built-in types.
 

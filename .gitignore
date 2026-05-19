@@ -3,6 +3,7 @@ dist
 *.egg-info
 
 packages/reactivated/src/generated.tsx
+sample/client/schema.tsx
 *.pyc
 *.sqlite3
 .DS_Store

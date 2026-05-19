@@ -68,6 +68,11 @@ def run_generations(skip_cache: bool = False) -> None:
     for generate_callback in generate_callbacks:
         generate_callback(skip_cache)
 
+    from .rpc.core import generate_client_schema, generate_server_schema
+
+    generate_server_schema(skip_cache=skip_cache)
+    generate_client_schema(skip_cache=skip_cache)
+
     from .apps import generate_schema
 
     generate_schema(skip_cache)

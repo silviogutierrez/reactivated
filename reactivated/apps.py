@@ -14,7 +14,6 @@ from .serialization.registry import (
     definitions_registry,
     global_types,
     interface_registry,
-    rpc_registry,
     template_registry,
     type_registry,
     value_registry,
@@ -146,7 +145,7 @@ def get_values() -> dict[str, Any]:
 
 def get_schema() -> str:
     schema = {
-        "rpc": rpc_registry,
+        "rpc": {},
         "urls": get_urls_schema(),
         "templates": get_templates(),
         "interfaces": get_interfaces(),

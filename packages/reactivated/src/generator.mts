@@ -11,22 +11,10 @@ const stdinBuffer = fs.readFileSync(0);
 const {compile} = await import("json-schema-to-typescript");
 
 import {
-    CodeBlockWriter,
     Project,
-    Scope,
-    SourceFile,
-    StructureKind,
-    SyntaxKind,
     VariableDeclarationKind,
-    WriterFunction,
-    Writers,
     InterfaceDeclarationStructure,
     OptionalKind,
-    MethodDeclarationStructure,
-    PropertyDeclarationStructure,
-    ParameterDeclarationStructure,
-    StatementedNodeStructure,
-    StatementStructures,
 } from "ts-morph";
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
@@ -34,12 +22,8 @@ const {
     urls: possibleEmptyUrls,
     templates,
     interfaces,
-    rpc: uncastedRpc,
     types,
-    values,
 } = schema;
-
-const rpc: generated.Types["RPCRegistry"] = uncastedRpc;
 
 const urls: generated.Types["URLSchema"] = {
     ...possibleEmptyUrls,
@@ -59,142 +43,6 @@ const project = new Project();
 
 const sourceFile = project.createSourceFile("types");
 const urlFile = project.createSourceFile("urls");
-
-const rpcConstructorStructure = {
-    statements: [] as string[],
-    parameters: [
-        {
-            name: "requester",
-            type: "rpcUtils.Requester",
-            isReadonly: false,
-            scope: Scope.Public,
-            decorators: [],
-            hasQuestionToken: false,
-            hasOverrideKeyword: false,
-            kind: StructureKind.Parameter as const,
-            isRestParameter: false,
-        },
-    ],
-    typeParameters: [],
-    docs: [],
-    kind: StructureKind.Constructor as const,
-    overloads: [],
-};
-
-const rpcStructure = {
-    decorators: [],
-    typeParameters: [],
-    docs: [],
-    isAbstract: false,
-    implements: [],
-    name: "RPC",
-    isExported: true,
-    isDefaultExport: false,
-    hasDeclareKeyword: false,
-    kind: StructureKind.Class as const,
-    ctors: [rpcConstructorStructure],
-    properties: [] as OptionalKind<PropertyDeclarationStructure>[],
-    methods: [] as OptionalKind<MethodDeclarationStructure>[],
-};
-
-for (const name of Object.keys(rpc)) {
-    const {url, input, output, type, params} = rpc[name];
-
-    const methodStructure = {
-        kind: StructureKind.Method as const,
-        name,
-        isAsync: true,
-        parameters: [] as OptionalKind<ParameterDeclarationStructure>[],
-        statements: [] as (string | StatementStructures)[],
-        returnType: "",
-    };
-
-    rpcConstructorStructure.statements.push(
-        `this.${name} = (this.${name} as any).bind(this);\n`,
-    );
-
-    methodStructure.parameters?.push({
-        name: "this",
-        type: "void",
-    });
-
-    let bodyText = "";
-    const initializer = {
-        url: (writer: CodeBlockWriter) => writer.quote(url),
-        name: (writer: CodeBlockWriter) => writer.quote(name),
-    };
-
-    if (params.length >= 1) {
-        const paramsProperties = [];
-
-        const iterator = [];
-        for (const [paramType, paramName] of params) {
-            paramsProperties.push({name: paramName, type: "string | number"});
-            iterator.push(paramName);
-        }
-        methodStructure.parameters?.push({
-            name: "params",
-            type: Writers.objectType({properties: paramsProperties}),
-            isReadonly: false,
-            decorators: [],
-            hasQuestionToken: false,
-            hasOverrideKeyword: false,
-            kind: StructureKind.Parameter as const,
-            isRestParameter: false,
-        });
-
-        Object.assign(initializer, {
-            paramsAndIterator: Writers.object({
-                iterator: JSON.stringify(iterator),
-                params: "params",
-            }),
-        });
-    } else {
-        Object.assign(initializer, {paramsAndIterator: "null"});
-    }
-
-    if (input != null) {
-        rpcStructure.properties?.push({
-            name: input,
-            type: `_Types["${input}"]`,
-            initializer: JSON.stringify(values[input]),
-        });
-        methodStructure.parameters?.push({
-            name: "input",
-            type: `forms.FormOrFormSetValues<_Types["${input}"]>`,
-        });
-
-        methodStructure.returnType = `Promise<rpcUtils.Result<_Types["${output}"], forms.FormOrFormSetErrors<_Types["${input}"]>, _Types["RPCPermission"]>>`;
-
-        Object.assign(initializer, {
-            input: Writers.object({
-                values: "input",
-                type: (writer: CodeBlockWriter) =>
-                    writer.quote(type).write(" as const"),
-            }),
-        });
-    } else {
-        methodStructure.returnType = `Promise<rpcUtils.Result<_Types["${output}"], null, _Types["RPCPermission"]>>`;
-        Object.assign(initializer, {input: "null"});
-    }
-
-    methodStructure.statements?.push({
-        kind: StructureKind.VariableStatement,
-        declarationKind: VariableDeclarationKind.Const,
-        declarations: [
-            {
-                name: "options",
-                initializer: Writers.object(initializer),
-            },
-        ],
-    });
-    methodStructure.statements?.push(
-        "return rpcUtils.rpcCall((this as any).requester, options)",
-    );
-    rpcStructure.methods?.push(methodStructure);
-}
-
-sourceFile.addClass(rpcStructure);
 
 if (Object.keys(urls).length == 0) {
     urlFile.addStatements(`export const reverse () => throw new Error("No urls")`);
@@ -287,7 +135,7 @@ sourceFile.addStatements(`
 import type {Renderer as GenericRenderer} from "reactivated/dist/render.mjs";
 export type Renderer = GenericRenderer<_Types["Context"]>;
 
-export const rpc = new RPC(typeof window != "undefined" ? rpcUtils.defaultRequester : null as any);
+export const rpc = {requester: typeof window != "undefined" ? rpcUtils.defaultRequester : null as any};
 import React from "react"
 import * as generated from "reactivated/dist/generated";
 import * as rpcUtils from "reactivated/dist/rpc";
@@ -301,12 +149,8 @@ export function classNames(...classes: (string | undefined | null | false)[]) {
 // Note: this needs strict function types to behave correctly with excess properties etc.
 export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentClass<P>)> = {};
 
-export type Result<TSuccess, TInvalid> = rpcUtils.Result<TSuccess, TInvalid, _Types["RPCPermission"]>;
-
 export {Context} from "./context";
 import {Context} from "./context";
-
-import * as forms from "reactivated/dist/forms";
 export type {FormHandler} from "reactivated/dist/forms";
 export {reverse} from "./urls";
 

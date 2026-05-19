@@ -5,17 +5,20 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
+import requests
 from django.conf import settings
 from django.core.management import call_command
 from django.http import HttpResponse
 from django.urls import path
+from playwright.async_api import Page
 
 from reactivated import registry
 
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 
-def test_end_to_end(client, live_server, page):
+@pytest.mark.asyncio
+async def test_end_to_end(client, live_server, page: Page):
     registry.type_registry.clear()
     registry.global_types.clear()
     registry.global_types["Widget"] = registry.DefaultWidgetType
@@ -24,7 +27,6 @@ def test_end_to_end(client, live_server, page):
     registry.interface_registry.clear()
     registry.value_registry.clear()
     registry.definitions_registry.clear()
-    registry.rpc_registry.clear()
 
     call_command("generate_client_assets")
     call_command("build")
@@ -33,8 +35,8 @@ def test_end_to_end(client, live_server, page):
     raw_response = client.get("/")
     print(f"RAW HTML (no JS): {raw_response.content.decode()}")
 
-    page.goto(live_server.url)
-    content = page.content()
+    await page.goto(live_server.url)
+    content = await page.content()
     print(f"PLAYWRIGHT CONTENT (after JS): {content}")
 
     # Check that CSS is loaded via preinit (data-precedence is added by React's preinit)
@@ -42,8 +44,6 @@ def test_end_to_end(client, live_server, page):
     assert 'data-precedence="default"' in content
 
     # Fetch and verify CSS contains expected styles from tailwind
-    import requests
-
     css_response = requests.get(f"{live_server.url}/static/dist/index.css")
     assert css_response.status_code == 200
     css_content = css_response.text
@@ -65,7 +65,6 @@ def test_default_widget(tmp_path):
     registry.interface_registry.clear()
     registry.value_registry.clear()
     registry.definitions_registry.clear()
-    registry.rpc_registry.clear()
 
     tsconfig = Path(settings.BASE_DIR) / "tsconfig.pytest.json"
     tsconfig.write_text(
@@ -130,7 +129,6 @@ def test_unnamed_urls(tmp_path):
     registry.interface_registry.clear()
     registry.value_registry.clear()
     registry.definitions_registry.clear()
-    registry.rpc_registry.clear()
 
     tsconfig = Path(settings.BASE_DIR) / "tsconfig.pytest.json"
     tsconfig.write_text(
@@ -175,7 +173,6 @@ def test_no_urls(tmp_path):
     registry.interface_registry.clear()
     registry.value_registry.clear()
     registry.definitions_registry.clear()
-    registry.rpc_registry.clear()
 
     tsconfig = Path(settings.BASE_DIR) / "tsconfig.pytest.json"
     tsconfig.write_text(

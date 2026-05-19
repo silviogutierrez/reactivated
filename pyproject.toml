@@ -17,6 +17,9 @@ dependencies = [
     "django-stubs~=5.1",
     "simplejson>=3.16.0",
     "django-citext>=1.0.3",
+    "pydantic>=2.10",
+    "typing-extensions>=4.0",
+    "asgiref>=3.7",
 ]
 
 [dependency-groups]
@@ -35,10 +38,12 @@ dev = [
     "pytest-base-url==2.1.0",
     "pytest-django==4.9.0",
     "pytest-mypy-plugins==3.1.2",
-    "pytest-playwright==0.5.2",
+    "pytest-playwright-asyncio==0.7.2",
     "python-slugify==8.0.4",
     "PyYAML==6.0.1",
     "syrupy==4.7.2",
+    "pytest-asyncio>=0.26",
+    "pytest-mock>=3.12",
     "types-PyYAML==6.0.12.20240724",
     "types-requests==2.32.0.20241016",
     "types-simplejson==3.19.0.20240801",
@@ -57,6 +62,18 @@ include = ["reactivated*"]
 
 [tool.setuptools.package-data]
 reactivated = ["py.typed", "templates/**/*"]
+
+[tool.pytest.ini_options]
+norecursedirs = [".venv", "node_modules"]
+DJANGO_SETTINGS_MODULE = "sample.server.settings"
+python_files = ["tests/*.py"]
+addopts = "--mypy-ini-file=tests/mypy/mypy.ini --mypy-only-local-stub"
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_default_test_loop_scope = "session"
+filterwarnings = [
+    "ignore:pyee.AsyncIOEventEmitter has been moved to the pyee.asyncio module.",
+]
 
 [tool.ruff.lint]
 ignore = [

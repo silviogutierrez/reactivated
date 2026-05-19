@@ -75,10 +75,17 @@ def should_respond_with_json(request: HttpRequest) -> bool:
 session = requests_unixsocket.Session()  # type: ignore[no-untyped-call]
 
 
-def render_jsx_to_string(request: HttpRequest, context: Any, props: Any) -> str:
+def render_jsx_to_string(
+    request: HttpRequest,
+    context: Any,
+    props: Any,
+    entry_point: str | None = None,
+) -> str:
     respond_with_json = should_respond_with_json(request)
 
-    payload = {"context": context, "props": props}
+    payload: dict[str, Any] = {"context": context, "props": props}
+    if entry_point is not None:
+        payload["entry_point"] = entry_point
     data = simplejson.dumps(payload)
     headers = {"Content-Type": "application/json"}
 

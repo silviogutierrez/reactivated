@@ -51,7 +51,7 @@ const clientConfig = {
         rolldownOptions: {
             input: "/client/index.tsx",
             output: {
-                inlineDynamicImports: true,
+                codeSplitting: false,
                 entryFileNames: `[name].js`,
                 chunkFileNames: `[name].js`,
                 assetFileNames: `[name].[ext]`,
@@ -107,7 +107,7 @@ const rendererConfig = {
         rolldownOptions: {
             input: "reactivated/dist/server.mjs",
             output: {
-                inlineDynamicImports: true,
+                codeSplitting: false,
                 entryFileNames: `renderer.mjs`,
                 chunkFileNames: `renderer.mjs`,
                 assetFileNames: `renderer.[ext]`,

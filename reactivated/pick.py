@@ -71,7 +71,9 @@ def get_field_descriptor(
                 if isinstance(possible_method_or_property, property)
                 else (possible_method_or_property, True)
             )
-            annotations = get_type_hints(possible_method, localns=resolved_hints)
+            annotations = get_type_hints(
+                possible_method, localns=resolved_hints, include_extras=True
+            )
 
             field_descriptor = FieldDescriptorWrapper(
                 descriptor=ComputedField(

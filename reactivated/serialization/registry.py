@@ -1,7 +1,7 @@
 from collections.abc import Callable, Mapping
 from typing import Any, Literal, NamedTuple, TypeVar
 
-from reactivated import types, utils
+from reactivated import utils
 
 DefaultWidgetType = {"tsType": 'generated.Types["Widget"]'}
 DefaultModelsType = {"type": "null"}
@@ -15,7 +15,6 @@ template_registry: dict[str, tuple[Any]] = {}
 interface_registry: dict[str, tuple[Any]] = {}
 value_registry: dict[str, tuple[Any, Literal["primitive", "class", "enum"]]] = {}
 definitions_registry: dict[Any, Any] = {}
-rpc_registry: types.RPCRegistry = {}
 
 PROXIES = utils.ClassLookupDict({})
 

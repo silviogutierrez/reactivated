@@ -20,6 +20,7 @@ from reactivated.rpc.core import (
     PickAsDict,
     PickProxy,
     Primitive,
+    _type_to_str,
     form_from_type_adapter,
     generate_server_schema,
     get_field_schema,
@@ -839,3 +840,7 @@ def test_schema_generation_with_extra_fields(settings: Any, tmp_path: Any) -> No
     assert "builtins.list[builtins.tuple[builtins.str, builtins.int]]" in generated
 
     sys.path.remove(str(schema_dir))
+
+
+def test_type_to_str_pick_holder() -> None:
+    assert _type_to_str(MyPick) == f"{MyPick.get_name()}_output"  # type: ignore[attr-defined]

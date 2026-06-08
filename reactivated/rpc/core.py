@@ -22,7 +22,6 @@ from django import forms
 from django.apps import apps
 
 import site
-# from timezone_field import TimeZoneField
 
 from django.core.exceptions import ObjectDoesNotExist
 import decimal
@@ -763,7 +762,12 @@ register(_EnumField)(EnumType)
 
 register(ArrayField)(list[str])
 
-# register(TimeZoneField)(ZoneInfoType)
+try:
+    from timezone_field import TimeZoneField  # type: ignore[import-not-found]
+
+    register(TimeZoneField)(ZoneInfoType)
+except ImportError:
+    pass
 
 try:
     from phonenumber_field.modelfields import PhoneNumberField  # type: ignore[import-not-found]
@@ -1866,6 +1870,10 @@ def _type_to_str(t: Any) -> str:
     # NoneType
     if t is NoneType:
         return "None"
+
+    # PickHolder types (from pick()) - use generated class name
+    if isinstance(t, type) and issubclass(t, BasePickHolder):
+        return f"{t.get_name()}_output"
 
     # Plain type with module
     if hasattr(t, "__module__") and hasattr(t, "__qualname__"):

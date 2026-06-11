@@ -28,6 +28,7 @@ from reactivated.rpc.core import (
     pick,
 )
 from reactivated.rpc.forms import get_form_schema
+from reactivated.rpc.utils import flatten_schema
 
 
 def unique_email() -> str:
@@ -840,6 +841,32 @@ def test_schema_generation_with_extra_fields(settings: Any, tmp_path: Any) -> No
     assert "builtins.list[builtins.tuple[builtins.str, builtins.int]]" in generated
 
     sys.path.remove(str(schema_dir))
+
+
+class _Color(enum.StrEnum):
+    RED = "RED"
+    GREEN = "GREEN"
+
+
+class _FlattenTarget(Pick):
+    action: Literal["CREATE"]
+    color: _Color
+    items: list[Pick]
+
+
+def test_flatten_schema() -> None:
+    schema = _FlattenTarget.model_json_schema()
+    assert "$defs" in schema
+
+    result = flatten_schema(schema)
+    serialized = json.dumps(result)
+
+    assert "$defs" not in result
+    assert "$ref" not in serialized
+    assert '"title"' not in serialized
+    assert '"format"' not in serialized
+    assert result["properties"]["action"]["const"] == "CREATE"
+    assert result["properties"]["color"]["enum"] == ["RED", "GREEN"]
 
 
 def test_type_to_str_pick_holder() -> None:

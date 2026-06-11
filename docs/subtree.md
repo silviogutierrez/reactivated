@@ -1,0 +1,265 @@
+# Vendoring Reactivated as a Subtree
+
+Instead of installing reactivated from PyPI and npm, you can vendor the framework
+source directly into your project. This enables live editing of the framework during
+development: fix a bug or add a feature in the vendored copy, use it immediately in
+your app, and push the change upstream as a PR when it's ready.
+
+## Directory layout
+
+Vendor the repo at `upstream/reactivated/` in your project root:
+
+```
+upstream/reactivated/           # vendored copy of github.com/silviogutierrez/reactivated
+├── reactivated/                # Python package (Django app)
+├── packages/reactivated/       # TypeScript package (npm)
+├── scripts/generate_types.py   # Generates TS types from Python
+├── pyproject.toml              # Python package metadata
+└── ...                         # tests, sample, website, etc.
+```
+
+### Why `upstream/reactivated` and not `reactivated`
+
+The directory cannot be named `reactivated/` at the project root because Python's
+import system would find it as a namespace package (it has no `__init__.py` at the top
+level) before the editable install's finder can intercept. Nesting it under `upstream/`
+eliminates the collision between the directory name and the Python package name.
+
+## Wiring it up
+
+### Python — `pyproject.toml`
+
+Point uv at the local source with an editable install:
+
+```toml
+[project]
+dependencies = [
+    "reactivated",
+]
+
+[tool.uv.sources]
+reactivated = { path = "./upstream/reactivated", editable = true }
+```
+
+### Node — `package.json`
+
+```jsonc
+"dependencies": {
+    "reactivated": "file:upstream/reactivated/packages/reactivated"
+}
+```
+
+## Build steps
+
+After cloning or pulling changes to the subtree:
+
+```bash
+uv sync                          # Install Python deps (editable reactivated)
+npm install                      # Install Node deps (symlinks to subtree)
+
+# Generate types (writes packages/reactivated/src/generated.tsx):
+cd upstream/reactivated
+PATH=$(pwd)/../../node_modules/.bin:$PATH python scripts/generate_types.py
+cd ../..
+
+# Initial build (required once before dev server works):
+npx tsc -p upstream/reactivated/packages/reactivated/tsconfig.json
+```
+
+## Live editing
+
+Both Python and Node changes are picked up without reinstalling:
+
+- **Python**: The editable install means changes to
+  `upstream/reactivated/reactivated/*.py` are immediately visible — no `uv sync`
+  needed.
+- **Node**: npm creates a symlink (`node_modules/reactivated` ->
+  `upstream/reactivated/packages/reactivated`). Rebuild the TypeScript after editing
+  and changes are visible through the symlink:
+
+```bash
+# One-off build:
+npx tsc -p upstream/reactivated/packages/reactivated/tsconfig.json
+
+# Watch mode (auto-rebuilds on save):
+npx tsc -p upstream/reactivated/packages/reactivated/tsconfig.json --watch
+```
+
+**Note for CI and Docker**: `npm ci` copies instead of symlinking, so re-run
+`npm install ./upstream/reactivated/packages/reactivated` after compiling the
+TypeScript to update the copy with the freshly built `dist/`.
+
+## Why not `git subtree` or `git submodule`?
+
+- **`git subtree`** is fundamentally incompatible with squash merges. `git subtree pull`
+  creates two-parent merge commits that link upstream history to the parent repo.
+  `git subtree split/push` walks the commit graph looking for those merge commits to
+  know what's already been synced. Squash merging (GitHub's default for PRs) flattens
+  those into single-parent commits, severing the link. The next `split` either
+  reprocesses the entire history (producing duplicate commits upstream) or fails
+  outright with "Can't squash-merge: '<dir>' was never added". On top of that, GitHub's
+  squash merge rewrites commit messages with CRLF line endings, which breaks the
+  `git-subtree-dir:` / `git-subtree-split:` markers that `git subtree` (a bash script)
+  greps for. If either repo uses squash merges, `git subtree` is broken by design.
+- **`git submodule`** adds deployment complexity (submodule init/update in CI, Docker,
+  every clone) and makes the subtree feel second-class. Vendoring keeps everything in
+  one repo with one `git clone`.
+
+Instead, use **patch-based sync**: generate diffs between known commits and apply them
+with `git apply --3way`, which preserves local additions on both sides and uses git's
+merge machinery to handle conflicts.
+
+## Sync version tracking
+
+The subtree's `pyproject.toml` contains the `version` field (e.g. `0.50.1`). This is
+the **upstream version the subtree is synced to**. Your project may have local
+additions on top, but this version tells you the upstream baseline.
+
+To find what's new upstream since the last sync:
+
+```bash
+REACTIVATED=/path/to/reactivated/checkout
+SYNCED_VERSION=$(grep '^version' upstream/reactivated/pyproject.toml | sed 's/.*"\(.*\)"/\1/')
+
+cd $REACTIVATED && git checkout main && git pull
+git log --oneline v$SYNCED_VERSION..HEAD
+```
+
+## Pushing changes upstream (creating a PR)
+
+When you've accumulated changes in `upstream/reactivated/` and want to contribute them
+back:
+
+1. **Find the baseline commit** — the last commit in your project that synced with
+   upstream:
+
+    ```bash
+    git log --oneline -- upstream/reactivated/ | head -20
+    ```
+
+2. **Generate a patch** from your subtree changes, stripping the
+   `upstream/reactivated/` prefix so paths match this repo's layout:
+
+    ```bash
+    git diff <baseline>..HEAD -- upstream/reactivated/ \
+      | sed -E \
+        -e 's|^diff --git a/upstream/reactivated/(.+) b/upstream/reactivated/(.+)|diff --git a/\1 b/\2|' \
+        -e 's|^--- a/upstream/reactivated/|--- a/|' \
+        -e 's|^\+\+\+ b/upstream/reactivated/|+++ b/|' \
+        -e 's|^rename from upstream/reactivated/|rename from |' \
+        -e 's|^rename to upstream/reactivated/|rename to |' \
+      > /tmp/reactivated-changes.patch
+    ```
+
+3. **Create a branch on a reactivated checkout** from `main`, apply the patch:
+
+    ```bash
+    cd /path/to/reactivated/checkout
+    git checkout main && git pull
+    git checkout -b downstream/my-changes main
+    git apply --3way /tmp/reactivated-changes.patch
+    ```
+
+    `--3way` uses git's merge machinery, so conflicts are resolvable with standard
+    tools instead of failing outright.
+
+4. **Rebuild lock files** if `pyproject.toml` or
+   `packages/reactivated/package.json` changed:
+
+    ```bash
+    uv lock
+    npm install --package-lock-only
+    ```
+
+5. **Commit, push, create a PR** against `silviogutierrez/reactivated`.
+
+6. After the PR merges, pull the squashed result back down using the patch flow below.
+   This picks up any fixes made during review.
+
+## Pulling upstream changes
+
+When this repo has new changes you want in your project (whether from your own merged
+PRs or independent upstream work):
+
+```bash
+REACTIVATED=/path/to/reactivated/checkout
+SYNCED_VERSION=$(grep '^version' upstream/reactivated/pyproject.toml | sed 's/.*"\(.*\)"/\1/')
+
+# Update the reactivated checkout
+cd $REACTIVATED && git checkout main && git pull
+
+# Check what's new
+git log --oneline v$SYNCED_VERSION..HEAD
+
+# Generate a patch of upstream changes since the last sync
+git diff v$SYNCED_VERSION..HEAD > /tmp/reactivated-upstream.patch
+
+# Add the upstream/reactivated/ prefix so paths match your project's layout
+sed -E \
+  -e 's|^diff --git a/(.+) b/(.+)|diff --git a/upstream/reactivated/\1 b/upstream/reactivated/\2|' \
+  -e 's|^--- a/|--- a/upstream/reactivated/|' \
+  -e 's|^\+\+\+ b/|+++ b/upstream/reactivated/|' \
+  -e 's|^rename from (.+)|rename from upstream/reactivated/\1|' \
+  -e 's|^rename to (.+)|rename to upstream/reactivated/\1|' \
+  /tmp/reactivated-upstream.patch > /tmp/reactivated-prefixed.patch
+
+# Apply with 3-way merge (preserves your local additions, conflicts are resolvable)
+cd /path/to/your/project
+git apply --3way /tmp/reactivated-prefixed.patch
+
+# Regen lock files
+uv sync
+npm install --package-lock-only
+```
+
+If there are conflicts, `--3way` leaves standard conflict markers that you resolve
+normally. The common cause is a file that both sides modified (e.g. both added code to
+the end of the same test file). Resolve by keeping both sides.
+
+### Why not rsync?
+
+`rsync --delete` overwrites the entire subtree, destroying any local additions
+(utilities, tests, etc.) that haven't been pushed upstream yet. It also picks up
+untracked files from the upstream checkout (build artifacts, editor config) that
+shouldn't be vendored. The patch approach only applies what upstream actually changed
+in git.
+
+## Lint exclusions
+
+The vendored source has its own lint configs. To avoid conflicts with your project's
+linters, exclude `upstream/reactivated/` from them:
+
+- **ruff**: `exclude = ["upstream/reactivated/"]` in `pyproject.toml`
+- **mypy**: add `upstream/reactivated/` to `exclude` in `mypy.ini`, plus
+  `follow_imports = silent` for `reactivated` and `reactivated.*` modules (suppresses
+  errors within reactivated source while still type-checking your usage of it)
+- **prettier**: add `upstream/reactivated/packages/reactivated/src/generated.tsx` to
+  `.gitignore` (prettier reads `.gitignore` patterns by default)
+
+## Running reactivated's test suite
+
+The subtree carries reactivated's own tests and Nix environment. To run them, enter
+the subtree and use its own tooling — completely independent from your project's
+checks:
+
+```bash
+cd upstream/reactivated
+nix-shell --command "scripts/test.sh"
+```
+
+Consider wiring this up as a dedicated CI job so subtree changes are validated against
+reactivated's own suite before you push them upstream.
+
+## Ejecting back to published packages
+
+To switch back to PyPI and npm, no source changes are needed — imports work
+identically with the published packages:
+
+1. In `pyproject.toml`: pin `"reactivated>=LATEST_VERSION"` and delete the
+   `[tool.uv.sources]` override, then `uv sync`.
+2. In `package.json`: change `"file:upstream/reactivated/packages/reactivated"` to
+   `"^LATEST_VERSION"`, then `npm install`.
+3. Remove any subtree-specific build steps from CI and Docker (type generation, tsc,
+   re-install of the built package).
+4. Remove the lint exclusions.
+5. `rm -rf upstream/reactivated/`

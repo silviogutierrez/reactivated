@@ -78,6 +78,7 @@ if [ "$VERSIONING" != "snapshot" ]; then
     # Need to update the monorepo package-lock.json
     npm install
     sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
+    uv lock
     git commit -am "v${NEW_VERSION}"
     git tag "v${NEW_VERSION}"
 

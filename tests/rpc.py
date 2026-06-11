@@ -844,3 +844,63 @@ def test_schema_generation_with_extra_fields(settings: Any, tmp_path: Any) -> No
 
 def test_type_to_str_pick_holder() -> None:
     assert _type_to_str(MyPick) == f"{MyPick.get_name()}_output"  # type: ignore[attr-defined]
+
+
+class ObserverInput(BaseModel):
+    value: int
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "exc,expected_status",
+    [
+        (Exception("boom"), "ERROR"),
+        (None, "SUCCESS"),
+    ],
+)
+async def test_observer_notified(
+    rf: Any, schema_env: Any, exc: Exception | None, expected_status: str
+) -> None:
+    from reactivated.rpc.observer import RequestStatus, rpc_observer
+
+    calls: list[tuple[RequestStatus, BaseException | None]] = []
+
+    @rpc_observer
+    async def observer(
+        request: Any,
+        rpc_name: str,
+        log: Any,
+        status: RequestStatus,
+        input: Any,
+        output: Any,
+        body: Any,
+        exception: BaseException | None,
+    ) -> None:
+        calls.append((status, exception))
+
+    rpc = Router()
+
+    @rpc(log=True)
+    async def observed(request: HttpRequest, form: ObserverInput) -> int:
+        if exc:
+            raise exc
+        return form.value
+
+    generate_server_schema(skip_cache=True)
+
+    request = rf.post(
+        f"/{rpc.handlers['rpc_observed']['url']}",
+        data={"value": 1},
+        content_type="application/json",
+    )
+    request.user = AnonymousUser()
+
+    if exc:
+        with pytest.raises(type(exc)):
+            await rpc.handlers["rpc_observed"]["handler"](request)
+    else:
+        response = await rpc.handlers["rpc_observed"]["handler"](request)
+        assert response.status_code == 200
+
+    assert len(calls) == 1
+    assert calls[0][0] == RequestStatus[expected_status]

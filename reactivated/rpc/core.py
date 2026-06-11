@@ -278,8 +278,10 @@ class Router:
             rpc_form = None
             rpc_form_name: str | None = None
 
-            for param_name in sig.parameters:
+            for param_name, param in sig.parameters.items():
                 if param_name == "request":
+                    continue
+                if param.default is not inspect.Parameter.empty:
                     continue
                 param_type = rpc_hints[param_name]
                 if param_type in DJANGO_CONVERTERS:
@@ -324,7 +326,34 @@ class Router:
             async def wrapped_rpc_call(request: Any, *args: Any, **kwargs: Any) -> Any:
                 import pick_schema  # noqa:F401
 
+                from .observer import RequestStatus, get_observer
+
                 rpc_output_adapter = TypeAdapter(rpc_output)
+
+                async def _notify_observer(
+                    *,
+                    status: RequestStatus,
+                    input: Any = None,
+                    output: Any = None,
+                    body: bytes | None = None,
+                    exception: BaseException | None = None,
+                ) -> None:
+                    observer = get_observer()
+                    if observer is None:
+                        return
+                    try:
+                        await observer(
+                            request,
+                            rpc_name,
+                            log,
+                            status,
+                            input,
+                            output,
+                            body,
+                            exception,
+                        )
+                    except Exception:
+                        logging.getLogger(__name__).exception("RPC observer failed")
 
                 # --- No-form path ---
                 if rpc_form is None:
@@ -349,12 +378,22 @@ class Router:
 
                             validated_model = await sync_wrapper()
                     except AssertionError as error:
+                        await _notify_observer(
+                            status=RequestStatus.INVALID,
+                            exception=error,
+                        )
                         return get_response(
                             input=None,
                             content=list(error.args),
                             status_code=400,
                             is_ui=False,
                         )
+                    except Exception as error:
+                        await _notify_observer(
+                            status=RequestStatus.ERROR,
+                            exception=error,
+                        )
+                        raise
 
                     if is_async:
                         output = rpc_output_adapter.dump_python(
@@ -364,6 +403,7 @@ class Router:
                         output = await sync_to_async(rpc_output_adapter.dump_python)(
                             validated_model, mode="json"
                         )
+                    await _notify_observer(status=RequestStatus.SUCCESS, output=output)
                     return get_response(
                         input=None, content=output, status_code=200, is_ui=False
                     )
@@ -404,6 +444,11 @@ class Router:
                     try:
                         data = json.loads(request.body)
                     except Exception as error:
+                        await _notify_observer(
+                            status=RequestStatus.MALFORMED,
+                            body=request.body,
+                            exception=error,
+                        )
                         raise error
 
                     is_ui = False
@@ -413,9 +458,16 @@ class Router:
                         data, context={"user": request.user}
                     )
                 except ValidationError as validation_error:
+                    processed = process_errors(validation_error)
+                    await _notify_observer(
+                        status=RequestStatus.INVALID,
+                        input=data,
+                        output=processed,
+                        exception=validation_error,
+                    )
                     return get_response(
                         input=data,
-                        content=process_errors(validation_error),
+                        content=processed,
                         status_code=400,
                         is_ui=is_ui,
                     )
@@ -439,6 +491,12 @@ class Router:
 
                         validated_model = await sync_wrapper()
                 except AssertionError as error:
+                    await _notify_observer(
+                        status=RequestStatus.INVALID,
+                        input=data,
+                        body=request.body,
+                        exception=error,
+                    )
                     return get_response(
                         input=data,
                         content=list(error.args),
@@ -446,6 +504,12 @@ class Router:
                         is_ui=is_ui,
                     )
                 except Exception as error:
+                    await _notify_observer(
+                        status=RequestStatus.ERROR,
+                        input=data,
+                        body=request.body,
+                        exception=error,
+                    )
                     raise error
 
                 # Serialization must run in sync context for sync handlers
@@ -459,6 +523,12 @@ class Router:
                         validated_model, mode="json"
                     )
 
+                await _notify_observer(
+                    status=RequestStatus.SUCCESS,
+                    input=data,
+                    output=output,
+                    body=request.body,
+                )
                 return get_response(
                     input=data, content=output, status_code=200, is_ui=is_ui
                 )
@@ -1928,6 +1998,15 @@ def generate_server_schema(skip_cache: bool = False) -> None:
                     eval(annotation, ns)  # noqa: S307
                 except Exception:
                     pass
+
+    # Import context processor modules so module-level pick() calls
+    # register in picks_registry before we collect pick schemas.
+    from django.conf import settings as django_settings
+    from django.utils.module_loading import import_string
+
+    for engine in django_settings.TEMPLATES:
+        for cp in engine.get("OPTIONS", {}).get("context_processors", []):  # type: ignore[attr-defined]
+            import_string(cp)
 
     module = ast.Module(body=[], type_ignores=[])
     build_context = BuildContext(module=module, imports=set(), built_classes=set())

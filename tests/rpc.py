@@ -34,6 +34,10 @@ def unique_email() -> str:
     return f"test-{uuid.uuid4().hex[:8]}@example.com"
 
 
+async def anyone(request: HttpRequest) -> HttpRequest:
+    return request
+
+
 class MyModel(BaseModel):
     snap: int
 
@@ -130,7 +134,7 @@ def test_schema_generation_with_rpc_and_picks(settings: Any, tmp_path: Any) -> N
     MyType.validate_python("5", strict=False)
     WrappedAnother.validate_python({"thing": "blah"})
 
-    rpc = Router()
+    rpc = Router(HttpRequest)
 
     schema_dir = tmp_path / "schema"
     schema_dir.mkdir()
@@ -139,15 +143,15 @@ def test_schema_generation_with_rpc_and_picks(settings: Any, tmp_path: Any) -> N
     settings.REACTIVATED_SERVER_SCHEMA = str(schema_dir)
     sys.path.insert(0, str(schema_dir))
 
-    @rpc()
+    @rpc(anyone)
     def rpc_call(request: HttpRequest, form: int | str | list[str]) -> None:
         pass
 
-    @rpc()
+    @rpc(anyone)
     def with_model(request: HttpRequest, form: MyModel) -> None:
         pass
 
-    @rpc()
+    @rpc(anyone)
     def with_pick(request: HttpRequest, form: MyPick.input) -> None:
         pass
 
@@ -337,15 +341,15 @@ def test_select_with_empty_option_schema() -> None:
 @pytest.mark.asyncio
 async def test_get_method_handling(settings: Any, rf: Any) -> None:
     settings.DEBUG = False
-    rpc = Router()
+    rpc = Router(HttpRequest)
 
     # No form param — tests pure HTTP method handling.
     # (int/str are DJANGO_CONVERTERS so they become URL path params, not body forms.)
-    @rpc(atomic_requests=False)
+    @rpc(anyone, atomic_requests=False)
     def post_only(request: HttpRequest) -> None:
         pass
 
-    @rpc(methods=["GET", "POST"], atomic_requests=False)
+    @rpc(anyone, methods=["GET", "POST"], atomic_requests=False)
     def get_allowed(request: HttpRequest) -> None:
         pass
 
@@ -370,10 +374,71 @@ async def test_get_method_handling(settings: Any, rf: Any) -> None:
 
 
 @pytest.mark.asyncio
-async def test_form_required_validation(rf: Any) -> None:
-    rpc = Router()
+async def test_router_authentication(settings: Any, rf: Any) -> None:
+    settings.DEBUG = False
 
-    @rpc(atomic_requests=False)
+    async def authentication(request: HttpRequest) -> HttpRequest | Literal[False]:
+        if isinstance(request.user, AnonymousUser):
+            return False
+        return request
+
+    rpc = Router(HttpRequest)
+
+    @rpc(authentication, atomic_requests=False)
+    def guarded(request: HttpRequest) -> str:
+        return request.user.username
+
+    @rpc(authentication, atomic_requests=False)
+    async def async_guarded(request: HttpRequest) -> str:
+        return request.user.username
+
+    @rpc(anyone, atomic_requests=False)
+    def open_to_all(request: HttpRequest) -> str:
+        return "anyone"
+
+    def make_request(name: str) -> Any:
+        return rf.post(
+            f"/{rpc.handlers[name]['url']}",
+            data="null",
+            content_type="application/json",
+        )
+
+    request = make_request("rpc_guarded")
+    request.user = AnonymousUser()
+    response = await rpc.handlers["rpc_guarded"]["handler"](request)
+    assert response.status_code == 401
+    assert json.loads(response.content) == {"error": "UNAUTHORIZED"}
+
+    request = make_request("rpc_guarded")
+    request.user = User(username="boss")
+    response = await rpc.handlers["rpc_guarded"]["handler"](request)
+    assert response.status_code == 200
+    assert json.loads(response.content) == "boss"
+
+    request = make_request("rpc_async_guarded")
+    request.user = AnonymousUser()
+    response = await rpc.handlers["rpc_async_guarded"]["handler"](request)
+    assert response.status_code == 401
+    assert json.loads(response.content) == {"error": "UNAUTHORIZED"}
+
+    request = make_request("rpc_async_guarded")
+    request.user = User(username="boss")
+    response = await rpc.handlers["rpc_async_guarded"]["handler"](request)
+    assert response.status_code == 200
+    assert json.loads(response.content) == "boss"
+
+    request = make_request("rpc_open_to_all")
+    request.user = AnonymousUser()
+    response = await rpc.handlers["rpc_open_to_all"]["handler"](request)
+    assert response.status_code == 200
+    assert json.loads(response.content) == "anyone"
+
+
+@pytest.mark.asyncio
+async def test_form_required_validation(rf: Any) -> None:
+    rpc = Router(HttpRequest)
+
+    @rpc(anyone, atomic_requests=False)
     def required_test(request: Any, form: RequiredTestForm) -> str:
         return "ok"
 
@@ -467,7 +532,7 @@ async def test_form_required_validation(rf: Any) -> None:
     assert response.status_code == 200
 
     # Read-only fields are set to None regardless of client input
-    @rpc(atomic_requests=False)
+    @rpc(anyone, atomic_requests=False)
     def read_only_test(request: Any, form: ReadOnlyTestForm) -> str:
         assert form.editable == "value"
         assert form.read_only_field is None
@@ -487,15 +552,15 @@ async def test_form_required_validation(rf: Any) -> None:
 @pytest.mark.django_db
 @pytest.mark.asyncio
 async def test_sync_rpc_rolls_back_on_errors(rf: Any) -> None:
-    rpc = Router()
+    rpc = Router(HttpRequest)
 
     # Use list[str] because bare str is a DJANGO_CONVERTER (URL path param).
-    @rpc()
+    @rpc(anyone)
     def sync_expected(request: HttpRequest, form: list[str]) -> None:
         User.objects.create(username=form[0], email=form[0])
         raise AssertionError("Expected")
 
-    @rpc()
+    @rpc(anyone)
     def sync_unexpected(request: HttpRequest, form: list[str]) -> None:
         User.objects.create(username=form[0], email=form[0])
         1 / 0
@@ -529,14 +594,14 @@ async def test_sync_rpc_rolls_back_on_errors(rf: Any) -> None:
 @pytest.mark.django_db
 @pytest.mark.asyncio
 async def test_async_rpc_does_not_roll_back_on_errors(rf: Any) -> None:
-    rpc = Router()
+    rpc = Router(HttpRequest)
 
-    @rpc()
+    @rpc(anyone)
     async def async_expected(request: HttpRequest, form: list[str]) -> None:
         await sync_to_async(User.objects.create)(username=form[0], email=form[0])
         raise AssertionError("Expected")
 
-    @rpc()
+    @rpc(anyone)
     async def async_unexpected(request: HttpRequest, form: list[str]) -> None:
         await sync_to_async(User.objects.create)(username=form[0], email=form[0])
         1 / 0
@@ -569,9 +634,9 @@ async def test_async_rpc_does_not_roll_back_on_errors(rf: Any) -> None:
 @pytest.mark.django_db
 @pytest.mark.asyncio
 async def test_returns_single_model(rf: Any, schema_env: Any) -> None:
-    rpc = Router()
+    rpc = Router(HttpRequest)
 
-    @rpc()
+    @rpc(anyone)
     def get_user_returns(request: Any, form: list[int]) -> ReturnsPick.returns:
         return User.objects.get(id=form[0])
 
@@ -597,12 +662,12 @@ async def test_returns_single_model(rf: Any, schema_env: Any) -> None:
 @pytest.mark.django_db
 @pytest.mark.asyncio
 async def test_returns_list_of_models(rf: Any, schema_env: Any) -> None:
-    rpc = Router()
+    rpc = Router(HttpRequest)
 
     email1 = unique_email()
     email2 = unique_email()
 
-    @rpc()
+    @rpc(anyone)
     def list_users_returns(
         request: Any, form: list[int]
     ) -> list[ListReturnsPick.returns]:
@@ -632,9 +697,9 @@ async def test_returns_list_of_models(rf: Any, schema_env: Any) -> None:
 @pytest.mark.django_db
 @pytest.mark.asyncio
 async def test_returns_nullable(rf: Any, schema_env: Any) -> None:
-    rpc = Router()
+    rpc = Router(HttpRequest)
 
-    @rpc()
+    @rpc(anyone)
     def maybe_user_returns(
         request: Any, form: list[int]
     ) -> NullableReturnsPick.returns | None:
@@ -781,9 +846,9 @@ def test_pick_proxy_basic() -> None:
 @pytest.mark.asyncio
 async def test_returns_with_extra_fields(rf: Any, schema_env: Any) -> None:
     """RPC handler returns PickProxy, response includes both model fields and extras."""
-    rpc = Router()
+    rpc = Router(HttpRequest)
 
-    @rpc()
+    @rpc(anyone)
     def get_user_with_score(request: Any, form: list[int]) -> ExtraFieldsPick.returns:
         user = User.objects.get(id=form[0])
         return PickProxy(user, score=42)
@@ -878,9 +943,9 @@ async def test_observer_notified(
     ) -> None:
         calls.append((status, exception))
 
-    rpc = Router()
+    rpc = Router(HttpRequest)
 
-    @rpc(log=True)
+    @rpc(anyone, log=True)
     async def observed(request: HttpRequest, form: ObserverInput) -> int:
         if exc:
             raise exc

@@ -40,10 +40,13 @@ from typing import (
     TYPE_CHECKING,
     Annotated,
     Any,
+    Awaitable,
     Callable,
+    Concatenate,
     Generic,
     Literal,
     NamedTuple,
+    Protocol,
     Sequence,
     Type,
     TypedDict,
@@ -53,7 +56,7 @@ from typing import (
     get_type_hints,
 )
 
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.db import transaction
 from django.conf import settings
 from django.db import models as dj_models
@@ -220,24 +223,39 @@ def form_from_type_adapter(type_adapter: TypeAdapter[Any]) -> Type[forms.Form]:
 
 RPCCall = TypeVar("RPCCall", bound=Callable[..., Any])
 
+THttpRequest = TypeVar("THttpRequest", bound=HttpRequest)
+TAnonymous = TypeVar("TAnonymous", bound=HttpRequest)
+TAuthenticated = TypeVar("TAuthenticated", bound=HttpRequest)
 
-_router_registry: list["Router"] = []
+RPCAccess = Callable[[TAnonymous], Awaitable[TAuthenticated | Literal[False]]]
 
 
-class Router:
-    def __init__(self) -> None:
+class RPCDecorator(Protocol[THttpRequest]):
+    def __call__(
+        self, rpc_call: Callable[Concatenate[THttpRequest, RPCInput], RPCOutput]
+    ) -> Callable[Concatenate[THttpRequest, RPCInput], RPCOutput]: ...
+
+
+_router_registry: list["Router[Any]"] = []
+
+
+class Router(Generic[TAnonymous]):
+    def __init__(self, request_type: type[TAnonymous]) -> None:
+        self.request_type = request_type
         self.handlers: dict[str, RPC] = {}
         _router_registry.append(self)
 
     def __call__(
         self,
+        access: RPCAccess[TAnonymous, TAuthenticated],
         *,
         csrf_exempt: bool = False,
         log: Literal["errors"] | bool = False,
         atomic_requests: bool = True,
         methods: list[Literal["GET", "POST"]] | None = None,
-    ) -> Callable[[RPCCall], RPCCall]:
+    ) -> RPCDecorator[TAuthenticated]:
         return self._decorator(
+            access=access,
             csrf_exempt=csrf_exempt,
             log=log,
             atomic_requests=atomic_requests,
@@ -247,11 +265,13 @@ class Router:
 
     def query(
         self,
+        access: RPCAccess[TAnonymous, TAuthenticated],
         *,
         csrf_exempt: bool = False,
         log: Literal["errors"] | bool = False,
-    ) -> Callable[[RPCCall], RPCCall]:
+    ) -> RPCDecorator[TAuthenticated]:
         return self._decorator(
+            access=access,
             csrf_exempt=csrf_exempt,
             log=log,
             atomic_requests=False,
@@ -261,12 +281,13 @@ class Router:
     def _decorator(
         self,
         *,
+        access: RPCAccess[Any, Any],
         csrf_exempt: bool = False,
         log: Literal["errors"] | bool = False,
         atomic_requests: bool = True,
         is_query: bool = False,
         methods: list[Literal["GET", "POST"]] | None = None,
-    ) -> Callable[[RPCCall], RPCCall]:
+    ) -> RPCDecorator[Any]:
         def decorator(rpc_call: RPCCall) -> RPCCall:
             rpc_name = f"{RPC_PREFIX}_{rpc_call.__name__}"
             sig = inspect.signature(rpc_call)
@@ -354,6 +375,13 @@ class Router:
                         )
                     except Exception:
                         logging.getLogger(__name__).exception("RPC observer failed")
+
+                access_check = await access(request)
+
+                if access_check is False:
+                    return JsonResponse({"error": "UNAUTHORIZED"}, status=401)
+
+                request = access_check
 
                 # --- No-form path ---
                 if rpc_form is None:

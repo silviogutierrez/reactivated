@@ -28,6 +28,7 @@ from reactivated.rpc.core import (
     pick,
 )
 from reactivated.rpc.forms import get_form_schema
+from reactivated.rpc.utils import flatten_schema
 
 
 def unique_email() -> str:
@@ -69,6 +70,17 @@ class SelectWithEmptyOptionForm(BaseModel):
         required=False,
         options=(("a", "Option A"), ("b", "Option B")),
     )
+
+
+class _Stage(enum.Enum):
+    LEAD = "Lead"
+    SOLD = "Sold"
+
+
+@form()
+class OptionalSelectForm(BaseModel):
+    status: Literal["NEW", "SOLD"] | None = FormField(widget="select", required=False)
+    stage: _Stage | None = FormField(widget="select", required=False)
 
 
 # Module-level picks for schema generation and .returns tests.
@@ -338,6 +350,22 @@ def test_select_with_empty_option_schema() -> None:
     assert schema["defaults"]["category"] is None
 
 
+def test_optional_select_extracts_options() -> None:
+    # Optional select fields must extract options from the non-None union
+    # member, whether the union is a UnionType instance (`SomeEnum | None`)
+    # or a typing.Union generic (`Literal[...] | None`).
+    schema = get_form_schema(OptionalSelectForm)
+
+    assert schema["fields"]["status"]["options"] == [
+        ("NEW", "NEW"),
+        ("SOLD", "SOLD"),
+    ]
+    assert schema["fields"]["stage"]["options"] == [
+        ("LEAD", "Lead"),
+        ("SOLD", "Sold"),
+    ]
+
+
 @pytest.mark.asyncio
 async def test_get_method_handling(settings: Any, rf: Any) -> None:
     settings.DEBUG = False
@@ -371,6 +399,14 @@ async def test_get_method_handling(settings: Any, rf: Any) -> None:
     request.user = AnonymousUser()
     response = await rpc.handlers["rpc_post_only"]["handler"](request)
     assert response.status_code == 200
+
+    # A None-typed body param is forbidden at registration; a no-body RPC is
+    # declared by omitting the param entirely (as post_only above does).
+    with pytest.raises(TypeError, match="None-typed param"):
+
+        @rpc(anyone, atomic_requests=False)
+        def none_body(request: HttpRequest, form: None) -> None:
+            pass
 
 
 @pytest.mark.asyncio
@@ -905,6 +941,32 @@ def test_schema_generation_with_extra_fields(settings: Any, tmp_path: Any) -> No
     assert "builtins.list[builtins.tuple[builtins.str, builtins.int]]" in generated
 
     sys.path.remove(str(schema_dir))
+
+
+class _Color(enum.StrEnum):
+    RED = "RED"
+    GREEN = "GREEN"
+
+
+class _FlattenTarget(Pick):
+    action: Literal["CREATE"]
+    color: _Color
+    items: list[Pick]
+
+
+def test_flatten_schema() -> None:
+    schema = _FlattenTarget.model_json_schema()
+    assert "$defs" in schema
+
+    result = flatten_schema(schema)
+    serialized = json.dumps(result)
+
+    assert "$defs" not in result
+    assert "$ref" not in serialized
+    assert '"title"' not in serialized
+    assert '"format"' not in serialized
+    assert result["properties"]["action"]["const"] == "CREATE"
+    assert result["properties"]["color"]["enum"] == ["RED", "GREEN"]
 
 
 def test_type_to_str_pick_holder() -> None:

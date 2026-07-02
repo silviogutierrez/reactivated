@@ -7,7 +7,16 @@ import inspect
 import json
 import logging
 from types import NoneType, UnionType
-from typing import Any, Callable, Literal, TypeVar, cast, get_origin, get_type_hints
+from typing import (
+    Any,
+    Callable,
+    Literal,
+    TypeVar,
+    Union,
+    cast,
+    get_origin,
+    get_type_hints,
+)
 
 from pydantic import EmailStr, Field, SecretStr, model_validator
 from pydantic_core import PydanticUndefined
@@ -377,12 +386,13 @@ def get_form_schema(form_cls: type) -> dict[str, Any]:
                 # Use explicitly provided options
                 options = list(form_options)
             else:
-                # Extract options from Literal/Enum type
+                # Extract options from Literal/Enum type. Optional types come
+                # in two spellings: unions of plain classes
+                # (``SomeEnum | None``) are UnionType instances, while unions
+                # involving typing forms (``Literal[...] | None``) are
+                # typing.Union generics. get_origin normalizes both.
                 actual_type = base_type
-                if (
-                    hasattr(base_type, "__origin__")
-                    and base_type.__origin__ is UnionType
-                ):
+                if get_origin(base_type) in (Union, UnionType):
                     non_none = [a for a in base_type.__args__ if a is not NoneType]
                     if non_none:
                         actual_type = non_none[0]

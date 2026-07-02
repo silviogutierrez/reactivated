@@ -36,16 +36,23 @@ type JSONValue =
 export type Requester = (
     url: string,
     payload: JSONValue | null,
+    method: "GET" | "POST",
 ) => Promise<RequesterResult>;
 
-export const defaultRequester: Requester = async (url, payload) => {
+export const defaultRequester: Requester = async (url, payload, method) => {
     try {
+        // The method is authoritative (it comes from the server's RPC
+        // declaration), not inferred from whether a payload is present. A POST
+        // serializes the payload exactly as given — including a literal `null` when
+        // the RPC's input is omitted — so the server receives the typed value it
+        // expects (e.g. `null` for an optional `Form | None` input).
+        const isGet = method === "GET";
         const response = await fetch(url, {
-            method: payload == null ? "GET" : "POST",
-            body: payload == null ? null : JSON.stringify(payload),
+            method,
+            body: isGet ? null : JSON.stringify(payload),
             headers: {
                 Accept: "application/json",
-                ...(payload != null ? {"Content-Type": "application/json"} : {}),
+                ...(isGet ? {} : {"Content-Type": "application/json"}),
                 "X-CSRFToken":
                     getCookieFromCookieString("csrftoken", document.cookie) ?? "",
             },

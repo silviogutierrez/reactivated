@@ -64,6 +64,9 @@ cd ../..
 
 # Initial build (required once before dev server works):
 npx tsc -p upstream/reactivated/packages/reactivated/tsconfig.json
+
+# Regenerate your app's client schema against the vendored source:
+python manage.py generate_client_assets
 ```
 
 ## Live editing
@@ -85,9 +88,22 @@ npx tsc -p upstream/reactivated/packages/reactivated/tsconfig.json
 npx tsc -p upstream/reactivated/packages/reactivated/tsconfig.json --watch
 ```
 
-**Note for CI and Docker**: `npm ci` copies instead of symlinking, so re-run
-`npm install ./upstream/reactivated/packages/reactivated` after compiling the
-TypeScript to update the copy with the freshly built `dist/`.
+## CI and Docker
+
+CI and Docker images must build reactivated from source. The sequence:
+
+1. Install Python deps (`uv sync` — installs reactivated from local source)
+2. Install Node deps (`npm ci` — gets peer deps like `json-schema-to-typescript`,
+   `tsc`)
+3. Generate TypeScript types (`python scripts/generate_types.py`)
+4. Compile TypeScript (`tsc` in `packages/reactivated/`)
+5. Re-install reactivated (`npm install ./upstream/reactivated/packages/reactivated`)
+   — required because `npm ci` copies instead of symlinking, so the copy must be
+   updated with the freshly built `dist/`
+
+In Docker, use `uv sync --no-editable` since live editing isn't needed in production.
+Exclude subtree dev artifacts from the build context in `.dockerignore` (`.venv/`,
+`node_modules/`, `sample/`, `development/`, `website/`, `tests/`).
 
 ## Why not `git subtree` or `git submodule`?
 
@@ -176,6 +192,21 @@ back:
 6. After the PR merges, pull the squashed result back down using the patch flow below.
    This picks up any fixes made during review.
 
+### Common pitfalls
+
+- **Generate the patch from the full subtree diff — don't cherry-pick files.** A
+  hand-picked patch is how a utility lands upstream without its tests (it happened:
+  #451 shipped `flatten_schema` bare; #453 had to port the test after the fact).
+- **npm peer dep conflicts**: This repo's integration test creates a fresh project
+  with no lock file, so it resolves peer deps from the registry. If upstream packages
+  bumped (e.g. `tsx` pulling a newer `esbuild`), bump pinned peer deps in
+  `packages/reactivated/package.json` and regenerate `package-lock.json`.
+- **Prettier on generated files**: Auto-generated files like `client/schema.tsx` must
+  be in `.gitignore` (prettier reads `.gitignore` to skip files). Check both `sample/`
+  and `website/` directories.
+- **Lock files**: rebuild them inside this repo's nix-shell
+  (`npm install --package-lock-only`).
+
 ## Pulling upstream changes
 
 When this repo has new changes you want in your project (whether from your own merged
@@ -230,11 +261,17 @@ The vendored source has its own lint configs. To avoid conflicts with your proje
 linters, exclude `upstream/reactivated/` from them:
 
 - **ruff**: `exclude = ["upstream/reactivated/"]` in `pyproject.toml`
-- **mypy**: add `upstream/reactivated/` to `exclude` in `mypy.ini`, plus
-  `follow_imports = silent` for `reactivated` and `reactivated.*` modules (suppresses
-  errors within reactivated source while still type-checking your usage of it)
+- **mypy**: add `upstream/reactivated/` to `exclude` in `mypy.ini`, add
+  `./upstream/reactivated` to `mypy_path`, plus `follow_imports = silent` for
+  `reactivated` and `reactivated.*` modules (suppresses errors within reactivated
+  source while still type-checking your usage of it)
+- **eslint**: add `"upstream/reactivated/"` to your ignores
 - **prettier**: add `upstream/reactivated/packages/reactivated/src/generated.tsx` to
   `.gitignore` (prettier reads `.gitignore` patterns by default)
+- **shellcheck/shfmt/nixfmt and fix scripts**: if your lint scripts enumerate files
+  with `git ls-files`, filter the subtree out
+  (`grep -v '^upstream/reactivated/'`) — the vendored shell/nix files follow this
+  repo's conventions, not yours
 
 ## Running reactivated's test suite
 
@@ -259,7 +296,12 @@ identically with the published packages:
    `[tool.uv.sources]` override, then `uv sync`.
 2. In `package.json`: change `"file:upstream/reactivated/packages/reactivated"` to
    `"^LATEST_VERSION"`, then `npm install`.
-3. Remove any subtree-specific build steps from CI and Docker (type generation, tsc,
-   re-install of the built package).
-4. Remove the lint exclusions.
+3. Remove any subtree-specific build steps from CI and Docker (the source COPY lines,
+   type generation, tsc, re-install of the built package — `uv sync` and `npm ci`
+   stay and pull the published packages instead). The runtime layout is unchanged:
+   the published npm package puts built files in the same `node_modules` locations.
+4. Remove the lint exclusions and any `.dockerignore` entries for the subtree.
 5. `rm -rf upstream/reactivated/`
+
+Then verify: `uv sync && npm install`, regenerate client assets
+(`python manage.py generate_client_assets`), and run your project's checks.

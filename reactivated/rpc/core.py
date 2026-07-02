@@ -308,7 +308,11 @@ class Router(Generic[TAnonymous]):
                 if param_type in DJANGO_CONVERTERS:
                     rpc_params.append((param_type, param_name))
                 elif param_type is NoneType:
-                    pass
+                    raise TypeError(
+                        f"RPC '{rpc_call.__name__}' has a None-typed param "
+                        f"'{param_name}'. Declare a no-body RPC by omitting the "
+                        f"param entirely, e.g. def {rpc_call.__name__}(request)."
+                    )
                 else:
                     assert rpc_form is None, (
                         f"Multiple body params in {rpc_call.__name__}"
@@ -2436,7 +2440,7 @@ def generate_client_schema(skip_cache: bool = False) -> None:
         EXTRA += f"""
         export async function {call_name}({args_str}) {{
             const {{rpc}} = await import("@reactivated");
-            return rpc.requester({url_expr}, {payload_expr}) as unknown as Promise<RPCResult<Schema["{rpc_output_name}"]>>;
+            return rpc.requester({url_expr}, {payload_expr}, "{rpc_call["method"]}") as unknown as Promise<RPCResult<Schema["{rpc_output_name}"]>>;
         }}
         """
 

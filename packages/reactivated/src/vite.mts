@@ -63,6 +63,17 @@ const rendererConfig: InlineConfig = {
 
 export const vite = await createServer(rendererConfig);
 
+// Pre-warm SSR modules
+console.log("[warmup] Pre-loading SSR modules...");
+const ssrWarmupStart = Date.now();
+try {
+    await vite.ssrLoadModule("reactivated/dist/render.mjs");
+    await vite.ssrLoadModule("@reactivated/template");
+    console.log(`[warmup] SSR modules loaded in ${Date.now() - ssrWarmupStart}ms`);
+} catch (e: any) {
+    console.log(`[warmup] SSR warmup error (non-fatal): ${e.message}`);
+}
+
 app.use(vite.middlewares);
 app.use(express.json({limit: "200mb"}));
 

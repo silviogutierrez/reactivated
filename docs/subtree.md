@@ -51,23 +51,31 @@ reactivated = { path = "./upstream/reactivated", editable = true }
 
 ## Build steps
 
-After cloning or pulling changes to the subtree:
+After cloning or pulling changes to the subtree, install dependencies, run the
+subtree's own build script from your project root, then regenerate your app's
+schemas:
 
 ```bash
 uv sync                          # Install Python deps (editable reactivated)
 npm install                      # Install Node deps (symlinks to subtree)
 
-# Generate types (writes packages/reactivated/src/generated.tsx):
-cd upstream/reactivated
-PATH=$(pwd)/../../node_modules/.bin:$PATH python scripts/generate_types.py
-cd ../..
-
-# Initial build (required once before dev server works):
-npx tsc -p upstream/reactivated/packages/reactivated/tsconfig.json
-
-# Regenerate your app's client schema against the vendored source:
+./upstream/reactivated/packages/reactivated/scripts/build_subtree.sh
 python manage.py generate_client_assets
 ```
+
+The script does, in order:
+
+1. Generate types (writes `packages/reactivated/src/generated.tsx`).
+2. Compile the TypeScript package to `dist/` (required once before the dev server
+   works).
+3. Re-run `npm install` against the subtree package — its `bin` entries point into
+   `dist/`, which only exists after the compile.
+
+It builds the framework only; it never executes your application. Regenerating the
+client schema and server `pick_schema` (`manage.py generate_client_assets`) runs
+with your app's settings and models, so that call stays in your hands — make it
+after the script, from your project's `setup` helper, CI setup action, and release
+script, so every environment builds the same way.
 
 ## Live editing
 

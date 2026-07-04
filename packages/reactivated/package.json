@@ -23,6 +23,7 @@
     "author": "",
     "bin": {
         "setup_environment.sh": "./scripts/setup_environment.sh",
+        "build_subtree.sh": "./scripts/build_subtree.sh",
         "generate_client_assets": "./dist/generator.mjs",
         "generate_client_constants": "./dist/generator/constants.mjs",
         "build.client": "./dist/build.client.mjs",

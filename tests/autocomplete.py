@@ -1,7 +1,40 @@
-import pytest
+from typing import NamedTuple
 
-from reactivated import forms
-from sample.server.apps.samples import models
+import pytest
+from django.http import HttpRequest, HttpResponsePermanentRedirect, HttpResponseRedirect
+from django.shortcuts import redirect
+from django.template.response import TemplateResponse
+
+from reactivated import forms as reactivated_forms
+from reactivated import template
+from reactivated.forms import autocomplete
+from sample.server.apps.samples import forms, models
+
+
+@autocomplete
+def autocomplete_view(
+    request: HttpRequest,
+) -> TemplateResponse | HttpResponseRedirect | HttpResponsePermanentRedirect:
+    form = forms.OperaForm(request.POST or None)
+
+    if form.is_valid():
+        return redirect("/")
+
+    return TemplateResponse(request, "does_not_matter.html", {"form": form})
+
+
+@autocomplete
+def typed_autocomplete_view(
+    request: HttpRequest,
+) -> TemplateResponse | HttpResponseRedirect | HttpResponsePermanentRedirect:
+    @template
+    class DoesNotMatter(NamedTuple):
+        form: forms.OperaForm
+
+    if request.method == "POST":
+        return redirect("/")
+
+    return DoesNotMatter(form=forms.OperaForm()).render(request)
 
 
 @pytest.mark.django_db
@@ -72,17 +105,21 @@ def test_typed_autocomplete(client, settings):
 
 
 def test_prefix_calculation(client):
-    assert forms.get_form_or_form_set_descriptor("opera_form_set-0-composer_field") == (
+    assert reactivated_forms.get_form_or_form_set_descriptor(
+        "opera_form_set-0-composer_field"
+    ) == (
         "opera_form_set",
         "composer_field",
     )
 
-    assert forms.get_form_or_form_set_descriptor("opera_form-composer_field") == (
+    assert reactivated_forms.get_form_or_form_set_descriptor(
+        "opera_form-composer_field"
+    ) == (
         "opera_form",
         "composer_field",
     )
 
-    assert forms.get_form_or_form_set_descriptor("composer_field") == (
+    assert reactivated_forms.get_form_or_form_set_descriptor("composer_field") == (
         None,
         "composer_field",
     )

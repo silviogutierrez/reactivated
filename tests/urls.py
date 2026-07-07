@@ -1,8 +1,8 @@
 from django.urls import path
 
-from tests import views
+from tests import autocomplete
 
 urlpatterns = [
-    path("autocomplete-view/", views.autocomplete_view),
-    path("typed-autocomplete-view/", views.typed_autocomplete_view),
+    path("autocomplete-view/", autocomplete.autocomplete_view),
+    path("typed-autocomplete-view/", autocomplete.typed_autocomplete_view),
 ]

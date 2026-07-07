@@ -39,6 +39,12 @@ async def anyone(request: HttpRequest) -> HttpRequest:
     return request
 
 
+class PrincipalEchoForm(Pick):
+    """Module-level so get_type_hints can resolve it."""
+
+    value: str
+
+
 class MyModel(BaseModel):
     snap: int
 
@@ -107,6 +113,19 @@ ComplexExtraFieldsPick = pick(
 )
 
 
+class OptionalFieldsModel(dj_models.Model):
+    note = dj_models.CharField(max_length=100, null=True)
+    scored = dj_models.IntegerField(null=True, default=0)
+
+    class Meta:
+        app_label = "rpc_optional_fields"
+
+
+OptionalFieldsPick = pick(
+    OptionalFieldsModel, fields=["id", "note"], optional_fields=["note"]
+)
+
+
 @pytest.fixture
 def schema_env(tmp_path: Any, settings: Any) -> Any:
     """Set up a clean schema environment for pick tests."""
@@ -117,6 +136,42 @@ def schema_env(tmp_path: Any, settings: Any) -> Any:
     sys.path.insert(0, str(schema_dir))
     yield
     sys.path.remove(str(schema_dir))
+
+
+def test_optional_fields(schema_env: Any) -> None:
+    generate_server_schema(skip_cache=True)
+
+    # Input: the key may be omitted and deserializes to None. Explicit values
+    # and explicit nulls still validate as usual.
+    validated = OptionalFieldsPick.input.model_validate({"id": 1})
+    assert validated.note is None
+    assert "note" not in validated.model_fields_set
+
+    explicit = OptionalFieldsPick.input.model_validate({"id": 1, "note": "hi"})
+    assert explicit.note == "hi"
+    assert "note" in explicit.model_fields_set
+
+    # Output is unaffected: server-side data always carries every picked
+    # attribute, so "optional" is only meaningful for input payloads.
+    with pytest.raises(ValidationError):
+        OptionalFieldsPick.output.model_validate({"id": 1})
+    assert (
+        OptionalFieldsPick.output.model_validate({"id": 1, "note": None}).note is None
+    )
+
+
+def test_optional_fields_definition_guards() -> None:
+    # Not nullable: absent-means-None requires None to be a legal value.
+    with pytest.raises(AssertionError, match="nullable"):
+        pick(User, fields=["id", "email"], optional_fields=["email"])
+
+    # Model default: the implicit None would shadow it.
+    with pytest.raises(AssertionError, match="default"):
+        pick(
+            OptionalFieldsModel,
+            fields=["id", "scored"],
+            optional_fields=["scored"],
+        )
 
 
 def test_generate_server_schema(settings: Any, tmp_path: Any) -> None:
@@ -1031,3 +1086,67 @@ async def test_observer_notified(
 
     assert len(calls) == 1
     assert calls[0][0] == RequestStatus[expected_status]
+
+
+@pytest.mark.asyncio
+async def test_router_principal_injection(settings: Any, rf: Any) -> None:
+    """Access functions return the principal — any value — and the handler
+    receives it as its first (positionally excluded) parameter. Parameters
+    typed HttpRequest beyond the principal slot are injected."""
+    settings.DEBUG = False
+
+    async def authenticated(request: HttpRequest) -> User | Literal[False]:
+        if isinstance(request.user, AnonymousUser):
+            return False
+        assert isinstance(request.user, User)
+        return request.user
+
+    rpc = Router()  # request_type defaults to HttpRequest
+
+    @rpc(authenticated, atomic_requests=False)
+    def whoami(user: User) -> str:
+        return user.username
+
+    @rpc(authenticated, atomic_requests=False)
+    def with_request(user: User, request: HttpRequest) -> str:
+        return f"{user.username}:{request.method}"
+
+    @rpc(authenticated, atomic_requests=False)
+    def with_request_and_form(
+        user: User, request: HttpRequest, form: PrincipalEchoForm
+    ) -> str:
+        return f"{user.username}:{request.method}:{form.value}"
+
+    def make_request(name: str) -> Any:
+        return rf.post(
+            f"/{rpc.handlers[name]['url']}",
+            data="null",
+            content_type="application/json",
+        )
+
+    request = make_request("rpc_whoami")
+    request.user = AnonymousUser()
+    response = await rpc.handlers["rpc_whoami"]["handler"](request)
+    assert response.status_code == 401
+
+    request = make_request("rpc_whoami")
+    request.user = User(username="boss")
+    response = await rpc.handlers["rpc_whoami"]["handler"](request)
+    assert response.status_code == 200
+    assert json.loads(response.content) == "boss"
+
+    request = make_request("rpc_with_request")
+    request.user = User(username="boss")
+    response = await rpc.handlers["rpc_with_request"]["handler"](request)
+    assert response.status_code == 200
+    assert json.loads(response.content) == "boss:POST"
+
+    request = rf.post(
+        f"/{rpc.handlers['rpc_with_request_and_form']['url']}",
+        data=json.dumps({"value": "hi"}),
+        content_type="application/json",
+    )
+    request.user = User(username="boss")
+    response = await rpc.handlers["rpc_with_request_and_form"]["handler"](request)
+    assert response.status_code == 200
+    assert json.loads(response.content) == "boss:POST:hi"

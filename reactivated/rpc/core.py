@@ -46,6 +46,7 @@ from typing import (
     Generic,
     Literal,
     NamedTuple,
+    NotRequired,
     Protocol,
     Sequence,
     Type,
@@ -54,6 +55,7 @@ from typing import (
     get_args,
     get_origin,
     get_type_hints,
+    overload,
 )
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -61,6 +63,7 @@ from django.db import transaction
 from django.conf import settings
 from django.db import models as dj_models
 from django.urls import include, path
+from django.urls.resolvers import URLPattern
 from pydantic import (
     with_config,
     BaseModel,
@@ -89,13 +92,13 @@ from .forms import FormField as FormField  # noqa: F401
 from .forms import form as form  # noqa: F401
 from .forms import generate_forms_export
 from .utils import module_name_to_app_name
+from ..transport import DJANGO_CONVERTERS, url_segment
 
 logger = logging.getLogger("django.server")
 
 
 RPC_PREFIX = "rpc"
 
-DJANGO_CONVERTERS: dict[type, str] = {int: "int", str: "str", uuid.UUID: "uuid"}
 TS_TYPE_MAP: dict[type, str] = {int: "number", str: "string", uuid.UUID: "UUID"}
 
 RPCInput = ParamSpec("RPCInput")
@@ -225,35 +228,60 @@ RPCCall = TypeVar("RPCCall", bound=Callable[..., Any])
 
 THttpRequest = TypeVar("THttpRequest", bound=HttpRequest)
 TAnonymous = TypeVar("TAnonymous", bound=HttpRequest)
-TAuthenticated = TypeVar("TAuthenticated", bound=HttpRequest)
+# The principal: whatever the access function returns on success — a user, a
+# NewType-minted proof (e.g. StaffUser), or the request itself. The framework
+# never inspects it; it is passed to the handler as its first parameter.
+TPrincipal = TypeVar("TPrincipal")
 
-RPCAccess = Callable[[TAnonymous], Awaitable[TAuthenticated | Literal[False]]]
+RPCAccess = Callable[[TAnonymous], Awaitable[TPrincipal | Literal[False]]]
 
 
-class RPCDecorator(Protocol[THttpRequest]):
+async def anyone(request: THttpRequest) -> "THttpRequest | Literal[False]":
+    """Identity access: no check runs and the request itself is the principal,
+    so handlers keep the classic (request, form) signature. For endpoints that
+    are deliberately public long-term, prefer a named access function in your
+    project's access module — same body, documented intent."""
+    return request
+
+
+class RPCDecorator(Protocol[TPrincipal]):
     def __call__(
-        self, rpc_call: Callable[Concatenate[THttpRequest, RPCInput], RPCOutput]
-    ) -> Callable[Concatenate[THttpRequest, RPCInput], RPCOutput]: ...
+        self, rpc_call: Callable[Concatenate[TPrincipal, RPCInput], RPCOutput]
+    ) -> Callable[Concatenate[TPrincipal, RPCInput], RPCOutput]: ...
 
 
 _router_registry: list["Router[Any]"] = []
 
 
 class Router(Generic[TAnonymous]):
-    def __init__(self, request_type: type[TAnonymous]) -> None:
+    @overload
+    def __init__(self: "Router[HttpRequest]") -> None: ...
+
+    @overload
+    def __init__(self, request_type: type[TAnonymous]) -> None: ...
+
+    def __init__(self, request_type: Any = HttpRequest) -> None:
+        """request_type declares what access functions on this router may
+        assume about incoming requests. Defaults to HttpRequest; pass your
+        request subclass only if middleware adds typed attributes that access
+        functions rely on (e.g. request.tenant). A custom user model does NOT
+        require it — the django-stubs plugin types request.user from
+        AUTH_USER_MODEL. It is the checked upper bound on access-function
+        inputs: a function assuming an already-augmented request cannot be
+        attached to a router that hands out plain ones."""
         self.request_type = request_type
         self.handlers: dict[str, RPC] = {}
         _router_registry.append(self)
 
     def __call__(
         self,
-        access: RPCAccess[TAnonymous, TAuthenticated],
+        access: RPCAccess[TAnonymous, TPrincipal],
         *,
         csrf_exempt: bool = False,
         log: Literal["errors"] | bool = False,
         atomic_requests: bool = True,
         methods: list[Literal["GET", "POST"]] | None = None,
-    ) -> RPCDecorator[TAuthenticated]:
+    ) -> RPCDecorator[TPrincipal]:
         return self._decorator(
             access=access,
             csrf_exempt=csrf_exempt,
@@ -265,11 +293,11 @@ class Router(Generic[TAnonymous]):
 
     def query(
         self,
-        access: RPCAccess[TAnonymous, TAuthenticated],
+        access: RPCAccess[TAnonymous, TPrincipal],
         *,
         csrf_exempt: bool = False,
         log: Literal["errors"] | bool = False,
-    ) -> RPCDecorator[TAuthenticated]:
+    ) -> RPCDecorator[TPrincipal]:
         return self._decorator(
             access=access,
             csrf_exempt=csrf_exempt,
@@ -298,14 +326,21 @@ class Router(Generic[TAnonymous]):
             rpc_params: list[tuple[type, str]] = []
             rpc_form = None
             rpc_form_name: str | None = None
+            # Parameters typed HttpRequest (beyond the principal slot) are
+            # injected by the framework and excluded from the client schema.
+            request_params: list[str] = []
 
-            for param_name, param in sig.parameters.items():
-                if param_name == "request":
+            for param_index, (param_name, param) in enumerate(sig.parameters.items()):
+                # The first parameter is always the principal (whatever the
+                # access function returned) — positional, name-free, excluded.
+                if param_index == 0:
                     continue
                 if param.default is not inspect.Parameter.empty:
                     continue
                 param_type = rpc_hints[param_name]
-                if param_type in DJANGO_CONVERTERS:
+                if isinstance(param_type, type) and issubclass(param_type, HttpRequest):
+                    request_params.append(param_name)
+                elif param_type in DJANGO_CONVERTERS:
                     rpc_params.append((param_type, param_name))
                 elif param_type is NoneType:
                     raise TypeError(
@@ -323,9 +358,7 @@ class Router(Generic[TAnonymous]):
             # Build URL
             rpc_url = f"{RPC_PREFIX}/{rpc_call.__name__}/"
             if rpc_params:
-                segments = "/".join(
-                    f"<{DJANGO_CONVERTERS[t]}:{n}>" for t, n in rpc_params
-                )
+                segments = "/".join(url_segment(t, n) for t, n in rpc_params)
                 rpc_url = f"{RPC_PREFIX}/{rpc_call.__name__}/{segments}/"
 
             # Determine HTTP method
@@ -385,7 +418,10 @@ class Router(Generic[TAnonymous]):
                 if access_check is False:
                     return JsonResponse({"error": "UNAUTHORIZED"}, status=401)
 
-                request = access_check
+                principal = access_check
+
+                for request_param in request_params:
+                    kwargs[request_param] = request
 
                 # --- No-form path ---
                 if rpc_form is None:
@@ -395,7 +431,7 @@ class Router(Generic[TAnonymous]):
                     is_async = inspect.iscoroutinefunction(rpc_call)
                     try:
                         if is_async:
-                            validated_model = await rpc_call(request, **kwargs)
+                            validated_model = await rpc_call(principal, **kwargs)
                         else:
 
                             @sync_to_async
@@ -406,7 +442,7 @@ class Router(Generic[TAnonymous]):
                                     else contextlib.nullcontext()
                                 )
                                 with ctx:
-                                    return rpc_call(request, **kwargs)
+                                    return rpc_call(principal, **kwargs)
 
                             validated_model = await sync_wrapper()
                     except AssertionError as error:
@@ -508,7 +544,9 @@ class Router(Generic[TAnonymous]):
 
                 try:
                     if is_async:
-                        validated_model = await rpc_call(request, payload, **kwargs)
+                        validated_model = await rpc_call(
+                            principal, **{str(rpc_form_name): payload}, **kwargs
+                        )
                     else:
 
                         @sync_to_async
@@ -519,7 +557,9 @@ class Router(Generic[TAnonymous]):
                                 else contextlib.nullcontext()
                             )
                             with maybe_atomic:
-                                return rpc_call(request, payload, **kwargs)
+                                return rpc_call(
+                                    principal, **{str(rpc_form_name): payload}, **kwargs
+                                )
 
                         validated_model = await sync_wrapper()
                 except AssertionError as error:
@@ -583,21 +623,23 @@ class Router(Generic[TAnonymous]):
 
         return decorator
 
+    def routes(self) -> list[tuple[str, str]]:
+        """The (route, reverse-name) table — the ``Mountable`` surface
+        shared with the views router, so ``transport.mount()`` can run
+        global duplicate checks across pages and procedures."""
+        return [
+            (rpc_call["url"], rpc_name) for rpc_name, rpc_call in self.handlers.items()
+        ]
+
+    def paths(self) -> list[URLPattern]:
+        return [
+            path(rpc_call["url"], rpc_call["handler"], name=rpc_name)
+            for rpc_name, rpc_call in self.handlers.items()
+        ]
+
     @property
     def urls(self) -> Any:
-        return path(
-            "",
-            include(
-                [
-                    path(
-                        rpc_call["url"],
-                        rpc_call["handler"],
-                        name=rpc_name,
-                    )
-                    for rpc_name, rpc_call in self.handlers.items()
-                ]
-            ),
-        )
+        return path("", include(self.paths()))
 
 
 def _get_combined_rpc_registry() -> dict[str, RPC]:
@@ -892,6 +934,11 @@ class RField(TypedDict):
     nullable: bool
     annotation: str | None
     imports: list[str]
+    # Set on input schemas for optional_fields: the generated field defaults
+    # to None so clients may omit the key entirely (absent means None). The
+    # marker lives in the schema, not the codegen call, because nested picks
+    # are generated wherever they are first encountered.
+    default_none: NotRequired[bool]
 
 
 class RList(TypedDict):
@@ -1374,6 +1421,7 @@ class BasePickHolder:
     extra_fields: dict[str, Any]
     read_only_fields: list[str]
     write_only_fields: list[str]
+    optional_fields: list[str] = []
     as_dict: bool = False
 
     @classmethod
@@ -1545,6 +1593,7 @@ class BasePickHolder:
                 and var_val.extra_fields == cls.extra_fields
                 and var_val.read_only_fields == cls.read_only_fields
                 and var_val.write_only_fields == cls.write_only_fields
+                and var_val.optional_fields == cls.optional_fields
                 and var_val.model_class is cls.model_class
                 and var_val.as_dict == cls.as_dict
             ):
@@ -1662,6 +1711,15 @@ class BasePickHolder:
                 mode=mode,
                 nullable=nullable,
             )
+
+            # Nullability and absence of a model default are validated at
+            # pick() definition time.
+            if mode == "input" and field_name in cls.optional_fields:
+                field_reference = reference[target_name]
+                assert field_reference["type"] == "field", (
+                    "optional_fields only supports scalar model fields"
+                )
+                field_reference["default_none"] = True
             continue
 
         for field_name, type_class in cls.extra_fields.items():
@@ -1748,13 +1806,53 @@ def pick(
     fields: list[str | tuple[str, Any]],
     read_only_fields: list[str] | None = None,
     write_only_fields: list[str] | None = None,
+    optional_fields: list[str] | None = None,
     extra_fields: dict[str, Any] | None = None,
     as_dict: bool = False,
 ) -> Any:
+    """Create a typed data shape from a Django model's fields.
+
+    Field visibility and validation are controlled along two independent
+    axes:
+
+    Presence (which side a field exists on):
+    - read_only_fields: output only, stripped from the input entirely.
+    - write_only_fields: input only, stripped from the output entirely.
+
+    Requiredness (whether an input key may be absent):
+    - optional_fields: the field exists on both sides, but the input key may
+      be omitted and deserializes to None ("absent means None"). The output
+      is unaffected: server-side data always has every picked attribute (at
+      most its value is null), so "optional" is only meaningful for
+      client-to-server payloads. In TypeScript the input key becomes
+      `field?: T | null` while the output key stays `field: T | null`.
+
+      This exists for schema evolution: a newly added field would otherwise
+      be a required input key, and clients built before the field existed
+      (e.g. stale over-the-air bundles) would fail validation by omitting it.
+
+      Restricted to scalar model fields that are nullable and have no model
+      default: absent and explicit null are indistinguishable after
+      validation (use model_fields_set if a call site needs to tell them
+      apart), and a model default would be shadowed by the implicit None.
+    """
+    for optional_field_name in optional_fields or []:
+        optional_descriptor = meta_model._meta.get_field(optional_field_name)
+        assert optional_descriptor.null is True, (
+            "optional_fields requires a nullable model field: an absent key "
+            "deserializes to None, so None must be a legal value"
+        )
+        assert optional_descriptor.has_default() is False, (
+            "optional_fields cannot be combined with a model field default: "
+            "an absent key deserializes to None, which would shadow the "
+            "model's default"
+        )
+
     flattened_fields = fields
     _extra_fields = extra_fields
     _read_only_fields = read_only_fields
     _write_only_fields = write_only_fields
+    _optional_fields = optional_fields
     frm = inspect.stack()[1]
     mod = inspect.getmodule(frm[0])
     _as_dict = as_dict
@@ -1765,6 +1863,7 @@ def pick(
         extra_fields = _extra_fields or {}
         read_only_fields = _read_only_fields or []
         write_only_fields = _write_only_fields or []
+        optional_fields = _optional_fields or []
         as_dict = _as_dict
         module = mod  # type: ignore[assignment]
 
@@ -1794,6 +1893,9 @@ def pick_to_class_def(
     module = build_context.module
 
     for field_name, field_type in fields.items():
+        # Captured before the list branch reassigns field_type to its items.
+        is_optional = field_type.get("default_none", False)
+
         # A dict class as a pick class are not considered the same.
         params_for_uniqueness = {"field_type": field_type, "as_dict": as_dict}
 
@@ -1882,11 +1984,21 @@ def pick_to_class_def(
         else:
             assert False, "Invalid type"
 
+        if is_optional and as_dict is True:
+            assert isinstance(field_annotation, ast.Name)
+            field_annotation = ast.Name(
+                id=f"NotRequired[{field_annotation.id}]", ctx=ast.Load()
+            )
+
         body.append(
             ast.AnnAssign(
                 target=ast.Name(id=field_name, ctx=ast.Store()),
                 annotation=field_annotation,
-                value=None,
+                value=(
+                    ast.Constant(value=None)
+                    if is_optional and as_dict is False
+                    else None
+                ),
                 simple=1,
             )
         )
@@ -2300,6 +2412,7 @@ def generate_server_schema(skip_cache: bool = False) -> None:
         module="typing",
         names=[
             ast.alias(name="Annotated", asname=None),
+            ast.alias(name="NotRequired", asname=None),
             ast.alias(name="TypeAlias", asname=None),
             ast.alias(name="TypedDict", asname=None),
             ast.alias(name="Unpack", asname=None),

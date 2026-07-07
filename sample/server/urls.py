@@ -17,12 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from reactivated.views import schema
 from sample.server.apps.samples import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("schema/", schema),
     path("", views.hello_world, name="home_page"),
     path("storyboard/", views.storyboard, name="storyboard"),
     path("api/operas/", views.opera_list, name="opera_list"),

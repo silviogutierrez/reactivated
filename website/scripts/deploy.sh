@@ -29,7 +29,12 @@ npm -w reactivated pack --pack-destination website_build_context/monorepo/
 mv website_build_context/monorepo/*.tgz website_build_context/monorepo/node.tgz
 cp package-lock.json website_build_context/
 
-sed -i '/\[tool\.uv\.sources\]/,/^$/d' website_build_context/pyproject.toml
+# In dev, reactivated is the parent repo (path = ".."); in the build context it's
+# the sdist we just staged at ./monorepo/python. Repoint the source and refresh
+# the lock so the Docker build's `uv sync --frozen` installs the locally built
+# reactivated (and picks up its current version) rather than the parent path.
+sed -i 's#path = "\.\."#path = "monorepo/python"#' website_build_context/pyproject.toml
+(cd website_build_context && uv lock)
 sed -i s'#../requirements#./requirements#' website_build_context/shell.nix
 
 cp node_modules/react-markdown/lib/complex-types.ts website_build_context/

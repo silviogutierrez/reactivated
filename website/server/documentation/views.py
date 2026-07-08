@@ -1,4 +1,4 @@
-from typing import cast
+import os
 
 import requests
 from django.conf import settings
@@ -9,19 +9,27 @@ from . import templates
 
 
 def get_stars() -> str:
-    stars = None
+    # GitHub rate-limits unauthenticated requests to 60/hour per IP. On Fly the
+    # egress IP is shared NAT across tenants, so that budget is routinely
+    # exhausted by neighbors and every unauthenticated call gets a 403. Sending
+    # a token bumps us to 5000/hour on our own budget. Set GITHUB_TOKEN as a Fly
+    # secret (a fine-grained token with no scopes / public read is enough).
+    headers = {
+        "User-Agent": "reactivated.io",
+        "Accept": "application/vnd.github+json",
+    }
+    token = os.environ.get("GITHUB_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
 
-    try:
-        response = requests.get(
-            "https://api.github.com/repos/silviogutierrez/reactivated"
-        )
-        raw_stars = response.json()["stargazers_count"]
-        # raw_stars = 1200
-        stars = f"{round(raw_stars / 1000, 1)}k" if raw_stars > 999 else str(raw_stars)
-    except Exception:
-        return ""
-
-    return stars
+    response = requests.get(
+        "https://api.github.com/repos/silviogutierrez/reactivated",
+        headers=headers,
+        timeout=5,
+    )
+    response.raise_for_status()
+    raw_stars = response.json()["stargazers_count"]
+    return f"{round(raw_stars / 1000, 1)}k" if raw_stars > 999 else str(raw_stars)
 
 
 def get_latest_tag() -> str:
@@ -39,9 +47,20 @@ def get_latest_tag() -> str:
 
 
 def home_page(request: HttpRequest) -> HttpResponse:
-    stars = cache.get_or_set("stars", get_stars)
+    # Don't use get_or_set: it caches failures ("") just as durably as
+    # successes, so one bad fetch would poison the button until expiry. Instead
+    # cache a real count for a day, and only briefly on failure so we recover
+    # quickly (e.g. once a token is deployed) without hammering GitHub.
+    stars = cache.get("stars")
+    if stars is None:
+        try:
+            stars = get_stars()
+            cache.set("stars", stars, 60 * 60 * 24)
+        except Exception:
+            stars = ""
+            cache.set("stars", stars, 60 * 5)
 
-    return templates.HomePage(stars=cast(str, stars)).render(request)
+    return templates.HomePage(stars=stars).render(request)
 
 
 def install(request: HttpRequest, *, tag: str | None = None) -> HttpResponse:

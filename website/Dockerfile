@@ -1,5 +1,9 @@
 FROM nixos/nix:2.33.2 as builder
 
+# Allow Nix to work under QEMU emulation (e.g. building linux/amd64 on arm64 for
+# local `fly deploy --local-only` builds when remote builders are unavailable).
+RUN echo 'filter-syscalls = false' >> /etc/nix/nix.conf
+
 RUN mkdir /app
 WORKDIR /app
 
@@ -15,9 +19,14 @@ COPY pyproject.toml uv.lock ./
 COPY monorepo* monorepo/
 
 ENV PATH="/app/.venv/bin:${PATH}"
-RUN uv venv .venv --python python3
-RUN uv pip install --no-cache -r pyproject.toml
-RUN uv pip install --no-cache ./monorepo/python
+# Resolve python3 to its absolute /nix/store path so the venv interpreter
+# symlink survives into the final image. `python3` alone points at the builder's
+# /root/.nix-profile, which is never copied to the runtime stage — only the store
+# closure (/output/store -> /nix/store) is, so gunicorn's shebang would 127.
+RUN uv venv .venv --python "$(readlink -f "$(command -v python3)")"
+# Install from the lockfile. deploy.sh repoints reactivated at ./monorepo/python
+# and refreshes uv.lock, so --frozen resolves reactivated from the local build.
+RUN uv sync --frozen --no-dev --no-editable
 
 COPY package.json .
 COPY package-lock.json .

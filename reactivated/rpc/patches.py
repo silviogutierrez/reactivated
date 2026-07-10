@@ -100,14 +100,36 @@ def _literal_schema_with_enum_coercion(
 
     name_to_member = {m.name: m for m in enum_members}
 
+    # Re-key the literal over member NAMES so validation input, json
+    # serialization, AND the emitted JSON schema all speak the wire format
+    # ("MEMBER"), matching _enum_schema_by_name — the validated python value
+    # remains the enum member itself. Without this, Literal[Enum.MEMBER]
+    # validates "MEMBER" but dumps (and advertises in generated TypeScript)
+    # the enum's *value*, so a model cannot round-trip its own model_dump and
+    # the client types lie whenever a member's name differs from its value.
+    renamed = [v.name if isinstance(v, enum.Enum) else v for v in expected]
+    name_schema = core_schema.literal_schema(renamed)
+
     def coerce_enum_literal(
         value: Any, handler: core_schema.ValidatorFunctionWrapHandler
     ) -> Any:
-        if isinstance(value, str) and value in name_to_member:
-            value = name_to_member[value]
-        return handler(value)
+        if isinstance(value, enum.Enum):
+            value = value.name
+        validated = handler(value)
+        return name_to_member.get(validated, validated)
 
-    return core_schema.no_info_wrap_validator_function(coerce_enum_literal, original)
+    def serialize(value: Any, info: core_schema.SerializationInfo) -> Any:
+        if info.mode == "json" and isinstance(value, enum.Enum):
+            return value.name
+        return value
+
+    return core_schema.no_info_wrap_validator_function(
+        coerce_enum_literal,
+        name_schema,
+        serialization=core_schema.plain_serializer_function_ser_schema(
+            serialize, info_arg=True
+        ),
+    )
 
 
 GenerateSchema._literal_schema = _literal_schema_with_enum_coercion  # type: ignore[method-assign]

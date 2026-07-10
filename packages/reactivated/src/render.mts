@@ -6,20 +6,19 @@ import {preinit} from "react-dom";
 import {Transform} from "node:stream";
 
 import {SSRErrorResponse, serializeError} from "./errors.js";
+import {getReactivateConfig} from "./client.js";
 // @ts-ignore
 import {Provider} from "@reactivated";
 // @ts-ignore
-import {getTemplate} from "@reactivated/template";
+import {getTemplate} from "virtual:reactivated/templates";
 
-export type Renderer<T = unknown> = (
-    content: JSX.Element,
-    req: {
-        context: T;
-        props: unknown;
-    },
-) => Promise<JSX.Element>;
-
-const defaultRenderer: Renderer = (content) => Promise.resolve(content);
+// Evaluate the app entry, if one exists, for its side effect: reactivate()
+// registers the app config (read below via getReactivateConfig). The entry
+// runs in the SSR module graph, so its module scope must be node-safe;
+// browser-only setup belongs inside init, which never runs here.
+// @ts-ignore
+const entryModules = import.meta.glob("@client/index.tsx", {eager: true});
+export const appHasEntryFile = Object.keys(entryModules).length > 0;
 
 function serJSON(data: unknown): string {
     return JSON.stringify(data).replace(/</g, "\\u003c");
@@ -33,12 +32,6 @@ export const render = async (
     entryPoint: string,
     ssrFixStacktrace?: (error: Error) => void,
 ) => {
-    // @ts-ignore
-    const customConfiguration: {default?: Renderer} | null = import.meta.glob(
-        "@client/renderer.tsx",
-        {eager: true},
-    )["/client/renderer.tsx"];
-
     const {context, props, entry_point: requestEntryPoint} = req.body;
     const Template = await getTemplate(context);
     const scriptNonce = context.request.csp_nonce ?? undefined;
@@ -78,11 +71,13 @@ export const render = async (
 
     let hasError = false;
 
+    const config = getReactivateConfig();
+    const wrapped = config.render
+        ? await config.render(content, {ssr: true, context, props})
+        : content;
+
     const {pipe} = renderToPipeableStream(
-        await (customConfiguration?.default ?? defaultRenderer)(content, {
-            context,
-            props,
-        }),
+        wrapped,
 
         {
             nonce: scriptNonce,
@@ -95,7 +90,9 @@ export const render = async (
                     ? [
                           `${STATIC_URL}dist/${resolvedEntryPoint}.js?v=${process.env.RELEASE_VERSION ?? ""}`,
                       ]
-                    : [`${STATIC_URL}dist/client/${resolvedEntryPoint}.tsx`],
+                    : resolvedEntryPoint === "index" && !appHasEntryFile
+                      ? [`${STATIC_URL}dist/@id/virtual:reactivated/entry`]
+                      : [`${STATIC_URL}dist/client/${resolvedEntryPoint}.tsx`],
             onError(error) {
                 hasError = true;
                 if (ssrFixStacktrace) {

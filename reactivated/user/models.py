@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import Any, ClassVar, TypeVar
 
 from citext import CIEmailField as BaseCIEmailField  # type: ignore[import-untyped]
 from django.contrib.auth.models import (
@@ -31,10 +31,23 @@ class CIEmailField(BaseCIEmailField):  # type: ignore[misc]
             pre_migrate.connect(_ensure_citext_extension)
 
 
-class UserManager(BaseUserManager["AbstractEmailUser"]):
+TUser = TypeVar("TUser", bound="AbstractEmailUser")
+
+
+class UserManager(BaseUserManager[TUser]):
+    """Generic over the concrete user model so downstream apps get correctly
+    typed querysets. A concrete model re-declares the manager parametrized
+    with itself — without this, `User.objects.get(...)` types as
+    AbstractEmailUser and any fields added on the concrete model are
+    invisible to mypy:
+
+        class User(AbstractEmailUser):
+            objects: ClassVar[UserManager["User"]] = UserManager()
+    """
+
     def create_user(
         self, email: str, password: str | None = None, **extra_fields: Any
-    ) -> AbstractEmailUser:
+    ) -> TUser:
         if not email:
             raise ValueError("Email is required")
         user = self.model(email=self.normalize_email(email), **extra_fields)
@@ -44,12 +57,12 @@ class UserManager(BaseUserManager["AbstractEmailUser"]):
 
     def create_superuser(
         self, email: str, password: str | None = None, **extra_fields: Any
-    ) -> AbstractEmailUser:
+    ) -> TUser:
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         return self.create_user(email, password, **extra_fields)
 
-    def get_by_natural_key(self, username: str | None) -> AbstractEmailUser:
+    def get_by_natural_key(self, username: str | None) -> TUser:
         return self.get(**{f"{self.model.USERNAME_FIELD}__iexact": username})
 
 

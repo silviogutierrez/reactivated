@@ -1,15 +1,11 @@
-from typing import NamedTuple
-
-from reactivated import template
+from reactivated.templates import Template
 
 
-@template
-class HomePage(NamedTuple):
+class HomePage(Template):
     stars: str
 
 
-@template
-class Documentation(NamedTuple):
+class Documentation(Template):
     content: str
     toc: tuple[tuple[str, str], ...]
     path: str

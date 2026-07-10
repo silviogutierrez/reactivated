@@ -1,5 +1,5 @@
 from collections.abc import Callable, Mapping
-from typing import Any, Literal, NamedTuple, TypeVar
+from typing import Any, NamedTuple, TypeVar
 
 from reactivated import utils
 
@@ -13,7 +13,6 @@ global_types: dict[str, Any] = {
 }
 template_registry: dict[str, tuple[Any]] = {}
 interface_registry: dict[str, tuple[Any]] = {}
-value_registry: dict[str, tuple[Any, Literal["primitive", "class", "enum"]]] = {}
 definitions_registry: dict[Any, Any] = {}
 
 PROXIES = utils.ClassLookupDict({})

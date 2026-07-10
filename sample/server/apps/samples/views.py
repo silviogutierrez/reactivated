@@ -9,7 +9,9 @@ def hello_world(request: HttpRequest) -> HttpResponse:
     opera = models.Opera(
         name="Mefistofele", composer=composer, style=models.Opera.Style.GRAND
     )
-    return templates.HelloWorld(opera=opera).render(request)
+    return templates.HelloWorld(
+        opera=templates.Opera.output.model_validate(opera)
+    ).render(request)
 
 
 def storyboard(request: HttpRequest) -> HttpResponse:
@@ -31,6 +33,14 @@ def storyboard(request: HttpRequest) -> HttpResponse:
 
 
 def opera_list(request: HttpRequest) -> HttpResponse:
+    from django.http import JsonResponse
+
     operas = models.Opera.objects.all()
 
-    return interfaces.OperaList(operas=list(operas)).render(request)
+    return JsonResponse(
+        interfaces.OperaList(
+            operas=[
+                interfaces.OperaName.output.model_validate(opera) for opera in operas
+            ]
+        ).model_dump(mode="json")
+    )

@@ -23,7 +23,7 @@ else:
 
         @classmethod
         def get_json_schema(cls: type["BaseUndefinedHolder"], definitions: Any) -> Any:
-            from .serialization import create_schema
+            from .forms.schema import create_schema
 
             return create_schema(cls.type, definitions)
 

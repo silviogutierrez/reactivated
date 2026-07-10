@@ -104,3 +104,58 @@ Uses Nix (`shell.nix`) for dependency management. Key env vars:
 - `REACTIVATED_SKIP_GENERATIONS` — Skips type generation
 - `REACTIVATED_VITE_PORT` / `REACTIVATED_DJANGO_PORT` — Port coordination
 - Django settings: `REACTIVATED_BUNDLES` (entry points, default `["index"]`), `REACTIVATED_ADAPTERS`, `REACTIVATED_IGNORED_URL_NAMESPACES` (default `["admin"]`)
+
+## Code Style
+
+- Prefer real type annotations over string ("quoted") annotations. Quote only to break a genuine circular import or forward reference — and note that router scopes/views resolve annotations at boot via get_type_hints, so quoted names must still be importable at runtime.
+
+### Tests
+
+Tests speak through their names and assertions — no narrating comments;
+comments only for a trap the assertion cannot convey (e.g. why a behavior
+must NOT happen).
+
+Granular one-behavior tests are the default: each test is a distinct spec
+sentence that would be missed if deleted. They are executable memory for
+stateless agents, they fail simultaneously (one run = the full damage map),
+and deleting one is diff-visible in a way that editing an assert inside a
+combined scenario is not. Combined scenarios only when behaviors are
+meaningless apart. No permutation spam — five tests for five file
+extensions is coverage theater, not spec.
+
+What deserves a test at all: mypy and CI do most of the work. Reserve unit
+tests for regressions that actually happened and contracts the type system
+cannot see (filesystem effects, ordering, deletion).
+
+### Re-exports
+
+Two blessed forms, in order of preference:
+
+1. **Redundant alias** (the default): `from .core import FormField as FormField`,
+   one name per statement — ruff's isort enforces the one-per-statement shape
+   for aliased imports, and the alias marks the re-export as intentional (no
+   `# noqa: F401`, ever).
+2. **Plain import + `__all__`**: a single grouped `from .x import (a, b, c)`
+   plus the names in `__all__`. Allowed when a file needs one positional
+   import statement (e.g. ordering constraints); satisfies both F401 and
+   mypy's `no_implicit_reexport`.
+
+Facade modules (`reactivated.pick`, `reactivated.forms`) contain re-exports
+only — implementation lives in submodules, imports stay at the top of the
+file. Never suppress E402 to keep imports at the bottom; restructure instead.
+
+### The export() rules
+
+- One export path: `export(thing)` from `reactivated.pick`. Picks and type
+  aliases emit types; **enums always emit both the type and the runtime
+  value map** — labels that are secrets don't belong in an exported enum
+  (export a `Literal` of the safe values instead). Module-level primitive
+  values are typed by their annotation (`SNAP_LIST: list[Snap]`);
+  non-primitives and duplicate names are boot errors.
+- Everything app-derived is addressed by server location on the client:
+  `server.journal.day.fast_init(...)` mirrors `server/journal/day.py`.
+  Nothing app-derived is ever exported at the top level of `@reactivated`,
+  and nothing is exported at two paths (one way to say everything).
+- A namespace is a tree-shaking boundary: importing `server.core` pulls all
+  of core's constants. That's fine _because_ exported values are primitives
+  only — keep it that way.

@@ -5,27 +5,27 @@ import {CSRFToken, Iterator, ManagementForm, templates, useFormSet} from "@react
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
 
-export const Template = (props: templates.EditPoll) => {
-    const formSet = useFormSet({formSet: props.choice_form_set});
+export const Template = (props: server.example.templates.EditPoll) => {
+    const formSet = forms.useFormSet({formSet: props.choice_form_set});
     const title = props.existing_poll == null ? "Create poll" : "Update poll";
 
     return (
         <Layout title={title} className="flex flex-col gap-2.5">
             <h1>{title}</h1>
             <form method="POST" action="" className="flex flex-col gap-2.5">
-                <CSRFToken />
+                <forms.CSRFToken />
                 <forms.Fieldset>
-                    <Iterator form={props.form}>
+                    <forms.Iterator form={props.form}>
                         {(field) => <forms.Field field={field} />}
-                    </Iterator>
+                    </forms.Iterator>
                 </forms.Fieldset>
-                <ManagementForm formSet={formSet.schema} />
+                <forms.ManagementForm formSet={formSet.schema} />
 
                 {formSet.forms.map((form) => (
                     <forms.Fieldset key={form.form.prefix} className="flex gap-2.5">
-                        <Iterator form={form}>
+                        <forms.Iterator form={form}>
                             {(field) => <forms.Field field={field} />}
-                        </Iterator>
+                        </forms.Iterator>
                     </forms.Fieldset>
                 ))}
                 <div className="flex gap-2.5">

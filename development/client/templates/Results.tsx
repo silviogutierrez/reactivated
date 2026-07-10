@@ -1,10 +1,10 @@
 import React from "react";
 
-import {reverse, templates} from "@reactivated";
+import {reverse, server} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
 
-export const Template = ({question}: templates.Results) => (
+export const Template = ({question}: server.example.templates.Results) => (
     <Layout title={question.question_text}>
         <h1>{question.question_text}</h1>
         <ul>

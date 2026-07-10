@@ -1,6 +1,6 @@
 import React from "react";
 
-import {classNames, templates} from "@reactivated";
+import {classNames, server} from "@reactivated";
 import ReactMarkdown from "react-markdown";
 
 import {Code} from "@client/components/Code";
@@ -35,7 +35,7 @@ export const Hamburger = () => {
     );
 };
 
-const Menu = (props: templates.Documentation) => {
+const Menu = (props: server.documentation.templates.Documentation) => {
     return (
         <aside className="Menu">
             <Hamburger />
@@ -94,7 +94,7 @@ const Menu = (props: templates.Documentation) => {
     );
 };
 
-export const Template = (props: templates.Documentation) => {
+export const Template = (props: server.documentation.templates.Documentation) => {
     const headings = props.content.match(/#{2,6}.+(?=\n)/g)?.join("\n");
 
     return (

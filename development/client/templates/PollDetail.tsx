@@ -1,18 +1,21 @@
 import React from "react";
 
-import {CSRFToken, reverse, templates} from "@reactivated";
+import {forms, reverse, server} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
 
-export const Template = ({error_message, question}: templates.PollDetail) => (
+export const Template = ({
+    error_message,
+    question,
+}: server.example.templates.PollDetail) => (
     <Layout title={question.question_text}>
         <form
             action={reverse("vote", {question_id: question.id})}
             method="post"
             className="flex gap-2.5 flex-col"
         >
-            <CSRFToken />
+            <forms.CSRFToken />
             <forms.Fieldset>
                 <legend>
                     <h1>{question.question_text}</h1>

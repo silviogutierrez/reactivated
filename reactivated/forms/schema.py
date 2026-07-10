@@ -25,10 +25,13 @@ from reactivated import fields, stubs, utils
 from reactivated.models import ComputedRelation
 from reactivated.types import Optgroup
 
+from ..registry import JSON, PROXIES, Definitions, Schema, Thing, register
+
 # Register our widgets.
-from . import builtins  # noqa: F401
-from . import widgets  # noqa: F401
-from .registry import JSON, PROXIES, Definitions, Schema, Thing, register
+from . import (
+    builtins,  # noqa: F401
+    widgets,  # noqa: F401
+)
 
 FormError = list[str]
 
@@ -59,7 +62,7 @@ class ComputedField(NamedTuple):
         return Thing(
             schema={
                 **annotation_schema.schema,
-                "serializer": "reactivated.serialization.ComputedField",
+                "serializer": "reactivated.forms.schema.ComputedField",
             },
             definitions=annotation_schema.definitions,
         )
@@ -86,7 +89,7 @@ class ForeignKeyType:
         return Thing(
             schema={
                 "type": "number",
-                "serializer": "reactivated.serialization.ForeignKeyType",
+                "serializer": "reactivated.forms.schema.ForeignKeyType",
             },
             definitions=definitions,
         )
@@ -322,7 +325,7 @@ class FormType(NamedTuple):
                     "iterator": iterator,
                     "hidden_fields": iterator,
                 },
-                "serializer": "reactivated.serialization.FormType",
+                "serializer": "reactivated.forms.schema.FormType",
                 "additionalProperties": False,
                 "required": ["name", "prefix", "fields", "iterator", "errors"],
             },
@@ -566,7 +569,7 @@ class UUIDFieldType:
     ) -> "Thing":
         return Thing(
             {
-                "serializer": "reactivated.serialization.UUIDFieldType",
+                "serializer": "reactivated.forms.schema.UUIDFieldType",
                 "tsType": "UUID",
             },
             definitions=definitions,
@@ -613,8 +616,6 @@ class UnionType(NamedTuple):
         _Type: stubs._GenericAlias | types.UnionType,
         definitions: Definitions,
     ) -> "Thing":
-        from reactivated.pick import BasePickHolder
-
         class_mapping: dict[str, Any] = {}
         subschemas: Sequence[Thing] = ()
         typed_dicts = []
@@ -648,9 +649,7 @@ class UnionType(NamedTuple):
 
             subschemas = [*subschemas, subschema]
 
-            if isinstance(subtype, type) and issubclass(subtype, BasePickHolder):
-                subtype_class = subtype.model_class
-            elif isinstance(subtype, stubs._GenericAlias) and subtype.__origin__ in (
+            if isinstance(subtype, stubs._GenericAlias) and subtype.__origin__ in (
                 list,
                 tuple,
             ):
@@ -671,7 +670,7 @@ class UnionType(NamedTuple):
 
         schema = {
             "anyOf": all_subschemas,
-            "serializer": "reactivated.serialization.UnionType",
+            "serializer": "reactivated.forms.schema.UnionType",
         }
 
         if len(typed_dicts) > 1 and len(subschemas) != len(typed_dicts):
@@ -882,7 +881,7 @@ def enum_type_schema(_Type: type[enum.Enum], definitions: Definitions) -> Thing:
         required.append(member_name)
         properties[member_name] = {
             **member_schema.schema,
-            "serializer": "reactivated.serialization.EnumValueType",
+            "serializer": "reactivated.forms.schema.EnumValueType",
         }
 
     return Thing(
@@ -921,7 +920,7 @@ def enum_schema(_Type: type[enum.Enum], definitions: Definitions) -> Thing:
             definition_name: {
                 "type": "string",
                 "enum": list(_Type.__members__.keys()),
-                "serializer": "reactivated.serialization.EnumMemberType",
+                "serializer": "reactivated.forms.schema.EnumMemberType",
             },
         },
     )
@@ -1020,6 +1019,19 @@ def create_schema(_Type: Any, definitions: Definitions) -> Thing:
             return proxy_schema  # type: ignore[no-any-return]
     except KeyError:
         pass
+
+    import pydantic
+
+    if isinstance(_Type, type) and issubclass(_Type, pydantic.BaseModel):
+        # The unified Context (and any other pydantic model reaching this
+        # codegen path). Picks carry their own rpc-flavored generator —
+        # serialization mode, namespaced defs — which keeps shapes
+        # structurally identical to the client schema's.
+        if hasattr(_Type, "get_json_schema"):
+            return _Type.get_json_schema(definitions)  # type: ignore[no-any-return]
+        model_schema = _Type.model_json_schema(ref_template="#/$defs/{model}")
+        defs = model_schema.pop("$defs", {})
+        return Thing(schema=model_schema, definitions={**definitions, **defs})
 
     if isinstance(_Type, stubs._GenericAlias) or isinstance(_Type, types.GenericAlias):
         return generic_alias_schema(_Type, definitions)
@@ -1139,6 +1151,7 @@ def array_serializer(value: Sequence[Any], schema: Thing) -> JSON:
 
 SERIALIZERS: dict[str, Serializer] = {
     "any": lambda value, schema: value,
+    "integer": lambda value, schema: value,
     "object": object_serializer,
     "string": lambda value, schema: str(value),
     "boolean": lambda value, schema: bool(value),

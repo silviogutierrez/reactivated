@@ -18,12 +18,7 @@ import {
 } from "ts-morph";
 
 const schema = JSON.parse(stdinBuffer.toString("utf8"));
-const {
-    urls: possibleEmptyUrls,
-    templates,
-    interfaces,
-    types,
-} = schema;
+const {urls: possibleEmptyUrls, templates, interfaces, types} = schema;
 
 const urls: generated.Types["URLSchema"] = {
     ...possibleEmptyUrls,
@@ -132,15 +127,16 @@ sourceFile.addStatements(
 );
 
 sourceFile.addStatements(`
-import type {Renderer as GenericRenderer} from "reactivated/dist/render.mjs";
-export type Renderer = GenericRenderer<_Types["Context"]>;
+import type {ReactivateConfig as GenericReactivateConfig} from "reactivated/dist/client";
+import {reactivate as genericReactivate} from "reactivated/dist/client";
+export type ReactivateConfig = GenericReactivateConfig<_Types["Context"]>;
+export const reactivate: (config?: ReactivateConfig) => void = genericReactivate;
+export {reactivateAdmin} from "reactivated/dist/client";
 
 export const rpc = {requester: typeof window != "undefined" ? rpcUtils.defaultRequester : null as any};
 import React from "react"
 import * as generated from "reactivated/dist/generated";
 import * as rpcUtils from "reactivated/dist/rpc";
-import {constants} from "./constants";
-export {constants};
 
 export function classNames(...classes: (string | undefined | null | false)[]) {
     return classes.filter(Boolean).join(" ");
@@ -151,7 +147,6 @@ export type Checker<P, U extends (React.FunctionComponent<P> | React.ComponentCl
 
 export {Context} from "./context";
 import {Context} from "./context";
-export type {FormHandler} from "reactivated/dist/forms";
 export {reverse} from "./urls";
 
 export const Provider = (props: {value: _Types["Context"]; children: React.ReactNode}) => {
@@ -171,15 +166,19 @@ export const getServerData = () => {
     return {props, context};
 };
 
-export type models = _Types["globals"]["models"];
 
-export type {FieldHandler} from "./forms";
-export {Form, FormSet, Widget, useForm, useFormSet, ManagementForm} from "reactivated/dist/forms";
-export {Iterator, CSRFToken, createRenderer} from "./forms";
-${"REACTIVATED_NO_GET_TEMPLATE" in process.env ? "" : `export {getTemplate} from "./template";`}
+export * as forms from "./forms";
 `);
 
 const formsContent = `
+export {
+    Form,
+    FormSet,
+    ManagementForm,
+    useForm,
+    useFormSet,
+} from "reactivated/dist/forms";
+export type {Widget} from "reactivated/dist/forms";
 import type {_Types} from "./index";
 import * as forms from "reactivated/dist/forms";
 
@@ -204,17 +203,6 @@ type TMutableContext = TContext & {
 };
 
 export const Context = React.createContext<TMutableContext>(null!);
-`;
-
-const templateContent = `
-// @ts-ignore
-const templates = import.meta.glob("@client/templates/*.tsx", {eager: true});
-
-export const getTemplate = async ({template_name}: {template_name: string}) => {
-    const templatePath = \`/client/templates/\${template_name}.tsx\`;
-    const TemplateModule = templates[templatePath] as {Template: React.ComponentType<any>}
-    return TemplateModule.Template;
-}
 `;
 
 // tslint:disable-next-line
@@ -260,26 +248,17 @@ export namespace interfaces {
 
     process.stdout.write(sourceFile.getText());
 
-    fs.mkdirSync("./node_modules/_reactivated", {recursive: true});
+    fs.mkdirSync("./client/generated", {recursive: true});
 
     await fsPromises.writeFile(
-        "./node_modules/_reactivated/context.tsx",
+        "./client/generated/context.tsx",
         contextContent,
         "utf-8",
     );
+    await fsPromises.writeFile("./client/generated/forms.tsx", formsContent, "utf-8");
     await fsPromises.writeFile(
-        "./node_modules/_reactivated/forms.tsx",
-        formsContent,
-        "utf-8",
-    );
-    await fsPromises.writeFile(
-        "./node_modules/_reactivated/urls.tsx",
+        "./client/generated/urls.tsx",
         "/* eslint-disable */\n" + urlFile.getText(),
-        "utf-8",
-    );
-    await fsPromises.writeFile(
-        "./node_modules/_reactivated/template.tsx",
-        templateContent,
         "utf-8",
     );
 });

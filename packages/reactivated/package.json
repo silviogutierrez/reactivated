@@ -13,7 +13,11 @@
         "./dist/shell": "./dist/shell.js",
         "./dist/render.mjs": "./dist/render.mjs",
         "./dist/server.mjs": "./dist/server.mjs",
-        "./dist/rpc": "./dist/rpc.js"
+        "./dist/rpc": "./dist/rpc.js",
+        "./client": "./dist/client.js",
+        "./dist/client": "./dist/client.js",
+        "./dist/plugin.mjs": "./dist/plugin.mjs",
+        "./tsconfig.base.json": "./tsconfig.base.json"
     },
     "typings": "dist/index.d.ts",
     "scripts": {
@@ -25,22 +29,20 @@
         "setup_environment.sh": "./scripts/setup_environment.sh",
         "build_subtree.sh": "./scripts/build_subtree.sh",
         "generate_client_assets": "./dist/generator.mjs",
-        "generate_client_constants": "./dist/generator/constants.mjs",
         "build.client": "./dist/build.client.mjs",
         "start_vite": "./dist/vite.mjs"
     },
     "license": "ISC",
     "peerDependencies": {
         "@eslint/js": "^9.18.0",
+        "@tailwindcss/vite": "^4.2.2",
         "@types/eslint__eslintrc": "^2.1.2",
         "@types/eslint__js": "^8.42.3",
         "@types/eslint-config-prettier": "^6.11.3",
         "@types/express": "^5.0.0",
         "@types/react": "^19.0.2",
         "@types/react-dom": "^19.0.2",
-        "@tailwindcss/vite": "4.2.2",
-        "tailwindcss": "4.2.2",
-        "@vitejs/plugin-react": "6.0.1",
+        "@vitejs/plugin-react": "^6.0.1",
         "eslint": "~9.18.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-import-resolver-typescript": "^3.6.3",
@@ -55,9 +57,17 @@
         "prettier": "^3.3.3",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
+        "tailwindcss": "^4.2.2",
         "ts-morph": "^24.0.0",
-        "typescript": "^5.6.3",
-        "typescript-eslint": "^8.20.0",
-        "vite": "8.0.13"
+        "typescript": "^5.6.3 || ^6.0.0",
+        "typescript-eslint": "^8.60.1",
+        "vite": "^8.0.13"
+    },
+    "devDependencies": {
+        "typescript": "6.0.3"
+    },
+    "dependencies": {
+        "vite": "^8.0.13",
+        "typescript": "^6.0.3"
     }
 }

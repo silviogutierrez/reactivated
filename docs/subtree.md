@@ -51,31 +51,23 @@ reactivated = { path = "./upstream/reactivated", editable = true }
 
 ## Build steps
 
-After cloning or pulling changes to the subtree, install dependencies, run the
-subtree's own build script from your project root, then regenerate your app's
-schemas:
+After cloning or pulling changes to the subtree:
 
 ```bash
 uv sync                          # Install Python deps (editable reactivated)
 npm install                      # Install Node deps (symlinks to subtree)
 
-./upstream/reactivated/packages/reactivated/scripts/build_subtree.sh
+# Generate types (writes packages/reactivated/src/generated.tsx):
+cd upstream/reactivated
+PATH=$(pwd)/../../node_modules/.bin:$PATH python scripts/generate_types.py
+cd ../..
+
+# Initial build (required once before dev server works):
+npx tsc -p upstream/reactivated/packages/reactivated/tsconfig.json
+
+# Regenerate your app's client schema against the vendored source:
 python manage.py generate_client_assets
 ```
-
-The script does, in order:
-
-1. Generate types (writes `packages/reactivated/src/generated.tsx`).
-2. Compile the TypeScript package to `dist/` (required once before the dev server
-   works).
-3. Re-run `npm install` against the subtree package — its `bin` entries point into
-   `dist/`, which only exists after the compile.
-
-It builds the framework only; it never executes your application. Regenerating the
-client schema and server `pick_schema` (`manage.py generate_client_assets`) runs
-with your app's settings and models, so that call stays in your hands — make it
-after the script, from your project's `setup` helper, CI setup action, and release
-script, so every environment builds the same way.
 
 ## Live editing
 
@@ -313,3 +305,19 @@ identically with the published packages:
 
 Then verify: `uv sync && npm install`, regenerate client assets
 (`python manage.py generate_client_assets`), and run your project's checks.
+
+## Lock-file hygiene after a sync
+
+Peer dependencies are ranges, not exact pins — a plain `npm install` (or
+`npm ci` against a committed lock) resolves them without conflict. Two
+things still bite:
+
+- **Fossil lock entries**: renaming or removing a vendored directory can
+  leave `package-lock.json` entries npm never prunes. Symptom: installs
+  reference paths that no longer exist. Fix: delete the stale entries (or
+  regenerate the lock) and verify with
+  `rm -rf node_modules && npm install --strict-peer-deps` — zero ERESOLVE
+  output is the invariant.
+- **`--package-lock-only` does not re-resolve** already-pinned packages;
+  after a sync that changes peer ranges, run `npm update <pkg>` for each
+  changed pin before trusting the lock.

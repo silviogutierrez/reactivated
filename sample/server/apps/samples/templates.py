@@ -1,18 +1,17 @@
-from typing import Literal, NamedTuple
+from typing import Annotated
 
-from reactivated import Pick, template
+from reactivated import Template, pick
+from reactivated.forms import DjangoForm, DjangoFormSet
 
 from . import forms, models
 
-Opera = Pick[models.Opera, Literal["name", "composer.name", "style"]]
+Opera = pick(models.Opera, fields=["name", "composer.name", "style"])
 
 
-@template
-class HelloWorld(NamedTuple):
-    opera: Opera
+class HelloWorld(Template):
+    opera: Opera.output
 
 
-@template
-class Storyboard(NamedTuple):
-    form: forms.StoryboardForm
-    form_set: forms.OperaFormSet
+class Storyboard(Template):
+    form: Annotated[forms.StoryboardForm, DjangoForm]
+    form_set: Annotated[forms.OperaFormSet, DjangoFormSet]

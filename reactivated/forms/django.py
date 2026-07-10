@@ -1,18 +1,127 @@
-from __future__ import annotations
+import enum
+from collections.abc import Callable, Sequence
+from enum import unique
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Literal,
+    TypeVar,
+)
 
-from typing import Annotated, Any, Callable, Generic, Literal, TypeVar, get_args
+from django import forms as django_forms
+from django.forms.widgets import Widget
 
-from django import forms
-from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler, TypeAdapter
-from pydantic.json_schema import JsonSchemaValue
-from pydantic_core import core_schema
-from reactivated.serialization import create_schema as reactivated_create_schema
-from reactivated.serialization.registry import definitions_registry
-from reactivated.utils import ClassLookupDict
+from ..fields import _GT, EnumChoiceIterator, coerce_to_enum
+from ..registry import definitions_registry
+from ..rpc.core import Pick
+from ..utils import ClassLookupDict
+from .schema import create_schema as reactivated_create_schema
 
-from .core import Pick
+if TYPE_CHECKING:
+    from django.forms.formsets import _F
+    from django.forms.models import _M, _ModelFormT
+
+    class FormSetFactory(django_forms.BaseFormSet[_F]):
+        pass
+
+    class ModelFormSetFactory(django_forms.BaseModelFormSet[_M, _ModelFormT]):
+        pass
+
+else:
+
+    class FormSetFactory:
+        def __class_getitem__(cls: Any, item: Any) -> Any:
+            return django_forms.formset_factory(form=item)
+
+    class ModelFormSetFactory:
+        def __class_getitem__(cls: Any, item: Any) -> Any:
+            model, form = item
+            return django_forms.modelformset_factory(model=model, form=form)
+
+
+class EnumChoiceField(django_forms.TypedChoiceField):
+    def __init__(
+        self,
+        *,
+        coerce: Callable[[Any], _GT | None] | None = None,
+        empty_value: str | None = "",
+        enum: type[_GT] | None = None,
+        choices: EnumChoiceIterator[_GT] | None = None,
+        required: bool = True,
+        widget: Widget | type[Widget] | None = None,
+        label: str | None = None,
+        initial: _GT | None = None,
+        help_text: str = "",
+        error_messages: Any | None = None,
+        show_hidden_initial: bool = False,
+        validators: Sequence[Any] = (),
+        localize: bool = False,
+        disabled: bool = False,
+        label_suffix: Any | None = None,
+    ) -> None:
+        """When instantiated by a model form, choices will be populated and
+        enum will not, as Django strips all but a defined set of kwargs.
+
+        And coerce will be populated by the model as well.
+
+        When using this field directly in a form, enum will be populated and
+        choices and coerce should be None."""
+
+        if enum is not None and choices is None:
+            self.enum = enum
+            choices = EnumChoiceIterator(enum=enum, include_blank=required)
+            coerce = lambda value: coerce_to_enum(self.enum, value)
+        elif enum is None and choices is not None:
+            self.enum = choices.enum
+        else:
+            assert False, "Pass enum or choices. Not both"
+
+        unique(self.enum)
+
+        return super().__init__(
+            coerce=coerce,  # type: ignore[arg-type]
+            empty_value=empty_value,
+            choices=choices,
+            required=required,
+            widget=widget,
+            label=label,
+            initial=initial,
+            help_text=help_text,
+            error_messages=error_messages,
+            show_hidden_initial=show_hidden_initial,
+            validators=validators,
+            localize=localize,
+            disabled=disabled,
+            label_suffix=label_suffix,
+        )
+
+    """
+    Enum choices must be serialized to their name rather than their enum
+    representation for the existing value in forms. Choices themselves are
+    handled by the `choices` argument in form and model fields.
+    """
+
+    def prepare_value(self, value: enum.Enum | None) -> str | None:
+        if isinstance(value, enum.Enum):
+            return value.name
+        return value
+
 
 T = TypeVar("T")
+
+
+# --- Django forms -> pydantic bridge (DjangoForm / DjangoFormSet) ---------
+
+from typing import Annotated, Generic, get_args  # noqa: E402
+
+from django import forms  # noqa: E402
+from pydantic import (  # noqa: E402
+    GetCoreSchemaHandler,
+    GetJsonSchemaHandler,
+    TypeAdapter,
+)
+from pydantic.json_schema import JsonSchemaValue  # noqa: E402
+from pydantic_core import core_schema  # noqa: E402
 
 
 class _UndefinedMarker(Generic[T]):

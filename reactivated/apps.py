@@ -2,6 +2,7 @@ import importlib
 import json
 import logging
 import os
+import pathlib
 import subprocess
 from typing import Any, NamedTuple
 
@@ -9,19 +10,16 @@ from django.apps import AppConfig
 from django.conf import settings
 
 from . import extract_views_from_urlpatterns, types
-from .serialization import create_schema, serialize
-from .serialization.registry import (
+from .forms.schema import create_schema
+from .registry import (
     definitions_registry,
     global_types,
-    interface_registry,
-    template_registry,
     type_registry,
-    value_registry,
 )
 
 logger = logging.getLogger("django.server")
 
-GENERATED_DIRECTORY = f"{settings.BASE_DIR}/node_modules/_reactivated"
+GENERATED_DIRECTORY = f"{settings.BASE_DIR}/client/generated"
 
 
 def get_urls_schema() -> dict[str, Any]:
@@ -82,20 +80,12 @@ def get_types_schema() -> Any:
     """
     type_registry["globals"] = Any  # type: ignore[assignment]
 
-    context_processors = []
+    from .context import get_context_class
 
-    from .serialization.context_processors import create_context_processor_type
-
-    for engine in settings.TEMPLATES:
-        if engine["BACKEND"] == "reactivated.backend.JSX":
-            context_processors.extend(engine["OPTIONS"]["context_processors"])  # type: ignore[index]
-
-    type_registry["Context"] = create_context_processor_type(context_processors)
+    type_registry["Context"] = get_context_class()  # type: ignore[assignment]
 
     if "RPCPermission" not in type_registry:
         type_registry["RPCPermission"] = None  # type: ignore[assignment]
-
-    type_registry["Context"] = create_context_processor_type(context_processors)
 
     ParentTuple = NamedTuple("ParentTuple", type_registry.items())  # type: ignore[misc]
     parent_schema, definitions = create_schema(ParentTuple, definitions_registry)
@@ -120,27 +110,13 @@ def get_types_schema() -> Any:
 
 
 def get_templates() -> dict[str, tuple[Any]]:
-    return template_registry
+    # The legacy template registry is gone; rpc templates generate through
+    # the client schema instead. The key stays for the generator contract.
+    return {}
 
 
 def get_interfaces() -> dict[str, tuple[Any]]:
-    return interface_registry
-
-
-def get_values() -> dict[str, Any]:
-    serialized = {}
-
-    for key, (value, serialize_as_is) in value_registry.items():
-        if serialize_as_is == "primitive":
-            serialized[key] = value
-        elif serialize_as_is == "enum":
-            generated_schema = create_schema(type[value], {})
-            serialized[key] = serialize(value, generated_schema)
-        else:
-            generated_schema = create_schema(value, {})
-            generated_schema.definitions["is_static_context"] = True  # type: ignore[index]
-            serialized[key] = serialize(value, generated_schema)
-    return serialized
+    return {}
 
 
 def get_schema() -> str:
@@ -150,7 +126,6 @@ def get_schema() -> str:
         "templates": get_templates(),
         "interfaces": get_interfaces(),
         "types": get_types_schema(),
-        "values": get_values(),
     }
     return json.dumps(schema, indent=4)
 
@@ -169,7 +144,7 @@ class ReactivatedConfig(AppConfig):
 
         from .checks import check_installed_app_order  # NOQA
         from .fields import clear_migrating_flag, set_migrating_flag
-        from .serialization import widgets  # noqa
+        from .forms import widgets  # noqa
 
         pre_migrate.connect(set_migrating_flag)
         post_migrate.connect(clear_migrating_flag)
@@ -188,6 +163,10 @@ def generate_schema(skip_cache: bool = False) -> None:
     import hashlib
 
     digest = hashlib.sha1(encoded_schema).hexdigest().encode()
+
+    from .generation import expect
+
+    expect(pathlib.Path(GENERATED_DIRECTORY) / "index.tsx")
 
     if skip_cache is False and os.path.exists(f"{GENERATED_DIRECTORY}/index.tsx"):
         with open(f"{GENERATED_DIRECTORY}/index.tsx", "r+b") as existing:
@@ -209,21 +188,11 @@ def generate_schema(skip_cache: bool = False) -> None:
     )
     out, error = process.communicate(encoded_schema)
 
-    constants_process = subprocess.Popen(
-        ["npm", "exec", "generate_client_constants"],
-        stdout=subprocess.PIPE,
-        stdin=subprocess.PIPE,
-        cwd=settings.BASE_DIR,
-    )
-    constants_out, constants_error = constants_process.communicate(encoded_schema)
-
     os.makedirs(GENERATED_DIRECTORY, exist_ok=True)
 
-    with open(f"{GENERATED_DIRECTORY}/index.tsx", "w+b") as output:
-        output.write(b"// Digest: %s\n" % digest)
-        output.write(out)
+    from .generation import write_atomic
 
-    with open(f"{GENERATED_DIRECTORY}/constants.tsx", "w+b") as output:
-        output.write(constants_out)
+    index = b"// Digest: %s\n" % digest + out + b'\nexport * from "./schema";\n'
+    write_atomic(pathlib.Path(GENERATED_DIRECTORY) / "index.tsx", index.decode("utf-8"))
 
     logger.info("Finished generating.")

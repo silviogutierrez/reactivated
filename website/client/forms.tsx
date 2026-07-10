@@ -2,9 +2,9 @@ import React, {type JSX} from "react";
 
 import {FieldHandler, Widget} from "@reactivated";
 
-export const Field = (props: {field: FieldHandler}) => {
+export const Field = (props: {field: forms.FieldHandler}) => {
     const {field} = props;
-    const renderedWidget = <Widget field={field} />;
+    const renderedWidget = <forms.Widget field={field} />;
 
     if (field.tag == "django.forms.widgets.HiddenInput") {
         return renderedWidget;

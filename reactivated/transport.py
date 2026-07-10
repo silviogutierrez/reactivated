@@ -44,6 +44,11 @@ class Mountable(Protocol):
     def paths(self) -> list[URLPattern]: ...
 
 
+# Everything urls.py actually wired — schema generation reads THIS, not a
+# construction-time global, so an unmounted router can't emit client code.
+mounted_routers: list[Mountable] = []
+
+
 def mount(*routers: Mountable) -> list[URLPattern]:
     """Emit every router's patterns with *global* duplicate detection.
 
@@ -69,6 +74,12 @@ def mount(*routers: Mountable) -> list[URLPattern]:
             seen_routes[route] = name
             seen_names[name] = route
         patterns.extend(router.paths())
+
+    # Register only after validation: a rejected router must not linger in
+    # the global list where schema generation would still see it.
+    for router in routers:
+        if router not in mounted_routers:
+            mounted_routers.append(router)
     return patterns
 
 

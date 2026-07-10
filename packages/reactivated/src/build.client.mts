@@ -8,6 +8,7 @@ import {execSync} from "child_process";
 import path from "path";
 import {rmSync, existsSync} from "fs";
 import {define} from "./conf.js";
+import {preset} from "./plugin.mjs";
 
 const REACTIVATED_WATCH = "REACTIVATED_WATCH" in process.env;
 
@@ -49,7 +50,9 @@ const clientConfig = {
         outDir: "static/dist",
         manifest: false,
         rolldownOptions: {
-            input: "/client/index.tsx",
+            input: existsSync("./client/index.tsx")
+                ? "/client/index.tsx"
+                : {index: "virtual:reactivated/entry"},
             output: {
                 codeSplitting: false,
                 entryFileNames: `[name].js`,
@@ -58,13 +61,8 @@ const clientConfig = {
             },
         },
     },
-    plugins: [capacitorPlugin(), react(), tailwindcss()],
-    resolve: {
-        alias: {
-            "@client": path.resolve(process.cwd(), "./client"),
-            "@reactivated": path.resolve(process.cwd(), "./node_modules/_reactivated"),
-        },
-    },
+    plugins: [capacitorPlugin(), ...preset().plugins, react(), tailwindcss()],
+    resolve: preset().resolve,
     base,
 } satisfies InlineConfig;
 
@@ -116,13 +114,8 @@ const rendererConfig = {
         },
     },
 
-    plugins: [react(), tailwindcss()],
-    resolve: {
-        alias: {
-            "@client": path.resolve(process.cwd(), "./client"),
-            "@reactivated": path.resolve(process.cwd(), "./node_modules/_reactivated"),
-        },
-    },
+    plugins: [...preset().plugins, react(), tailwindcss()],
+    resolve: preset().resolve,
     base,
 } satisfies InlineConfig;
 

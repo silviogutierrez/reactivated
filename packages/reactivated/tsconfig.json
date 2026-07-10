@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "rootDir": "./src",
         "strict": true,
         "sourceMap": true,
         "module": "ES2022",
@@ -9,7 +10,6 @@
         "esModuleInterop": true,
         "declaration": true,
         "jsx": "react",
-        "baseUrl": ".",
         "noEmit": false,
         "skipLibCheck": true
     },

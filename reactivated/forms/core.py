@@ -4,7 +4,6 @@ import datetime
 import decimal
 import enum
 import inspect
-import json
 import logging
 from types import NoneType, UnionType
 from typing import (
@@ -20,9 +19,8 @@ from typing import (
 
 from pydantic import EmailStr, Field, SecretStr, model_validator
 from pydantic_core import PydanticUndefined
-from reactivated.utils import ClassLookupDict
 
-from .utils import module_name_to_app_name
+from reactivated.utils import ClassLookupDict
 
 logger = logging.getLogger("django.server")
 
@@ -426,32 +424,6 @@ def get_form_schema(form_cls: type) -> dict[str, Any]:
 
 
 def generate_forms_export() -> str:
-    if not form_registry:
-        return "\nexport const forms = {} as const;\n\nexport interface forms {}\n"
-
-    forms_dict: dict[str, dict[str, Any]] = {}
-
-    for form_cls in form_registry:
-        app_name = module_name_to_app_name(form_cls.__module__)
-        form_name = (
-            f"{app_name}.{form_cls.__qualname__}"
-            if app_name
-            else f"{form_cls.__module__}.{form_cls.__qualname__}"
-        )
-        try:
-            form_schema = get_form_schema(form_cls)
-            forms_dict[form_name] = form_schema
-        except Exception as e:
-            logger.warning(f"Failed to generate form schema for {form_name}: {e}")
-            continue
-
-    forms_json = json.dumps(forms_dict, indent=4)
-
-    # Generate interface that parallels the const for proper type inference
-    interface_members = "\n".join(
-        f'    "{form_name}": typeof forms["{form_name}"];'
-        for form_name in forms_dict.keys()
-    )
-    interface_def = f"export interface forms {{\n{interface_members}\n}}"
-
-    return f"\nexport const forms = {forms_json} as const;\n\n{interface_def}\n"
+    """Superseded: form definitions emit into the server namespace at their
+    module paths. Kept returning an empty string until callers are pruned."""
+    return ""

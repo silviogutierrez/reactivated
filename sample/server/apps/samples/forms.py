@@ -2,7 +2,7 @@ from typing import Any
 
 from django import forms
 
-from reactivated.forms import Autocomplete, EnumChoiceField, ModelFormSetFactory
+from reactivated.forms import EnumChoiceField, ModelFormSetFactory
 from sample.server.apps.samples import models
 
 
@@ -37,7 +37,6 @@ class OperaForm(forms.ModelForm[models.Opera]):
     class Meta:
         model = models.Opera
         fields = "__all__"
-        widgets = {"composer": Autocomplete()}
 
 
 class OperaFormSet(ModelFormSetFactory[models.Opera, OperaForm]):

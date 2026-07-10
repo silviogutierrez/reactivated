@@ -126,12 +126,20 @@ sourceFile.addStatements(
     "export type UUID = `${string}-${string}-${string}-${string}-${string}`;",
 );
 
+// reactivate/reactivateAdmin are declared AMBIENT: tsc sees the exports (so
+// `import {reactivate} from "@reactivated"` type-checks in app source) but NO
+// runtime import of "reactivated/dist/client" is emitted. @reactivated is
+// imported by every app module; a value import of the framework client would
+// drag it - and, via virtual:reactivated/templates, the app templates - into
+// the shared graph, forming a cycle that breaks react-refresh (scene edits
+// remount the whole app). The reactivated Vite plugin rewrites these two names
+// to come from "reactivated/dist/client" at runtime, only in the (entry)
+// modules that import them.
 sourceFile.addStatements(`
 import type {ReactivateConfig as GenericReactivateConfig} from "reactivated/dist/client";
-import {reactivate as genericReactivate} from "reactivated/dist/client";
 export type ReactivateConfig = GenericReactivateConfig<_Types["Context"]>;
-export const reactivate: (config?: ReactivateConfig) => void = genericReactivate;
-export {reactivateAdmin} from "reactivated/dist/client";
+export declare const reactivate: (config?: ReactivateConfig) => void;
+export declare const reactivateAdmin: () => void;
 
 export const rpc = {requester: typeof window != "undefined" ? rpcUtils.defaultRequester : null as any};
 import React from "react"

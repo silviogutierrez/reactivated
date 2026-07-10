@@ -247,6 +247,32 @@ If there are conflicts, `--3way` leaves standard conflict markers that you resol
 normally. The common cause is a file that both sides modified (e.g. both added code to
 the end of the same test file). Resolve by keeping both sides.
 
+### Reconcile peer pins in the lock file
+
+`npm install --package-lock-only` records the vendored package's new version but does
+**not** re-resolve packages the lock already pins. This package pins its peers exactly
+(e.g. `"vite": "8.0.13"`), so if a sync bumps a peer pin, the lock keeps the old
+resolution and npm prints an `ERESOLVE overriding peer dependency` warning on every
+install — forever, without failing.
+
+If the sync diff touches `peerDependencies` in `packages/reactivated/package.json`,
+update each changed pin and verify the invariant — a strict install succeeds:
+
+```bash
+npm update vite   # once per changed peer pin
+
+rm -rf node_modules
+npm install --strict-peer-deps   # fails on any peer conflict
+```
+
+Consumer CI should run `npm install --strict-peer-deps` in its setup action so pin
+drift fails PRs instead of warning forever.
+
+While you're in the lock file: if the subtree ever moved (e.g. from a differently
+named directory), the lock may retain an entry for the old path — npm never prunes
+entries for directories that no longer exist, and their stale metadata feeds the
+resolver. Delete any `packages` key that doesn't correspond to a real directory.
+
 ### Why not rsync?
 
 `rsync --delete` overwrites the entire subtree, destroying any local additions

@@ -28,6 +28,7 @@ export default tseslint.config(
             ".mypy_cache",
             ".pytest_cache",
             "static/dist/**/*",
+            "client/generated/**/*",
             "upstream/reactivated/",
         ],
     },

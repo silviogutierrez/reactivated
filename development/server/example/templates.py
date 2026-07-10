@@ -1,59 +1,58 @@
-from typing import NamedTuple
+from typing import Annotated, Literal
 
-from reactivated import Pick, template
+from reactivated.forms import DjangoForm, DjangoFormSet
+from reactivated.pick import InlinePick
+from reactivated.templates import Template
 
 from . import forms, models
 
 
-@template
-class DjangoDefault(NamedTuple):
+class DjangoDefault(Template):
     version: str
 
 
-@template
-class PollsIndex(NamedTuple):
-    latest_question_list: list[Pick[models.Question, "id", "question_text"]]
+class PollsIndex(Template):
+    latest_question_list: list[
+        InlinePick[models.Question, Literal["id", "question_text"]]
+    ]
 
 
-@template
-class EditPoll(NamedTuple):
-    form: forms.Poll
-    choice_form_set: forms.ChoiceFormSet
-    existing_poll: Pick[models.Question, "id"] | None = None
+class EditPoll(Template):
+    form: Annotated[forms.Poll, DjangoForm]
+    choice_form_set: Annotated[forms.ChoiceFormSet, DjangoFormSet]
+    existing_poll: InlinePick[models.Question, Literal["id"]] | None = None
 
 
-@template
-class PollDetail(NamedTuple):
-    question: Pick[
+class PollDetail(Template):
+    question: InlinePick[
         models.Question,
-        "id",
-        "question_text",
-        "choices.id",
-        "choices.choice_text",
+        Literal["id", "question_text", "choices.id", "choices.choice_text"],
     ]
     error_message: str | None = None
 
 
-@template
-class PollComments(NamedTuple):
-    question: Pick[models.Question, "id", "question_text", "comments.comment_text"]
-    form: forms.Comment
-
-
-@template
-class Results(NamedTuple):
-    question: Pick[
+class PollComments(Template):
+    question: InlinePick[
         models.Question,
-        "id",
-        "question_text",
-        "choices.id",
-        "choices.choice_text",
-        "choices.votes",
+        Literal["id", "question_text", "comments.comment_text"],
+    ]
+    form: Annotated[forms.Comment, DjangoForm]
+
+
+class Results(Template):
+    question: InlinePick[
+        models.Question,
+        Literal[
+            "id",
+            "question_text",
+            "choices.id",
+            "choices.choice_text",
+            "choices.votes",
+        ],
     ]
 
 
-@template
-class FormPlayground(NamedTuple):
-    form: forms.ExampleForm
-    form_as_p: forms.ExampleForm
-    form_set: forms.ChoiceFormSet
+class FormPlayground(Template):
+    form: Annotated[forms.ExampleForm, DjangoForm]
+    form_as_p: Annotated[forms.ExampleForm, DjangoForm]
+    form_set: Annotated[forms.ChoiceFormSet, DjangoFormSet]

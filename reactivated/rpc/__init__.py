@@ -1,22 +1,12 @@
-from .core import InlinePick, Pick, PickProxy, Router, anyone, export, pick
-from .forms import FormField, form
+"""The procedure router — routing only. ``Pick``, ``Template``, and forms
+live at their top-level homes: ``reactivated.pick``,
+``reactivated.templates``, ``reactivated.forms``."""
+
+from .core import anyone
 from .observer import RequestStatus, rpc_observer
-from .template import AdminChangeView, AdminListView, AdminView, Template
 
 __all__ = [
-    "AdminChangeView",
-    "AdminListView",
-    "AdminView",
-    "FormField",
-    "InlinePick",
-    "Pick",
-    "PickProxy",
     "RequestStatus",
-    "Router",
     "anyone",
-    "Template",
-    "export",
-    "form",
-    "pick",
     "rpc_observer",
 ]

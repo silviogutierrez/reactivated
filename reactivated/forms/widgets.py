@@ -4,7 +4,7 @@ from django import forms
 
 from reactivated import stubs
 
-from .registry import (
+from ..registry import (
     JSON,
     DefaultWidgetType,
     Definitions,
@@ -53,7 +53,7 @@ class BaseWidget(NamedTuple):
         instance: forms.Widget,
         definitions: Definitions,
     ) -> "Thing":
-        from . import create_schema, named_tuple_schema
+        from .schema import create_schema, named_tuple_schema
 
         # Subwidgets come to us as a class already.
         widget_class: type[forms.Widget] = (
@@ -145,7 +145,7 @@ class BaseWidget(NamedTuple):
     def get_serialized_value(
         Proxy: type["BaseWidget"], value: Any, schema: "Thing"
     ) -> JSON:
-        from . import object_serializer
+        from .schema import object_serializer
 
         widget_class = value.__class__
         context = value if isinstance(value, dict) else value._reactivated_get_context()

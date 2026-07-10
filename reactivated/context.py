@@ -1,14 +1,16 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Literal, get_type_hints
+from typing import Annotated, Any, Callable, Literal, get_type_hints
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
+from django.utils.functional import LazyObject
 from django.utils.module_loading import import_string
-from pydantic import create_model, model_validator
+from pydantic import BeforeValidator, create_model, model_validator
 from pydantic.functional_validators import ModelWrapValidatorHandler
 
-from .core import LazyStr, Pick
+from .rpc.core import LazyStr, Pick
 
 
 class Request(Pick):
@@ -49,6 +51,56 @@ class CSRFProcessor(Pick):
     csrf_token: LazyStr
 
 
+class SafeUser(Pick):
+    """The safe default shape for ``django.contrib.auth``'s context
+    processor: the user's own identity, nothing more. No email (keep PII
+    out of rendered props by default), no perms (PermWrapper is a lazy,
+    query-bearing proxy). Override by registering a replacement Pick via
+    ``register_processor_type`` — or skip Django's processor and write
+    your own, which supersedes this entirely."""
+
+    # None covers unsaved/phantom users (authenticated but never persisted).
+    id: int | str | None
+    username: str
+    is_authenticated: bool
+    is_staff: bool
+
+    @model_validator(mode="wrap")  # type: ignore[arg-type]
+    @classmethod
+    def _accept_user(
+        cls, values: Any, handler: ModelWrapValidatorHandler["SafeUser"]
+    ) -> "SafeUser":
+        user = values
+        if hasattr(user, "is_authenticated"):
+            return cls(
+                id=user.pk,
+                username=user.get_username(),
+                is_authenticated=True,
+                is_staff=bool(getattr(user, "is_staff", False)),
+            )
+        return handler(values)
+
+
+def _resolve_auth_user(value: Any) -> Any:
+    # Processor dicts are flattened into one context, so resolution happens
+    # at the field: unwrap the lazy user, map anonymous to None.
+    if isinstance(value, LazyObject):
+        value = value.__reduce__()[1][0]
+    if value is None or not getattr(value, "is_authenticated", False):
+        return None
+    return value
+
+
+class AuthProcessor(Pick):
+    user: Annotated[SafeUser | None, BeforeValidator(_resolve_auth_user)]
+
+
+def register_processor_type(processor_path: str, pick: type[Pick]) -> None:
+    """Override the typed shape for a context processor (usually one of
+    Django's untyped builtins)."""
+    TYPE_HINTS[processor_path] = {"return": pick}
+
+
 class BaseContext(Pick):
     template_name: str
 
@@ -64,6 +116,7 @@ TYPE_HINTS: dict[str, dict[str, type[Pick]]] = {
     "django.contrib.messages.context_processors.messages": {
         "return": MessagesProcessor
     },
+    "django.contrib.auth.context_processors.auth": {"return": AuthProcessor},
 }
 
 
@@ -79,16 +132,27 @@ _context_processor_paths: list[str] | None = None
 
 
 def get_context_processor_paths() -> list[str]:
+    """Context processors come from the stock ``DjangoTemplates`` entry —
+    the exact block ``startproject`` generates. No custom backend, no
+    custom setting."""
     global _context_processor_paths
     if _context_processor_paths is None:
-        _context_processor_paths = []
         for template_config in settings.TEMPLATES:
             config: dict[str, Any] = template_config
-            if config.get("BACKEND") == "reactivated.backend.JSX":
+            if (
+                config.get("BACKEND")
+                == "django.template.backends.django.DjangoTemplates"
+            ):
                 _context_processor_paths = config.get("OPTIONS", {}).get(
                     "context_processors", []
                 )
                 break
+        else:
+            raise ImproperlyConfigured(
+                "reactivated: no django.template.backends.django.DjangoTemplates "
+                "entry in settings.TEMPLATES — templates render with context "
+                "processors taken from that entry's OPTIONS"
+            )
     return _context_processor_paths
 
 

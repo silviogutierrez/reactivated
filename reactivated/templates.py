@@ -1,190 +1,79 @@
-from typing import Any, NamedTuple, TypeVar
+from __future__ import annotations
 
-from django import forms
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from typing import Any, ClassVar, Type
+
+from django.contrib import admin
+from django.http import HttpRequest, HttpResponse
 from django.template.response import TemplateResponse
+from django.utils.safestring import mark_safe
 
-from . import utils
-from .renderer import should_respond_with_json
-from .serialization import create_schema, serialize
-from .serialization.registry import (
-    JSON,
-    definitions_registry,
-    interface_registry,
-    template_registry,
-    type_registry,
-)
+from .context import get_context_class, get_context_processors
+from .renderer import render_jsx_to_string
+from .rpc.core import Pick
 
-T = TypeVar("T", bound=NamedTuple)
+template_registry: dict[str, Type[Template]] = {}
 
 
-class LazySerializationResponse(TemplateResponse):
-    """
-    This lazy serialization doesn't actually convert our context to JSON
-    until the very last minute, using resolve_context.
+class Template(Pick):
+    _abstract: ClassVar[bool] = True
 
-    That allows things like our autocomplete decorator and other functions
-    that peek into the context to behave as normal. They'll be handed
-    regular Python objects.
-    """
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        if not cls.__dict__.get("_abstract", False):
+            template_registry[cls.__name__] = cls
 
-    _request: HttpRequest
+    def render_to_string(
+        self, request: HttpRequest, entry_point: str | None = None
+    ) -> str:
+        props = self.model_dump(mode="json")
 
-    def __init__(
+        context_dict: dict[str, Any] = {"template_name": self.__class__.__name__}
+        for processor in get_context_processors():
+            context_dict.update(processor(request))
+
+        Context = get_context_class()
+        context = Context(**context_dict).model_dump(mode="json")
+
+        return render_jsx_to_string(request, context, props, entry_point=entry_point)
+
+    def render(self, request: HttpRequest, status: int = 200) -> HttpResponse:
+        response = HttpResponse(self.render_to_string(request), status=status)
+
+        if getattr(request, "_is_reactivated_response", False) is True:
+            response["content-type"] = "application/json"
+
+        return response
+
+
+class AdminView(Template):
+    _abstract: ClassVar[bool] = True
+    _entry_point: ClassVar[str] = "django.admin"
+
+    def render_fragment(self, request: HttpRequest) -> str:
+        rendered = self.render_to_string(request, entry_point=self._entry_point)
+        return mark_safe(f"<div data-reactivated-root>{rendered}</div>")
+
+
+class AdminChangeView(AdminView):
+    _abstract: ClassVar[bool] = True
+
+    def change_view(
         self,
         request: HttpRequest,
-        template: type[T],
-        *args: Any,
-        **kwargs: Any,
-    ) -> None:
-        self.template = template
-        super().__init__(request, *args, **kwargs)
-
-    @property
-    def rendered_content(self) -> str:
-        from .backend import JSXTemplate
-
-        engine = utils.get_template_engine()
-        template = JSXTemplate(self.template_name, engine)  # type: ignore[arg-type]
-        context = self.resolve_context(self.context_data)
-        return template.render(context, self._request)
-
-    def __getstate__(self) -> Any:
-        """
-        First run the normal pickling of `TemplateResponse`. That already has
-        special handling.
-
-        Then, remove our template from pickling because it cannot and should
-        not be pickled. The response only cares about the rendered content.
-        """
-        obj_dict = super().__getstate__()
-        del obj_dict["template"]  # type: ignore[attr-defined]
-        return obj_dict
-
-    def resolve_context(self, context: dict[str, Any] | None) -> JSON:
-
-        generated_schema = create_schema(self.template, definitions_registry)
-        return serialize(context, generated_schema)
+        model_admin: admin.ModelAdmin,  # type: ignore[type-arg]
+        object_id: str,
+        form_url: str = "",
+        extra_context: dict[str, Any] | None = None,
+    ) -> HttpResponse:
+        extra_context = extra_context or {}
+        extra_context["reactivated_fragment"] = self.render_fragment(request)
+        response = model_admin.changeform_view(
+            request, object_id, form_url, extra_context
+        )
+        if isinstance(response, TemplateResponse):
+            response.template_name = "reactivated/admin_change_view.html"
+        return response
 
 
-def template(cls: type[T]) -> type[T]:
-    type_name = f"{cls.__name__}Props"
-
-    class Augmented(cls):  # type: ignore[misc, valid-type]
-        @staticmethod
-        def register() -> None:
-            type_registry[type_name] = cls  # type: ignore[assignment]
-            template_registry[cls.__name__] = type_name  # type: ignore[assignment]
-
-        def items(self) -> Any:
-            """
-            Duck-typing for context, so you can loop over a template.
-
-            See autocomplete.
-            """
-            return self._asdict().items()
-
-        def get_serialized(self) -> Any:
-            generated_schema = create_schema(cls, {})
-            return serialize(self, generated_schema)
-
-        def render(self, request: HttpRequest) -> TemplateResponse:
-            response = LazySerializationResponse(  # type
-                request,
-                cls,
-                f"{self.__class__.__name__}.tsx",
-                self,
-            )
-            return response
-
-    Augmented.__qualname__ = cls.__qualname__
-    Augmented.__name__ = cls.__name__
-    Augmented.__module__ = cls.__module__
-    Augmented.register()
-    return Augmented
-
-
-class Action(NamedTuple):
-    name: str
-
-
-class Extracted(NamedTuple):
-    context_forms: dict[str, forms.BaseForm]
-    context_form_sets: dict[str, forms.BaseFormSet[Any]]
-    context_actions: dict[str, Action]
-
-
-def extract_forms_form_sets_and_actions(interface: Any) -> Extracted:
-    context = interface._asdict()
-
-    context_forms = {}
-    context_form_sets = {}
-    context_actions = {}
-
-    for name, item in context.items():
-        if isinstance(item, forms.BaseForm):
-            context_forms[name] = item
-
-        elif isinstance(item, forms.BaseFormSet):
-            context_form_sets[name] = item
-
-        elif isinstance(item, Action):
-            context_actions[name] = item
-        elif getattr(item, "is_reactivated_interface", None) is True:
-            children = extract_forms_form_sets_and_actions(item)
-            context_forms.update(children.context_forms)
-            context_form_sets.update(children.context_form_sets)
-            context_actions.update(children.context_actions)
-
-    return Extracted(
-        context_forms=context_forms,
-        context_form_sets=context_form_sets,
-        context_actions=context_actions,
-    )
-
-
-def interface(cls: type[T]) -> type[T]:
-    type_name = f"{cls.__name__}Props"
-
-    class Augmented(cls):  # type: ignore[misc, valid-type]
-        is_reactivated_interface = True
-
-        @staticmethod
-        def register() -> None:
-            type_registry[type_name] = cls  # type: ignore[assignment]
-            interface_registry[cls.__name__] = type_name  # type: ignore[assignment]
-
-        def get_serialized(self) -> Any:
-            generated_schema = create_schema(cls, definitions_registry)
-            return serialize(self, generated_schema)
-
-        def render(self, request: HttpRequest) -> HttpResponse:
-            import simplejson
-
-            serialized = simplejson.dumps(self.get_serialized(), indent=4)
-
-            if should_respond_with_json(request):
-                return HttpResponse(serialized, content_type="application/json")
-
-            extracted_context = extract_forms_form_sets_and_actions(self)
-
-            return TemplateResponse(
-                request,
-                "reactivated/interface.html",
-                {
-                    **self._asdict(),
-                    "forms": extracted_context.context_forms,
-                    "form_sets": extracted_context.context_form_sets,
-                    "actions": extracted_context.context_actions,
-                    "serialized": serialized,
-                },
-            )
-
-        def as_json(self, request: HttpRequest) -> JsonResponse:
-            return JsonResponse(self.get_serialized())
-
-    Augmented.__qualname__ = cls.__qualname__
-    Augmented.__name__ = cls.__name__
-    Augmented.__module__ = cls.__module__
-    Augmented.register()
-    return Augmented
+class AdminListView(AdminView):
+    _abstract: ClassVar[bool] = True

@@ -1,4 +1,4 @@
-from . import registry
+from .. import registry
 
 
 @registry.register(int)

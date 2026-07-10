@@ -10,6 +10,8 @@ import {InlineConfig} from "vite";
 
 import tailwindcss from "@tailwindcss/vite";
 
+import {preset} from "./plugin.mjs";
+
 const port = process.env.REACTIVATED_VITE_PORT ?? 5173;
 const base = process.env.BASE ?? "/";
 const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -51,13 +53,8 @@ const rendererConfig: InlineConfig = {
     },
     define: define(),
     appType: "custom",
-    plugins: [react(), tailwindcss()],
-    resolve: {
-        alias: {
-            "@client": path.resolve(process.cwd(), "./client"),
-            "@reactivated": path.resolve(process.cwd(), "./node_modules/_reactivated"),
-        },
-    },
+    plugins: [...preset().plugins, react(), tailwindcss()],
+    resolve: preset().resolve,
     base,
 };
 
@@ -68,7 +65,7 @@ console.log("[warmup] Pre-loading SSR modules...");
 const ssrWarmupStart = Date.now();
 try {
     await vite.ssrLoadModule("reactivated/dist/render.mjs");
-    await vite.ssrLoadModule("@reactivated/template");
+    await vite.ssrLoadModule("virtual:reactivated/templates");
     console.log(`[warmup] SSR modules loaded in ${Date.now() - ssrWarmupStart}ms`);
 } catch (e: any) {
     console.log(`[warmup] SSR warmup error (non-fatal): ${e.message}`);

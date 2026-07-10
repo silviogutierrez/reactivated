@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from typing import Literal
+from typing import ClassVar, Literal, assert_type
 
 import pytest
 from django.http import HttpRequest, HttpResponse
 
+from reactivated.templates import Template
 from reactivated.views import Router
 
 
@@ -79,21 +80,31 @@ def test_route_derivation() -> None:
 def test_chain_execution_and_shapes(rf: object) -> None:
     request = rf.get("/")  # type: ignore[attr-defined]
 
-    assert stuff_list(request).content == b"list:root"
-    assert thing_detail(request, thing_id=7).content == b"detail:7"
+    assert router.endpoint(stuff_list)(request).content == b"list:root"
+    assert router.endpoint(thing_detail)(request, thing_id=7).content == b"detail:7"
     # 3-arity view receives the root product:
-    assert thing_export(request, thing_id=7).content == b"export:7:root"
+    assert (
+        router.endpoint(thing_export)(request, thing_id=7).content == b"export:7:root"
+    )
     # view-parenting: parent's param + own kw param both flow:
-    assert thing_notes(request, thing_id=7, key="k").content == b"notes:7:k"
+    assert (
+        router.endpoint(thing_notes)(request, thing_id=7, key="k").content
+        == b"notes:7:k"
+    )
+
+    # The decorated name is the ORIGINAL function — direct calls are just
+    # calls, fully typed, like RPC handlers:
+    assert thing_detail(Thing(pk=9), request).content == b"detail:9"
+    assert thing_export(Thing(pk=9), Area(label="x"), request).content == b"export:9:x"
 
 
 def test_scope_early_return(rf: object) -> None:
     denied = rf.get("/")  # type: ignore[attr-defined]
     denied.META["HTTP_X_DENY"] = "1"
-    assert thing_detail(denied, thing_id=7).content == b"denied"
+    assert router.endpoint(thing_detail)(denied, thing_id=7).content == b"denied"
 
     ok = rf.get("/")  # type: ignore[attr-defined]
-    assert thing_detail(ok, thing_id=404).content == b"missing"
+    assert router.endpoint(thing_detail)(ok, thing_id=404).content == b"missing"
 
 
 def test_paths_are_django_patterns() -> None:
@@ -229,10 +240,10 @@ def test_scope_with_request(rf: object) -> None:
 
     assert other.routes() == [("area/page/", "gated_page")]
     ok = rf.get("/")  # type: ignore[attr-defined]
-    assert gated_page(ok).content == b"page:1"
+    assert other.endpoint(gated_page)(ok).content == b"page:1"
     denied = rf.get("/")  # type: ignore[attr-defined]
     denied.META["HTTP_X_DENY"] = "1"
-    assert gated_page(denied).content == b"nope"
+    assert other.endpoint(gated_page)(denied).content == b"nope"
 
 
 def test_scope_false_denial(rf: object, settings: object) -> None:
@@ -259,7 +270,7 @@ def test_scope_false_denial(rf: object, settings: object) -> None:
 
     anonymous = rf.get("/protected/")  # type: ignore[attr-defined]
     anonymous.META["HTTP_X_DENY"] = "1"
-    response = item_page(anonymous, thing_id=1)
+    response = other.endpoint(item_page)(anonymous, thing_id=1)
     assert response.status_code == 302
     assert "next=/protected/" in response["Location"]
 
@@ -271,12 +282,12 @@ def test_scope_false_denial(rf: object, settings: object) -> None:
     authenticated = rf.get("/protected/")  # type: ignore[attr-defined]
     authenticated.META["HTTP_X_DENY"] = "1"
     authenticated.user = FakeUser()
-    response = item_page(authenticated, thing_id=1)
+    response = other.endpoint(item_page)(authenticated, thing_id=1)
     assert response.status_code == 302
     assert "next=/protected/" in response["Location"]
 
     ok = rf.get("/")  # type: ignore[attr-defined]
-    assert item_page(ok, thing_id=7).content == b"page:7"
+    assert other.endpoint(item_page)(ok, thing_id=7).content == b"page:7"
 
 
 def test_scope_true_rejected(rf: object) -> None:
@@ -292,4 +303,100 @@ def test_scope_true_rejected(rf: object) -> None:
 
     request = rf.get("/")  # type: ignore[attr-defined]
     with pytest.raises(TypeError, match="returned True"):
-        area_list(request)
+        other.endpoint(area_list)(request)
+
+
+class FakePage(Template):
+    """A real rpc.Template — the binder is nominally coupled to it. The
+    render_to_string override keeps the node renderer out of unit tests;
+    _abstract keeps it out of template_registry, so the sample app's
+    schema generation (same process, e2e) doesn't emit a phantom
+    templates.FakePage import."""
+
+    _abstract: ClassVar[bool] = True
+
+    label: str
+
+    def render_to_string(
+        self, request: HttpRequest, entry_point: str | None = None
+    ) -> str:
+        return f"rendered:{self.label}"
+
+
+def test_template_returns(rf: object) -> None:
+    """Views may return a Template (anything with .render); the binder
+    renders it. PRG spells as ``FakePage | HttpResponse``. Direct calls
+    still get the typed object's response; unit tests can call .fn and
+    assert on props without any response parsing."""
+    other = Router()
+
+    @other.scope
+    def area(request: HttpRequest) -> Area | HttpResponse:
+        return Area(label="a")
+
+    @other.view(area)
+    def area_page(a: Area, request: HttpRequest) -> FakePage | HttpResponse:
+        if request.META.get("HTTP_X_REDIRECT"):
+            return _response("went-elsewhere")
+        return FakePage(label=a.label)
+
+    ok = rf.get("/")  # type: ignore[attr-defined]
+    assert other.endpoint(area_page)(ok).content == b"rendered:a"
+
+    redirected = rf.get("/")  # type: ignore[attr-defined]
+    redirected.META["HTTP_X_REDIRECT"] = "1"
+    assert other.endpoint(area_page)(redirected).content == b"went-elsewhere"
+
+    # The direct-testing payoff: the decorated name IS the function, so a
+    # direct call is arg-and-return typed with no indirection at all.
+    page = area_page(Area(label="direct"), ok)
+    assert_type(page, FakePage | HttpResponse)
+    assert isinstance(page, FakePage)
+    assert page.label == "direct"
+
+
+def test_non_renderable_return_rejected(rf: object) -> None:
+    other = Router()
+
+    @other.scope
+    def area(request: HttpRequest) -> Area | HttpResponse:
+        return Area(label="a")
+
+    @other.view(area)
+    def area_bogus(a: Area, request: HttpRequest) -> HttpResponse:
+        return None  # type: ignore[return-value]
+
+    request = rf.get("/")  # type: ignore[attr-defined]
+    with pytest.raises(TypeError, match="HttpResponse or a Template"):
+        other.endpoint(area_bogus)(request)
+
+
+def test_root_propagates_through_two_arity_parent(rf: object) -> None:
+    """The corner the phantom exists for: the parent view never mentions
+    the root in its signature, yet the child's 3-arity shape still binds
+    TRoot statically (via __view_root__) and receives it at runtime."""
+    other = Router()
+
+    @other.scope
+    def area(request: HttpRequest) -> Area | HttpResponse:
+        return Area(label="root-product")
+
+    @other.scope(parent=area)
+    def item(a: Area, *, thing_id: int) -> Thing | HttpResponse:
+        return Thing(pk=thing_id)
+
+    @other.view(item, path="page")
+    def item_page(thing: Thing, request: HttpRequest) -> HttpResponse:  # 2-arity
+        return _response(f"page:{thing.pk}")
+
+    @other.view(item_page, path="deep")
+    def item_page_deep(
+        thing: Thing, root: Area, request: HttpRequest
+    ) -> HttpResponse:  # 3-arity child of a 2-arity parent
+        return _response(f"deep:{thing.pk}:{root.label}")
+
+    request = rf.get("/")  # type: ignore[attr-defined]
+    assert (
+        other.endpoint(item_page_deep)(request, thing_id=3).content
+        == b"deep:3:root-product"
+    )

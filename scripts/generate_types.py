@@ -14,7 +14,7 @@ django.setup()
 django_stubs_ext.monkeypatch()
 
 
-from reactivated.serialization import create_schema  # noqa: E402
+from reactivated.forms.schema import create_schema  # noqa: E402
 from reactivated.types import Types  # noqa: E402
 
 types_schema = create_schema(Types, {})

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import enum
 import json
 import sys
@@ -12,10 +13,13 @@ import pytest
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import AnonymousUser, User
 from django.db import models as dj_models
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
-from reactivated.rpc import FormField, Pick, Router, export, form
+from reactivated import Pick
+from reactivated.forms import FormField, form, get_form_schema
+from reactivated.pick import export
+from reactivated.router import Router
 from reactivated.rpc.core import (
     PickAsDict,
     PickProxy,
@@ -27,7 +31,6 @@ from reactivated.rpc.core import (
     manually_exported_registry,
     pick,
 )
-from reactivated.rpc.forms import get_form_schema
 from reactivated.rpc.utils import flatten_schema
 
 
@@ -201,7 +204,7 @@ def test_schema_generation_with_rpc_and_picks(settings: Any, tmp_path: Any) -> N
     MyType.validate_python("5", strict=False)
     WrappedAnother.validate_python({"thing": "blah"})
 
-    rpc = Router(HttpRequest)
+    router = Router(HttpRequest)
 
     schema_dir = tmp_path / "schema"
     schema_dir.mkdir()
@@ -210,15 +213,15 @@ def test_schema_generation_with_rpc_and_picks(settings: Any, tmp_path: Any) -> N
     settings.REACTIVATED_SERVER_SCHEMA = str(schema_dir)
     sys.path.insert(0, str(schema_dir))
 
-    @rpc(anyone)
+    @router.rpc(anyone)
     def rpc_call(request: HttpRequest, form: int | str | list[str]) -> None:
         pass
 
-    @rpc(anyone)
+    @router.rpc(anyone)
     def with_model(request: HttpRequest, form: MyModel) -> None:
         pass
 
-    @rpc(anyone)
+    @router.rpc(anyone)
     def with_pick(request: HttpRequest, form: MyPick.input) -> None:
         pass
 
@@ -424,42 +427,42 @@ def test_optional_select_extracts_options() -> None:
 @pytest.mark.asyncio
 async def test_get_method_handling(settings: Any, rf: Any) -> None:
     settings.DEBUG = False
-    rpc = Router(HttpRequest)
+    router = Router(HttpRequest)
 
     # No form param — tests pure HTTP method handling.
     # (int/str are DJANGO_CONVERTERS so they become URL path params, not body forms.)
-    @rpc(anyone, atomic_requests=False)
+    @router.rpc(anyone, atomic_requests=False)
     def post_only(request: HttpRequest) -> None:
         pass
 
-    @rpc(anyone, methods=["GET", "POST"], atomic_requests=False)
+    @router.rpc(anyone, methods=["GET", "POST"], atomic_requests=False)
     def get_allowed(request: HttpRequest) -> None:
         pass
 
-    request = rf.get(f"/{rpc.handlers['rpc_post_only']['url']}")
+    request = rf.get(f"/{router.handlers['rpc_post_only']['url']}")
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_post_only"]["handler"](request)
+    response = await router.handlers["rpc_post_only"]["handler"](request)
     assert response.status_code == 405
 
-    request = rf.get(f"/{rpc.handlers['rpc_get_allowed']['url']}")
+    request = rf.get(f"/{router.handlers['rpc_get_allowed']['url']}")
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_get_allowed"]["handler"](request)
+    response = await router.handlers["rpc_get_allowed"]["handler"](request)
     assert response.status_code == 200
 
     request = rf.post(
-        f"/{rpc.handlers['rpc_post_only']['url']}",
+        f"/{router.handlers['rpc_post_only']['url']}",
         data="null",
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_post_only"]["handler"](request)
+    response = await router.handlers["rpc_post_only"]["handler"](request)
     assert response.status_code == 200
 
     # A None-typed body param is forbidden at registration; a no-body RPC is
     # declared by omitting the param entirely (as post_only above does).
     with pytest.raises(TypeError, match="None-typed param"):
 
-        @rpc(anyone, atomic_requests=False)
+        @router.rpc(anyone, atomic_requests=False)
         def none_body(request: HttpRequest, form: None) -> None:
             pass
 
@@ -473,69 +476,69 @@ async def test_router_authentication(settings: Any, rf: Any) -> None:
             return False
         return request
 
-    rpc = Router(HttpRequest)
+    router = Router(HttpRequest)
 
-    @rpc(authentication, atomic_requests=False)
+    @router.rpc(authentication, atomic_requests=False)
     def guarded(request: HttpRequest) -> str:
         return request.user.username
 
-    @rpc(authentication, atomic_requests=False)
+    @router.rpc(authentication, atomic_requests=False)
     async def async_guarded(request: HttpRequest) -> str:
         return request.user.username
 
-    @rpc(anyone, atomic_requests=False)
+    @router.rpc(anyone, atomic_requests=False)
     def open_to_all(request: HttpRequest) -> str:
         return "anyone"
 
     def make_request(name: str) -> Any:
         return rf.post(
-            f"/{rpc.handlers[name]['url']}",
+            f"/{router.handlers[name]['url']}",
             data="null",
             content_type="application/json",
         )
 
     request = make_request("rpc_guarded")
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_guarded"]["handler"](request)
+    response = await router.handlers["rpc_guarded"]["handler"](request)
     assert response.status_code == 401
     assert json.loads(response.content) == {"error": "UNAUTHORIZED"}
 
     request = make_request("rpc_guarded")
     request.user = User(username="boss")
-    response = await rpc.handlers["rpc_guarded"]["handler"](request)
+    response = await router.handlers["rpc_guarded"]["handler"](request)
     assert response.status_code == 200
     assert json.loads(response.content) == "boss"
 
     request = make_request("rpc_async_guarded")
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_async_guarded"]["handler"](request)
+    response = await router.handlers["rpc_async_guarded"]["handler"](request)
     assert response.status_code == 401
     assert json.loads(response.content) == {"error": "UNAUTHORIZED"}
 
     request = make_request("rpc_async_guarded")
     request.user = User(username="boss")
-    response = await rpc.handlers["rpc_async_guarded"]["handler"](request)
+    response = await router.handlers["rpc_async_guarded"]["handler"](request)
     assert response.status_code == 200
     assert json.loads(response.content) == "boss"
 
     request = make_request("rpc_open_to_all")
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_open_to_all"]["handler"](request)
+    response = await router.handlers["rpc_open_to_all"]["handler"](request)
     assert response.status_code == 200
     assert json.loads(response.content) == "anyone"
 
 
 @pytest.mark.asyncio
 async def test_form_required_validation(rf: Any) -> None:
-    rpc = Router(HttpRequest)
+    router = Router(HttpRequest)
 
-    @rpc(anyone, atomic_requests=False)
+    @router.rpc(anyone, atomic_requests=False)
     def required_test(request: Any, form: RequiredTestForm) -> str:
         return "ok"
 
     # All filled -> 200
     request = rf.post(
-        f"/{rpc.handlers['rpc_required_test']['url']}",
+        f"/{router.handlers['rpc_required_test']['url']}",
         data=json.dumps(
             {
                 "explicit_required": "value",
@@ -547,12 +550,12 @@ async def test_form_required_validation(rf: Any) -> None:
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_required_test"]["handler"](request)
+    response = await router.handlers["rpc_required_test"]["handler"](request)
     assert response.status_code == 200
 
     # Empty explicit_required -> 400
     request = rf.post(
-        f"/{rpc.handlers['rpc_required_test']['url']}",
+        f"/{router.handlers['rpc_required_test']['url']}",
         data=json.dumps(
             {
                 "explicit_required": "",
@@ -564,14 +567,14 @@ async def test_form_required_validation(rf: Any) -> None:
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_required_test"]["handler"](request)
+    response = await router.handlers["rpc_required_test"]["handler"](request)
     assert response.status_code == 400
     errors = json.loads(response.content)
     assert any(e["loc"] == ["explicit_required"] for e in errors)
 
     # Empty explicit_optional + filled required fields -> 200
     request = rf.post(
-        f"/{rpc.handlers['rpc_required_test']['url']}",
+        f"/{router.handlers['rpc_required_test']['url']}",
         data=json.dumps(
             {
                 "explicit_required": "value",
@@ -583,12 +586,12 @@ async def test_form_required_validation(rf: Any) -> None:
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_required_test"]["handler"](request)
+    response = await router.handlers["rpc_required_test"]["handler"](request)
     assert response.status_code == 200
 
     # Empty inferred_required -> 400
     request = rf.post(
-        f"/{rpc.handlers['rpc_required_test']['url']}",
+        f"/{router.handlers['rpc_required_test']['url']}",
         data=json.dumps(
             {
                 "explicit_required": "value",
@@ -600,14 +603,14 @@ async def test_form_required_validation(rf: Any) -> None:
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_required_test"]["handler"](request)
+    response = await router.handlers["rpc_required_test"]["handler"](request)
     assert response.status_code == 400
     errors = json.loads(response.content)
     assert any(e["loc"] == ["inferred_required"] for e in errors)
 
     # None for inferred_optional + filled required fields -> 200
     request = rf.post(
-        f"/{rpc.handlers['rpc_required_test']['url']}",
+        f"/{router.handlers['rpc_required_test']['url']}",
         data=json.dumps(
             {
                 "explicit_required": "value",
@@ -619,11 +622,11 @@ async def test_form_required_validation(rf: Any) -> None:
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_required_test"]["handler"](request)
+    response = await router.handlers["rpc_required_test"]["handler"](request)
     assert response.status_code == 200
 
     # Read-only fields are set to None regardless of client input
-    @rpc(anyone, atomic_requests=False)
+    @router.rpc(anyone, atomic_requests=False)
     def read_only_test(request: Any, form: ReadOnlyTestForm) -> str:
         assert form.editable == "value"
         assert form.read_only_field is None
@@ -631,27 +634,27 @@ async def test_form_required_validation(rf: Any) -> None:
         return "ok"
 
     request = rf.post(
-        f"/{rpc.handlers['rpc_read_only_test']['url']}",
+        f"/{router.handlers['rpc_read_only_test']['url']}",
         data=json.dumps({"editable": "value"}),
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_read_only_test"]["handler"](request)
+    response = await router.handlers["rpc_read_only_test"]["handler"](request)
     assert response.status_code == 200
 
 
 @pytest.mark.django_db
 @pytest.mark.asyncio
 async def test_sync_rpc_rolls_back_on_errors(rf: Any) -> None:
-    rpc = Router(HttpRequest)
+    router = Router(HttpRequest)
 
     # Use list[str] because bare str is a DJANGO_CONVERTER (URL path param).
-    @rpc(anyone)
+    @router.rpc(anyone)
     def sync_expected(request: HttpRequest, form: list[str]) -> None:
         User.objects.create(username=form[0], email=form[0])
         raise AssertionError("Expected")
 
-    @rpc(anyone)
+    @router.rpc(anyone)
     def sync_unexpected(request: HttpRequest, form: list[str]) -> None:
         User.objects.create(username=form[0], email=form[0])
         1 / 0
@@ -660,63 +663,63 @@ async def test_sync_rpc_rolls_back_on_errors(rf: Any) -> None:
 
     expected_email = unique_email()
     request = rf.post(
-        f"/{rpc.handlers['rpc_sync_expected']['url']}",
+        f"/{router.handlers['rpc_sync_expected']['url']}",
         data=json.dumps([expected_email]),
         content_type="application/json",
     )
     request.user = AnonymousUser()
 
-    response = await rpc.handlers["rpc_sync_expected"]["handler"](request)
+    response = await router.handlers["rpc_sync_expected"]["handler"](request)
     assert response.status_code == 400
     assert not await sync_to_async(User.objects.filter(email=expected_email).exists)()
 
     unexpected_email = unique_email()
     request = rf.post(
-        f"/{rpc.handlers['rpc_sync_unexpected']['url']}",
+        f"/{router.handlers['rpc_sync_unexpected']['url']}",
         data=json.dumps([unexpected_email]),
         content_type="application/json",
     )
     request.user = AnonymousUser()
     with pytest.raises(ZeroDivisionError):
-        await rpc.handlers["rpc_sync_unexpected"]["handler"](request)
+        await router.handlers["rpc_sync_unexpected"]["handler"](request)
     assert not await sync_to_async(User.objects.filter(email=unexpected_email).exists)()
 
 
 @pytest.mark.django_db
 @pytest.mark.asyncio
 async def test_async_rpc_does_not_roll_back_on_errors(rf: Any) -> None:
-    rpc = Router(HttpRequest)
+    router = Router(HttpRequest)
 
-    @rpc(anyone)
+    @router.rpc(anyone)
     async def async_expected(request: HttpRequest, form: list[str]) -> None:
         await sync_to_async(User.objects.create)(username=form[0], email=form[0])
         raise AssertionError("Expected")
 
-    @rpc(anyone)
+    @router.rpc(anyone)
     async def async_unexpected(request: HttpRequest, form: list[str]) -> None:
         await sync_to_async(User.objects.create)(username=form[0], email=form[0])
         1 / 0
 
     async_expected_email = unique_email()
     request = rf.post(
-        f"/{rpc.handlers['rpc_async_expected']['url']}",
+        f"/{router.handlers['rpc_async_expected']['url']}",
         data=json.dumps([async_expected_email]),
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_async_expected"]["handler"](request)
+    response = await router.handlers["rpc_async_expected"]["handler"](request)
     assert response.status_code == 400
     assert await sync_to_async(User.objects.filter(email=async_expected_email).exists)()
 
     async_unexpected_email = unique_email()
     request = rf.post(
-        f"/{rpc.handlers['rpc_async_unexpected']['url']}",
+        f"/{router.handlers['rpc_async_unexpected']['url']}",
         data=json.dumps([async_unexpected_email]),
         content_type="application/json",
     )
     request.user = AnonymousUser()
     with pytest.raises(ZeroDivisionError):
-        await rpc.handlers["rpc_async_unexpected"]["handler"](request)
+        await router.handlers["rpc_async_unexpected"]["handler"](request)
     assert await sync_to_async(
         User.objects.filter(email=async_unexpected_email).exists
     )()
@@ -725,9 +728,9 @@ async def test_async_rpc_does_not_roll_back_on_errors(rf: Any) -> None:
 @pytest.mark.django_db
 @pytest.mark.asyncio
 async def test_returns_single_model(rf: Any, schema_env: Any) -> None:
-    rpc = Router(HttpRequest)
+    router = Router(HttpRequest)
 
-    @rpc(anyone)
+    @router.rpc(anyone)
     def get_user_returns(request: Any, form: list[int]) -> ReturnsPick.returns:
         return User.objects.get(id=form[0])
 
@@ -737,12 +740,12 @@ async def test_returns_single_model(rf: Any, schema_env: Any) -> None:
     user = await sync_to_async(User.objects.create)(username=email, email=email)
 
     request = rf.post(
-        f"/{rpc.handlers['rpc_get_user_returns']['url']}",
+        f"/{router.handlers['rpc_get_user_returns']['url']}",
         data=json.dumps([user.id]),
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_get_user_returns"]["handler"](request)
+    response = await router.handlers["rpc_get_user_returns"]["handler"](request)
 
     assert response.status_code == 200
     data = json.loads(response.content)
@@ -753,12 +756,12 @@ async def test_returns_single_model(rf: Any, schema_env: Any) -> None:
 @pytest.mark.django_db
 @pytest.mark.asyncio
 async def test_returns_list_of_models(rf: Any, schema_env: Any) -> None:
-    rpc = Router(HttpRequest)
+    router = Router(HttpRequest)
 
     email1 = unique_email()
     email2 = unique_email()
 
-    @rpc(anyone)
+    @router.rpc(anyone)
     def list_users_returns(
         request: Any, form: list[int]
     ) -> list[ListReturnsPick.returns]:
@@ -770,12 +773,12 @@ async def test_returns_list_of_models(rf: Any, schema_env: Any) -> None:
     user2 = await sync_to_async(User.objects.create)(username=email2, email=email2)
 
     request = rf.post(
-        f"/{rpc.handlers['rpc_list_users_returns']['url']}",
+        f"/{router.handlers['rpc_list_users_returns']['url']}",
         data=json.dumps([user1.id, user2.id]),
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_list_users_returns"]["handler"](request)
+    response = await router.handlers["rpc_list_users_returns"]["handler"](request)
 
     assert response.status_code == 200
     data = json.loads(response.content)
@@ -788,9 +791,9 @@ async def test_returns_list_of_models(rf: Any, schema_env: Any) -> None:
 @pytest.mark.django_db
 @pytest.mark.asyncio
 async def test_returns_nullable(rf: Any, schema_env: Any) -> None:
-    rpc = Router(HttpRequest)
+    router = Router(HttpRequest)
 
-    @rpc(anyone)
+    @router.rpc(anyone)
     def maybe_user_returns(
         request: Any, form: list[int]
     ) -> NullableReturnsPick.returns | None:
@@ -799,12 +802,12 @@ async def test_returns_nullable(rf: Any, schema_env: Any) -> None:
     generate_server_schema(skip_cache=True)
 
     request = rf.post(
-        f"/{rpc.handlers['rpc_maybe_user_returns']['url']}",
+        f"/{router.handlers['rpc_maybe_user_returns']['url']}",
         data=json.dumps([99999]),
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_maybe_user_returns"]["handler"](request)
+    response = await router.handlers["rpc_maybe_user_returns"]["handler"](request)
 
     assert response.status_code == 200
     data = json.loads(response.content)
@@ -813,12 +816,12 @@ async def test_returns_nullable(rf: Any, schema_env: Any) -> None:
     email = unique_email()
     user = await sync_to_async(User.objects.create)(username=email, email=email)
     request = rf.post(
-        f"/{rpc.handlers['rpc_maybe_user_returns']['url']}",
+        f"/{router.handlers['rpc_maybe_user_returns']['url']}",
         data=json.dumps([user.id]),
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_maybe_user_returns"]["handler"](request)
+    response = await router.handlers["rpc_maybe_user_returns"]["handler"](request)
 
     assert response.status_code == 200
     data = json.loads(response.content)
@@ -916,6 +919,34 @@ def test_literal_enum_in_discriminated_union() -> None:
         )
 
 
+def test_literal_enum_name_value_mismatch() -> None:
+    """Literal[Enum.MEMBER] speaks member NAMES on the wire even when the
+    member's value differs — validation, dump, and JSON schema agree."""
+
+    class Version(enum.Enum):
+        V1 = "v1"
+
+    class Task(Pick):
+        version: Literal[Version.V1]
+
+    task = Task.model_validate({"version": "V1"})
+    assert task.version is Version.V1
+    # Passing the member itself still validates.
+    assert Task.model_validate({"version": Version.V1}).version is Version.V1
+
+    dumped = task.model_dump(mode="json")
+    assert dumped == {"version": "V1"}
+    assert Task.model_validate(dumped).version is Version.V1
+
+    # The JSON schema (and thus generated TypeScript) advertises the name.
+    schema = Task.model_json_schema()["properties"]["version"]
+    assert "v1" not in json.dumps(schema)
+    assert "V1" in json.dumps(schema)
+
+    with pytest.raises(ValidationError):
+        Task.model_validate({"version": "v1"})
+
+
 def test_pick_proxy_basic() -> None:
     """PickProxy delegates model attrs and exposes extras."""
     mock_model = Mock(spec=dj_models.Model)
@@ -937,9 +968,9 @@ def test_pick_proxy_basic() -> None:
 @pytest.mark.asyncio
 async def test_returns_with_extra_fields(rf: Any, schema_env: Any) -> None:
     """RPC handler returns PickProxy, response includes both model fields and extras."""
-    rpc = Router(HttpRequest)
+    router = Router(HttpRequest)
 
-    @rpc(anyone)
+    @router.rpc(anyone)
     def get_user_with_score(request: Any, form: list[int]) -> ExtraFieldsPick.returns:
         user = User.objects.get(id=form[0])
         return PickProxy(user, score=42)
@@ -950,12 +981,12 @@ async def test_returns_with_extra_fields(rf: Any, schema_env: Any) -> None:
     user = await sync_to_async(User.objects.create)(username=email, email=email)
 
     request = rf.post(
-        f"/{rpc.handlers['rpc_get_user_with_score']['url']}",
+        f"/{router.handlers['rpc_get_user_with_score']['url']}",
         data=json.dumps([user.id]),
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_get_user_with_score"]["handler"](request)
+    response = await router.handlers["rpc_get_user_with_score"]["handler"](request)
 
     assert response.status_code == 200
     data = json.loads(response.content)
@@ -1060,9 +1091,9 @@ async def test_observer_notified(
     ) -> None:
         calls.append((status, exception))
 
-    rpc = Router(HttpRequest)
+    router = Router(HttpRequest)
 
-    @rpc(anyone, log=True)
+    @router.rpc(anyone, log=True)
     async def observed(request: HttpRequest, form: ObserverInput) -> int:
         if exc:
             raise exc
@@ -1071,7 +1102,7 @@ async def test_observer_notified(
     generate_server_schema(skip_cache=True)
 
     request = rf.post(
-        f"/{rpc.handlers['rpc_observed']['url']}",
+        f"/{router.handlers['rpc_observed']['url']}",
         data={"value": 1},
         content_type="application/json",
     )
@@ -1079,9 +1110,9 @@ async def test_observer_notified(
 
     if exc:
         with pytest.raises(type(exc)):
-            await rpc.handlers["rpc_observed"]["handler"](request)
+            await router.handlers["rpc_observed"]["handler"](request)
     else:
-        response = await rpc.handlers["rpc_observed"]["handler"](request)
+        response = await router.handlers["rpc_observed"]["handler"](request)
         assert response.status_code == 200
 
     assert len(calls) == 1
@@ -1101,17 +1132,17 @@ async def test_router_principal_injection(settings: Any, rf: Any) -> None:
         assert isinstance(request.user, User)
         return request.user
 
-    rpc = Router()  # request_type defaults to HttpRequest
+    router = Router()  # request_type defaults to HttpRequest
 
-    @rpc(authenticated, atomic_requests=False)
+    @router.rpc(authenticated, atomic_requests=False)
     def whoami(user: User) -> str:
         return user.username
 
-    @rpc(authenticated, atomic_requests=False)
+    @router.rpc(authenticated, atomic_requests=False)
     def with_request(user: User, request: HttpRequest) -> str:
         return f"{user.username}:{request.method}"
 
-    @rpc(authenticated, atomic_requests=False)
+    @router.rpc(authenticated, atomic_requests=False)
     def with_request_and_form(
         user: User, request: HttpRequest, form: PrincipalEchoForm
     ) -> str:
@@ -1119,34 +1150,97 @@ async def test_router_principal_injection(settings: Any, rf: Any) -> None:
 
     def make_request(name: str) -> Any:
         return rf.post(
-            f"/{rpc.handlers[name]['url']}",
+            f"/{router.handlers[name]['url']}",
             data="null",
             content_type="application/json",
         )
 
     request = make_request("rpc_whoami")
     request.user = AnonymousUser()
-    response = await rpc.handlers["rpc_whoami"]["handler"](request)
+    response = await router.handlers["rpc_whoami"]["handler"](request)
     assert response.status_code == 401
 
     request = make_request("rpc_whoami")
     request.user = User(username="boss")
-    response = await rpc.handlers["rpc_whoami"]["handler"](request)
+    response = await router.handlers["rpc_whoami"]["handler"](request)
     assert response.status_code == 200
     assert json.loads(response.content) == "boss"
 
     request = make_request("rpc_with_request")
     request.user = User(username="boss")
-    response = await rpc.handlers["rpc_with_request"]["handler"](request)
+    response = await router.handlers["rpc_with_request"]["handler"](request)
     assert response.status_code == 200
     assert json.loads(response.content) == "boss:POST"
 
     request = rf.post(
-        f"/{rpc.handlers['rpc_with_request_and_form']['url']}",
+        f"/{router.handlers['rpc_with_request_and_form']['url']}",
         data=json.dumps({"value": "hi"}),
         content_type="application/json",
     )
     request.user = User(username="boss")
-    response = await rpc.handlers["rpc_with_request_and_form"]["handler"](request)
+    response = await router.handlers["rpc_with_request_and_form"]["handler"](request)
     assert response.status_code == 200
     assert json.loads(response.content) == "boss:POST:hi"
+
+
+@dataclasses.dataclass
+class Box:
+    pk: int
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_rpc_accepts_scopes(rf: Any) -> None:
+    """@router.rpc(scope): the chain runs like a view's — products injected,
+    scope URL params join the rpc URL — and EVERY failure (False or an
+    HttpResponse) coerces to the uniform denial. JSON callers never see a
+    redirect."""
+    router = Router()
+
+    @router.scope
+    def gate(request: HttpRequest) -> "Box | HttpResponse | Literal[False]":
+        if request.META.get("HTTP_X_DENY"):
+            return False
+        if request.META.get("HTTP_X_REDIRECT"):
+            return HttpResponseRedirect("/login/")
+        return Box(pk=0)
+
+    @router.scope(parent=gate)
+    def item(box: Box, *, item_id: int) -> "Box | HttpResponse":
+        return Box(pk=item_id)
+
+    @router.rpc(item)
+    def double_item(box: Box, form: list[str]) -> int:
+        return box.pk * 2
+
+    # The scope's URL param joins the rpc URL (and therefore the TS args).
+    assert router.handlers["rpc_double_item"]["url"] == "rpc/double_item/<int:item_id>/"
+    assert ("rpc/double_item/<int:item_id>/", "rpc_double_item") in router.routes()
+
+    handler = router.handlers["rpc_double_item"]["handler"]
+
+    ok = rf.post(
+        "/rpc/double_item/21/", data=json.dumps([]), content_type="application/json"
+    )
+    ok.user = AnonymousUser()
+    response = await handler(ok, item_id=21)
+    assert response.status_code == 200
+    assert json.loads(response.content) == 42
+
+    denied = rf.post(
+        "/rpc/double_item/21/", data=json.dumps([]), content_type="application/json"
+    )
+    denied.user = AnonymousUser()
+    denied.META["HTTP_X_DENY"] = "1"
+    response = await handler(denied, item_id=21)
+    assert response.status_code == 401
+
+    # A page-flavored failure — a redirect — coerces to the same denial.
+    redirected = rf.post(
+        "/rpc/double_item/21/", data=json.dumps([]), content_type="application/json"
+    )
+    redirected.user = AnonymousUser()
+    redirected.META["HTTP_X_REDIRECT"] = "1"
+    response = await handler(redirected, item_id=21)
+    assert response.status_code == 401
+    assert json.loads(response.content) == {"error": "UNAUTHORIZED"}

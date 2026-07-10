@@ -1,15 +1,15 @@
 import React from "react";
 
-import {CSRFToken, Context, reverse, templates, useForm} from "@reactivated";
+import {Context, reverse, server} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
 
-export const Template = (props: templates.PollComments) => {
+export const Template = (props: server.example.templates.PollComments) => {
     const {question} = props;
     const {request} = React.useContext(Context);
     const [comments, setComments] = React.useState(question.comments);
-    const form = useForm({form: props.form});
+    const form = forms.useForm({form: props.form});
     const title = `${props.question.question_text} comments`;
 
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -25,7 +25,9 @@ export const Template = (props: templates.PollComments) => {
             },
         });
 
-        const data = ((await response.json()) as {props: templates.PollComments}).props;
+        const data = (
+            (await response.json()) as {props: server.example.templates.PollComments}
+        ).props;
 
         setComments(data.question.comments);
 
@@ -55,7 +57,7 @@ export const Template = (props: templates.PollComments) => {
                     </>
                 )}
 
-                <CSRFToken />
+                <forms.CSRFToken />
 
                 <h3>Post comment</h3>
                 <p>

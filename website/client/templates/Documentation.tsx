@@ -1,6 +1,6 @@
 import React from "react";
 
-import {classNames, templates} from "@reactivated";
+import {classNames, server} from "@reactivated";
 import ReactMarkdown from "react-markdown";
 
 import {Code} from "@client/components/Code";
@@ -35,7 +35,7 @@ export const Hamburger = () => {
     );
 };
 
-const Menu = (props: templates.Documentation) => {
+const Menu = (props: server.documentation.templates.Documentation) => {
     return (
         <aside className="Menu">
             <Hamburger />
@@ -60,18 +60,18 @@ const Menu = (props: templates.Documentation) => {
                         </a>
                     </h1>
                 </li>
-                {props.toc.map(([link, title]) => {
-                    const href = `/documentation/${link}/`;
+                {props.toc.map(({href, title}) => {
+                    const url = `/documentation/${href}/`;
 
                     return (
                         <li
-                            key={link}
+                            key={href}
                             style={{
                                 paddingLeft: 8,
                                 borderColor: "var(--color-background)",
                                 borderLeftWidth: 3,
                                 borderLeftStyle: "solid",
-                                ...(href == props.path
+                                ...(url == props.path
                                     ? {
                                           borderColor: "var(--color-text-with-color)",
                                       }
@@ -82,7 +82,7 @@ const Menu = (props: templates.Documentation) => {
                                 style={{
                                     color: "var(--color-header)",
                                 }}
-                                href={href}
+                                href={url}
                             >
                                 {title}
                             </a>
@@ -94,7 +94,7 @@ const Menu = (props: templates.Documentation) => {
     );
 };
 
-export const Template = (props: templates.Documentation) => {
+export const Template = (props: server.documentation.templates.Documentation) => {
     const headings = props.content.match(/#{2,6}.+(?=\n)/g)?.join("\n");
 
     return (

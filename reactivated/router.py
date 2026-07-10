@@ -66,13 +66,21 @@ from typing import (
     overload,
 )
 
-from django.contrib.auth.views import redirect_to_login
 from django.http import HttpRequest, HttpResponse
 from django.urls import path as django_path
 from django.urls.resolvers import URLPattern
 
-from ..templates import Template
-from ..transport import DJANGO_CONVERTERS, resolved_hints, url_segment
+from .rpc.core import (
+    RPC,
+    RPCAccess,
+    RPCDecorator,
+    ScopeDenied,
+    TAnonymous,
+    TPrincipal,
+    build_rpc_decorator,
+)
+from .templates import Template
+from .transport import DJANGO_CONVERTERS, resolved_hints, url_segment
 
 P = ParamSpec("P")
 Q = ParamSpec("Q")
@@ -99,6 +107,8 @@ def _deny(request: HttpRequest) -> HttpResponse:
     The authenticated-trespasser experience belongs to the login page
     (admin's says "authenticated as X, not authorized"); a scope that wants
     a 403 or a nag returns that response itself."""
+    from django.contrib.auth.views import redirect_to_login
+
     return redirect_to_login(request.get_full_path())
 
 
@@ -220,7 +230,7 @@ class View:
         product: object = request
         root_product: object | None = None
 
-        for entry in self.node.scope_chain():
+        for index, entry in enumerate(self.node.scope_chain()):
             scope_kwargs = {name: kwargs.pop(name) for name in entry.params}
             assert entry.scope_fn is not None
             if entry.scope_takes_request:
@@ -237,7 +247,9 @@ class View:
             if isinstance(result, HttpResponse):
                 return result
             product = result
-            if root_product is None:
+            # The root product is positional — entry 0's product — not the
+            # first non-None one: a root scope may legitimately produce None.
+            if index == 0:
                 root_product = result
 
         if self.takes_root:
@@ -375,7 +387,7 @@ class RegisteredView(Protocol[TValue_contra, TRoot_co]):
 class ViewBinder(Generic[TValue, TRoot]):
     def __init__(
         self,
-        router: "Router",
+        router: "Router[Any]",
         parent_name: str,
         parent_node: _Node,
         url_path: "str | None",
@@ -458,14 +470,137 @@ class ViewBinder(Generic[TValue, TRoot]):
         return fn
 
 
-class Router:
-    """Instantiate once per views module; ``urls.py`` imports the module and
-    splats ``router.paths()``. Same registration mechanism as the RPC
-    Router: no autodiscovery, no global registry, no circular imports."""
+class _ScopeAdapter:
+    """Runs a scope chain on behalf of an rpc endpoint. Any failure —
+    ``False`` or an ``HttpResponse`` — coerces to the uniform denial: rpc
+    callers get JSON, never redirects."""
 
-    def __init__(self) -> None:
+    def __init__(self, scope: "Scope[Any, Any]") -> None:
+        self.scope = scope
+        self.chain_params: list[tuple[type, str]] = [
+            (annotation, name)
+            for entry in scope.node.scope_chain()
+            for name, annotation in entry.params.items()
+        ]
+
+    def run(self, request: HttpRequest, kwargs: dict[str, Any]) -> Any:
+        product: object = request
+        for entry in self.scope.node.scope_chain():
+            entry_kwargs = {name: kwargs.pop(name) for name in entry.params}
+            assert entry.scope_fn is not None
+            if entry.scope_takes_request:
+                result = entry.scope_fn(product, request, **entry_kwargs)
+            else:
+                result = entry.scope_fn(product, **entry_kwargs)
+            if result is False or isinstance(result, HttpResponse):
+                return ScopeDenied(result)
+            if result is True:
+                raise TypeError(
+                    f"routing: scope {entry.scope_fn.__name__} returned True — "
+                    f"scopes return a product, an HttpResponse, or False"
+                )
+            product = result
+        return product
+
+
+class Router(Generic[TAnonymous]):
+    """The one router: pages (``scope``/``view``/``index``) and procedures
+    (``rpc``/``query``) register on the same instance, share one
+    route/reverse-name table, and mount together. No autodiscovery, no
+    global registry, no circular imports."""
+
+    @overload
+    def __init__(self: "Router[HttpRequest]") -> None: ...
+
+    @overload
+    def __init__(self, request_type: type[TAnonymous]) -> None: ...
+
+    def __init__(self, request_type: Any = HttpRequest) -> None:
+        self.request_type = request_type
+        self.handlers: dict[str, RPC] = {}
         self._views: list[View] = []
         self._known_nodes: dict[Callable[..., object], _Node] = {}
+
+    # -- procedures ----------------------------------------------------------
+
+    @overload
+    def rpc(
+        self,
+        access: "Scope[TPrincipal, Any]",
+        *,
+        csrf_exempt: bool = False,
+        log: "Literal['errors'] | bool" = False,
+        atomic_requests: bool = True,
+        methods: "list[Literal['GET', 'POST']] | None" = None,
+    ) -> RPCDecorator[TPrincipal]: ...
+
+    @overload
+    def rpc(
+        self,
+        access: RPCAccess[TAnonymous, TPrincipal],
+        *,
+        csrf_exempt: bool = False,
+        log: "Literal['errors'] | bool" = False,
+        atomic_requests: bool = True,
+        methods: "list[Literal['GET', 'POST']] | None" = None,
+    ) -> RPCDecorator[TPrincipal]: ...
+
+    def rpc(
+        self,
+        access: Any,
+        *,
+        csrf_exempt: bool = False,
+        log: "Literal['errors'] | bool" = False,
+        atomic_requests: bool = True,
+        methods: "list[Literal['GET', 'POST']] | None" = None,
+    ) -> RPCDecorator[Any]:
+        scope_adapter = _ScopeAdapter(access) if isinstance(access, Scope) else None
+        return build_rpc_decorator(
+            self.handlers,
+            scope_adapter=scope_adapter,
+            access=None if scope_adapter else access,
+            csrf_exempt=csrf_exempt,
+            log=log,
+            atomic_requests=atomic_requests,
+            is_query=False,
+            methods=methods,
+        )
+
+    @overload
+    def query(
+        self,
+        access: "Scope[TPrincipal, Any]",
+        *,
+        csrf_exempt: bool = False,
+        log: "Literal['errors'] | bool" = False,
+    ) -> RPCDecorator[TPrincipal]: ...
+
+    @overload
+    def query(
+        self,
+        access: RPCAccess[TAnonymous, TPrincipal],
+        *,
+        csrf_exempt: bool = False,
+        log: "Literal['errors'] | bool" = False,
+    ) -> RPCDecorator[TPrincipal]: ...
+
+    def query(
+        self,
+        access: Any,
+        *,
+        csrf_exempt: bool = False,
+        log: "Literal['errors'] | bool" = False,
+    ) -> RPCDecorator[Any]:
+        scope_adapter = _ScopeAdapter(access) if isinstance(access, Scope) else None
+        return build_rpc_decorator(
+            self.handlers,
+            scope_adapter=scope_adapter,
+            access=None if scope_adapter else access,
+            csrf_exempt=csrf_exempt,
+            log=log,
+            atomic_requests=False,
+            is_query=True,
+        )
 
     def _register_view(self, view: View) -> None:
         self._views.append(view)
@@ -547,11 +682,17 @@ class Router:
     # -- emission ------------------------------------------------------------
 
     def routes(self) -> list[tuple[str, str]]:
-        """The derived (route, reverse-name) table — also the snapshot-test
-        surface."""
+        """The derived (route, reverse-name) table for BOTH kinds — pages
+        and procedures — with per-instance duplicate detection. Also the
+        snapshot-test surface."""
         seen_routes: dict[str, str] = {}
         seen_names: set[str] = set()
         table: list[tuple[str, str]] = []
+
+        for rpc_name, rpc_call in self.handlers.items():
+            seen_routes[rpc_call["url"]] = rpc_name
+            seen_names.add(rpc_name)
+            table.append((rpc_call["url"], rpc_name))
 
         for view in self._views:
             route = view.node.route()
@@ -571,8 +712,16 @@ class Router:
 
     def paths(self) -> list[URLPattern]:
         table = self.routes()
-        by_name = {view.name: view for view in self._views}
-        return [django_path(route, by_name[name], name=name) for route, name in table]
+        by_name: dict[str, Any] = {view.name: view for view in self._views}
+        patterns: list[URLPattern] = []
+        for rpc_name, rpc_call in self.handlers.items():
+            patterns.append(
+                django_path(rpc_call["url"], rpc_call["handler"], name=rpc_name)
+            )
+        for route, name in table:
+            if name in by_name:
+                patterns.append(django_path(route, by_name[name], name=name))
+        return patterns
 
     def _warn_untrimmable(self, routes: dict[str, str]) -> None:
         for view in self._views:

@@ -1,6 +1,6 @@
 import React, {type JSX} from "react";
 
-import {templates} from "@reactivated";
+import {server} from "@reactivated";
 
 import outdent from "outdent";
 
@@ -81,7 +81,7 @@ const GitHub = () => (
     </svg>
 );
 
-export const Template = (props: templates.HomePage) => (
+export const Template = (props: server.documentation.templates.HomePage) => (
     <Site title="Reactivated — Zero-configuration Django and React">
         <div
             style={{
@@ -183,7 +183,7 @@ export const Template = (props: templates.HomePage) => (
 
                             import {Layout} from "@client/components/Layout";
 
-                            export const Template = (props: templates.HomePage) => (
+                            export const Template = (props: server.documentation.templates.HomePage) => (
                                 <Layout title="Sign Up">
                                     <h1>Sign Up</h1>
                                     <form method="POST">

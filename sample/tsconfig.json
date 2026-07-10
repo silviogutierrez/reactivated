@@ -1,25 +1,7 @@
 {
+    "extends": "../packages/reactivated/tsconfig.base.json",
     "compilerOptions": {
-        "outDir": "./dist/",
-        "noEmit": true,
-        "strict": true,
-        "sourceMap": true,
-        "noImplicitAny": true,
-        // "noUnusedParameters": true,
-        // "noUnusedLocals": true,
-        "noImplicitThis": true,
-        "module": "esnext",
-        "moduleResolution": "node",
-        "target": "es2017",
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "allowJs": true,
-        "jsx": "react",
-        "baseUrl": ".",
-        "paths": {
-            "@client/*": ["client/*"],
-            "@reactivated": ["node_modules/_reactivated"]
-        }
+        "types": ["node"]
     },
     "include": ["./client/**/*"]
 }

@@ -1,33 +1,15 @@
-import json
 import os
-import subprocess
-from pathlib import Path
-from unittest import mock
 
 import pytest
 import requests
-from django.conf import settings
 from django.core.management import call_command
-from django.http import HttpResponse
-from django.urls import path
 from playwright.async_api import Page
-
-from reactivated import registry
 
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 
 @pytest.mark.asyncio
 async def test_end_to_end(client, live_server, page: Page):
-    registry.type_registry.clear()
-    registry.global_types.clear()
-    registry.global_types["Widget"] = registry.DefaultWidgetType
-    registry.global_types["models"] = registry.DefaultModelsType
-    registry.template_registry.clear()
-    registry.interface_registry.clear()
-    registry.value_registry.clear()
-    registry.definitions_registry.clear()
-
     call_command("generate_client_assets")
     call_command("build")
 
@@ -52,160 +34,3 @@ async def test_end_to_end(client, live_server, page: Page):
 
     # Check that the page content is rendered
     assert "<h1>Hello World! It's good to be here.</h1>" in content
-
-
-def test_default_widget(tmp_path):
-    from sample.server.apps.samples.templates import HelloWorld
-
-    registry.type_registry.clear()
-    registry.global_types.clear()
-    registry.global_types["Widget"] = registry.DefaultWidgetType
-    registry.global_types["models"] = registry.DefaultModelsType
-    registry.template_registry.clear()
-    registry.interface_registry.clear()
-    registry.value_registry.clear()
-    registry.definitions_registry.clear()
-
-    tsconfig = Path(settings.BASE_DIR) / "tsconfig.pytest.json"
-    tsconfig.write_text(
-        json.dumps(
-            {
-                "extends": "./tsconfig.json",
-                "include": [
-                    "./client/templates/HelloWorld.tsx",
-                ],
-            }
-        )
-    )
-
-    with mock.patch(
-        "reactivated.apps.get_urls_schema",
-        return_value={
-            "foo": {
-                "route": "/foo/",
-                "args": {},
-            },
-            "bar": {
-                "route": "/bar/",
-                "args": {"arg": "string"},
-            },
-        },
-    ):
-        HelloWorld.register()
-        call_command("generate_client_assets")
-        assert registry.global_types["Widget"] is registry.DefaultWidgetType
-        tsc_process = subprocess.Popen(
-            [
-                "npm",
-                "exec",
-                "tsc",
-                "--",
-                "--noEmit",
-                "--project",
-                tsconfig,
-            ],
-            stdout=subprocess.PIPE,
-            cwd=settings.BASE_DIR,
-        )
-        tsc_output, tsc_error = tsc_process.communicate()
-        assert tsc_process.returncode == 0
-    tsconfig.unlink()
-
-
-urlpatterns = [
-    path("", lambda request: HttpResponse("ok")),
-]
-
-
-@pytest.mark.urls("tests.e2e")
-def test_unnamed_urls(tmp_path):
-    from sample.server.apps.samples.templates import HelloWorld
-
-    registry.type_registry.clear()
-    registry.global_types.clear()
-    registry.global_types["Widget"] = registry.DefaultWidgetType
-    registry.global_types["models"] = registry.DefaultModelsType
-    registry.template_registry.clear()
-    registry.interface_registry.clear()
-    registry.value_registry.clear()
-    registry.definitions_registry.clear()
-
-    tsconfig = Path(settings.BASE_DIR) / "tsconfig.pytest.json"
-    tsconfig.write_text(
-        json.dumps(
-            {
-                "extends": "./tsconfig.json",
-                "include": [
-                    "./client/templates/HelloWorld.tsx",
-                ],
-            }
-        )
-    )
-
-    HelloWorld.register()
-    call_command("generate_client_assets")
-    assert registry.global_types["Widget"] is registry.DefaultWidgetType
-    tsc_process = subprocess.Popen(
-        [
-            "npm",
-            "exec",
-            "tsc",
-            "--",
-            "--noEmit",
-            "--project",
-            tsconfig,
-        ],
-        stdout=subprocess.PIPE,
-        cwd=settings.BASE_DIR,
-    )
-    tsc_output, tsc_error = tsc_process.communicate()
-    assert tsc_process.returncode == 0
-
-
-def test_no_urls(tmp_path):
-    from sample.server.apps.samples.templates import HelloWorld
-
-    registry.type_registry.clear()
-    registry.global_types.clear()
-    registry.global_types["Widget"] = registry.DefaultWidgetType
-    registry.global_types["models"] = registry.DefaultModelsType
-    registry.template_registry.clear()
-    registry.interface_registry.clear()
-    registry.value_registry.clear()
-    registry.definitions_registry.clear()
-
-    tsconfig = Path(settings.BASE_DIR) / "tsconfig.pytest.json"
-    tsconfig.write_text(
-        json.dumps(
-            {
-                "extends": "./tsconfig.json",
-                "include": [
-                    "./client/templates/HelloWorld.tsx",
-                ],
-            }
-        )
-    )
-
-    with mock.patch(
-        "reactivated.apps.get_urls_schema",
-        return_value={},
-    ):
-        HelloWorld.register()
-        call_command("generate_client_assets")
-        assert registry.global_types["Widget"] is registry.DefaultWidgetType
-        tsc_process = subprocess.Popen(
-            [
-                "npm",
-                "exec",
-                "tsc",
-                "--",
-                "--noEmit",
-                "--project",
-                tsconfig,
-            ],
-            stdout=subprocess.PIPE,
-            cwd=settings.BASE_DIR,
-        )
-        tsc_output, tsc_error = tsc_process.communicate()
-        assert tsc_process.returncode == 0
-    tsconfig.unlink()

@@ -1,7 +1,6 @@
 from collections.abc import Callable
-from typing import Optional
+from typing import Optional, TypeVar
 from typing import Type as TypingType
-from typing import TypeVar
 
 from mypy.nodes import ARG_POS, GDEF, Argument, PlaceholderNode, SymbolTableNode, Var
 from mypy.options import Options
@@ -23,27 +22,10 @@ class ReactivatedPlugin(Plugin):
         super().__init__(options)
         self._placeholder_names: set[str] = set()
 
-    def get_type_analyze_hook(
-        self, fullname: str
-    ) -> Callable[[AnalyzeTypeContext], Type] | None:
-        if fullname == "reactivated.pick.Pick":
-            return analyze_pick
-
-        return None
-
-    def get_class_decorator_hook(
-        self, fullname: str
-    ) -> Callable[[ClassDefContext], None] | None:
-        if fullname in [
-            "reactivated.templates.template",
-            "reactivated.templates.interface",
-        ]:
-            return analyze_template
-
-        return None
-
     def get_dynamic_class_hook(self, fullname: str) -> "CB[DynamicClassDefContext]":
-        if fullname == "reactivated.rpc.core.pick":
+        # The implementation and its public facade — mypy reports whichever
+        # the import chain resolved to.
+        if fullname in ("reactivated.rpc.core.pick", "reactivated.pick.pick"):
             return lambda ctx: analyze_rpc_pick(ctx, self._placeholder_names)
         return None
 

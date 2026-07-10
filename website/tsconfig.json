@@ -1,20 +1,7 @@
 {
+    "extends": "../packages/reactivated/tsconfig.base.json",
     "compilerOptions": {
-        "strict": true,
-        "sourceMap": true,
-        "noEmit": true,
-        "module": "esnext",
-        "moduleResolution": "node",
-        "target": "es2017",
-        "esModuleInterop": true,
-        "allowJs": true,
-        "jsx": "react",
-        "baseUrl": ".",
-        "skipLibCheck": true,
-        "paths": {
-            "@client/*": ["client/*"],
-            "@reactivated": ["node_modules/_reactivated"]
-        }
+        "types": ["node"]
     },
     "include": ["eslint.config.ts", "./client/**/*"]
 }

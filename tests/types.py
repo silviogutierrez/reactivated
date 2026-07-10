@@ -10,12 +10,11 @@ from django.core.management import call_command
 from django.db import models as django_models
 
 from reactivated.fields import EnumField
-from reactivated.pick import build_nested_schema, get_field_descriptor
-from reactivated.serialization import ComputedField, create_schema
-from reactivated.serialization.context_processors import create_context_processor_type
+from reactivated.forms.schema import ComputedField, create_schema
+from reactivated.pick import get_field_descriptor
 from sample.server.apps.samples import forms, models
 
-from .serialization import convert_to_json_and_validate
+from .validation import convert_to_json_and_validate
 
 
 class NamedTupleType(NamedTuple):
@@ -68,7 +67,7 @@ def test_enum():
             "tests.types.EnumType": {
                 "type": "string",
                 "enum": ["ONE", "TWO", "CHUNK"],
-                "serializer": "reactivated.serialization.EnumMemberType",
+                "serializer": "reactivated.forms.schema.EnumMemberType",
             }
         },
     )
@@ -83,14 +82,14 @@ def test_enum_type():
                 "properties": {
                     "CHUNK": {
                         "$ref": "#/$defs/tests.types.NamedTupleType",
-                        "serializer": "reactivated.serialization.EnumValueType",
+                        "serializer": "reactivated.forms.schema.EnumValueType",
                     },
                     "ONE": {
-                        "serializer": "reactivated.serialization.EnumValueType",
+                        "serializer": "reactivated.forms.schema.EnumValueType",
                         "type": "string",
                     },
                     "TWO": {
-                        "serializer": "reactivated.serialization.EnumValueType",
+                        "serializer": "reactivated.forms.schema.EnumValueType",
                         "type": "string",
                     },
                 },
@@ -259,7 +258,7 @@ def test_type_alias():
     assert create_schema(UnionAlias, {}) == (
         {
             "anyOf": [{"type": "string"}, {"type": "number"}],
-            "serializer": "reactivated.serialization.UnionType",
+            "serializer": "reactivated.forms.schema.UnionType",
             "_reactivated_union": {
                 "builtins.str": {"type": "string"},
                 "builtins.int": {"type": "number"},
@@ -391,7 +390,7 @@ def test_form():
             "prefix": {"type": "string"},
         },
         "required": ["name", "prefix", "fields", "iterator", "errors"],
-        "serializer": "reactivated.serialization.FormType",
+        "serializer": "reactivated.forms.schema.FormType",
         "type": "object",
     }
 
@@ -512,59 +511,6 @@ def test_get_field_descriptor():
     assert path == (("composer", False, False), ("favorite_opera", False, True))
 
 
-def test_build_nested_schema():
-    """This function mutates, so we test building multiple paths that are nested
-    under the same object."""
-
-    schema = {
-        "type": "object",
-        "additionalProperties": False,
-        "properties": {},
-        "required": [],
-    }
-
-    build_nested_schema(schema, (("a", False, False), ("b", False, False)))
-    assert schema["properties"]["a"]["properties"]["b"]["type"] == "object"
-
-    build_nested_schema(schema, (("a", False, False), ("c", False, False)))
-    assert schema["properties"]["a"]["properties"]["b"]["type"] == "object"
-    assert schema["properties"]["a"]["properties"]["c"]["type"] == "object"
-
-    build_nested_schema(
-        schema,
-        (("a", False, False), ("multiple", True, False), ("single", False, False)),
-    )
-    assert schema["properties"]["a"]["properties"]["multiple"]["type"] == "array"
-    assert (
-        schema["properties"]["a"]["properties"]["multiple"]["items"]["properties"][
-            "single"
-        ]["type"]
-        == "object"
-    )
-
-    build_nested_schema(
-        schema,
-        (
-            ("a", False, False),
-            ("multiple", True, False),
-            ("second_single", False, False),
-        ),
-    )
-    assert schema["properties"]["a"]["properties"]["multiple"]["type"] == "array"
-    assert (
-        schema["properties"]["a"]["properties"]["multiple"]["items"]["properties"][
-            "single"
-        ]["type"]
-        == "object"
-    )
-    assert (
-        schema["properties"]["a"]["properties"]["multiple"]["items"]["properties"][
-            "second_single"
-        ]["type"]
-        == "object"
-    )
-
-
 @pytest.mark.skip(reason="needs to be an e2e test with node")
 def test_generate_client_assets(settings):
     # This technically loads the full sample site, which expects to be run
@@ -610,33 +556,3 @@ def sample_context_processor_two() -> SampleContextTwo:
 
 def sample_unannotated_context_processor():
     pass
-
-
-def test_context_processor_type(snapshot):
-    with pytest.raises(AssertionError, match="No annotations found"):
-        ContextProcessorType = create_context_processor_type(
-            ["tests.types.sample_unannotated_context_processor"]
-        )
-
-    context_processors = [
-        "django.template.context_processors.request",
-        "tests.types.sample_context_processor_one",
-        "tests.types.sample_context_processor_two",
-    ]
-
-    ContextProcessorType = create_context_processor_type(context_processors)
-    schema, definitions = create_schema(ContextProcessorType, {})
-
-    assert schema == {
-        "allOf": [
-            {
-                "$ref": "#/$defs/reactivated.serialization.context_processors.BaseContext"
-            },
-            {
-                "$ref": "#/$defs/reactivated.serialization.context_processors.RequestProcessor"
-            },
-            {"$ref": "#/$defs/tests.types.SampleContextOne"},
-            {"$ref": "#/$defs/tests.types.SampleContextTwo"},
-        ]
-    }
-    assert definitions == snapshot

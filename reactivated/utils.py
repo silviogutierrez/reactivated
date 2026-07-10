@@ -2,15 +2,35 @@ from __future__ import annotations
 
 import collections.abc
 import inspect
+import socket
+import time
+import urllib.request
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import Any, get_args, get_type_hints
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Manager
 from django.utils.functional import Promise
 
-if TYPE_CHECKING:
-    from reactivated.backend import JSX
+
+def get_free_port() -> int:
+    """Bind to port 0 so the OS assigns a free TCP port, then release it."""
+    with socket.socket() as sock:
+        sock.bind(("", 0))
+        return int(sock.getsockname()[1])
+
+
+def wait_for_http(url: str, timeout: float = 45.0) -> bool:
+    """Poll ``url`` until it answers (any status) or ``timeout`` elapses. Returns
+    whether it came up — for waiting on a just-started local dev server."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            urllib.request.urlopen(url, timeout=1)  # noqa: S310
+            return True
+        except Exception:
+            time.sleep(0.3)
+    return False
 
 
 # Mock is_simple_callable for now
@@ -104,12 +124,25 @@ class ClassLookupDict:
         self.mapping[key] = value
 
 
-def get_template_engine() -> JSX:
-    from django.template import engines
+def discriminate(union: Any, field: str) -> dict[Any, type]:
+    """Map each member of a Literal-discriminated union to its discriminator value.
 
-    from reactivated.backend import JSX
-
-    for engine in engines.all():
-        if isinstance(engine, JSX):
-            return engine
-    assert False, "JSX engine not found in settings.TEMPLATES"
+    ``discriminate(V1 | V2, "version")`` returns ``{"v1": V1, "v2": V2}`` where
+    each member annotates ``field`` as a single-value Literal. A bare class (a
+    union of one) is accepted so registries work before a second member exists.
+    """
+    members = get_args(union) or (union,)
+    registry: dict[Any, type] = {}
+    for member in members:
+        # Prefer pydantic's resolved annotations; get_type_hints cannot see
+        # classes defined in function scope under `from __future__ import
+        # annotations`.
+        model_fields = getattr(member, "model_fields", None)
+        annotation = (
+            model_fields[field].annotation
+            if model_fields
+            else get_type_hints(member)[field]
+        )
+        (value,) = get_args(annotation)
+        registry[value] = member
+    return registry

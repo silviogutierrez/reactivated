@@ -76,6 +76,8 @@ filterwarnings = [
 ]
 
 [tool.ruff.lint]
+# Default rules plus import sorting; isort config below was inert without "I".
+extend-select = ["I"]
 ignore = [
     "E501",  # Line too long: formatter handles this.
     "F405",  # May be undefined from star import.

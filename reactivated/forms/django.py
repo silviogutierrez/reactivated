@@ -1,18 +1,127 @@
-from __future__ import annotations
+import enum
+from collections.abc import Callable, Sequence
+from enum import unique
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Literal,
+    TypeVar,
+    cast,
+)
 
-from typing import Annotated, Any, Callable, Generic, Literal, TypeVar, get_args
+from django import forms as django_forms
+from django.forms.widgets import Widget
 
-from django import forms
-from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler, TypeAdapter
-from pydantic.json_schema import JsonSchemaValue
-from pydantic_core import core_schema
-from reactivated.serialization import create_schema as reactivated_create_schema
-from reactivated.serialization.registry import definitions_registry
-from reactivated.utils import ClassLookupDict
+from ..fields import _GT, EnumChoiceIterator, coerce_to_enum
+from ..registry import definitions_registry
+from ..rpc.core import Pick
+from ..utils import ClassLookupDict
+from .schema import create_schema as reactivated_create_schema
 
-from .core import Pick
+if TYPE_CHECKING:
+    from django.forms.formsets import _F
+    from django.forms.models import _M, _ModelFormT
+
+    class FormSetFactory(django_forms.BaseFormSet[_F]):
+        pass
+
+    class ModelFormSetFactory(django_forms.BaseModelFormSet[_M, _ModelFormT]):
+        pass
+
+else:
+
+    class FormSetFactory:
+        def __class_getitem__(cls: Any, item: Any) -> Any:
+            return django_forms.formset_factory(form=item)
+
+    class ModelFormSetFactory:
+        def __class_getitem__(cls: Any, item: Any) -> Any:
+            model, form = item
+            return django_forms.modelformset_factory(model=model, form=form)
+
+
+class EnumChoiceField(django_forms.TypedChoiceField):
+    def __init__(
+        self,
+        *,
+        coerce: Callable[[Any], _GT | None] | None = None,
+        empty_value: str | None = "",
+        enum: type[_GT] | None = None,
+        choices: EnumChoiceIterator[_GT] | None = None,
+        required: bool = True,
+        widget: Widget | type[Widget] | None = None,
+        label: str | None = None,
+        initial: _GT | None = None,
+        help_text: str = "",
+        error_messages: Any | None = None,
+        show_hidden_initial: bool = False,
+        validators: Sequence[Any] = (),
+        localize: bool = False,
+        disabled: bool = False,
+        label_suffix: Any | None = None,
+    ) -> None:
+        """When instantiated by a model form, choices will be populated and
+        enum will not, as Django strips all but a defined set of kwargs.
+
+        And coerce will be populated by the model as well.
+
+        When using this field directly in a form, enum will be populated and
+        choices and coerce should be None."""
+
+        if enum is not None and choices is None:
+            self.enum = enum
+            choices = EnumChoiceIterator(enum=enum, include_blank=required)
+            coerce = lambda value: coerce_to_enum(self.enum, value)
+        elif enum is None and choices is not None:
+            self.enum = choices.enum
+        else:
+            assert False, "Pass enum or choices. Not both"
+
+        unique(self.enum)
+
+        return super().__init__(
+            coerce=coerce,  # type: ignore[arg-type]
+            empty_value=empty_value,
+            choices=choices,
+            required=required,
+            widget=widget,
+            label=label,
+            initial=initial,
+            help_text=help_text,
+            error_messages=error_messages,
+            show_hidden_initial=show_hidden_initial,
+            validators=validators,
+            localize=localize,
+            disabled=disabled,
+            label_suffix=label_suffix,
+        )
+
+    """
+    Enum choices must be serialized to their name rather than their enum
+    representation for the existing value in forms. Choices themselves are
+    handled by the `choices` argument in form and model fields.
+    """
+
+    def prepare_value(self, value: enum.Enum | None) -> str | None:
+        if isinstance(value, enum.Enum):
+            return value.name
+        return value
+
 
 T = TypeVar("T")
+
+
+# --- Django forms -> pydantic bridge (DjangoForm / DjangoFormSet) ---------
+
+from typing import Annotated, Generic, get_args  # noqa: E402
+
+from django import forms  # noqa: E402
+from pydantic import (  # noqa: E402
+    GetCoreSchemaHandler,
+    GetJsonSchemaHandler,
+)
+from pydantic.json_schema import JsonSchemaValue  # noqa: E402
+from pydantic_core import core_schema  # noqa: E402
 
 
 class _UndefinedMarker(Generic[T]):
@@ -310,73 +419,55 @@ def coerce_widget_value(widget: forms.Widget, context: dict[str, Any]) -> Any:
     return context.get("value")
 
 
+def _inline_refs(
+    schema: Any, definitions: dict[str, Any], _seen: frozenset[str] = frozenset()
+) -> Any:
+    """Recursively inline reactivated's dotted-key ``$ref``s into ``schema``.
+
+    Widget schemas from ``create_schema`` reference their definitions by key
+    (``#/$defs/django.forms.widgets.Select``). Pydantic resolves refs while
+    building the form schema and cannot see these, so we produce a fully
+    self-contained schema. Widget definitions are acyclic; ``_seen`` guards
+    against any unexpected cycle by leaving the ref untouched.
+    """
+    if isinstance(schema, list):
+        return [_inline_refs(item, definitions, _seen) for item in schema]
+    if not isinstance(schema, dict):
+        return schema
+
+    ref = schema.get("$ref")
+    if isinstance(ref, str) and ref.startswith("#/$defs/"):
+        key = ref[len("#/$defs/") :]
+        if key in definitions and key not in _seen:
+            return _inline_refs(definitions[key], definitions, _seen | {key})
+
+    return {
+        key: _inline_refs(value, definitions, _seen) for key, value in schema.items()
+    }
+
+
 def get_widget_json_schema(
     widget: forms.Widget, handler: GetJsonSchemaHandler
 ) -> dict[str, Any]:
     widget_class = widget.__class__
     widget_tag = f"{widget_class.__module__}.{widget_class.__qualname__}"
 
-    # Register in reactivated's global Widget union for backward compatibility.
-    if widget_tag not in definitions_registry:
-        try:
-            result = reactivated_create_schema(widget, definitions_registry)
-            definitions_registry.update(result.definitions)
-        except (KeyError, AssertionError):
-            pass
+    # Prefer reactivated's own schema system. It hand-crafts widget schemas -
+    # including tuple shapes (optgroups) and multi-widget subwidgets - in the
+    # draft-07 form json2ts understands, and identical to the global Widget
+    # union. Building the same widget through pydantic emits JSON Schema 2020-12
+    # `prefixItems`, which json2ts renders as `unknown`. We fully inline the
+    # result so pydantic (which resolves refs while assembling the form schema)
+    # never sees reactivated's dotted-key $refs.
+    try:
+        result = reactivated_create_schema(widget, definitions_registry)
+    except (KeyError, AssertionError):
+        pass
+    else:
+        definitions_registry.update(result.definitions)
+        return cast("dict[str, Any]", _inline_refs(result.schema, definitions_registry))
 
-    # Handle SelectDateWidget specially - it needs subwidgets in the schema
-    if isinstance(widget, forms.SelectDateWidget):
-        attrs_adapter = TypeAdapter(BaseWidgetAttrs)
-        attrs_schema = handler(attrs_adapter.core_schema)
-        select_schema = get_widget_json_schema(forms.Select(), handler)
-        return {
-            "type": "object",
-            "properties": {
-                "template_name": {
-                    "type": "string",
-                    "const": "django/forms/widgets/select_date.html",
-                },
-                "name": {"type": "string"},
-                "is_hidden": {"type": "boolean"},
-                "required": {"type": "boolean"},
-                "value": {},
-                "attrs": attrs_schema,
-                "tag": {"type": "string", "const": widget_tag},
-                "subwidgets": {
-                    "type": "array",
-                    "items": [select_schema, select_schema, select_schema],
-                    "maxItems": 3,
-                    "minItems": 3,
-                },
-            },
-            "required": [
-                "template_name",
-                "name",
-                "is_hidden",
-                "required",
-                "value",
-                "attrs",
-                "tag",
-                "subwidgets",
-            ],
-        }
-
-    # Check registry for typed schema
-    schema_class = get_widget_schema_class(widget)
-
-    if schema_class is not None:
-        # Use the shared handler to generate schema - this adds any nested
-        # types (like MaxLengthAttrs) to the parent schema's $defs registry
-        adapter = TypeAdapter(schema_class)
-        widget_schema = handler(adapter.core_schema)
-
-        # Override tag to be the actual widget class (not the schema class)
-        if "properties" in widget_schema and "tag" in widget_schema["properties"]:
-            widget_schema["properties"]["tag"] = {"type": "string", "const": widget_tag}
-
-        return widget_schema
-
-    # Fallback: generate generic schema
+    # Fallback: generate generic schema for widgets reactivated does not model.
     fallback_schema: dict[str, Any] = {
         "type": "object",
         "properties": {

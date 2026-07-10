@@ -34,7 +34,7 @@ class FakeProcedures:
         return [path(route, _view, name=name) for route, name in self.table]
 
 
-def _pages_router() -> Router:
+def _pages_router() -> Router[HttpRequest]:
     router = Router()
 
     @router.scope

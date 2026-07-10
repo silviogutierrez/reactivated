@@ -1,31 +1,32 @@
 import React from "react";
 
-import {CSRFToken, Form, FormSet, templates} from "@reactivated";
+import {server} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
+import * as forms from "@client/forms";
 
-export const Template = (props: templates.FormPlayground) => (
+export const Template = (props: server.example.templates.FormPlayground) => (
     <Layout title="Forms">
         <h1>Forms</h1>
         <form method="POST" action="">
-            <CSRFToken />
+            <forms.CSRFToken />
             <table>
                 <tbody>
-                    <Form form={props.form} as="table" />
+                    <forms.Form form={props.form} as="table" />
                 </tbody>
             </table>
             <button type="submit">Submit</button>
         </form>
         <form method="POST" action="">
-            <CSRFToken />
-            <Form form={props.form_as_p} as="p" />
+            <forms.CSRFToken />
+            <forms.Form form={props.form_as_p} as="p" />
             <button type="submit">Submit</button>
         </form>
         <form method="POST" action="">
-            <CSRFToken />
+            <forms.CSRFToken />
             <table>
                 <tbody>
-                    <FormSet formSet={props.form_set} as="table" />
+                    <forms.FormSet formSet={props.form_set} as="table" />
                 </tbody>
             </table>
             <button type="submit">Submit</button>

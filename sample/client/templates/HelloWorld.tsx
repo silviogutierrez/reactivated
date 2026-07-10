@@ -1,13 +1,13 @@
 import React from "react";
 
 import {Layout} from "@client/Layout";
-import {templates} from "@reactivated";
+import {server} from "@reactivated";
 
 const Paragraph = (props: {children?: React.ReactNode}) => (
     <p className="text-[#444]">{props.children}</p>
 );
 
-export const Template = (props: templates.HelloWorld) => {
+export const Template = (props: server.samples.templates.HelloWorld) => {
     const [showStyle, setShowStyle] = React.useState(false);
 
     return (

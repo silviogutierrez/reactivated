@@ -1,15 +1,17 @@
-from typing import NamedTuple
+from reactivated.pick import Pick
+from reactivated.templates import Template
 
-from reactivated import template
 
-
-@template
-class HomePage(NamedTuple):
+class HomePage(Template):
     stars: str
 
 
-@template
-class Documentation(NamedTuple):
+class TocEntry(Pick):
+    href: str
+    title: str
+
+
+class Documentation(Template):
     content: str
-    toc: tuple[tuple[str, str], ...]
+    toc: list[TocEntry]
     path: str

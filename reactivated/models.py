@@ -1,6 +1,12 @@
 from collections.abc import Callable
-from typing import Any  # noqa
-from typing import Generic, Literal, TypeVar, Union, overload
+from typing import (
+    Any,  # noqa
+    Generic,
+    Literal,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from django.db import models
 

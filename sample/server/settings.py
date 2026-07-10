@@ -58,30 +58,20 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "sample.server.urls"
 
+# The stock startproject block: reactivated reads context processors from
+# this entry — no custom backend, no custom setting.
 TEMPLATES = [
-    {
-        "BACKEND": "reactivated.backend.JSX",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.contrib.messages.context_processors.messages",
-                "django.template.context_processors.request",
-                "django.template.context_processors.csrf",
-                "django.template.context_processors.static",
-            ]
-        },
-    },
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
-                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.csrf",
+                "django.template.context_processors.static",
             ]
         },
     },

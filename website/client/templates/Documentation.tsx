@@ -60,18 +60,18 @@ const Menu = (props: server.documentation.templates.Documentation) => {
                         </a>
                     </h1>
                 </li>
-                {props.toc.map(([link, title]) => {
-                    const href = `/documentation/${link}/`;
+                {props.toc.map(({href, title}) => {
+                    const url = `/documentation/${href}/`;
 
                     return (
                         <li
-                            key={link}
+                            key={href}
                             style={{
                                 paddingLeft: 8,
                                 borderColor: "var(--color-background)",
                                 borderLeftWidth: 3,
                                 borderLeftStyle: "solid",
-                                ...(href == props.path
+                                ...(url == props.path
                                     ? {
                                           borderColor: "var(--color-text-with-color)",
                                       }
@@ -82,7 +82,7 @@ const Menu = (props: server.documentation.templates.Documentation) => {
                                 style={{
                                     color: "var(--color-header)",
                                 }}
-                                href={href}
+                                href={url}
                             >
                                 {title}
                             </a>

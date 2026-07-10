@@ -1,6 +1,6 @@
 import React from "react";
 
-import {CSRFToken, Context, reverse, templates, useForm} from "@reactivated";
+import {Context, reverse, server} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";

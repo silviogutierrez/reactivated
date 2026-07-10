@@ -175,10 +175,11 @@ export {
     Form,
     FormSet,
     ManagementForm,
+    Widget,
     useForm,
     useFormSet,
 } from "reactivated/dist/forms";
-export type {Widget} from "reactivated/dist/forms";
+
 import type {_Types} from "./index";
 import * as forms from "reactivated/dist/forms";
 

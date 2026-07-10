@@ -5,7 +5,7 @@ import {server} from "@reactivated";
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";
 
-export const Template = (props: server.example.server.PollsIndex) => (
+export const Template = (props: server.example.templates.PollsIndex) => (
     <Layout title="Polls" className="flex flex-col gap-2.5">
         <h1>Polls</h1>
         {props.latest_question_list.length > 0 ? (

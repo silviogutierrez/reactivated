@@ -4,6 +4,8 @@ dist
 
 packages/reactivated/src/generated.tsx
 sample/client/generated/
+development/client/generated/
+website/client/generated/
 *.pyc
 *.sqlite3
 .DS_Store

@@ -6,6 +6,7 @@ from typing import (
     Any,
     Literal,
     TypeVar,
+    cast,
 )
 
 from django import forms as django_forms
@@ -118,7 +119,6 @@ from django import forms  # noqa: E402
 from pydantic import (  # noqa: E402
     GetCoreSchemaHandler,
     GetJsonSchemaHandler,
-    TypeAdapter,
 )
 from pydantic.json_schema import JsonSchemaValue  # noqa: E402
 from pydantic_core import core_schema  # noqa: E402
@@ -419,73 +419,55 @@ def coerce_widget_value(widget: forms.Widget, context: dict[str, Any]) -> Any:
     return context.get("value")
 
 
+def _inline_refs(
+    schema: Any, definitions: dict[str, Any], _seen: frozenset[str] = frozenset()
+) -> Any:
+    """Recursively inline reactivated's dotted-key ``$ref``s into ``schema``.
+
+    Widget schemas from ``create_schema`` reference their definitions by key
+    (``#/$defs/django.forms.widgets.Select``). Pydantic resolves refs while
+    building the form schema and cannot see these, so we produce a fully
+    self-contained schema. Widget definitions are acyclic; ``_seen`` guards
+    against any unexpected cycle by leaving the ref untouched.
+    """
+    if isinstance(schema, list):
+        return [_inline_refs(item, definitions, _seen) for item in schema]
+    if not isinstance(schema, dict):
+        return schema
+
+    ref = schema.get("$ref")
+    if isinstance(ref, str) and ref.startswith("#/$defs/"):
+        key = ref[len("#/$defs/") :]
+        if key in definitions and key not in _seen:
+            return _inline_refs(definitions[key], definitions, _seen | {key})
+
+    return {
+        key: _inline_refs(value, definitions, _seen) for key, value in schema.items()
+    }
+
+
 def get_widget_json_schema(
     widget: forms.Widget, handler: GetJsonSchemaHandler
 ) -> dict[str, Any]:
     widget_class = widget.__class__
     widget_tag = f"{widget_class.__module__}.{widget_class.__qualname__}"
 
-    # Register in reactivated's global Widget union for backward compatibility.
-    if widget_tag not in definitions_registry:
-        try:
-            result = reactivated_create_schema(widget, definitions_registry)
-            definitions_registry.update(result.definitions)
-        except (KeyError, AssertionError):
-            pass
+    # Prefer reactivated's own schema system. It hand-crafts widget schemas -
+    # including tuple shapes (optgroups) and multi-widget subwidgets - in the
+    # draft-07 form json2ts understands, and identical to the global Widget
+    # union. Building the same widget through pydantic emits JSON Schema 2020-12
+    # `prefixItems`, which json2ts renders as `unknown`. We fully inline the
+    # result so pydantic (which resolves refs while assembling the form schema)
+    # never sees reactivated's dotted-key $refs.
+    try:
+        result = reactivated_create_schema(widget, definitions_registry)
+    except (KeyError, AssertionError):
+        pass
+    else:
+        definitions_registry.update(result.definitions)
+        return cast("dict[str, Any]", _inline_refs(result.schema, definitions_registry))
 
-    # Handle SelectDateWidget specially - it needs subwidgets in the schema
-    if isinstance(widget, forms.SelectDateWidget):
-        attrs_adapter = TypeAdapter(BaseWidgetAttrs)
-        attrs_schema = handler(attrs_adapter.core_schema)
-        select_schema = get_widget_json_schema(forms.Select(), handler)
-        return {
-            "type": "object",
-            "properties": {
-                "template_name": {
-                    "type": "string",
-                    "const": "django/forms/widgets/select_date.html",
-                },
-                "name": {"type": "string"},
-                "is_hidden": {"type": "boolean"},
-                "required": {"type": "boolean"},
-                "value": {},
-                "attrs": attrs_schema,
-                "tag": {"type": "string", "const": widget_tag},
-                "subwidgets": {
-                    "type": "array",
-                    "items": [select_schema, select_schema, select_schema],
-                    "maxItems": 3,
-                    "minItems": 3,
-                },
-            },
-            "required": [
-                "template_name",
-                "name",
-                "is_hidden",
-                "required",
-                "value",
-                "attrs",
-                "tag",
-                "subwidgets",
-            ],
-        }
-
-    # Check registry for typed schema
-    schema_class = get_widget_schema_class(widget)
-
-    if schema_class is not None:
-        # Use the shared handler to generate schema - this adds any nested
-        # types (like MaxLengthAttrs) to the parent schema's $defs registry
-        adapter = TypeAdapter(schema_class)
-        widget_schema = handler(adapter.core_schema)
-
-        # Override tag to be the actual widget class (not the schema class)
-        if "properties" in widget_schema and "tag" in widget_schema["properties"]:
-            widget_schema["properties"]["tag"] = {"type": "string", "const": widget_tag}
-
-        return widget_schema
-
-    # Fallback: generate generic schema
+    # Fallback: generate generic schema for widgets reactivated does not model.
     fallback_schema: dict[str, Any] = {
         "type": "object",
         "properties": {

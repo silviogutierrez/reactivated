@@ -1,8 +1,9 @@
 import React from "react";
 
-import {CSRFToken, Form, FormSet, templates} from "@reactivated";
+import {server} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
+import * as forms from "@client/forms";
 
 export const Template = (props: server.example.templates.FormPlayground) => (
     <Layout title="Forms">

@@ -1,8 +1,10 @@
 import React from "react";
 
-import {FieldHandler, Widget, classNames, createRenderer} from "@reactivated";
+import {classNames, forms} from "@reactivated";
 
-export const Field = (props: {field: forms.FieldHandler}) => {
+import type {FieldHandler} from "@reactivated/forms";
+
+export const Field = (props: {field: FieldHandler}) => {
     const {field} = props;
     const renderedWidget = <forms.Widget field={field} />;
 
@@ -44,3 +46,13 @@ export const ButtonLink = (props: {href: string; children?: React.ReactNode}) =>
         {props.children}
     </a>
 );
+
+// Framework form primitives, re-exported so templates import one forms
+// module — mirrors the site-forms wrapper pattern in real consumers.
+export const CSRFToken = forms.CSRFToken;
+export const Iterator = forms.Iterator;
+export const ManagementForm = forms.ManagementForm;
+export const Form = forms.Form;
+export const FormSet = forms.FormSet;
+export const useForm = forms.useForm;
+export const useFormSet = forms.useFormSet;

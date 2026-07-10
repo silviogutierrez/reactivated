@@ -71,21 +71,21 @@ mkShell {
     )
 
 
-toc = (
-    ("getting-started", "Getting Started"),
-    ("concepts", "Concepts"),
-    ("philosophy-goals", "Philosophy & Goals"),
+toc = [
+    templates.TocEntry(href="getting-started", title="Getting Started"),
+    templates.TocEntry(href="concepts", title="Concepts"),
+    templates.TocEntry(href="philosophy-goals", title="Philosophy & Goals"),
     # Maybe call concepts basics?
-    # ("basics", "Basics"),
-    ("api", "API"),
-    ("existing-projects", "Existing Projects"),
-    ("deploying", "Deploying a Reactivated Project"),
-    ("styles", "Styles and CSS"),
-    ("troubleshooting", "Troubleshooting"),
+    # TocEntry(href="basics", title="Basics"),
+    templates.TocEntry(href="api", title="API"),
+    templates.TocEntry(href="existing-projects", title="Existing Projects"),
+    templates.TocEntry(href="deploying", title="Deploying a Reactivated Project"),
+    templates.TocEntry(href="styles", title="Styles and CSS"),
+    templates.TocEntry(href="troubleshooting", title="Troubleshooting"),
     # Load discussions from GitHub here.
-    ("rfc", "Request for Comments"),
-    ("why-nix", "Why Nix?"),
-)
+    templates.TocEntry(href="rfc", title="Request for Comments"),
+    templates.TocEntry(href="why-nix", title="Why Nix?"),
+]
 
 
 def documentation(request: HttpRequest, *, page_name: str) -> HttpResponse:

@@ -1,8 +1,10 @@
 import React, {type JSX} from "react";
 
-import {FieldHandler, Widget} from "@reactivated";
+import {forms} from "@reactivated";
 
-export const Field = (props: {field: forms.FieldHandler}) => {
+import type {FieldHandler} from "@reactivated/forms";
+
+export const Field = (props: {field: FieldHandler}) => {
     const {field} = props;
     const renderedWidget = <forms.Widget field={field} />;
 

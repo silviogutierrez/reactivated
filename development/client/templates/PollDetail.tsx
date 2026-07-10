@@ -1,6 +1,6 @@
 import React from "react";
 
-import {forms, reverse, server} from "@reactivated";
+import {reverse, server} from "@reactivated";
 
 import {Layout} from "@client/components/Layout";
 import * as forms from "@client/forms";

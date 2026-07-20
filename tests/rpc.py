@@ -15,20 +15,27 @@ from django.db import models as dj_models
 from django.http import HttpRequest
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
+import reactivated
+from reactivated.pick import Pick as LegacyPick
 from reactivated.rpc import FormField, Pick, Router, export, form
+from reactivated.rpc import context as rpc_context
 from reactivated.rpc.core import (
     PickAsDict,
     PickProxy,
     Primitive,
+    _router_registry,
     _type_to_str,
     form_from_type_adapter,
     generate_server_schema,
     get_field_schema,
     manually_exported_registry,
     pick,
+    picks_registry,
 )
-from reactivated.rpc.forms import get_form_schema
+from reactivated.rpc.forms import form_registry, get_form_schema
+from reactivated.rpc.template import template_registry
 from reactivated.rpc.utils import flatten_schema
+from sample.server.apps.samples import models
 
 
 def unique_email() -> str:
@@ -1150,3 +1157,164 @@ async def test_router_principal_injection(settings: Any, rf: Any) -> None:
     response = await rpc.handlers["rpc_with_request_and_form"]["handler"](request)
     assert response.status_code == 200
     assert json.loads(response.content) == "boss:POST:hi"
+
+
+class LegacyPickContext(TypedDict):
+    picked_continent: LegacyPick[models.Continent, Literal["name"]]
+
+
+def legacy_pick_context(request: HttpRequest) -> LegacyPickContext:
+    # Fixture: only its return annotation is read by get_context_class().
+    raise NotImplementedError
+
+
+@pytest.fixture
+def jsx_context_processors(settings: Any) -> Any:
+    def _register(paths: list[str]) -> None:
+        settings.TEMPLATES = [
+            {
+                "BACKEND": "reactivated.backend.JSX",
+                "DIRS": [],
+                "APP_DIRS": True,
+                "OPTIONS": {"context_processors": paths},
+            }
+        ]
+        rpc_context._context_processor_paths = None
+        rpc_context._context_processors = None
+
+    yield _register
+    rpc_context._context_processor_paths = None
+    rpc_context._context_processors = None
+
+
+def test_legacy_pick_in_context_processor_renders_unknown(
+    jsx_context_processors: Any,
+) -> None:
+    jsx_context_processors([f"{__name__}.legacy_pick_context"])
+
+    Context = rpc_context.get_context_class()
+    schema = Context.model_json_schema(mode="serialization")
+
+    field = schema["properties"]["picked_continent"]
+    # Legacy Pick degrades to any_schema(), which emits no type/constraints and
+    # renders as `unknown` in the generated client schema.
+    assert set(field) <= {"title"}
+
+
+_GATE_EMPTY_URLCONF = "sample.server.apps.samples.gate_empty_urls"
+_GATE_ROUTER_URLCONF = "sample.server.apps.samples.gate_urls"
+_GATE_ROUTER_MODULE = "sample.server.apps.samples.gate_router"
+
+
+@pytest.fixture
+def isolated_rpc_registries(monkeypatch: Any) -> Any:
+    saved_routers = list(_router_registry)
+    saved_templates = dict(template_registry)
+    saved_picks = list(picks_registry)
+    saved_exports = dict(manually_exported_registry)
+    saved_forms = list(form_registry)
+
+    _router_registry.clear()
+    template_registry.clear()
+    picks_registry.clear()
+    manually_exported_registry.clear()
+    form_registry.clear()
+
+    monkeypatch.setattr(reactivated, "generate_callbacks", [])
+    monkeypatch.delenv("REACTIVATED_SKIP_GENERATIONS", raising=False)
+    monkeypatch.delenv("REACTIVATED_SKIP_RPC_GENERATIONS", raising=False)
+
+    yield
+
+    _router_registry[:] = saved_routers
+    template_registry.clear()
+    template_registry.update(saved_templates)
+    picks_registry[:] = saved_picks
+    manually_exported_registry.clear()
+    manually_exported_registry.update(saved_exports)
+    form_registry[:] = saved_forms
+
+
+def _patch_generators(mocker: Any) -> tuple[Any, Any, Any]:
+    from reactivated import apps as reactivated_apps
+    from reactivated.rpc import core as rpc_core
+
+    return (
+        mocker.patch.object(rpc_core, "generate_server_schema"),
+        mocker.patch.object(rpc_core, "generate_client_schema"),
+        mocker.patch.object(reactivated_apps, "generate_schema"),
+    )
+
+
+def test_run_generations_skips_rpc_when_registries_empty(
+    isolated_rpc_registries: Any, mocker: Any, settings: Any
+) -> None:
+    settings.ROOT_URLCONF = _GATE_EMPTY_URLCONF
+    server, client, legacy = _patch_generators(mocker)
+
+    reactivated.run_generations()
+
+    server.assert_not_called()
+    client.assert_not_called()
+    legacy.assert_called_once()
+
+
+def test_run_generations_runs_rpc_when_registry_nonempty(
+    isolated_rpc_registries: Any, mocker: Any, settings: Any
+) -> None:
+    settings.ROOT_URLCONF = _GATE_EMPTY_URLCONF
+    Router(HttpRequest)
+    server, client, legacy = _patch_generators(mocker)
+
+    reactivated.run_generations()
+
+    server.assert_called_once()
+    client.assert_called_once()
+    legacy.assert_called_once()
+
+
+def test_run_generations_runs_rpc_when_form_only(
+    isolated_rpc_registries: Any, mocker: Any, settings: Any
+) -> None:
+    settings.ROOT_URLCONF = _GATE_EMPTY_URLCONF
+    form_registry.append(RequiredTestForm)
+    server, client, legacy = _patch_generators(mocker)
+
+    reactivated.run_generations()
+
+    server.assert_called_once()
+    client.assert_called_once()
+    legacy.assert_called_once()
+
+
+def test_run_generations_discovers_registrations_via_urlconf(
+    isolated_rpc_registries: Any, mocker: Any, settings: Any
+) -> None:
+    # Cold start: the router lives in a URL-included module that has not been
+    # imported yet (e.g. `generate_client_assets --skip-checks`, which never
+    # loads the URLconf). Importing it during generation must populate the gate.
+    sys.modules.pop(_GATE_ROUTER_URLCONF, None)
+    sys.modules.pop(_GATE_ROUTER_MODULE, None)
+    settings.ROOT_URLCONF = _GATE_ROUTER_URLCONF
+    server, client, legacy = _patch_generators(mocker)
+
+    reactivated.run_generations()
+
+    server.assert_called_once()
+    client.assert_called_once()
+    legacy.assert_called_once()
+
+
+def test_run_generations_rpc_skip_env(
+    isolated_rpc_registries: Any, mocker: Any, monkeypatch: Any, settings: Any
+) -> None:
+    settings.ROOT_URLCONF = _GATE_EMPTY_URLCONF
+    Router(HttpRequest)
+    monkeypatch.setenv("REACTIVATED_SKIP_RPC_GENERATIONS", "1")
+    server, client, legacy = _patch_generators(mocker)
+
+    reactivated.run_generations()
+
+    server.assert_not_called()
+    client.assert_not_called()
+    legacy.assert_called_once()

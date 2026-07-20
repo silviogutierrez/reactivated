@@ -10,6 +10,8 @@ from django.apps import apps
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.db.models.fields.reverse_related import ForeignObjectRel
+from pydantic import GetCoreSchemaHandler
+from pydantic_core import core_schema
 
 from .models import ComputedRelation
 from .serialization import ComputedField, FieldDescriptor, create_schema
@@ -251,6 +253,17 @@ class BasePickHolder:
     model_class: type[models.Model]
     module: ModuleType
     fields: list[str] = []
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        # Legacy Pick predates the pydantic RPC framework and has no native
+        # pydantic schema; degrade to `any` so a legacy Pick appearing in a
+        # context processor renders as `unknown` instead of crashing the new
+        # generator. Full-fidelity legacy typing still comes from the legacy
+        # generator via get_json_schema().
+        return core_schema.any_schema()
 
     @classmethod
     def get_name(cls: type[BasePickHolder]) -> str | None:

@@ -1,6 +1,7 @@
 import abc
 import atexit
 import enum
+import importlib
 import inspect
 import os
 import signal
@@ -61,17 +62,51 @@ def generate(function: GenerateFunction) -> None:
     generate_callbacks.append(function)
 
 
+def _should_run_rpc_generations() -> bool:
+    """
+    The pydantic RPC generators are only needed once a project adopts the new
+    RPC framework. Gating on the framework's registries keeps legacy-only
+    projects (which may use legacy `Pick` in context processors, unsupported by
+    the RPC generator) from paying its cost or hitting its schema limitations.
+    """
+    if "REACTIVATED_SKIP_RPC_GENERATIONS" in os.environ:
+        return False
+
+    from .rpc.core import (
+        _router_registry,
+        manually_exported_registry,
+        picks_registry,
+    )
+    from .rpc.forms import form_registry
+    from .rpc.template import template_registry
+
+    return bool(
+        _router_registry
+        or template_registry
+        or picks_registry
+        or manually_exported_registry
+        or form_registry
+    )
+
+
 def run_generations(skip_cache: bool = False) -> None:
     if "REACTIVATED_SKIP_GENERATIONS" in os.environ:
         return
 
+    # Routers, forms, and picks may live in modules reached only through the URL
+    # tree. Importing the URLconf populates their registries before the gate is
+    # evaluated; a cold process run with --skip-checks never loads it otherwise,
+    # so the gate would wrongly see them empty and skip RPC generation.
+    importlib.import_module(settings.ROOT_URLCONF)
+
     for generate_callback in generate_callbacks:
         generate_callback(skip_cache)
 
-    from .rpc.core import generate_client_schema, generate_server_schema
+    if _should_run_rpc_generations():
+        from .rpc.core import generate_client_schema, generate_server_schema
 
-    generate_server_schema(skip_cache=skip_cache)
-    generate_client_schema(skip_cache=skip_cache)
+        generate_server_schema(skip_cache=skip_cache)
+        generate_client_schema(skip_cache=skip_cache)
 
     from .apps import generate_schema
 

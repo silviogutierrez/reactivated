@@ -75,18 +75,18 @@ export const defaultRequester: Requester = async (url, payload, method) => {
         } else if (response.status === 403) {
             return {
                 type: "denied",
-                reason: response.json(),
+                reason: await response.json().catch(() => null),
             };
         }
+
+        return {
+            type: "exception",
+            exception: new Error(`RPC request failed with status ${response.status}`),
+        };
     } catch (error) {
         return {
             type: "exception",
             exception: error,
         };
     }
-
-    return {
-        type: "exception",
-        exception: null,
-    };
 };

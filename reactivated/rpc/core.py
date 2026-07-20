@@ -88,6 +88,7 @@ from reactivated.serialization.registry import Thing
 from reactivated.utils import ClassLookupDict
 from typing_extensions import ParamSpec
 
+from .errors import ApiError
 from .forms import FormField as FormField  # noqa: F401
 from .forms import form as form  # noqa: F401
 from .forms import generate_forms_export
@@ -445,6 +446,17 @@ class Router(Generic[TAnonymous]):
                                     return rpc_call(principal, **kwargs)
 
                             validated_model = await sync_wrapper()
+                    except ApiError as error:
+                        await _notify_observer(
+                            status=RequestStatus.INVALID,
+                            exception=error,
+                        )
+                        return get_response(
+                            input=None,
+                            content=error.messages,
+                            status_code=400,
+                            is_ui=False,
+                        )
                     except AssertionError as error:
                         await _notify_observer(
                             status=RequestStatus.INVALID,
@@ -562,6 +574,19 @@ class Router(Generic[TAnonymous]):
                                 )
 
                         validated_model = await sync_wrapper()
+                except ApiError as error:
+                    await _notify_observer(
+                        status=RequestStatus.INVALID,
+                        input=data,
+                        body=request.body,
+                        exception=error,
+                    )
+                    return get_response(
+                        input=data,
+                        content=error.messages,
+                        status_code=400,
+                        is_ui=is_ui,
+                    )
                 except AssertionError as error:
                     await _notify_observer(
                         status=RequestStatus.INVALID,

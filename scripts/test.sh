@@ -79,6 +79,8 @@ if [[ $CLIENT -eq 1 ]]; then
     # capture_stdout_and_stderr_if_successful node_modules/.bin/tslint -p packages/reactivated
     # capture_stdout_and_stderr_if_successful node_modules/.bin/tslint -p sample
     capture_stdout_and_stderr_if_successful npm exec -- prettier --ignore-path .gitignore --check '**/*.{ts,tsx,yaml,json}'
+    capture_stdout_and_stderr_if_successful npm exec -- tsc --noEmit -p packages/reactivated/tsconfig.test.json
+    capture_stdout_and_stderr_if_successful npm exec -- jiti packages/reactivated/src/rpc.test.tsx
 fi
 
 if [[ $E2E -eq 1 ]]; then

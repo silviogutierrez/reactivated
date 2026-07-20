@@ -15,7 +15,7 @@ from django.db import models as dj_models
 from django.http import HttpRequest
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
-from reactivated.rpc import FormField, Pick, Router, export, form
+from reactivated.rpc import ApiError, FormField, Pick, Router, export, form
 from reactivated.rpc.core import (
     PickAsDict,
     PickProxy,
@@ -656,6 +656,19 @@ async def test_sync_rpc_rolls_back_on_errors(rf: Any) -> None:
         User.objects.create(username=form[0], email=form[0])
         1 / 0
 
+    # ApiError must roll back too — atomic_requests defaults to True here.
+    @rpc(anyone)
+    def sync_api_error_form(request: HttpRequest, form: list[str]) -> None:
+        User.objects.create(username=form[0], email=form[0])
+        raise ApiError("invalid")
+
+    no_form_email = unique_email()
+
+    @rpc(anyone)
+    def sync_api_error_no_form(request: HttpRequest) -> None:
+        User.objects.create(username=no_form_email, email=no_form_email)
+        raise ApiError("invalid")
+
     generate_server_schema()
 
     expected_email = unique_email()
@@ -680,6 +693,29 @@ async def test_sync_rpc_rolls_back_on_errors(rf: Any) -> None:
     with pytest.raises(ZeroDivisionError):
         await rpc.handlers["rpc_sync_unexpected"]["handler"](request)
     assert not await sync_to_async(User.objects.filter(email=unexpected_email).exists)()
+
+    api_error_form_email = unique_email()
+    request = rf.post(
+        f"/{rpc.handlers['rpc_sync_api_error_form']['url']}",
+        data=json.dumps([api_error_form_email]),
+        content_type="application/json",
+    )
+    request.user = AnonymousUser()
+    response = await rpc.handlers["rpc_sync_api_error_form"]["handler"](request)
+    assert response.status_code == 400
+    assert not await sync_to_async(
+        User.objects.filter(email=api_error_form_email).exists
+    )()
+
+    request = rf.post(
+        f"/{rpc.handlers['rpc_sync_api_error_no_form']['url']}",
+        data="null",
+        content_type="application/json",
+    )
+    request.user = AnonymousUser()
+    response = await rpc.handlers["rpc_sync_api_error_no_form"]["handler"](request)
+    assert response.status_code == 400
+    assert not await sync_to_async(User.objects.filter(email=no_form_email).exists)()
 
 
 @pytest.mark.django_db
@@ -1086,6 +1122,85 @@ async def test_observer_notified(
 
     assert len(calls) == 1
     assert calls[0][0] == RequestStatus[expected_status]
+
+
+@pytest.mark.asyncio
+async def test_api_error_form_path(rf: Any) -> None:
+    from reactivated.rpc.observer import RequestStatus, rpc_observer
+
+    calls: list[RequestStatus] = []
+
+    @rpc_observer
+    async def observer(
+        request: Any,
+        rpc_name: str,
+        log: Any,
+        status: RequestStatus,
+        input: Any,
+        output: Any,
+        body: Any,
+        exception: BaseException | None,
+    ) -> None:
+        calls.append(status)
+
+    rpc = Router(HttpRequest)
+
+    @rpc(anyone, atomic_requests=False, log=True)
+    def raises_api_error(request: HttpRequest, form: list[str]) -> None:
+        raise ApiError("bad")
+
+    request = rf.post(
+        f"/{rpc.handlers['rpc_raises_api_error']['url']}",
+        data=json.dumps(["anything"]),
+        content_type="application/json",
+    )
+    request.user = AnonymousUser()
+    response = await rpc.handlers["rpc_raises_api_error"]["handler"](request)
+
+    assert response.status_code == 400
+    assert json.loads(response.content) == ["bad"]
+    assert calls == [RequestStatus.INVALID]
+
+
+@pytest.mark.asyncio
+async def test_api_error_no_form_path(rf: Any) -> None:
+    rpc = Router(HttpRequest)
+
+    @rpc(anyone, atomic_requests=False)
+    def raises_no_form(request: HttpRequest) -> None:
+        raise ApiError("nope")
+
+    request = rf.post(
+        f"/{rpc.handlers['rpc_raises_no_form']['url']}",
+        data="null",
+        content_type="application/json",
+    )
+    request.user = AnonymousUser()
+    response = await rpc.handlers["rpc_raises_no_form"]["handler"](request)
+
+    assert response.status_code == 400
+    assert json.loads(response.content) == ["nope"]
+
+
+@pytest.mark.asyncio
+async def test_assertion_error_still_returns_400(rf: Any) -> None:
+    """Back-compat: the legacy raise-AssertionError idiom keeps working."""
+    rpc = Router(HttpRequest)
+
+    @rpc(anyone, atomic_requests=False)
+    def raises_assertion(request: HttpRequest, form: list[str]) -> None:
+        raise AssertionError("bad")
+
+    request = rf.post(
+        f"/{rpc.handlers['rpc_raises_assertion']['url']}",
+        data=json.dumps(["anything"]),
+        content_type="application/json",
+    )
+    request.user = AnonymousUser()
+    response = await rpc.handlers["rpc_raises_assertion"]["handler"](request)
+
+    assert response.status_code == 400
+    assert json.loads(response.content) == ["bad"]
 
 
 @pytest.mark.asyncio

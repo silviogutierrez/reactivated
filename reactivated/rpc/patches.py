@@ -29,9 +29,24 @@ def _enum_schema_by_name(
         # TypedDict doesn't support issubclass; check bases by identity.
         return PickAsDict in getattr(t, "__orig_bases__", ())
 
+    def _is_app_enum(t: type[enum.Enum]) -> bool:
+        # A bare enum arm of an RPC output (TypeAdapter over
+        # `MyEnum | SomePick`) is schema-built OUTSIDE any Pick context, so
+        # the stack check alone falls through to pydantic's default VALUE
+        # serialization — one wire format for pick fields, another for
+        # direct returns. Ownership decides instead: an enum DEFINED in an
+        # installed Django app speaks member names on every wire, with
+        # nothing to remember (export() is for the client's type + value
+        # map, never a serialization prerequisite). SDK enums (e.g.
+        # google-genai) never live in app modules and keep pydantic's
+        # default handling.
+        from .utils import module_name_to_app_name
+
+        return module_name_to_app_name(t.__module__) is not None
+
     is_pick_context = any(_is_pick_type(t) for t in self.model_type_stack._stack)
 
-    if not is_pick_context:
+    if not is_pick_context and not _is_app_enum(enum_type):
         return _original_enum_schema(self, enum_type)
 
     def get_enum(

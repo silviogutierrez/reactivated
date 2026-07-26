@@ -879,6 +879,18 @@ def test_get_field_schema_unions_and_annotated() -> None:
     assert "TypeA" in list_result["items"]["field_class"]
     assert "TypeB" in list_result["items"]["field_class"]
 
+    # A union with a typing-construct member is typing.Union (a
+    # _GenericAlias), not types.UnionType — it must take the union branch,
+    # not the generic-alias repr() fallback, which emits an unimportable
+    # `typing.Optional[...]` annotation.
+    optional_annotated = Annotated[TypeA | TypeB, Field(discriminator="type")] | None
+    optional_result = get_field_schema(optional_annotated, mode="output")
+    assert optional_result["type"] == "field"
+    assert optional_result["nullable"] is True
+    assert "typing." not in optional_result["field_class"]
+    assert "TypeA" in optional_result["field_class"]
+    assert "TypeB" in optional_result["field_class"]
+
 
 def test_literal_enum_in_discriminated_union() -> None:
     """Literal[EnumMember] in a discriminated union validates from dicts/JSON strings."""

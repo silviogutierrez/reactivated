@@ -1,20 +1,38 @@
 """Typed view routing: scopes, derived URLs, and statically-checked views.
 
-The URL space is a tree. Params live only in Python signatures, never in
-strings. Three registration verbs on a Router instance (imported by
-urls.py — no autodiscovery, no global state):
+The URL space is a tree, and it is WRITTEN as a tree: a Scope is a router
+node, so children register on their parent, not on the router with a
+kwarg. Params live only in Python signatures, never in strings. The
+registration verbs (imported by urls.py — no autodiscovery, no global
+state):
 
-- ``@router.scope`` — a resolution edge. Consumes its keyword-only URL
-  kwargs, resolves objects once, returns a product (any value), an
+- ``@router.scope`` — a ROOT resolution edge. Consumes its keyword-only
+  URL kwargs, resolves objects once, returns a product (any value), an
   ``HttpResponse`` (rich failures stay responses), or ``False`` — the
   canonical denial: a login redirect with ``next``, the Django admin's
   semantics for unauthorized visitors.
-- ``@router.view(parent)`` — a worded page. Receives ``(primary, root?,
+- ``@parent_scope.scope`` — a child resolution edge. Same contract; its
+  first positional argument is the parent's product. Because the method
+  lives on the parent, the parent's product type binds directly into the
+  child-signature check, and cross-router parenting is unrepresentable.
+- ``@parent_scope.view`` — a worded page. Receives ``(primary, root?,
   request, *, url_params)`` and returns an ``HttpResponse`` or an
   ``rpc.Template``, which the chain renders. Post/redirect/get reads as
   ``templates.X | HttpResponse``.
-- ``@router.index(parent)`` — a wordless page at the parent's own URL.
+- ``@parent_scope.index`` — a wordless page at the parent's own URL.
   Same contract as ``view``; contributes no leaf word.
+
+There is no view-parenting: a registered view is, deliberately, the
+original plain function (direct calls are fully typed), so nothing hangs
+off it. Nesting under a page's URL is spelled with ``path=`` pins on
+siblings (``path="planner"`` for the page, ``path="planner/targets"``
+for the thing beneath it) — the word repeats, visibly, and a typo 404s
+instead of silently forking the URL space. A scope exists when its
+resolution is SHARED (a gate for a subtree, an object with several
+pages, an RPC access adapter); a lookup with a single consumer is just
+the first line of its page, promoted to a scope when the second consumer
+arrives. Scopes may carry both a pinned word and params
+(``@parent.scope(path="truth")`` with ``*, uuid`` -> ``truth/<uuid>/``).
 
 Like the RPC router, the decorators hand back the ORIGINAL FUNCTION:
 direct calls are fully typed, args and return — you pass what the
@@ -52,7 +70,9 @@ swallow bogus positional params. Request-last makes them a mypy error.
 import inspect
 import warnings
 from typing import (
+    TYPE_CHECKING,
     Any,
+    Awaitable,
     Callable,
     Concatenate,
     Generic,
@@ -60,27 +80,41 @@ from typing import (
     ParamSpec,
     Protocol,
     TypeVar,
-    cast,
     get_args,
     get_origin,
     overload,
 )
 
+from asgiref.sync import async_to_sync
 from django.http import HttpRequest, HttpResponse
 from django.urls import path as django_path
 from django.urls.resolvers import URLPattern
 
 from .rpc.core import (
     RPC,
-    RPCAccess,
     RPCDecorator,
+    RPCInput,
+    RPCOutput,
     ScopeDenied,
     TAnonymous,
     TPrincipal,
+    anyone,
     build_rpc_decorator,
 )
 from .templates import Template
 from .transport import DJANGO_CONVERTERS, resolved_hints, url_segment
+
+if TYPE_CHECKING:
+    # `_User` is a django-stubs-only alias: the plugin rewrites it to the
+    # project's AUTH_USER_MODEL at the CONSUMER's mypy run (even across a
+    # py.typed boundary), so a framework-shipped `authenticated` scope injects
+    # the project's concrete User. It does NOT exist at runtime, hence the
+    # TYPE_CHECKING guard + string annotations; the built-in scopes below are
+    # hand-constructed so reactivated never resolves these hints at runtime.
+    # Older django-stubs lack `_User`; the ignore keeps reactivated's own
+    # checks green (it degrades to Any there), while consumers on modern stubs
+    # resolve their concrete User.
+    from django.contrib.auth.models import _User  # type: ignore[attr-defined]
 
 P = ParamSpec("P")
 Q = ParamSpec("Q")
@@ -89,10 +123,10 @@ TChild = TypeVar("TChild")
 TRoot = TypeVar("TRoot")
 R = TypeVar("R", bound="Template | HttpResponse")
 # Variance-marked flavors for the protocols (mypy requires exact variance):
-# primaries are inputs (contravariant), the phantom root and returns are
-# outputs (covariant); RootViewFn's root is both, so it stays invariant.
+# primaries and the root are inputs (contravariant), returns are outputs
+# (covariant).
 TValue_contra = TypeVar("TValue_contra", contravariant=True)
-TRoot_co = TypeVar("TRoot_co", covariant=True)
+TRoot_contra = TypeVar("TRoot_contra", contravariant=True)
 R_co = TypeVar("R_co", bound="Template | HttpResponse", covariant=True)
 
 # Used only for parent-name stemming: children of a view named
@@ -193,16 +227,166 @@ class _Node:
 
 
 class Scope(Generic[TValue, TRoot]):
-    """Typed handle for a resolution edge. TValue is what it resolves;
-    TRoot is the root scope's product, inherited down the whole chain."""
+    """Typed handle for a resolution edge — and a router node: children
+    (scopes, views, the index) register on it directly, which is what
+    makes trees read as trees, binds the parent product type into every
+    child-signature check, and leaves cross-router parenting with no
+    spelling. TValue is what it resolves; TRoot is the root scope's
+    product, inherited down the whole chain."""
 
     def __init__(
-        self, fn: Callable[..., object], node: _Node, takes_request: bool
+        self,
+        fn: Callable[..., object],
+        node: _Node,
+        takes_request: bool,
+        router: "Router[Any]",
     ) -> None:
         self.fn = fn
         self.name = fn.__name__
+        self.__module__ = fn.__module__
         self.node = node
         self.takes_request = takes_request
+        self.router = router
+
+    @overload
+    def scope(  # async child scope (with request) — matched first
+        self,
+        fn: Callable[
+            Concatenate[TValue, HttpRequest, Q],
+            "Awaitable[TChild | HttpResponse | Literal[False]]",
+        ],
+    ) -> "Scope[TChild, TRoot]": ...
+
+    @overload
+    def scope(  # async child scope (no request)
+        self,
+        fn: Callable[
+            Concatenate[TValue, Q], "Awaitable[TChild | HttpResponse | Literal[False]]"
+        ],
+    ) -> "Scope[TChild, TRoot]": ...
+
+    @overload
+    def scope(
+        self,
+        fn: Callable[
+            Concatenate[TValue, HttpRequest, Q],
+            "TChild | HttpResponse | Literal[False]",
+        ],
+    ) -> "Scope[TChild, TRoot]": ...
+
+    @overload
+    def scope(
+        self,
+        fn: Callable[Concatenate[TValue, Q], "TChild | HttpResponse | Literal[False]"],
+    ) -> "Scope[TChild, TRoot]": ...
+
+    @overload
+    def scope(self, fn: None = None, *, path: str) -> "ScopeBinder[TValue, TRoot]": ...
+
+    def scope(
+        self,
+        fn: "Callable[..., object] | None" = None,
+        *,
+        path: "str | None" = None,
+    ) -> object:
+        """A child resolution edge. Bare for the derived word (or
+        wordlessness, for param scopes); ``path=`` pins words, and
+        ``path=""`` declares a wordless refinement edge (a silent gate)."""
+        if fn is not None:
+            return _build_scope(fn, parent=self, path=None, router=self.router)
+        return ScopeBinder(self, path)
+
+    @overload
+    def view(  # type: ignore[overload-overlap]
+        self,
+        fn: Callable[Concatenate[TValue, TRoot, HttpRequest, P], R],
+    ) -> "RootViewFn[TValue, TRoot, P, R]": ...
+
+    @overload
+    def view(
+        self,
+        fn: Callable[Concatenate[TValue, HttpRequest, P], R],
+    ) -> "ViewFn[TValue, P, R]": ...
+
+    @overload
+    def view(self, fn: None = None, *, path: str) -> "ViewBinder[TValue, TRoot]": ...
+
+    def view(
+        self,
+        fn: "Callable[..., Any] | None" = None,
+        *,
+        path: "str | None" = None,
+    ) -> Any:
+        """A worded page under this scope. Bare for the derived leaf word
+        (name minus this scope's prefix, snake -> kebab); ``path=`` pins."""
+        binder: ViewBinder[TValue, TRoot] = ViewBinder(
+            self.router, self.name, self.node, path
+        )
+        if fn is not None:
+            return binder(fn)
+        return binder
+
+    @overload
+    def index(  # type: ignore[overload-overlap]
+        self,
+        fn: Callable[Concatenate[TValue, TRoot, HttpRequest, P], R],
+    ) -> "RootViewFn[TValue, TRoot, P, R]": ...
+
+    @overload
+    def index(
+        self,
+        fn: Callable[Concatenate[TValue, HttpRequest, P], R],
+    ) -> "ViewFn[TValue, P, R]": ...
+
+    def index(self, fn: Callable[..., Any]) -> Any:
+        """The wordless page at this scope's own URL. Takes no ``path=``
+        by construction — forgetting a word is a signature fact, not a
+        check."""
+        binder: ViewBinder[TValue, TRoot] = ViewBinder(
+            self.router, self.name, self.node, None, is_index=True
+        )
+        return binder(fn)
+
+    @overload
+    def rpc(
+        self,
+        fn: Callable[Concatenate[TValue, RPCInput], RPCOutput],
+    ) -> Callable[Concatenate[TValue, RPCInput], RPCOutput]: ...
+
+    @overload
+    def rpc(
+        self,
+        fn: None = None,
+        *,
+        csrf_exempt: bool = False,
+        log: "Literal['errors'] | bool" = False,
+        atomic_requests: bool = True,
+        methods: "list[Literal['GET', 'POST']] | None" = None,
+    ) -> "RPCDecorator[TValue]": ...
+
+    def rpc(
+        self,
+        fn: "Callable[..., Any] | None" = None,
+        *,
+        csrf_exempt: bool = False,
+        log: "Literal['errors'] | bool" = False,
+        atomic_requests: bool = True,
+        methods: "list[Literal['GET', 'POST']] | None" = None,
+    ) -> Any:
+        """A procedure on this scope: the chain resolves + gates, its product
+        is injected as the handler's first arg (the principal), and a scope
+        failure coerces to a JSON 401. Sugar for ``@router.rpc(scope)`` — the
+        chain's params become URL segments, exactly as on a view."""
+        decorator = self.router.rpc(
+            self,
+            csrf_exempt=csrf_exempt,
+            log=log,
+            atomic_requests=atomic_requests,
+            methods=methods,
+        )
+        if fn is not None:
+            return decorator(fn)
+        return decorator
 
 
 class View:
@@ -233,10 +417,15 @@ class View:
         for index, entry in enumerate(self.node.scope_chain()):
             scope_kwargs = {name: kwargs.pop(name) for name in entry.params}
             assert entry.scope_fn is not None
+            fn = (
+                async_to_sync(entry.scope_fn)
+                if inspect.iscoroutinefunction(entry.scope_fn)
+                else entry.scope_fn
+            )
             if entry.scope_takes_request:
-                result = entry.scope_fn(product, request, **scope_kwargs)
+                result = fn(product, request, **scope_kwargs)
             else:
-                result = entry.scope_fn(product, **scope_kwargs)
+                result = fn(product, **scope_kwargs)
             if result is False:
                 return _deny(request)
             if result is True:
@@ -270,6 +459,7 @@ def _build_scope(
     fn: Callable[..., object],
     parent: "Scope[Any, Any] | None",
     path: "str | None",
+    router: "Router[Any]",
 ) -> "Scope[Any, Any]":
     params = _url_params(fn)
     if path is not None:
@@ -303,11 +493,36 @@ def _build_scope(
         scope_fn=fn,
         scope_takes_request=takes_request,
     )
-    return Scope(fn, node, takes_request)
+    return Scope(fn, node, takes_request, router)
+
+
+class RootScopeBinder:
+    """Binder for ``@router.scope(path="...")``: a ROOT scope whose URL
+    word comes from ``path`` instead of the function name — the way two
+    subtrees share a word (a public tree and a principal-rooted staff tree
+    both under ``annotate/``). The product doubles as the root product,
+    exactly like the bare ``@router.scope`` form."""
+
+    def __init__(self, path: "str | None", router: "Router[Any]") -> None:
+        self._path = path
+        self._router = router
+
+    def __call__(
+        self,
+        fn: Callable[
+            Concatenate[HttpRequest, Q], "TChild | HttpResponse | Literal[False]"
+        ],
+    ) -> Scope[TChild, TChild]:
+        return _build_scope(fn, parent=None, path=self._path, router=self._router)
 
 
 class ScopeBinder(Generic[TValue, TRoot]):
-    def __init__(self, parent: "Scope[Any, Any] | None", path: "str | None") -> None:
+    """Binder for ``@parent_scope.scope(path="...")`` — the parametrized
+    child form. The parent is always a Scope: root path-pinning is
+    ``RootScopeBinder``, and parenting is spelled on the parent, never as
+    a router kwarg."""
+
+    def __init__(self, parent: "Scope[Any, Any]", path: "str | None") -> None:
         self._parent = parent
         self._path = path
 
@@ -327,14 +542,14 @@ class ScopeBinder(Generic[TValue, TRoot]):
     ) -> Scope[TChild, TRoot]: ...
 
     def __call__(self, fn: Callable[..., object]) -> "Scope[Any, Any]":
-        return _build_scope(fn, parent=self._parent, path=self._path)
+        return _build_scope(
+            fn, parent=self._parent, path=self._path, router=self._parent.router
+        )
 
 
-class ViewFn(Protocol[TValue_contra, TRoot_co, P, R_co]):
+class ViewFn(Protocol[TValue_contra, P, R_co]):
     """The static face of a registered ``(primary, request)`` view. At
-    runtime it IS the original function — direct calls are fully typed.
-    ``TRoot`` rides as a phantom so view-parenting can always recover it,
-    even though a 2-arity signature never mentions the root."""
+    runtime it IS the original function — direct calls are fully typed."""
 
     __name__: str
 
@@ -347,11 +562,8 @@ class ViewFn(Protocol[TValue_contra, TRoot_co, P, R_co]):
         **kwargs: P.kwargs,
     ) -> R_co: ...
 
-    @property
-    def __view_root__(self) -> TRoot_co: ...  # phantom: never exists at runtime
 
-
-class RootViewFn(Protocol[TValue_contra, TRoot, P, R_co]):
+class RootViewFn(Protocol[TValue_contra, TRoot_contra, P, R_co]):
     """As ``ViewFn`` for ``(primary, root, request)`` views."""
 
     __name__: str
@@ -359,29 +571,12 @@ class RootViewFn(Protocol[TValue_contra, TRoot, P, R_co]):
     def __call__(
         self,
         primary: TValue_contra,
-        root: TRoot,
+        root: TRoot_contra,
         request: HttpRequest,
         /,
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> R_co: ...
-
-    @property
-    def __view_root__(self) -> TRoot: ...
-
-
-class RegisteredView(Protocol[TValue_contra, TRoot_co]):
-    """What ``view(parent=...)`` needs from a view used as a parent: just
-    the phantoms. Both ``ViewFn`` and ``RootViewFn`` satisfy it."""
-
-    __name__: str
-
-    def __call__(
-        self, primary: TValue_contra, /, *args: Any, **kwargs: Any
-    ) -> object: ...
-
-    @property
-    def __view_root__(self) -> TRoot_co: ...
 
 
 class ViewBinder(Generic[TValue, TRoot]):
@@ -409,7 +604,7 @@ class ViewBinder(Generic[TValue, TRoot]):
     def __call__(
         self,
         fn: Callable[Concatenate[TValue, HttpRequest, P], R],
-    ) -> "ViewFn[TValue, TRoot, P, R]": ...
+    ) -> "ViewFn[TValue, P, R]": ...
 
     def __call__(self, fn: Callable[..., Any]) -> Any:
         name = fn.__name__
@@ -464,7 +659,6 @@ class ViewBinder(Generic[TValue, TRoot]):
         node = _Node(self._parent_node, words, own_params, scope_fn=None)
         view = View(fn, node, takes_root=arity == 3)
         self._router._register_view(view)
-        self._router._known_nodes[fn] = node
         # The RPC pattern: hand back the original function, untouched.
         # Direct calls are just calls; the chain lives behind endpoint().
         return fn
@@ -482,16 +676,28 @@ class _ScopeAdapter:
             for entry in scope.node.scope_chain()
             for name, annotation in entry.params.items()
         ]
+        self.has_async: bool = any(
+            entry.scope_fn is not None and inspect.iscoroutinefunction(entry.scope_fn)
+            for entry in scope.node.scope_chain()
+        )
 
     def run(self, request: HttpRequest, kwargs: dict[str, Any]) -> Any:
+        """Resolve the chain synchronously. Async scope functions are bounced
+        through ``async_to_sync`` — so under an atomic request their ORM work
+        re-joins the transaction thread (see the rpc execution matrix)."""
         product: object = request
         for entry in self.scope.node.scope_chain():
             entry_kwargs = {name: kwargs.pop(name) for name in entry.params}
             assert entry.scope_fn is not None
+            fn = (
+                async_to_sync(entry.scope_fn)
+                if inspect.iscoroutinefunction(entry.scope_fn)
+                else entry.scope_fn
+            )
             if entry.scope_takes_request:
-                result = entry.scope_fn(product, request, **entry_kwargs)
+                result = fn(product, request, **entry_kwargs)
             else:
-                result = entry.scope_fn(product, **entry_kwargs)
+                result = fn(product, **entry_kwargs)
             if result is False or isinstance(result, HttpResponse):
                 return ScopeDenied(result)
             if result is True:
@@ -501,6 +707,20 @@ class _ScopeAdapter:
                 )
             product = result
         return product
+
+
+def _authenticated(request: HttpRequest) -> "_User | Literal[False]":
+    """Built-in gate: the authenticated user, or the canonical denial. Its
+    product types as the project's AUTH_USER_MODEL (see ``_User``)."""
+    user = request.user
+    return user if user.is_authenticated else False
+
+
+def _maybe_authenticated(request: HttpRequest) -> "_User | None":
+    """Built-in soft gate: the user if authenticated, else ``None`` — never
+    denies. Product is ``User | None``."""
+    user = request.user
+    return user if user.is_authenticated else None
 
 
 class Router(Generic[TAnonymous]):
@@ -519,12 +739,44 @@ class Router(Generic[TAnonymous]):
         self.request_type = request_type
         self.handlers: dict[str, RPC] = {}
         self._views: list[View] = []
-        self._known_nodes: dict[Callable[..., object], _Node] = {}
+        self._builtin_scopes: dict[str, Scope[Any, Any]] = {}
+
+    # -- built-in gates ------------------------------------------------------
+
+    def _builtin(self, word: str, fn: Callable[..., object]) -> "Scope[Any, Any]":
+        """A cached, hand-constructed root scope (no ``_url_params``/hint
+        resolution, so the ``_User`` annotations never evaluate at runtime).
+        Returned by identity so every use registers on one scope."""
+        scope = self._builtin_scopes.get(word)
+        if scope is None:
+            node = _Node(None, [word], {}, scope_fn=fn, scope_takes_request=False)
+            scope = Scope(fn, node, takes_request=False, router=self)
+            self._builtin_scopes[word] = scope
+        return scope
+
+    @property
+    def authenticated(self) -> "Scope[_User, _User]":
+        """Built-in ``authenticated`` gate. Injects the project's concrete
+        ``User`` (via django-stubs). Use as ``@router.authenticated.rpc`` /
+        ``@router.authenticated.view`` — the batteries replacement for an
+        ``authenticated`` access function."""
+        return self._builtin("authenticated", _authenticated)
+
+    @property
+    def maybe_authenticated(self) -> "Scope[_User | None, _User | None]":
+        """Built-in soft gate: injects ``User | None``, never denies."""
+        return self._builtin("maybe_authenticated", _maybe_authenticated)
 
     # -- procedures ----------------------------------------------------------
 
     @overload
-    def rpc(
+    def rpc(  # bare @router.rpc — public; the request is the principal
+        self,
+        access: Callable[Concatenate[TAnonymous, RPCInput], RPCOutput],
+    ) -> Callable[Concatenate[TAnonymous, RPCInput], RPCOutput]: ...
+
+    @overload
+    def rpc(  # @router.rpc(scope) — gated; the scope product is the principal
         self,
         access: "Scope[TPrincipal, Any]",
         *,
@@ -535,39 +787,58 @@ class Router(Generic[TAnonymous]):
     ) -> RPCDecorator[TPrincipal]: ...
 
     @overload
-    def rpc(
+    def rpc(  # @router.rpc() / @router.rpc(csrf_exempt=...) — public, with options
         self,
-        access: RPCAccess[TAnonymous, TPrincipal],
+        access: None = None,
         *,
         csrf_exempt: bool = False,
         log: "Literal['errors'] | bool" = False,
         atomic_requests: bool = True,
         methods: "list[Literal['GET', 'POST']] | None" = None,
-    ) -> RPCDecorator[TPrincipal]: ...
+    ) -> RPCDecorator[TAnonymous]: ...
 
     def rpc(
         self,
-        access: Any,
+        access: Any = None,
         *,
         csrf_exempt: bool = False,
         log: "Literal['errors'] | bool" = False,
         atomic_requests: bool = True,
         methods: "list[Literal['GET', 'POST']] | None" = None,
-    ) -> RPCDecorator[Any]:
-        scope_adapter = _ScopeAdapter(access) if isinstance(access, Scope) else None
-        return build_rpc_decorator(
+    ) -> Any:
+        if isinstance(access, Scope):
+            return build_rpc_decorator(
+                self.handlers,
+                scope_adapter=_ScopeAdapter(access),
+                access=None,
+                csrf_exempt=csrf_exempt,
+                log=log,
+                atomic_requests=atomic_requests,
+                is_query=False,
+                methods=methods,
+            )
+        # Public: the request itself is the principal (the identity gate).
+        decorator = build_rpc_decorator(
             self.handlers,
-            scope_adapter=scope_adapter,
-            access=None if scope_adapter else access,
+            scope_adapter=None,
+            access=anyone,
             csrf_exempt=csrf_exempt,
             log=log,
             atomic_requests=atomic_requests,
             is_query=False,
             methods=methods,
         )
+        # Bare @router.rpc: `access` is actually the handler — register it now.
+        return decorator if access is None else decorator(access)
 
     @overload
-    def query(
+    def query(  # bare @router.query — public; the request is the principal
+        self,
+        access: Callable[Concatenate[TAnonymous, RPCInput], RPCOutput],
+    ) -> Callable[Concatenate[TAnonymous, RPCInput], RPCOutput]: ...
+
+    @overload
+    def query(  # @router.query(scope)
         self,
         access: "Scope[TPrincipal, Any]",
         *,
@@ -576,46 +847,44 @@ class Router(Generic[TAnonymous]):
     ) -> RPCDecorator[TPrincipal]: ...
 
     @overload
-    def query(
+    def query(  # @router.query() / @router.query(csrf_exempt=...) — public
         self,
-        access: RPCAccess[TAnonymous, TPrincipal],
+        access: None = None,
         *,
         csrf_exempt: bool = False,
         log: "Literal['errors'] | bool" = False,
-    ) -> RPCDecorator[TPrincipal]: ...
+    ) -> RPCDecorator[TAnonymous]: ...
 
     def query(
         self,
-        access: Any,
+        access: Any = None,
         *,
         csrf_exempt: bool = False,
         log: "Literal['errors'] | bool" = False,
-    ) -> RPCDecorator[Any]:
-        scope_adapter = _ScopeAdapter(access) if isinstance(access, Scope) else None
-        return build_rpc_decorator(
+    ) -> Any:
+        if isinstance(access, Scope):
+            return build_rpc_decorator(
+                self.handlers,
+                scope_adapter=_ScopeAdapter(access),
+                access=None,
+                csrf_exempt=csrf_exempt,
+                log=log,
+                atomic_requests=False,
+                is_query=True,
+            )
+        decorator = build_rpc_decorator(
             self.handlers,
-            scope_adapter=scope_adapter,
-            access=None if scope_adapter else access,
+            scope_adapter=None,
+            access=anyone,
             csrf_exempt=csrf_exempt,
             log=log,
             atomic_requests=False,
             is_query=True,
         )
+        return decorator if access is None else decorator(access)
 
     def _register_view(self, view: View) -> None:
         self._views.append(view)
-
-    def _parent_info(self, parent: object) -> tuple[str, _Node]:
-        if isinstance(parent, Scope):
-            return parent.name, parent.node
-        fn = cast("Callable[..., object]", parent)
-        node = self._known_nodes.get(fn)
-        if node is None:
-            raise TypeError(
-                f"routing: {getattr(parent, '__name__', parent)!r} is not a "
-                f"scope or a view registered on this router"
-            )
-        return fn.__name__, node
 
     def endpoint(self, fn: Callable[..., object]) -> Callable[..., HttpResponse]:
         """The chain-running Django callable for a registered view — what
@@ -629,14 +898,20 @@ class Router(Generic[TAnonymous]):
     # -- scope ---------------------------------------------------------------
 
     @overload
+    def scope(  # async root scope — matched first (unwraps the Awaitable)
+        self,
+        fn: Callable[
+            Concatenate[HttpRequest, Q],
+            "Awaitable[TValue | HttpResponse | Literal[False]]",
+        ],
+    ) -> Scope[TValue, TValue]: ...
+
+    @overload
     def scope(
         self,
         fn: Callable[
             Concatenate[HttpRequest, Q], "TValue | HttpResponse | Literal[False]"
         ],
-        *,
-        parent: None = None,
-        path: "str | None" = None,
     ) -> Scope[TValue, TValue]: ...
 
     @overload
@@ -644,40 +919,21 @@ class Router(Generic[TAnonymous]):
         self,
         fn: None = None,
         *,
-        parent: Scope[TValue, TRoot],
-        path: "str | None" = None,
-    ) -> "ScopeBinder[TValue, TRoot]": ...
+        path: str,
+    ) -> "RootScopeBinder": ...
 
     def scope(
         self,
         fn: "Callable[..., object] | None" = None,
         *,
-        parent: "Scope[Any, Any] | None" = None,
         path: "str | None" = None,
     ) -> object:
+        """A ROOT scope. Children register on the returned Scope
+        (``@parent.scope`` / ``@parent.view`` / ``@parent.index``) — the
+        router itself only ever plants roots."""
         if fn is not None:
-            return _build_scope(fn, parent=None, path=path)
-        return ScopeBinder(parent, path)
-
-    # -- view ----------------------------------------------------------------
-
-    def view(
-        self,
-        parent: "Scope[TValue, TRoot] | RegisteredView[TValue, TRoot]",
-        *,
-        path: "str | None" = None,
-    ) -> ViewBinder[TValue, TRoot]:
-        name, node = self._parent_info(parent)
-        return ViewBinder(self, name, node, path)
-
-    def index(
-        self,
-        parent: "Scope[TValue, TRoot] | RegisteredView[TValue, TRoot]",
-    ) -> ViewBinder[TValue, TRoot]:
-        """A wordless page at the parent's own URL. Takes no ``path=`` by
-        construction — forgetting a word is a signature fact, not a check."""
-        name, node = self._parent_info(parent)
-        return ViewBinder(self, name, node, None, is_index=True)
+            return _build_scope(fn, parent=None, path=path, router=self)
+        return RootScopeBinder(path, self)
 
     # -- emission ------------------------------------------------------------
 
@@ -722,6 +978,21 @@ class Router(Generic[TAnonymous]):
             if name in by_name:
                 patterns.append(django_path(route, by_name[name], name=name))
         return patterns
+
+    def contributing_modules(self) -> set[str]:
+        """The modules that registered scopes, views, or rpcs on this router —
+        the provenance ``mount()`` verifies so a listed-but-empty module is a
+        boot error. rpcs and views record their defining module directly;
+        scopes are picked up from the chains of the views under them."""
+        modules: set[str] = set()
+        for rpc_call in self.handlers.values():
+            modules.add(rpc_call["module"])
+        for view in self._views:
+            modules.add(view.__module__)
+            for node in view.node.scope_chain():
+                if node.scope_fn is not None:
+                    modules.add(node.scope_fn.__module__)
+        return modules
 
     def _warn_untrimmable(self, routes: dict[str, str]) -> None:
         for view in self._views:

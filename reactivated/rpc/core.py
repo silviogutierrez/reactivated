@@ -38,6 +38,7 @@ from typing import (
     Type,
     TypedDict,
     TypeVar,
+    Union,
     get_args,
     get_origin,
     get_type_hints,
@@ -1456,6 +1457,39 @@ def get_field_schema(
             "annotation": None,
         }
 
+    # PEP 604 unions of plain classes are types.UnionType; a union involving
+    # a typing construct (e.g. `Annotated[...] | None`) is typing.Union — a
+    # _GenericAlias, which would otherwise fall through to the generic-alias
+    # repr() fallback and emit an unimportable `typing.Optional[...]`
+    # annotation. Handle both identically, and before the generic-alias
+    # branch can swallow the typing.Union form.
+    if isinstance(type_class_or_instance, UnionType) or (
+        get_origin(type_class_or_instance) is Union
+    ):
+        args = get_args(type_class_or_instance)
+        non_none_args = [a for a in args if a is not NoneType]
+        has_none = len(non_none_args) < len(args)
+
+        if len(non_none_args) == 1:
+            return get_field_schema(non_none_args[0], mode=mode, nullable=True)
+
+        # Multi-type union: resolve each member and join as "A | B | C".
+        parts: list[str] = []
+        all_imports: list[str] = []
+        for arg in non_none_args:
+            sub = get_field_schema(arg, mode=mode)
+            assert sub["type"] == "field"
+            parts.append(sub["field_class"])
+            all_imports.extend(sub.get("imports", []))
+
+        return {
+            "type": "field",
+            "nullable": has_none or nullable,
+            "field_class": " | ".join(parts),
+            "imports": all_imports,
+            "annotation": None,
+        }
+
     if isinstance(type_class_or_instance, (GenericAlias, _GenericAlias)):
         if type_class_or_instance.__origin__ in _generate_schema.DICT_TYPES:
             key_schema = get_field_schema(
@@ -1508,31 +1542,6 @@ def get_field_schema(
             mode=mode,
         )
         return {**pick_schema, "nullable": nullable}
-
-    if isinstance(type_class_or_instance, UnionType):
-        args = type_class_or_instance.__args__
-        non_none_args = [a for a in args if a is not NoneType]
-        has_none = len(non_none_args) < len(args)
-
-        if len(non_none_args) == 1:
-            return get_field_schema(non_none_args[0], mode=mode, nullable=True)
-
-        # Multi-type union: resolve each member and join as "A | B | C".
-        parts: list[str] = []
-        all_imports: list[str] = []
-        for arg in non_none_args:
-            sub = get_field_schema(arg, mode=mode)
-            assert sub["type"] == "field"
-            parts.append(sub["field_class"])
-            all_imports.extend(sub.get("imports", []))
-
-        return {
-            "type": "field",
-            "nullable": has_none or nullable,
-            "field_class": " | ".join(parts),
-            "imports": all_imports,
-            "annotation": None,
-        }
 
     # Model field descriptors are instances, so we need the class from the descriptor.
     type_class = (

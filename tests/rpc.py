@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import datetime
 import enum
 import json
 import sys
@@ -402,6 +403,20 @@ def test_select_with_empty_option_schema() -> None:
 
     assert "required" not in schema["fields"]["category"]
     assert schema["defaults"]["category"] is None
+
+
+def test_datetime_fields_get_a_datetime_widget() -> None:
+    # datetime.datetime must not degrade to the date-only widget: the time
+    # component would be silently dropped at input.
+    @form()
+    class ScheduleForm(BaseModel):
+        starts_on: datetime.date = FormField()
+        starts_at: datetime.datetime = FormField()
+
+    schema = get_form_schema(ScheduleForm)
+
+    assert schema["fields"]["starts_on"]["type"] == "date"
+    assert schema["fields"]["starts_at"]["type"] == "datetime"
 
 
 def test_optional_select_extracts_options() -> None:

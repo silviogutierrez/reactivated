@@ -294,6 +294,25 @@ def _build_scope(
     return Scope(fn, node, takes_request)
 
 
+class RootScopeBinder:
+    """Binder for ``@router.scope(path="...")`` with no parent: a ROOT scope
+    whose URL word comes from ``path`` instead of the function name — the
+    way two subtrees share a word (a public tree and a principal-rooted
+    staff tree both under ``annotate/``). The product doubles as the root
+    product, exactly like the bare ``@router.scope`` form."""
+
+    def __init__(self, path: "str | None") -> None:
+        self._path = path
+
+    def __call__(
+        self,
+        fn: Callable[
+            Concatenate[HttpRequest, Q], "TChild | HttpResponse | Literal[False]"
+        ],
+    ) -> Scope[TChild, TChild]:
+        return _build_scope(fn, parent=None, path=self._path)
+
+
 class ScopeBinder(Generic[TValue, TRoot]):
     def __init__(self, parent: "Scope[Any, Any] | None", path: "str | None") -> None:
         self._parent = parent
@@ -513,6 +532,15 @@ class Router:
         path: "str | None" = None,
     ) -> "ScopeBinder[TValue, TRoot]": ...
 
+    @overload
+    def scope(
+        self,
+        fn: None = None,
+        *,
+        parent: None = None,
+        path: str,
+    ) -> "RootScopeBinder": ...
+
     def scope(
         self,
         fn: "Callable[..., object] | None" = None,
@@ -522,6 +550,8 @@ class Router:
     ) -> object:
         if fn is not None:
             return _build_scope(fn, parent=None, path=path)
+        if parent is None:
+            return RootScopeBinder(path)
         return ScopeBinder(parent, path)
 
     # -- view ----------------------------------------------------------------

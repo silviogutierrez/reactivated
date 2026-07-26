@@ -26,10 +26,12 @@ its thing.
 
 ### Post Installation
 
-Just run `cd <project_name>`, then `nix-shell` and finally `python manage.py runserver`
+Just run `cd <project_name>`, then `nix-shell` and finally `reactivate`
 
-With the server running, you can visit `http://localhost:8000` to see Reactivated in
-action.
+With the server running, visit the URL printed in the startup banner to see
+Reactivated in action. The classic `python manage.py runserver` works too — see
+[The Dev Server](/documentation/dev-server/) for what `reactivate` adds and why
+it's the recommended entry point.
 
 ### Next Steps
 

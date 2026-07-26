@@ -190,14 +190,19 @@ The decorator takes a few knobs, all with sensible defaults:
 
 ```python
 @merchant.rpc(
-    atomic_requests=True,   # default: wrap the handler in a transaction
+    atomic_requests=True,   # default: one transaction spans scopes, validation, handler
     csrf_exempt=False,      # default
     methods=["POST"],       # default; add "GET" for cacheable reads
     log=False,              # False | True | "errors"
 )
 ```
 
-Handlers may be sync or async; sync handlers are wrapped for you.
+Handlers may be sync or async, and both honor `atomic_requests`: under the
+default, writes roll back on error either way — async handlers are bounced
+onto the transaction thread to get there, since Django transactions are
+sync-only. An async handler that needs the event loop (streaming, concurrent
+IO) and no transaction should say so with `atomic_requests=False`; that's the
+natively awaited path.
 
 ## Observing requests
 

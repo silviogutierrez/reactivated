@@ -92,10 +92,10 @@ What does the home page need? First think of the types of resources. But then ga
 them all together in one endpoint.
 
 ```python
-class HomePage(NamedTuple):
-    orders: List[Order]
+class HomePage(Template):
+    orders: list[Order]
     profile: User
-    widgets: List[Widget]
+    widgets: list[Widget]
 ```
 
 Now fulfill this interface:

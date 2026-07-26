@@ -78,6 +78,10 @@ toc = [
     # Maybe call concepts basics?
     # TocEntry(href="basics", title="Basics"),
     templates.TocEntry(href="api", title="API"),
+    templates.TocEntry(href="picks", title="Picks"),
+    templates.TocEntry(href="templates", title="Templates"),
+    templates.TocEntry(href="views", title="Views"),
+    templates.TocEntry(href="rpc", title="RPC"),
     templates.TocEntry(href="existing-projects", title="Existing Projects"),
     templates.TocEntry(href="deploying", title="Deploying a Reactivated Project"),
     templates.TocEntry(href="styles", title="Styles and CSS"),

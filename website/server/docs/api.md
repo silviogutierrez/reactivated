@@ -4,19 +4,15 @@ Reactivated provides you with an API to make working with Django and React easie
 
 ## Python / Django
 
-### `reactivated.template`
+### `reactivated.templates.Template`
 
-Use the `template` decorator to define your template structure. By convention, these
-templates go in `templates.py` of the corresponding app. Simply import `NamedTuple` and
-`template` then define the context.
+Subclass `Template` to define your template structure. By convention, these
+templates go in `templates.py` of the corresponding app.
 
 ```python
-from typing import NamedTuple
+from reactivated.templates import Template
 
-from reactivated import template
-
-@template
-class MyTemplate(NamedTuple):
+class MyTemplate(Template):
     name: str
     title: str
     age: int
@@ -41,14 +37,17 @@ def my_view(request: HttpRequest) -> HttpResponse:
 
 ```
 
-> **Note**: Reactivated will look for a **default export** from
+Templates are Pydantic models, so construction validates. See the
+[templates documentation](/documentation/templates/) for the full system.
+
+> **Note**: Reactivated will look for an export named `Template` from
 > `BASE_DIR/client/templates/TEMPLATE_NAME.tsx`
 
-### `reactivated.Pick`
+### `reactivated.pick.pick`
 
 Passing model instances to a React template is tricky. We need to serialize the model
 instance, but for many reasons, can't simply send over every field. Instead, we
-explicitly tell our template what fields to pick from the model.
+explicitly pick the fields we want from the model.
 
 Using the following models:
 
@@ -62,41 +61,23 @@ class Book(models.Model):
     title = models.CharField(max_length=100)
 ```
 
-We can use `Pick` as follows:
+We can declare a pick and use it in a template:
 
 ```python
-from reactivated import Pick, template
-from typing import Literal
+from reactivated.pick import pick
+from reactivated.templates import Template
 
 from . import models
 
-@template
-class BookDetail(NamedTuple):
-    book: Pick[models.Book, Literal["name", "author.name", "author.age"]]
+BookPick = pick(models.Book, fields=["title", "author.name", "author.age"])
+
+class BookDetail(Template):
+    book: BookPick.returns
+    related_books: list[BookPick.returns]
 ```
 
-To use a list of book instances, just wrap everything with `List` from `typing`:
-
-```python
-@template
-class BookDetail(NamedTuple):
-    book: Pick[models.Book, Literal["name", "author.name", "author.age"]]
-    related_books: List[Pick[models.Book, Literal["name", "author.name", "author.age"]]]
-```
-
-You'll notice we're repeating ourselves quite a bit. We can alias our `Pick` and reuse
-it:
-
-```python
-Book = Pick[models.Book, Literal["name", "author.name", "author.age"]]
-
-@template
-class BookDetail(NamedTuple):
-    book: Book
-    related_books: List[Book}
-```
-
-We would then render the template as follows:
+The `.returns` annotation lets the view pass Django instances directly; serialization
+picks out the declared fields:
 
 ```python
 def book_detail(request: HttpRequest, *, book_id: int) -> HttpResponse:
@@ -107,38 +88,41 @@ def book_detail(request: HttpRequest, *, book_id: int) -> HttpResponse:
     ).render(request)
 ```
 
-### `reactivated.interface`
+Picks do much more — input and output sides, extra fields, deep type checking through
+the mypy plugin. See the [picks documentation](/documentation/picks/).
 
-This behaves identically to the `template` decorator. But unlike `template`, it will not
-expect you to create a corresponding `.tsx` file.
+### `reactivated.router.Router`
 
-This is useful for creating AJAX-only endpoints and statically typing them.
-
-See the [AJAX concepts](/documentation/concepts/) for more information.
+The router registers pages and procedures alike: URLs derive from function names and
+signatures, and _scopes_ make access control structural. See the
+[views](/documentation/views/) and [RPC](/documentation/rpc/) documentation.
 
 ## TypeScript / React
 
-### `templates`
+### `server`
 
-When you use the `reactivated.template` decorator in your Django code, Reactivated will
-generate types for you.
+Everything you declare in Python — templates, picks, procedures, exported enums —
+lands on the client under the `server` namespace, at the path mirroring its Python
+module. One import, one addressing scheme.
 
 For a template named `MyTemplate` inside `server/custom_app/templates.py`, you would
-then create a file named `client/templates/MyTemplate.tsx` and import `templates` like
-so:
+create a file named `client/templates/MyTemplate.tsx` and type its props like so:
 
 ```typescript
-import {templates} from "@reactivated";
+import {server} from "@reactivated";
 
-export const Template = (props: templates.MyTemplate) => (
+export const Template = (props: server.custom_app.templates.MyTemplate) => (
     <div>{props.properties_of_my_template}</div>
 );
 ```
 
-If you mismatch types, say `templates.MyOtherTemplate` and they are
+If you mismatch types and they are
 [structurally](https://www.typescriptlang.org/docs/handbook/type-compatibility.html)
 different, TypeScript will complain. If you don't create the template file or don't
 export the template correctly, TypeScript will also complain.
+
+The same addressing works for procedures (`server.custom_app.api.save_thing(...)`)
+and pick types (`server.custom_app.picks.Thing.output`).
 
 ### `Form`
 
@@ -147,9 +131,9 @@ a table. Just like Django's renderer, the outer `form` tag is _not_ included. Sa
 for the `table` tag.
 
 ```typescript
-import {CSRFToken, Form, templates} from "@reactivated";
+import {CSRFToken, Form, server} from "@reactivated";
 
-export default (props: templates.MyFormTemplate) => (
+export const Template = (props: server.custom_app.templates.MyFormTemplate) => (
     <div>
         <form method="POST">
             <CSRFToken />
@@ -183,7 +167,7 @@ Because you have access to `form.values`, this also allows you to manipulate the
 dynamically.
 
 ```typescript
-import {CSRFToken, Widget, useForm, FieldHandler, templates} from "@reactivated";
+import {CSRFToken, Widget, useForm, FieldHandler, server} from "@reactivated";
 
 const Field = (props: {field: FieldHandler}) => {
     const {field} = props;
@@ -204,7 +188,7 @@ const Field = (props: {field: FieldHandler}) => {
     );
 };
 
-export default (props: templates.MyFormTemplate) => {
+export const Template = (props: server.custom_app.templates.MyFormTemplate) => {
     const form = useForm({form: props.form});
 
     return (
@@ -236,9 +220,9 @@ Just like the `Form` tag, you can use the `FormSet` component to quickly prototy
 form sets.
 
 ```typescript
-import {CSRFToken, FormSet, templates} from "@reactivated";
+import {CSRFToken, FormSet, server} from "@reactivated";
 
-export default (props: templates.MyFormSetTemplate) => (
+export const Template = (props: server.custom_app.templates.MyFormSetTemplate) => (
     <div>
         <form method="POST">
             <CSRFToken />
@@ -260,9 +244,9 @@ each form in the form set under `forms`. From then on, you can render the forms 
 as with the `useForm` example. But don't forget `ManagementForm`.
 
 ```typescript
-import {CSRFToken, useFormSet, ManagementForm, templates} from "@reactivated";
+import {CSRFToken, useFormSet, ManagementForm, server} from "@reactivated";
 
-export default (props: templates.MyFormSetTemplate) => {
+export const Template = (props: server.custom_app.templates.MyFormSetTemplate) => {
     const formSet = useFormSet({formSet: props.formSet});
 
     return (

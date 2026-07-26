@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import collections.abc
 import inspect
-import socket
 import time
 import urllib.request
 from collections.abc import Sequence
@@ -12,12 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Manager
 from django.utils.functional import Promise
 
-
-def get_free_port() -> int:
-    """Bind to port 0 so the OS assigns a free TCP port, then release it."""
-    with socket.socket() as sock:
-        sock.bind(("", 0))
-        return int(sock.getsockname()[1])
+from reactivated_dev.procs import get_free_port as get_free_port
 
 
 def wait_for_http(url: str, timeout: float = 45.0) -> bool:

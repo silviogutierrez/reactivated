@@ -3,7 +3,6 @@ from __future__ import annotations
 __all__ = ["InlinePick", "PickArgs"]
 
 import ast
-import contextlib
 import datetime
 import decimal
 import enum
@@ -20,7 +19,7 @@ import sys
 import traceback
 import uuid
 import zoneinfo
-from types import GenericAlias, ModuleType, NoneType, UnionType
+from types import GenericAlias, ModuleType, NoneType, TracebackType, UnionType
 from typing import (
     TYPE_CHECKING,
     Annotated,
@@ -44,7 +43,7 @@ from typing import (
     overload,
 )
 
-from asgiref.sync import sync_to_async
+from asgiref.sync import async_to_sync, sync_to_async
 from django import forms
 from django.apps import apps
 from django.conf import settings
@@ -446,6 +445,50 @@ def form_from_type_adapter(type_adapter: TypeAdapter[Any]) -> Type[forms.Form]:
     return form_class
 
 
+class RequestTransaction:
+    """The request-spanning transaction for ``atomic_requests`` RPCs: opened
+    before the scope chain so locks taken there (``select_for_update``) hold
+    through the handler's writes. ``close`` is idempotent — exit paths that
+    must order the commit or rollback against observer writes close
+    explicitly, and ``__aexit__`` is the safety net for everything else."""
+
+    def __init__(self, enabled: bool) -> None:
+        self._atomic = transaction.atomic() if enabled else None
+
+    async def __aenter__(self) -> "RequestTransaction":
+        if self._atomic is not None:
+            await sync_to_async(self._atomic.__enter__)()
+        return self
+
+    async def close(self, error: BaseException | None = None) -> None:
+        if self._atomic is None:
+            return
+        atomic, self._atomic = self._atomic, None
+        if error is None:
+            await sync_to_async(atomic.__exit__)(None, None, None)
+        else:
+            await sync_to_async(atomic.__exit__)(
+                type(error), error, error.__traceback__
+            )
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        await self.close(exc)
+
+
+class ResolvedInput(NamedTuple):
+    """The request's validated input, however it arrived: parsed JSON body,
+    debug-UI form, GET query, or nothing at all for no-form RPCs."""
+
+    data: Any
+    is_ui: bool
+    payload_kwargs: dict[str, Any]
+
+
 RPCCall = TypeVar("RPCCall", bound=Callable[..., Any])
 
 THttpRequest = TypeVar("THttpRequest", bound=HttpRequest)
@@ -581,207 +624,196 @@ def build_rpc_decorator(
                 except Exception:
                     logging.getLogger(__name__).exception("RPC observer failed")
 
-            if scope_adapter is not None:
-                outcome = await sync_to_async(scope_adapter.run)(request, kwargs)
-                if isinstance(outcome, ScopeDenied):
-                    logger.debug(
-                        "rpc %s: scope failure %r coerced to denied",
-                        rpc_name,
-                        outcome.discarded,
+            is_async = inspect.iscoroutinefunction(rpc_call)
+
+            # Serialization must run in sync context for sync handlers
+            # because .returns calls model_validate during serialization
+            async def _serialize(validated_model: Any) -> Any:
+                if is_async:
+                    return rpc_output_adapter.dump_python(validated_model, mode="json")
+                return await sync_to_async(rpc_output_adapter.dump_python)(
+                    validated_model, mode="json"
+                )
+
+            async def _resolve_input(
+                txn: RequestTransaction,
+            ) -> HttpResponse | ResolvedInput:
+                if rpc_form is None:
+                    if request.method not in allowed_methods:
+                        return JsonResponse({"error": "Method not allowed"}, status=405)
+                    return ResolvedInput(data=None, is_ui=False, payload_kwargs={})
+
+                rpc_form_adapter = TypeAdapter(rpc_form)
+
+                # Handle GET requests for debug UI or when explicitly allowed
+                if (
+                    (settings.DEBUG is True or "GET" in allowed_methods)
+                    and request.method == "GET"
+                    or "_rpc_ui" in request.POST
+                ):
+                    form_class = form_from_type_adapter(rpc_form_adapter)
+
+                    get_payload = (
+                        request.GET
+                        if request.method == "GET" and "GET" in allowed_methods
+                        else None
                     )
-                    return JsonResponse({"error": "UNAUTHORIZED"}, status=401)
-                access_check = outcome
-            else:
-                assert access is not None
-                access_check = await access(request)
 
-            if access_check is False:
-                return JsonResponse({"error": "UNAUTHORIZED"}, status=401)
+                    form_instance = form_class(
+                        get_payload or request.POST or None, initial=request.GET
+                    )
 
-            principal = access_check
+                    if not form_instance.is_valid():
+                        return render(
+                            request, "rpc.html", {"form_instance": form_instance}
+                        )
 
-            for request_param in request_params:
-                kwargs[request_param] = request
-
-            # --- No-form path ---
-            if rpc_form is None:
-                if request.method not in allowed_methods:
+                    data = form_instance.cleaned_data or None
+                    is_ui = get_payload is None
+                # Return 405 for GET requests when not allowed
+                elif request.method == "GET":
                     return JsonResponse({"error": "Method not allowed"}, status=405)
+                else:
+                    try:
+                        data = json.loads(request.body)
+                    except Exception as error:
+                        await txn.close(error)
+                        await _notify_observer(
+                            status=RequestStatus.MALFORMED,
+                            body=request.body,
+                            exception=error,
+                        )
+                        raise
+                    is_ui = False
 
-                is_async = inspect.iscoroutinefunction(rpc_call)
                 try:
-                    if is_async:
-                        validated_model = await rpc_call(principal, **kwargs)
-                    else:
-
-                        @sync_to_async
-                        def sync_wrapper() -> Any:
-                            maybe_atomic = (
-                                transaction.atomic()
-                                if atomic_requests
-                                else contextlib.nullcontext()
-                            )
-                            with maybe_atomic:
-                                return rpc_call(principal, **kwargs)
-
-                        validated_model = await sync_wrapper()
-                except AssertionError as error:
+                    payload = await sync_to_async(rpc_form_adapter.validate_python)(
+                        data, context={"user": request.user}
+                    )
+                except ValidationError as validation_error:
+                    processed = process_errors(validation_error)
+                    await txn.close()
                     await _notify_observer(
                         status=RequestStatus.INVALID,
+                        input=data,
+                        output=processed,
+                        exception=validation_error,
+                    )
+                    return get_response(
+                        input=data, content=processed, status_code=400, is_ui=is_ui
+                    )
+
+                return ResolvedInput(
+                    data=data,
+                    is_ui=is_ui,
+                    payload_kwargs={str(rpc_form_name): payload},
+                )
+
+            # One transaction for the whole gated request: the scope chain may
+            # lock rows (select_for_update) that the handler then mutates, so
+            # the chain, validation, handler, and serialization share it.
+            # thread_sensitive sync_to_async pins every sync block below to
+            # one thread, which is what lets a transaction opened here span
+            # them. Every exit closes the transaction BEFORE its observer
+            # notification — commit and rollback alike — so a failing
+            # observer write (e.g. a DB request log) can neither be swallowed
+            # by an error rollback nor mark a committed-and-reported success
+            # for silent rollback.
+            async with RequestTransaction(atomic_requests) as txn:
+                if scope_adapter is not None:
+                    outcome = await sync_to_async(scope_adapter.run)(request, kwargs)
+                    if isinstance(outcome, ScopeDenied):
+                        logger.debug(
+                            "rpc %s: scope failure %r coerced to denied",
+                            rpc_name,
+                            outcome.discarded,
+                        )
+                        return JsonResponse({"error": "UNAUTHORIZED"}, status=401)
+                    access_check = outcome
+                else:
+                    assert access is not None
+                    access_check = await access(request)
+
+                if access_check is False:
+                    return JsonResponse({"error": "UNAUTHORIZED"}, status=401)
+
+                principal = access_check
+
+                for request_param in request_params:
+                    kwargs[request_param] = request
+
+                async def _call_handler(**call_kwargs: Any) -> Any:
+                    """Invoke the handler under the atomic strategy. When
+                    ``atomic_requests``, run inside a ``transaction.atomic()`` —
+                    now a savepoint within the request transaction opened above,
+                    so an AssertionError coerced to a 400 rolls back the
+                    handler's writes while scope and observer writes survive.
+                    Async handlers are bounced through ``async_to_sync`` so
+                    their ORM re-joins the transaction thread (Django
+                    transactions are sync-only). Otherwise run natively (await
+                    async, thread sync)."""
+                    if atomic_requests:
+
+                        @sync_to_async
+                        def handler_atomic() -> Any:
+                            with transaction.atomic():
+                                if is_async:
+                                    return async_to_sync(rpc_call)(
+                                        principal, **call_kwargs
+                                    )
+                                return rpc_call(principal, **call_kwargs)
+
+                        return await handler_atomic()
+                    if is_async:
+                        return await rpc_call(principal, **call_kwargs)
+                    return await sync_to_async(rpc_call)(principal, **call_kwargs)
+
+                resolved = await _resolve_input(txn)
+                if isinstance(resolved, HttpResponse):
+                    return resolved
+
+                try:
+                    validated_model = await _call_handler(
+                        **resolved.payload_kwargs, **kwargs
+                    )
+                except AssertionError as error:
+                    await txn.close()
+                    await _notify_observer(
+                        status=RequestStatus.INVALID,
+                        input=resolved.data,
+                        body=request.body,
                         exception=error,
                     )
                     return get_response(
-                        input=None,
+                        input=resolved.data,
                         content=list(error.args),
                         status_code=400,
-                        is_ui=False,
+                        is_ui=resolved.is_ui,
                     )
                 except Exception as error:
+                    await txn.close(error)
                     await _notify_observer(
                         status=RequestStatus.ERROR,
+                        input=resolved.data,
+                        body=request.body,
                         exception=error,
                     )
                     raise
 
-                if is_async:
-                    output = rpc_output_adapter.dump_python(
-                        validated_model, mode="json"
-                    )
-                else:
-                    output = await sync_to_async(rpc_output_adapter.dump_python)(
-                        validated_model, mode="json"
-                    )
-                await _notify_observer(status=RequestStatus.SUCCESS, output=output)
-                return get_response(
-                    input=None, content=output, status_code=200, is_ui=False
-                )
-
-            # --- Form path ---
-            rpc_form_adapter = TypeAdapter(rpc_form)
-
-            # Handle GET requests for debug UI or when explicitly allowed
-            if (
-                (settings.DEBUG is True or "GET" in allowed_methods)
-                and request.method == "GET"
-                or "_rpc_ui" in request.POST
-            ):
-                form_class = form_from_type_adapter(rpc_form_adapter)
-
-                get_payload = (
-                    request.GET
-                    if request.method == "GET" and "GET" in allowed_methods
-                    else None
-                )
-
-                form_instance = form_class(
-                    get_payload or request.POST or None, initial=request.GET
-                )
-
-                if form_instance.is_valid():
-                    data = form_instance.cleaned_data or None
-                    is_ui = True and get_payload is None
-                else:
-                    form_response = render(
-                        request, "rpc.html", {"form_instance": form_instance}
-                    )
-                    return form_response
-            # Return 405 for GET requests when not allowed
-            elif request.method == "GET":
-                return JsonResponse({"error": "Method not allowed"}, status=405)
-            else:
-                try:
-                    data = json.loads(request.body)
-                except Exception as error:
-                    await _notify_observer(
-                        status=RequestStatus.MALFORMED,
-                        body=request.body,
-                        exception=error,
-                    )
-                    raise error
-
-                is_ui = False
-
-            try:
-                payload = await sync_to_async(rpc_form_adapter.validate_python)(
-                    data, context={"user": request.user}
-                )
-            except ValidationError as validation_error:
-                processed = process_errors(validation_error)
+                output = await _serialize(validated_model)
+                await txn.close()
                 await _notify_observer(
-                    status=RequestStatus.INVALID,
-                    input=data,
-                    output=processed,
-                    exception=validation_error,
-                )
-                return get_response(
-                    input=data,
-                    content=processed,
-                    status_code=400,
-                    is_ui=is_ui,
-                )
-
-            is_async = inspect.iscoroutinefunction(rpc_call)
-
-            try:
-                if is_async:
-                    validated_model = await rpc_call(
-                        principal, **{str(rpc_form_name): payload}, **kwargs
-                    )
-                else:
-
-                    @sync_to_async
-                    def sync_wrapper() -> Any:
-                        maybe_atomic = (
-                            transaction.atomic()
-                            if atomic_requests
-                            else contextlib.nullcontext()
-                        )
-                        with maybe_atomic:
-                            return rpc_call(
-                                principal, **{str(rpc_form_name): payload}, **kwargs
-                            )
-
-                    validated_model = await sync_wrapper()
-            except AssertionError as error:
-                await _notify_observer(
-                    status=RequestStatus.INVALID,
-                    input=data,
+                    status=RequestStatus.SUCCESS,
+                    input=resolved.data,
+                    output=output,
                     body=request.body,
-                    exception=error,
                 )
                 return get_response(
-                    input=data,
-                    content=list(error.args),
-                    status_code=400,
-                    is_ui=is_ui,
+                    input=resolved.data,
+                    content=output,
+                    status_code=200,
+                    is_ui=resolved.is_ui,
                 )
-            except Exception as error:
-                await _notify_observer(
-                    status=RequestStatus.ERROR,
-                    input=data,
-                    body=request.body,
-                    exception=error,
-                )
-                raise error
-
-            # Serialization must run in sync context for sync handlers
-            # because .returns calls model_validate during serialization
-            if is_async:
-                output = rpc_output_adapter.dump_python(validated_model, mode="json")
-            else:
-                output = await sync_to_async(rpc_output_adapter.dump_python)(
-                    validated_model, mode="json"
-                )
-
-            await _notify_observer(
-                status=RequestStatus.SUCCESS,
-                input=data,
-                output=output,
-                body=request.body,
-            )
-            return get_response(
-                input=data, content=output, status_code=200, is_ui=is_ui
-            )
 
         if csrf_exempt is True:
             wrapped_rpc_call.csrf_exempt = True  # type: ignore[attr-defined]

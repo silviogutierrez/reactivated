@@ -13,6 +13,7 @@ import pytest
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import AnonymousUser, User
 from django.db import models as dj_models
+from django.db import transaction
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
@@ -684,42 +685,46 @@ async def test_sync_rpc_rolls_back_on_errors(rf: Any) -> None:
 
 @pytest.mark.django_db
 @pytest.mark.asyncio
-async def test_async_rpc_does_not_roll_back_on_errors(rf: Any) -> None:
+async def test_async_rpc_atomicity(rf: Any) -> None:
+    # An async handler now honors atomic_requests: under atomic (the default)
+    # its writes roll back on error like a sync handler's, because the chain is
+    # bounced onto a sync transaction thread; with atomic_requests=False it runs
+    # loose and its writes persist.
     router = Router(HttpRequest)
 
     @router.rpc
-    async def async_expected(request: HttpRequest, form: list[str]) -> None:
+    async def atomic_rpc(request: HttpRequest, form: list[str]) -> None:
         await sync_to_async(User.objects.create)(username=form[0], email=form[0])
         raise AssertionError("Expected")
 
-    @router.rpc
-    async def async_unexpected(request: HttpRequest, form: list[str]) -> None:
+    @router.rpc(atomic_requests=False)
+    async def loose_rpc(request: HttpRequest, form: list[str]) -> None:
         await sync_to_async(User.objects.create)(username=form[0], email=form[0])
-        1 / 0
+        raise AssertionError("Expected")
 
-    async_expected_email = unique_email()
+    atomic_email = unique_email()
     request = rf.post(
-        f"/{router.handlers['rpc_async_expected']['url']}",
-        data=json.dumps([async_expected_email]),
+        f"/{router.handlers['rpc_atomic_rpc']['url']}",
+        data=json.dumps([atomic_email]),
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    response = await router.handlers["rpc_async_expected"]["handler"](request)
+    response = await router.handlers["rpc_atomic_rpc"]["handler"](request)
     assert response.status_code == 400
-    assert await sync_to_async(User.objects.filter(email=async_expected_email).exists)()
+    # rolled back
+    assert not await sync_to_async(User.objects.filter(email=atomic_email).exists)()
 
-    async_unexpected_email = unique_email()
+    loose_email = unique_email()
     request = rf.post(
-        f"/{router.handlers['rpc_async_unexpected']['url']}",
-        data=json.dumps([async_unexpected_email]),
+        f"/{router.handlers['rpc_loose_rpc']['url']}",
+        data=json.dumps([loose_email]),
         content_type="application/json",
     )
     request.user = AnonymousUser()
-    with pytest.raises(ZeroDivisionError):
-        await router.handlers["rpc_async_unexpected"]["handler"](request)
-    assert await sync_to_async(
-        User.objects.filter(email=async_unexpected_email).exists
-    )()
+    response = await router.handlers["rpc_loose_rpc"]["handler"](request)
+    assert response.status_code == 400
+    # persisted (no transaction)
+    assert await sync_to_async(User.objects.filter(email=loose_email).exists)()
 
 
 @pytest.mark.django_db
@@ -1090,7 +1095,9 @@ async def test_observer_notified(
 
     router = Router(HttpRequest)
 
-    @router.rpc(log=True)
+    # atomic_requests=False: this handler touches no DB, and an async handler
+    # now opens a transaction under atomic (which would demand the db fixture).
+    @router.rpc(log=True, atomic_requests=False)
     async def observed(request: HttpRequest, form: ObserverInput) -> int:
         if exc:
             raise exc
@@ -1242,3 +1249,130 @@ async def test_rpc_accepts_scopes(rf: Any) -> None:
     response = await handler(redirected, item_id=21)
     assert response.status_code == 401
     assert json.loads(response.content) == {"error": "UNAUTHORIZED"}
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_atomic_requests_spans_the_scope_chain(rf: Any) -> None:
+    """The request transaction opens before the scope chain runs — a scope
+    may select_for_update a row the handler then mutates, so both must share
+    it. Error paths must leave the shared sync thread with no dangling
+    transaction, or the next request on that thread inherits it."""
+    router = Router()
+    seen: dict[str, bool] = {}
+
+    @router.scope
+    def gate(request: HttpRequest) -> Box:
+        seen["scope"] = transaction.get_connection().in_atomic_block
+        return Box(pk=1)
+
+    @router.rpc(gate)
+    def atomic_probe(box: Box, form: list[str]) -> bool:
+        return bool(transaction.get_connection().in_atomic_block)
+
+    @router.rpc(gate, atomic_requests=False)
+    def bare_probe(box: Box, form: list[str]) -> bool:
+        return bool(transaction.get_connection().in_atomic_block)
+
+    @router.rpc(gate)
+    def exploding(box: Box, form: list[str]) -> bool:
+        raise RuntimeError("boom")
+
+    def make_request() -> Any:
+        request = rf.post(
+            "/rpc/probe/", data=json.dumps([]), content_type="application/json"
+        )
+        request.user = AnonymousUser()
+        return request
+
+    async def thread_in_atomic_block() -> bool:
+        return await sync_to_async(
+            lambda: bool(transaction.get_connection().in_atomic_block)
+        )()
+
+    response = await router.handlers["rpc_atomic_probe"]["handler"](make_request())
+    assert json.loads(response.content) is True
+    assert seen["scope"] is True
+    assert await thread_in_atomic_block() is False
+
+    seen.clear()
+    response = await router.handlers["rpc_bare_probe"]["handler"](make_request())
+    assert json.loads(response.content) is False
+    assert seen["scope"] is False
+
+    with pytest.raises(RuntimeError, match="boom"):
+        await router.handlers["rpc_exploding"]["handler"](make_request())
+    assert await thread_in_atomic_block() is False
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_scope_writes_survive_an_assertion_rejection(rf: Any) -> None:
+    """An AssertionError coerces to a 400 that rolls back only the handler
+    savepoint — writes made by the scope chain (e.g. instantiate-on-read)
+    must commit with the request."""
+    router = Router()
+
+    @router.scope
+    def recorder(request: HttpRequest) -> User:
+        return User.objects.create(username="scope-made")
+
+    @router.rpc(recorder)
+    def rejecting(user: User, form: list[str]) -> bool:
+        User.objects.create(username="handler-made")
+        raise AssertionError("nope")
+
+    request = rf.post(
+        "/rpc/rejecting/", data=json.dumps([]), content_type="application/json"
+    )
+    request.user = AnonymousUser()
+    response = await router.handlers["rpc_rejecting"]["handler"](request)
+
+    assert response.status_code == 400
+    assert json.loads(response.content) == ["nope"]
+    assert await sync_to_async(User.objects.filter(username="scope-made").exists)()
+    assert not await sync_to_async(
+        User.objects.filter(username="handler-made").exists
+    )()
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_failing_observer_cannot_roll_back_a_reported_success(rf: Any) -> None:
+    """Observers run only after the request transaction closes. A failing
+    observer write inside the still-open transaction would mark it for
+    rollback: the handler's success would silently vanish while the client
+    was told 200."""
+    from reactivated.rpc import observer as observer_module
+    from reactivated.rpc.observer import rpc_observer
+
+    router = Router()
+    observed_in_atomic: list[bool] = []
+
+    @router.rpc()
+    def register(request: HttpRequest, form: list[str]) -> str:
+        return User.objects.create(username="registered").username
+
+    previous = observer_module._observer
+
+    @rpc_observer
+    async def failing_observer(*args: Any) -> None:
+        def failing_write() -> None:
+            observed_in_atomic.append(transaction.get_connection().in_atomic_block)
+            User.objects.create(username="registered")
+
+        await sync_to_async(failing_write)()
+
+    try:
+        request = rf.post(
+            "/rpc/register/", data=json.dumps([]), content_type="application/json"
+        )
+        request.user = AnonymousUser()
+        response = await router.handlers["rpc_register"]["handler"](request)
+    finally:
+        observer_module._observer = previous
+
+    assert response.status_code == 200
+    assert json.loads(response.content) == "registered"
+    assert observed_in_atomic == [False]
+    assert await sync_to_async(User.objects.filter(username="registered").exists)()

@@ -38,10 +38,6 @@ def unique_email() -> str:
     return f"test-{uuid.uuid4().hex[:8]}@example.com"
 
 
-async def anyone(request: HttpRequest) -> HttpRequest:
-    return request
-
-
 class PrincipalEchoForm(Pick):
     """Module-level so get_type_hints can resolve it."""
 
@@ -213,15 +209,15 @@ def test_schema_generation_with_rpc_and_picks(settings: Any, tmp_path: Any) -> N
     settings.REACTIVATED_SERVER_SCHEMA = str(schema_dir)
     sys.path.insert(0, str(schema_dir))
 
-    @router.rpc(anyone)
+    @router.rpc
     def rpc_call(request: HttpRequest, form: int | str | list[str]) -> None:
         pass
 
-    @router.rpc(anyone)
+    @router.rpc
     def with_model(request: HttpRequest, form: MyModel) -> None:
         pass
 
-    @router.rpc(anyone)
+    @router.rpc
     def with_pick(request: HttpRequest, form: MyPick.input) -> None:
         pass
 
@@ -431,11 +427,11 @@ async def test_get_method_handling(settings: Any, rf: Any) -> None:
 
     # No form param — tests pure HTTP method handling.
     # (int/str are DJANGO_CONVERTERS so they become URL path params, not body forms.)
-    @router.rpc(anyone, atomic_requests=False)
+    @router.rpc(atomic_requests=False)
     def post_only(request: HttpRequest) -> None:
         pass
 
-    @router.rpc(anyone, methods=["GET", "POST"], atomic_requests=False)
+    @router.rpc(methods=["GET", "POST"], atomic_requests=False)
     def get_allowed(request: HttpRequest) -> None:
         pass
 
@@ -462,7 +458,7 @@ async def test_get_method_handling(settings: Any, rf: Any) -> None:
     # declared by omitting the param entirely (as post_only above does).
     with pytest.raises(TypeError, match="None-typed param"):
 
-        @router.rpc(anyone, atomic_requests=False)
+        @router.rpc(atomic_requests=False)
         def none_body(request: HttpRequest, form: None) -> None:
             pass
 
@@ -471,22 +467,23 @@ async def test_get_method_handling(settings: Any, rf: Any) -> None:
 async def test_router_authentication(settings: Any, rf: Any) -> None:
     settings.DEBUG = False
 
-    async def authentication(request: HttpRequest) -> HttpRequest | Literal[False]:
+    router = Router(HttpRequest)
+
+    @router.scope
+    def authentication(request: HttpRequest) -> "HttpRequest | Literal[False]":
         if isinstance(request.user, AnonymousUser):
             return False
         return request
 
-    router = Router(HttpRequest)
-
-    @router.rpc(authentication, atomic_requests=False)
+    @authentication.rpc(atomic_requests=False)
     def guarded(request: HttpRequest) -> str:
         return request.user.username
 
-    @router.rpc(authentication, atomic_requests=False)
+    @authentication.rpc(atomic_requests=False)
     async def async_guarded(request: HttpRequest) -> str:
         return request.user.username
 
-    @router.rpc(anyone, atomic_requests=False)
+    @router.rpc(atomic_requests=False)
     def open_to_all(request: HttpRequest) -> str:
         return "anyone"
 
@@ -532,7 +529,7 @@ async def test_router_authentication(settings: Any, rf: Any) -> None:
 async def test_form_required_validation(rf: Any) -> None:
     router = Router(HttpRequest)
 
-    @router.rpc(anyone, atomic_requests=False)
+    @router.rpc(atomic_requests=False)
     def required_test(request: Any, form: RequiredTestForm) -> str:
         return "ok"
 
@@ -626,7 +623,7 @@ async def test_form_required_validation(rf: Any) -> None:
     assert response.status_code == 200
 
     # Read-only fields are set to None regardless of client input
-    @router.rpc(anyone, atomic_requests=False)
+    @router.rpc(atomic_requests=False)
     def read_only_test(request: Any, form: ReadOnlyTestForm) -> str:
         assert form.editable == "value"
         assert form.read_only_field is None
@@ -649,12 +646,12 @@ async def test_sync_rpc_rolls_back_on_errors(rf: Any) -> None:
     router = Router(HttpRequest)
 
     # Use list[str] because bare str is a DJANGO_CONVERTER (URL path param).
-    @router.rpc(anyone)
+    @router.rpc
     def sync_expected(request: HttpRequest, form: list[str]) -> None:
         User.objects.create(username=form[0], email=form[0])
         raise AssertionError("Expected")
 
-    @router.rpc(anyone)
+    @router.rpc
     def sync_unexpected(request: HttpRequest, form: list[str]) -> None:
         User.objects.create(username=form[0], email=form[0])
         1 / 0
@@ -690,12 +687,12 @@ async def test_sync_rpc_rolls_back_on_errors(rf: Any) -> None:
 async def test_async_rpc_does_not_roll_back_on_errors(rf: Any) -> None:
     router = Router(HttpRequest)
 
-    @router.rpc(anyone)
+    @router.rpc
     async def async_expected(request: HttpRequest, form: list[str]) -> None:
         await sync_to_async(User.objects.create)(username=form[0], email=form[0])
         raise AssertionError("Expected")
 
-    @router.rpc(anyone)
+    @router.rpc
     async def async_unexpected(request: HttpRequest, form: list[str]) -> None:
         await sync_to_async(User.objects.create)(username=form[0], email=form[0])
         1 / 0
@@ -730,7 +727,7 @@ async def test_async_rpc_does_not_roll_back_on_errors(rf: Any) -> None:
 async def test_returns_single_model(rf: Any, schema_env: Any) -> None:
     router = Router(HttpRequest)
 
-    @router.rpc(anyone)
+    @router.rpc
     def get_user_returns(request: Any, form: list[int]) -> ReturnsPick.returns:
         return User.objects.get(id=form[0])
 
@@ -761,7 +758,7 @@ async def test_returns_list_of_models(rf: Any, schema_env: Any) -> None:
     email1 = unique_email()
     email2 = unique_email()
 
-    @router.rpc(anyone)
+    @router.rpc
     def list_users_returns(
         request: Any, form: list[int]
     ) -> list[ListReturnsPick.returns]:
@@ -793,7 +790,7 @@ async def test_returns_list_of_models(rf: Any, schema_env: Any) -> None:
 async def test_returns_nullable(rf: Any, schema_env: Any) -> None:
     router = Router(HttpRequest)
 
-    @router.rpc(anyone)
+    @router.rpc
     def maybe_user_returns(
         request: Any, form: list[int]
     ) -> NullableReturnsPick.returns | None:
@@ -970,7 +967,7 @@ async def test_returns_with_extra_fields(rf: Any, schema_env: Any) -> None:
     """RPC handler returns PickProxy, response includes both model fields and extras."""
     router = Router(HttpRequest)
 
-    @router.rpc(anyone)
+    @router.rpc
     def get_user_with_score(request: Any, form: list[int]) -> ExtraFieldsPick.returns:
         user = User.objects.get(id=form[0])
         return PickProxy(user, score=42)
@@ -1093,7 +1090,7 @@ async def test_observer_notified(
 
     router = Router(HttpRequest)
 
-    @router.rpc(anyone, log=True)
+    @router.rpc(log=True)
     async def observed(request: HttpRequest, form: ObserverInput) -> int:
         if exc:
             raise exc
@@ -1121,28 +1118,29 @@ async def test_observer_notified(
 
 @pytest.mark.asyncio
 async def test_router_principal_injection(settings: Any, rf: Any) -> None:
-    """Access functions return the principal — any value — and the handler
-    receives it as its first (positionally excluded) parameter. Parameters
-    typed HttpRequest beyond the principal slot are injected."""
+    """A scope resolves the principal — any value — and the handler receives
+    it as its first (positionally excluded) parameter. Parameters typed
+    HttpRequest beyond the principal slot are injected."""
     settings.DEBUG = False
 
-    async def authenticated(request: HttpRequest) -> User | Literal[False]:
+    router = Router()  # request_type defaults to HttpRequest
+
+    @router.scope
+    def authenticated(request: HttpRequest) -> "User | Literal[False]":
         if isinstance(request.user, AnonymousUser):
             return False
         assert isinstance(request.user, User)
         return request.user
 
-    router = Router()  # request_type defaults to HttpRequest
-
-    @router.rpc(authenticated, atomic_requests=False)
+    @authenticated.rpc(atomic_requests=False)
     def whoami(user: User) -> str:
         return user.username
 
-    @router.rpc(authenticated, atomic_requests=False)
+    @authenticated.rpc(atomic_requests=False)
     def with_request(user: User, request: HttpRequest) -> str:
         return f"{user.username}:{request.method}"
 
-    @router.rpc(authenticated, atomic_requests=False)
+    @authenticated.rpc(atomic_requests=False)
     def with_request_and_form(
         user: User, request: HttpRequest, form: PrincipalEchoForm
     ) -> str:
@@ -1205,7 +1203,7 @@ async def test_rpc_accepts_scopes(rf: Any) -> None:
             return HttpResponseRedirect("/login/")
         return Box(pk=0)
 
-    @router.scope(parent=gate)
+    @gate.scope
     def item(box: Box, *, item_id: int) -> "Box | HttpResponse":
         return Box(pk=item_id)
 

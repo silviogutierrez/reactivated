@@ -35,34 +35,34 @@ def stuff(request: HttpRequest) -> Area | HttpResponse:
     return Area(label="root")
 
 
-@router.scope(parent=stuff)
+@stuff.scope
 def thing(area: Area, *, thing_id: int) -> Thing | HttpResponse:
     if thing_id == 404:
         return _response("missing")
     return Thing(pk=thing_id)
 
 
-@router.index(stuff)
+@stuff.index
 def stuff_list(area: Area, request: HttpRequest) -> HttpResponse:
     return _response(f"list:{area.label}")
 
 
-@router.view(stuff)
+@stuff.view
 def stuff_check_ins(area: Area, request: HttpRequest) -> HttpResponse:
     return _response("check-ins")
 
 
-@router.index(thing)
+@thing.index
 def thing_detail(item: Thing, request: HttpRequest) -> HttpResponse:
     return _response(f"detail:{item.pk}")
 
 
-@router.view(thing)
+@thing.view
 def thing_export(item: Thing, area: Area, request: HttpRequest) -> HttpResponse:
     return _response(f"export:{item.pk}:{area.label}")
 
 
-@router.view(thing_detail)
+@thing.view
 def thing_notes(item: Thing, request: HttpRequest, *, key: str) -> HttpResponse:
     return _response(f"notes:{item.pk}:{key}")
 
@@ -124,7 +124,7 @@ def test_bad_url_param_annotation() -> None:
 def test_bad_leaf_name() -> None:
     with pytest.raises(TypeError, match="must start with"):
 
-        @router.view(stuff)
+        @stuff.view
         def unrelated_name(area: Area, request: HttpRequest) -> HttpResponse:
             raise NotImplementedError
 
@@ -132,7 +132,7 @@ def test_bad_leaf_name() -> None:
 def test_bad_arity() -> None:
     with pytest.raises(TypeError, match="must take"):
 
-        @router.view(stuff)  # type: ignore[arg-type]
+        @stuff.view  # type: ignore[arg-type]
         def stuff_broken(area: Area) -> HttpResponse:
             raise NotImplementedError
 
@@ -140,7 +140,7 @@ def test_bad_arity() -> None:
 def test_params_banned_in_path_strings() -> None:
     with pytest.raises(TypeError, match="static words only"):
 
-        @router.view(stuff, path="a/<int:b>")
+        @stuff.view(path="a/<int:b>")
         def stuff_bad_path(area: Area, request: HttpRequest) -> HttpResponse:
             raise NotImplementedError
 
@@ -152,11 +152,11 @@ def test_duplicate_route_rejected() -> None:
     def area(request: HttpRequest) -> Area | HttpResponse:
         raise NotImplementedError
 
-    @other.index(area)
+    @area.index
     def area_list(a: Area, request: HttpRequest) -> HttpResponse:
         raise NotImplementedError
 
-    @other.index(area)
+    @area.index
     def area_detail(a: Area, request: HttpRequest) -> HttpResponse:
         raise NotImplementedError
 
@@ -173,9 +173,53 @@ def test_empty_path_on_view_rejected() -> None:
 
     with pytest.raises(TypeError, match="router.index"):
 
-        @other.view(area, path="")
+        @area.view(path="")
         def area_home(a: Area, request: HttpRequest) -> HttpResponse:
             raise NotImplementedError
+
+
+def test_worded_param_scope(rf: object) -> None:
+    # path= pins words on a param scope: one edge carries the word, the
+    # param, and the resolution (truth/<uuid> needs no pass-through).
+    other = Router()
+
+    @other.scope
+    def area(request: HttpRequest) -> Area | HttpResponse:
+        return Area(label="a")
+
+    @area.scope(path="truth")
+    def truth_item(a: Area, *, thing_id: int) -> Thing | HttpResponse:
+        return Thing(pk=thing_id)
+
+    @truth_item.index
+    def truth_item_page(item: Thing, request: HttpRequest) -> HttpResponse:
+        return _response(f"truth:{item.pk}")
+
+    assert other.routes() == [("area/truth/<int:thing_id>/", "truth_item_page")]
+    request = rf.get("/")  # type: ignore[attr-defined]
+    assert other.endpoint(truth_item_page)(request, thing_id=4).content == b"truth:4"
+
+
+def test_child_scope_registers_on_parents_router(rf: object) -> None:
+    # The fractal form carries the router through the tree: a chain built
+    # entirely off the root scope lands its views on the root's router.
+    other = Router()
+
+    @other.scope
+    def area(request: HttpRequest) -> Area | HttpResponse:
+        return Area(label="a")
+
+    @area.scope
+    def item(a: Area, *, thing_id: int) -> Thing | HttpResponse:
+        return Thing(pk=thing_id)
+
+    @item.index
+    def item_detail(thing: Thing, request: HttpRequest) -> HttpResponse:
+        return _response(f"detail:{thing.pk}")
+
+    assert other.routes() == [("area/<int:thing_id>/", "item_detail")]
+    request = rf.get("/")  # type: ignore[attr-defined]
+    assert other.endpoint(item_detail)(request, thing_id=3).content == b"detail:3"
 
 
 def test_index_naming_lint() -> None:
@@ -187,7 +231,7 @@ def test_index_naming_lint() -> None:
 
     with pytest.raises(TypeError, match="must start with"):
 
-        @other.index(area)
+        @area.index
         def unrelated(a: Area, request: HttpRequest) -> HttpResponse:
             raise NotImplementedError
 
@@ -202,7 +246,7 @@ def test_pinned_view_name_still_linted() -> None:
 
     with pytest.raises(TypeError, match="must start with"):
 
-        @other.view(area, path="special")
+        @area.view(path="special")
         def legacy_name(a: Area, request: HttpRequest) -> HttpResponse:
             raise NotImplementedError
 
@@ -214,7 +258,7 @@ def test_uuid_param() -> None:
     def area(request: HttpRequest) -> Area | HttpResponse:
         raise NotImplementedError
 
-    @other.view(area)
+    @area.view
     def area_item(a: Area, request: HttpRequest, *, ref: uuid.UUID) -> HttpResponse:
         raise NotImplementedError
 
@@ -228,13 +272,13 @@ def test_scope_with_request(rf: object) -> None:
     def area(request: HttpRequest) -> Area | HttpResponse:
         return Area(label="a")
 
-    @other.scope(parent=area, path="")
+    @area.scope(path="")
     def gated(a: Area, request: HttpRequest) -> Thing | HttpResponse:
         if request.META.get("HTTP_X_DENY"):
             return _response("nope")
         return Thing(pk=1)
 
-    @other.view(gated)
+    @gated.view
     def gated_page(item: Thing, request: HttpRequest) -> HttpResponse:
         return _response(f"page:{item.pk}")
 
@@ -260,11 +304,11 @@ def test_scope_false_denial(rf: object, settings: object) -> None:
             return False
         return Area(label="a")
 
-    @other.scope(parent=area)
+    @area.scope
     def item(a: Area, *, thing_id: int) -> "Thing | HttpResponse | Literal[False]":
         return Thing(pk=thing_id)
 
-    @other.view(item)
+    @item.view
     def item_page(thing: Thing, request: HttpRequest) -> HttpResponse:
         return _response(f"page:{thing.pk}")
 
@@ -297,7 +341,7 @@ def test_scope_true_rejected(rf: object) -> None:
     def area(request: HttpRequest) -> "Area | HttpResponse":
         return True  # type: ignore[return-value]
 
-    @other.index(area)
+    @area.index
     def area_list(a: Area, request: HttpRequest) -> HttpResponse:
         raise NotImplementedError
 
@@ -334,7 +378,7 @@ def test_template_returns(rf: object) -> None:
     def area(request: HttpRequest) -> Area | HttpResponse:
         return Area(label="a")
 
-    @other.view(area)
+    @area.view
     def area_page(a: Area, request: HttpRequest) -> FakePage | HttpResponse:
         if request.META.get("HTTP_X_REDIRECT"):
             return _response("went-elsewhere")
@@ -362,7 +406,7 @@ def test_non_renderable_return_rejected(rf: object) -> None:
     def area(request: HttpRequest) -> Area | HttpResponse:
         return Area(label="a")
 
-    @other.view(area)
+    @area.view
     def area_bogus(a: Area, request: HttpRequest) -> HttpResponse:
         return None  # type: ignore[return-value]
 
@@ -371,28 +415,29 @@ def test_non_renderable_return_rejected(rf: object) -> None:
         other.endpoint(area_bogus)(request)
 
 
-def test_root_propagates_through_two_arity_parent(rf: object) -> None:
-    """The corner the phantom exists for: the parent view never mentions
-    the root in its signature, yet the child's 3-arity shape still binds
-    TRoot statically (via __view_root__) and receives it at runtime."""
+def test_root_recoverable_beside_a_two_arity_page(rf: object) -> None:
+    """A page that never mentions the root in its signature doesn't strand
+    its URL-neighbors: the pinned sibling one word deeper binds TRoot
+    through the Scope generics and receives it at runtime. Nesting under a
+    page's URL is path= pins — the word repeats, visibly."""
     other = Router()
 
     @other.scope
     def area(request: HttpRequest) -> Area | HttpResponse:
         return Area(label="root-product")
 
-    @other.scope(parent=area)
+    @area.scope
     def item(a: Area, *, thing_id: int) -> Thing | HttpResponse:
         return Thing(pk=thing_id)
 
-    @other.view(item, path="page")
+    @item.view(path="page")
     def item_page(thing: Thing, request: HttpRequest) -> HttpResponse:  # 2-arity
         return _response(f"page:{thing.pk}")
 
-    @other.view(item_page, path="deep")
+    @item.view(path="page/deep")
     def item_page_deep(
         thing: Thing, root: Area, request: HttpRequest
-    ) -> HttpResponse:  # 3-arity child of a 2-arity parent
+    ) -> HttpResponse:  # 3-arity sibling one word below the 2-arity page
         return _response(f"deep:{thing.pk}:{root.label}")
 
     request = rf.get("/")  # type: ignore[attr-defined]

@@ -20,7 +20,12 @@ dependencies = [
     "pydantic>=2.10",
     "typing-extensions>=4.0",
     "asgiref>=3.7",
+    "uvicorn>=0.30",
+    "watchfiles>=0.20",
 ]
+
+[project.scripts]
+reactivate = "reactivated_dev.cli:main"
 
 [dependency-groups]
 dev = [
@@ -62,6 +67,7 @@ include = ["reactivated*"]
 
 [tool.setuptools.package-data]
 reactivated = ["py.typed", "templates/**/*"]
+reactivated_dev = ["py.typed"]
 
 [tool.pytest.ini_options]
 norecursedirs = [".venv", "node_modules"]
@@ -88,4 +94,4 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["reactivated"]
+known-first-party = ["reactivated", "reactivated_dev"]

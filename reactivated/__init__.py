@@ -1,15 +1,21 @@
 import atexit
 import os
-import signal
-import socket
-import subprocess
-import time
 from typing import Any
 
 from django.conf import settings
 from django.core.exceptions import ViewDoesNotExist
 from django.core.management.commands import runserver
 from django.urls import URLPattern, URLResolver
+
+from reactivated_dev.procs import (
+    DJANGO_PORT_ENV,
+    RENDERER_ENV,
+    VITE_PORT_ENV,
+    get_free_port,
+    spawn_tsc,
+    spawn_vite,
+    terminate_proc,
+)
 
 from .generation import GeneratedModule as GeneratedModule
 from .generation import generate as generate
@@ -21,24 +27,6 @@ from .pick import pick as pick  # noqa: F401
 from .templates import Template as Template  # noqa: F401
 from .transport import Mountable as Mountable  # noqa: F401
 from .transport import mount as mount  # noqa: F401
-
-
-def terminate_proc(proc: subprocess.Popen[Any]) -> None:
-    """
-    npm exec doesn't correctly forward signals to its child processes. So,
-    simply calling proc.terminate() doesn't actually kill the process. Rather,
-    we have to send SIGTERM to the entire process group.
-    Note: using this requires that the initial call to subprocess.Popen included
-    the `start_new_session=True` flag.
-    """
-    try:
-        pgrp = os.getpgid(proc.pid)
-    except ProcessLookupError:
-        pass
-    else:
-        os.killpg(pgrp, signal.SIGTERM)
-        proc.communicate(timeout=5)
-
 
 original_run = runserver.Command.run
 
@@ -70,15 +58,8 @@ def run_generations(skip_cache: bool = False) -> None:
     prune_orphans(str(settings.BASE_DIR))
 
 
-def get_free_port() -> int:
-    sock = socket.socket()
-    sock.bind(("", 0))
-    free_port = sock.getsockname()[1]
-    return free_port  # type: ignore[no-any-return]
-
-
 def outer_process(cmd: Any) -> None:
-    if os.environ.get("REACTIVATED_RENDERER") is not None:
+    if os.environ.get(RENDERER_ENV) is not None:
         os.environ["REACTIVATED_SKIP_SERVER"] = "true"
         return
 
@@ -93,46 +74,25 @@ def outer_process(cmd: Any) -> None:
 
     cmd.port = LyingPort(free_port)
 
-    os.environ["REACTIVATED_VITE_PORT"] = original_port
-    os.environ["REACTIVATED_DJANGO_PORT"] = str(free_port)
+    os.environ[VITE_PORT_ENV] = original_port
+    os.environ[DJANGO_PORT_ENV] = str(free_port)
 
     run_generations()
 
-    vite_process = subprocess.Popen(
-        ["npm", "exec", "start_vite"],
-        # stdout=subprocess.PIPE,
-        env={**os.environ.copy(), "BASE": f"{settings.STATIC_URL}dist/"},
-        start_new_session=True,
-    )
+    vite_process = spawn_vite(base=f"{settings.STATIC_URL}")
     atexit.register(lambda: terminate_proc(vite_process))
-    # npm exec is weird and seems to run into duplicate issues if executed
-    # too quickly. There are better ways to do this, I assume.
-    time.sleep(0.5)
 
-    tsc_process = subprocess.Popen(
-        [
-            "npm",
-            "exec",
-            "tsc",
-            "--",
-            "--watch",
-            "--noEmit",
-            "--preserveWatchOutput",
-        ],
-        # stdout=subprocess.PIPE,
-        env={**os.environ.copy()},
-        start_new_session=True,
-    )
+    tsc_process = spawn_tsc()
     atexit.register(lambda: terminate_proc(tsc_process))
 
-    os.environ["REACTIVATED_RENDERER"] = f"http://localhost:{cmd.port}"
+    os.environ[RENDERER_ENV] = f"http://localhost:{cmd.port}"
 
 
 def inner_process(cmd: Any) -> None:
     # Inner process still needs this rebound for Django's built in runserver
     # though maybe not for django_extensions runserver_plus
-    free_port = os.environ["REACTIVATED_DJANGO_PORT"]
-    original_port = os.environ["REACTIVATED_VITE_PORT"]
+    free_port = os.environ[DJANGO_PORT_ENV]
+    original_port = os.environ[VITE_PORT_ENV]
 
     class LyingPort(int):
         def __str__(self) -> str:
@@ -150,7 +110,7 @@ def patched_run(self: Any, **options: Any) -> Any:
         original_on_bind = runserver.Command.on_bind
 
         def on_bind(self: Any, server_port: Any) -> None:
-            original_on_bind(self, int(os.environ["REACTIVATED_VITE_PORT"]))
+            original_on_bind(self, int(os.environ[VITE_PORT_ENV]))
 
         runserver.Command.on_bind = on_bind  # type: ignore[method-assign]
 

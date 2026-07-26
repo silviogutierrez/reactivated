@@ -14,6 +14,7 @@ all of them. Per-router checks cannot see a views router and an RPC router
 claiming the same name; ``mount()`` can.
 """
 
+import types
 import uuid
 from typing import Any, Callable, Protocol, get_type_hints, runtime_checkable
 
@@ -49,17 +50,43 @@ class Mountable(Protocol):
 mounted_routers: list[Mountable] = []
 
 
-def mount(*routers: Mountable) -> list[URLPattern]:
+def mount(*items: "Mountable | types.ModuleType") -> list[URLPattern]:
     """Emit every router's patterns with *global* duplicate detection.
 
-    Routes and reverse names must be unique across everything mounted —
-    pages and procedures alike. A conflict is a boot error here, instead of
-    Django silently first-matching the route and last-matching the name.
-    """
-    for router in routers:
-        if not isinstance(router, Mountable):
-            raise TypeError(f"mount: not a Mountable: {router!r}")
+    Each argument is either a router or — the idiomatic form — an imported
+    module that owns one (``mount(server.crm.annotations, ...)``). A module is
+    resolved to its ``router`` attribute and **verified**: it must have
+    registered at least one scope or route on that router, so a renamed or
+    empty module is a boot error naming it, not a silently missing page. A
+    shared-tree module that re-exports the spine's router (``router =
+    scopes.router``) is fine — routers dedupe by identity, so passing the same
+    one N times mounts it once.
 
+    Routes and reverse names must be unique across everything mounted — pages
+    and procedures alike. A conflict is a boot error here, instead of Django
+    silently first-matching the route and last-matching the name.
+    """
+    resolved: dict[int, Mountable] = {}
+    for item in items:
+        if isinstance(item, types.ModuleType):
+            router = getattr(item, "router", None)
+            if not isinstance(router, Mountable):
+                raise TypeError(
+                    f"mount: module {item.__name__!r} has no `router` to mount"
+                )
+            contributing = getattr(router, "contributing_modules", None)
+            if contributing is not None and item.__name__ not in contributing():
+                raise TypeError(
+                    f"mount: {item.__name__!r} registered no scopes or routes on its "
+                    f"router — missing a decorator, or the wrong module?"
+                )
+            resolved.setdefault(id(router), router)
+        elif isinstance(item, Mountable):
+            resolved.setdefault(id(item), item)
+        else:
+            raise TypeError(f"mount: not a module or Mountable: {item!r}")
+
+    routers = list(resolved.values())
     seen_routes: dict[str, str] = {}
     seen_names: dict[str, str] = {}
     patterns: list[URLPattern] = []

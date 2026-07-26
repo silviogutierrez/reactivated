@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import types
 import uuid
 from dataclasses import dataclass
 
@@ -41,7 +42,7 @@ def _pages_router() -> Router[HttpRequest]:
     def area(request: HttpRequest) -> Area | HttpResponse:
         raise NotImplementedError
 
-    @router.index(area)
+    @area.index
     def area_list(a: Area, request: HttpRequest) -> HttpResponse:
         raise NotImplementedError
 
@@ -76,5 +77,34 @@ def test_mount_rejects_duplicate_name_across_kinds() -> None:
 
 
 def test_mount_rejects_non_mountable() -> None:
-    with pytest.raises(TypeError, match="not a Mountable"):
+    with pytest.raises(TypeError, match="not a module or Mountable"):
         mount(object())  # type: ignore[arg-type]
+
+
+def _module(name: str, router: Router[HttpRequest]) -> types.ModuleType:
+    module = types.ModuleType(name)
+    module.router = router  # type: ignore[attr-defined]
+    return module
+
+
+def test_mount_accepts_a_module_and_resolves_its_router() -> None:
+    # A module is the idiomatic argument: mount takes its `router`. The scope
+    # and view in `_pages_router` are defined in THIS module, so the module's
+    # name must match for the registration check to pass.
+    patterns = mount(_module(__name__, _pages_router()))
+    assert [pattern.name for pattern in patterns] == ["area_list"]
+
+
+def test_mount_dedupes_a_re_exported_router_by_identity() -> None:
+    # The shared-tree case: several modules re-export one router. Passing it
+    # via each mounts it once, not once-per-module (which would be a duplicate).
+    shared = _pages_router()
+    patterns = mount(_module(__name__, shared), _module(__name__, shared))
+    assert [pattern.name for pattern in patterns] == ["area_list"]
+
+
+def test_mount_rejects_a_module_that_registered_nothing() -> None:
+    # `_pages_router`'s registrations belong to this module, not "unrelated",
+    # so mount cannot verify the listed module contributed — a boot error.
+    with pytest.raises(TypeError, match="registered no scopes or routes"):
+        mount(_module("unrelated", _pages_router()))

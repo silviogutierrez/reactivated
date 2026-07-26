@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import datetime
 import enum
 import json
 import sys
@@ -312,6 +313,32 @@ def test_enums_from_model_instance() -> None:
     assert validated_model.model_dump()["child"]["enum_test"] is StatusEnum.BAR
 
 
+def test_app_enum_serializes_by_name_outside_pick_context() -> None:
+    # The typed-refusal pattern: an RPC returns `MyEnum | SomePick`, so the
+    # enum arm is schema-built with no Pick on the model stack. Ownership by
+    # module origin decides: an enum defined in an installed Django app
+    # speaks member NAMES on every wire with no export required.
+    class Refusal(enum.Enum):
+        NO_PHONE = "The contact has no phone number."
+
+    Refusal.__module__ = "sample.server.apps.samples.models"
+
+    class RefusalResult(Pick):
+        outcome: str
+
+    adapter: TypeAdapter[Any] = TypeAdapter(Refusal | RefusalResult)
+    assert adapter.dump_python(Refusal.NO_PHONE, mode="json") == "NO_PHONE"
+    assert adapter.validate_python("NO_PHONE") is Refusal.NO_PHONE
+
+    # Non-app enums (third-party SDK models — this test module stands in)
+    # keep pydantic's default value serialization.
+    class ThirdParty(enum.Enum):
+        A = "a-value"
+
+    third: TypeAdapter[Any] = TypeAdapter(ThirdParty)
+    assert third.dump_python(ThirdParty.A, mode="json") == "a-value"
+
+
 def test_enums_pick_as_dict_by_name() -> None:
     class Status(enum.Enum):
         ACTIVE = "Active"
@@ -403,6 +430,20 @@ def test_select_with_empty_option_schema() -> None:
 
     assert "required" not in schema["fields"]["category"]
     assert schema["defaults"]["category"] is None
+
+
+def test_datetime_fields_get_a_datetime_widget() -> None:
+    # datetime.datetime must not degrade to the date-only widget: the time
+    # component would be silently dropped at input.
+    @form()
+    class ScheduleForm(BaseModel):
+        starts_on: datetime.date = FormField()
+        starts_at: datetime.datetime = FormField()
+
+    schema = get_form_schema(ScheduleForm)
+
+    assert schema["fields"]["starts_on"]["type"] == "date"
+    assert schema["fields"]["starts_at"]["type"] == "datetime"
 
 
 def test_optional_select_extracts_options() -> None:
@@ -868,6 +909,18 @@ def test_get_field_schema_unions_and_annotated() -> None:
     assert list_result["items"]["type"] == "field"
     assert "TypeA" in list_result["items"]["field_class"]
     assert "TypeB" in list_result["items"]["field_class"]
+
+    # A union with a typing-construct member is typing.Union (a
+    # _GenericAlias), not types.UnionType — it must take the union branch,
+    # not the generic-alias repr() fallback, which emits an unimportable
+    # `typing.Optional[...]` annotation.
+    optional_annotated = Annotated[TypeA | TypeB, Field(discriminator="type")] | None
+    optional_result = get_field_schema(optional_annotated, mode="output")
+    assert optional_result["type"] == "field"
+    assert optional_result["nullable"] is True
+    assert "typing." not in optional_result["field_class"]
+    assert "TypeA" in optional_result["field_class"]
+    assert "TypeB" in optional_result["field_class"]
 
 
 def test_literal_enum_in_discriminated_union() -> None:

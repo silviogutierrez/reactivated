@@ -115,6 +115,20 @@ export const reactivateAdmin = (): void => {
     if (fragmentRoot == null) {
         return;
     }
+    // Fragment SSR has no <head> to hoist into, so the stream emits the
+    // entry's resource links (stylesheet, modulepreload) at its start and
+    // they land inside the fragment container. A container is not a head
+    // singleton: if hydration mismatches (e.g. iOS Safari's data detector
+    // wrapping phone numbers in tel: anchors), React discards the
+    // container's DOM wholesale and the stylesheet dies with it. Complete
+    // the hoist React couldn't finish — adopt the links into document.head,
+    // where the full-document path would have put them, so a mismatch
+    // recovery degrades to a flash instead of an unstyled page. Moving a
+    // live <link> neither refetches nor unapplies; hydration doesn't miss
+    // the nodes because they were never part of the component tree.
+    for (const link of Array.from(fragmentRoot.querySelectorAll("link"))) {
+        document.head.appendChild(link);
+    }
     void (async () => {
         const props = (window as any).__PRELOADED_PROPS__;
         const context = (window as any).__PRELOADED_CONTEXT__;

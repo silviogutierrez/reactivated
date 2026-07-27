@@ -12,8 +12,7 @@ TypeScript compiler in watch mode, and client asset generation. Spawned
 together, wired together, and torn down together when you hit Ctrl-C.
 
 Nothing here needs Nix. `reactivate` is a console script installed with the
-Python package; it wants `DEBUG_PORT` set and your node modules installed,
-and that's it.
+Python package; it needs your node modules installed and nothing else.
 
 ## Two modes
 
@@ -44,14 +43,14 @@ against.
 
 ## Configuration
 
-Everything is environment-driven; there are no flags to memorize beyond
-`--build`.
+Two flags, `--build` and `--port`. Everything else is environment-driven.
 
-- **`DEBUG_PORT`** (required): the user-facing port. Projects created with the
-  [setup script](/documentation/getting-started/) already derive and export
-  this in their shell environment, so there's nothing to do. On an existing
-  project, export it yourself; any free port works. If it's missing, startup
-  is an explicit error telling you so.
+- **The port**: `--port` beats `DEBUG_PORT` beats the conventional 8000.
+  Projects created with the [setup script](/documentation/getting-started/)
+  export a stable per-checkout `DEBUG_PORT`, so parallel worktrees never
+  collide. On an existing project, just run `reactivate` and you get 8000,
+  or pass `--port` for anything else. Whichever wins is re-exported as
+  `DEBUG_PORT`, so sidecars and child processes all see the effective port.
 - **`REACTIVATED_PROCESSES`**: newline-separated sidecar commands. A database
   tunnel, a worker, whatever your project needs running alongside. They spawn
   with the server and get cleaned up with it. `$VAR` references resolve at
@@ -64,7 +63,7 @@ Everything is environment-driven; there are no flags to memorize beyond
 
 ## Port safety
 
-If something is already serving on `DEBUG_PORT`, usually another checkout's
+If something is already serving on the chosen port, usually another checkout's
 dev server, startup is an explicit error naming the port. This matters more
 than it sounds: in Vite mode the loser of a port race binds a wildcard socket
 that macOS happily lets coexist with the winner's, so it "starts" cleanly and

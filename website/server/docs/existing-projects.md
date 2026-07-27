@@ -95,15 +95,14 @@ you want to customize startup with `reactivate()`. See
 
 ## Running it
 
-Export a port and start the dev server:
+Start the dev server:
 
 ```bash
-export DEBUG_PORT=8000
 reactivate
 ```
 
-`python manage.py runserver` works too. [The Dev Server](/documentation/dev-server/)
-covers what `reactivate` adds.
+It serves on port 8000; pass `--port` for anything else. `python manage.py runserver`
+works too. [The Dev Server](/documentation/dev-server/) covers what `reactivate` adds.
 
 ## Next steps
 

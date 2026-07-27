@@ -29,9 +29,14 @@ its thing.
 Just run `cd <project_name>`, then `nix-shell` and finally `reactivate`
 
 With the server running, visit the URL printed in the startup banner to see
-Reactivated in action. The classic `python manage.py runserver` works too — see
+Reactivated in action. The classic `python manage.py runserver` works too; see
 [The Dev Server](/documentation/dev-server/) for what `reactivate` adds and why
 it's the recommended entry point.
+
+One thing you won't find in the scaffold: a `client/index.tsx`. You don't need
+one. The framework injects a default entry that boots everything, and you only
+create the file when you want to customize startup. See
+[the entry point](/documentation/templates/#the-entry-point).
 
 ### Next Steps
 

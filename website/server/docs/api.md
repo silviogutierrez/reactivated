@@ -88,7 +88,7 @@ def book_detail(request: HttpRequest, *, book_id: int) -> HttpResponse:
     ).render(request)
 ```
 
-Picks do much more — input and output sides, extra fields, deep type checking through
+Picks do much more: input and output sides, extra fields, deep type checking through
 the mypy plugin. See the [picks documentation](/documentation/picks/).
 
 ### `reactivated.router.Router`
@@ -101,7 +101,7 @@ signatures, and _scopes_ make access control structural. See the
 
 ### `server`
 
-Everything you declare in Python — templates, picks, procedures, exported enums —
+Everything you declare in Python (templates, picks, procedures, exported enums)
 lands on the client under the `server` namespace, at the path mirroring its Python
 module. One import, one addressing scheme.
 

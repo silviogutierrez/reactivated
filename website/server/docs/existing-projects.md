@@ -8,10 +8,10 @@ other packages.
 
 ## Requirements
 
-- Python 3.11
-- Node.js 18
-- PostgreSQL 10 or higher
-- Django 4.3
+- Python 3.12
+- Django 5.1
+- A current Node.js LTS
+- PostgreSQL
 
 Make sure the `python` and `node` executables are available in your `PATH`. Reactivated
 will invoke them as needed.
@@ -37,7 +37,7 @@ the same time.
 
 ## Server Setup
 
-In your Django settings, add `reactivated` to the _end_ of `INSTALLED_APPS`.
+In your Django settings, add `reactivated` to `INSTALLED_APPS`.
 
 At the very top of your `settings.py` file, also add:
 
@@ -58,39 +58,10 @@ STATICFILES_DIRS = (BASE_DIR / "static/",)
 > to rename that folder. Vite's build process relies on the `dist` folder so Reactivated
 > intercepts all requests for static content from that folder.
 
-Now add the `JSX` template backend to your `TEMPLATES` setting. Assuming you want to
-keep your regular Django templates as well, it would look something like this:
-
-```python
-TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
-            ],
-        },
-    },
-    {
-        "BACKEND": "reactivated.backend.JSX",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.contrib.messages.context_processors.messages",
-                "django.template.context_processors.csrf",
-                "django.template.context_processors.request",
-                "django.template.context_processors.static",
-            ]
-        },
-    },
-]
-```
+There is no custom template backend to add. Reactivated reads your stock
+`DjangoTemplates` configuration: the context processors listed there become the typed
+`Context` available to your React components. Your existing `TEMPLATES` setting works
+as-is.
 
 ## Client Setup
 
@@ -102,7 +73,6 @@ Next to `manage.py` in `BASE_DIR`, create the following structure:
     -   package.json
     -   tsconfig.json
     -   client
-        -   index.tsx
         -   templates
 ```
 
@@ -110,53 +80,35 @@ Add the following code to `tsconfig.json`:
 
 ```json
 {
-    "compilerOptions": {
-        "strict": true,
-        "sourceMap": true,
-        "noEmit": true,
-        "module": "esnext",
-        "moduleResolution": "node",
-        "target": "es2017",
-        "esModuleInterop": true,
-        "allowJs": true,
-        "jsx": "react",
-        "baseUrl": ".",
-        "skipLibCheck": true,
-        "paths": {
-            "@client/*": ["client/*"],
-            "@reactivated": ["node_modules/_reactivated"],
-            "@reactivated/*": ["node_modules/_reactivated/*"]
-        }
-    },
+    "extends": "reactivated/tsconfig.base.json",
     "include": ["./client/**/*"]
 }
 ```
 
-And the following code to `client/index.tsx`:
+The base config sets strict mode, JSX, and the `@client` / `@reactivated` path
+aliases. Generated code lands in `client/generated/`; add it to your `.gitignore`.
 
-```typescript
-import React from "react";
-import ReactDOM from "react-dom/client";
-import {createRoot} from "react-dom/client";
+Notice there's no `client/index.tsx` in that structure. You don't need one: the
+framework injects a default entry that boots everything. Create the file only when
+you want to customize startup with `reactivate()`. See
+[the entry point](/documentation/templates/#the-entry-point).
 
-import {Provider, getTemplate, getServerData} from "@reactivated";
+## Running it
 
-const {props, context} = getServerData();
-const Template = await getTemplate(context);
+Export a port and start the dev server:
 
-ReactDOM.hydrateRoot(
-    document.getElementById("root") as HTMLElement,
-    <React.StrictMode>
-        <Provider value={context}>
-            <Template {...props} />
-        </Provider>
-    </React.StrictMode>,
-);
+```bash
+export DEBUG_PORT=8000
+reactivate
 ```
 
-That completes the setup. You can now run `python manage.py runserver` to start coding.
+`python manage.py runserver` works too. [The Dev Server](/documentation/dev-server/)
+covers what `reactivate` adds.
 
 ## Next steps
 
-- Review the [API](/documentation/api/) and create your first `template`.
+- Read the [concepts](/documentation/concepts/) and create your first
+  [template](/documentation/templates/).
 - Create a `client/components/Layout.tsx` component that your templates can reference.
+- Then meet [picks](/documentation/picks/) and [RPC](/documentation/rpc/), which is
+  where the framework earns its keep.

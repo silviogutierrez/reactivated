@@ -173,15 +173,15 @@ class Format(enum.Enum):
 On the client, that field is typed `"HARDCOVER" | "PAPERBACK"`. Look closely:
 those are the member _names_, not the values. Enums serialize and type by
 name, and the rule is global. Any enum defined in one of your installed apps
-speaks member names on every wire — pick fields, direct RPC returns, template
+speaks member names on every wire: pick fields, direct RPC returns, template
 props. No registration step, nothing to remember. Names are identifiers;
 values are display labels, and display labels don't belong in your protocol.
 
 When accepting an enum as input, Pydantic validates the name automatically. No
 mapping tables on either side.
 
-> **Note**: The rule is about enums _you own_. Third-party enums — say, from
-> an SDK's own Pydantic models — keep Pydantic's default value handling, so
+> **Note**: The rule is about enums _you own_. Third-party enums (say, from
+> an SDK's own Pydantic models) keep Pydantic's default value handling, so
 > vendored libraries keep working untouched.
 
 So where do the values come in? When the client needs the labels, `export()`
@@ -197,7 +197,7 @@ export(Format)
 server.store.models.Format.PAPERBACK; // "Paperback"
 ```
 
-`export()` is never a serialization prerequisite — it exists to hand the
+`export()` is never a serialization prerequisite. It exists to hand the
 client the type and the label map, including for enums nothing else
 references. There is one export path and one addressing scheme: everything
 lands at its server location on the client (more on that below). Module-level
@@ -248,7 +248,7 @@ run our type engine."
 
 Everything above lands in generated client code with one import and one
 addressing scheme: the `server` namespace mirrors your Python tree, character
-for character. Imports are _isomorphic_ — the path you'd import on the server
+for character. Imports are _isomorphic_: the path you'd import on the server
 is the path you use on the client. Same words, same order:
 
 ```python
@@ -267,10 +267,9 @@ The same holds for everything the server declares. A procedure in
 `server/store/templates.py` is `server.store.templates.BookDetail`. An
 exported enum rides along at its module path too.
 
-No flat registries, no invented names, no guessing what codegen called
-something. If you can write the Python import, you already know the client
-name — and jump-to-definition, grep, and code review all read the same on
-both sides. One way to say everything.
+No registry of invented names, no guessing what codegen called something. If
+you can write the Python import, you already know the client name. Jump-to-definition, grep, and code review all read the same on both
+sides. One way to say everything.
 
 And there's no drift to manage. Rename a field in Python and the TypeScript
 compiler fails on every stale usage. That's the whole point: one declaration,

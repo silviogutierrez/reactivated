@@ -2,28 +2,24 @@
 
 Two files in every Django app drift apart: `views.py` and `urls.py`. Add a
 view, forget the route. Rename a route, miss a `reverse()`. And a third thing
-drifts worse than either: the permission checks copy-pasted at the top of every
-view, where one missed `assert` is a security bug.
+drifts worse than either: the lookup and permission checks copy-pasted at the
+top of every view.
 
-The router fixes all three at once. URLs are derived from your function names
-and signatures, so there's nothing to keep in sync. And access control becomes
-_structural_: you prove who the user is once, in one place, and every view
-downstream receives that proof as a typed argument.
+The router fixes all three. URLs derive from your function names and
+signatures, so there's nothing to keep in sync. And the copy-pasted preamble
+becomes a _scope_: resolve something once, and every view underneath receives
+it as a typed argument.
 
 ## Scopes
 
-A _scope_ is a gate. It runs before any view underneath it, and it returns one
-of three things:
+A scope is shared resolution. It runs before any view underneath it, and
+whatever it returns, the _product_, is handed down to every view and child
+scope below.
 
-- A **product**: a typed value proving the gate passed, handed to everything
-  downstream.
-- An **HttpResponse**: an early return, typically a redirect with a message.
-- **`False`**: the canonical denial. The framework redirects to the login page
-  with `next` set.
+No authentication yet. Watch what a scope does for a plain public site:
 
 ```python
-from typing import Literal
-
+from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
 
 from reactivated.router import Router
@@ -34,52 +30,44 @@ router = Router()
 
 
 @router.scope
-def books(request: HttpRequest) -> models.Member | HttpResponse | Literal[False]:
-    if not request.user.is_authenticated:
-        return False
-    return models.Member.from_user(request.user)
+def books(request: HttpRequest) -> QuerySet[models.Book]:
+    return models.Book.objects.filter(published=True)
 ```
 
-That's the only place in the entire section that checks authentication.
+Every page in this section shows published books only. That rule now lives in
+exactly one place.
 
-## Views
-
-Views hang directly off the scope. Their first argument is the scope's
-product, already proven:
+Views hang directly off the scope, and their first argument is its product:
 
 ```python
 @books.index
-def books_list(member: models.Member, request: HttpRequest) -> HttpResponse:
-    return BookList(books=member.books.all()).render(request)
+def books_list(published: QuerySet[models.Book], request: HttpRequest) -> HttpResponse:
+    return BookList(books=list(published)).render(request)
 
 
 @books.view
-def books_export(member: models.Member, request: HttpRequest) -> HttpResponse:
+def books_search(published: QuerySet[models.Book], request: HttpRequest) -> HttpResponse:
     ...
 ```
-
-Notice what's missing. No `@login_required`, no `request.user` in sight, no
-assert at the top. A view that takes a `models.Member` cannot be reached
-without one existing. That's not discipline, that's the type system.
 
 The URLs came for free:
 
 ```
-books/           -> books_list    (index: the scope's own URL)
-books/export/    -> books_export  (the name minus the parent prefix, kebab-cased)
+books/          -> books_list    (index: the scope's own URL)
+books/search/   -> books_search  (the name minus the parent prefix, kebab-cased)
 ```
 
-And `reverse()` names are simply the function names: `reverse("books_export")`.
+And `reverse()` names are simply the function names: `reverse("books_search")`.
 
 ## Parameterized scopes
 
 Scopes nest. A child scope takes the parent's product plus keyword-only URL
-parameters, and hangs off the parent the same way views do:
+parameters:
 
 ```python
 @books.scope
-def book(member: models.Member, *, book_id: int) -> models.Book | HttpResponse | Literal[False]:
-    return get_object_or_404(member.books, pk=book_id)
+def book(published: QuerySet[models.Book], *, book_id: int) -> models.Book | HttpResponse:
+    return get_object_or_404(published, pk=book_id)
 
 
 @book.index
@@ -88,7 +76,7 @@ def book_detail(item: models.Book, request: HttpRequest) -> HttpResponse:
 
 
 @book.view
-def book_reviews(item: models.Book, member: models.Member, request: HttpRequest) -> HttpResponse:
+def book_reviews(item: models.Book, request: HttpRequest) -> HttpResponse:
     ...
 ```
 
@@ -99,57 +87,87 @@ books/<int:book_id>/           -> book_detail
 books/<int:book_id>/reviews/   -> book_reviews
 ```
 
-Two things worth noticing. The lookup goes through `member.books`, so "does
-this book belong to this member" is checked exactly once, for every view under
-the scope. And `book_reviews` takes a third argument: a view may also ask for
-the _root_ product when it needs both.
+Notice the lookup goes through the parent's queryset. An unpublished book 404s
+on every page under the scope, from one `get_object_or_404`. Still no auth in
+sight: scopes earn their keep on structure and shared lookups alone.
 
-## The built-in gates
+When a view needs both products, declare a third parameter. The root scope's
+product arrives as the second positional argument.
 
-Plain login checks are so common they ship with the router. `router.authenticated`
-is a ready-made root scope whose product is your project's concrete `User`
-type, via django-stubs:
+## Gates
+
+Now the part everyone expects. A scope has three options, and only one of them
+is a product:
+
+- A **product**: proceed, hand it down.
+- An **HttpResponse**: an early return, typically a redirect with a message.
+- **`False`**: the canonical denial. The framework redirects to the login page
+  with `next` set.
+
+The everyday gate ships with the router. `router.authenticated` is a built-in
+scope whose product is your project's concrete `User`, via django-stubs:
 
 ```python
 @router.authenticated.scope
-def library(user: models.User, *, library_id: int) -> models.Library | Literal[False]:
+def shelf(user: models.User) -> QuerySet[models.SavedBook]:
+    return user.saved_books.all()
+
+
+@shelf.index
+def shelf_list(saved: QuerySet[models.SavedBook], request: HttpRequest) -> HttpResponse:
     ...
 ```
 
-There's also `router.maybe_authenticated`, the soft version: its product is
-`User | None` and it never denies. Both work for [RPC](/documentation/rpc/)
-as well.
+An anonymous visitor never reaches `shelf_list`; they bounce to login. And the
+view receives the user's own saved books, already filtered. There's no
+`@login_required` because there's nothing to forget.
+
+`router.maybe_authenticated` is the soft version: its product is `User | None`
+and it never denies.
+
+A custom gate is just a scope that can say no:
+
+```python
+from typing import Literal
+
+
+@router.scope
+def staff(request: HttpRequest) -> HttpRequest | Literal[False]:
+    if not request.user.is_staff:
+        return False
+    return request
+```
 
 ## Refinement scopes
 
-The pattern that pays for the whole system. Some views need more than "logged
+One more trick, for when trust has grades. Some views need more than "logged
 in": billing configured, email verified, whatever your domain calls trusted.
 Model that as a scope with an empty path that mints a `NewType`:
 
 ```python
 from typing import NewType
 
-Owner = NewType("Owner", models.Member)
+Subscriber = NewType("Subscriber", models.User)
 
 
-@books.scope(path="")
-def owner(member: models.Member, request: HttpRequest) -> Owner | HttpResponse:
-    if member.billing_incomplete:
-        messages.info(request, "Finish setting up billing first.")
+@router.authenticated.scope(path="")
+def subscriber(user: models.User, request: HttpRequest) -> Subscriber | HttpResponse:
+    if not user.has_active_subscription:
+        messages.info(request, "Subscribe to unlock this.")
         return redirect("books_list")
-    return Owner(member)
+    return Subscriber(user)
 
 
-@owner.view
-def owner_billing(who: Owner, request: HttpRequest) -> HttpResponse:
+@subscriber.view
+def subscriber_billing(who: Subscriber, request: HttpRequest) -> HttpResponse:
     ...
 ```
 
-`path=""` means the scope adds no URL segment; `owner_billing` lives at
-`books/billing/`. But it demands an `Owner`, and the only place an `Owner` is
-ever created is that one gate. Try to hang a billing view off the plain
-`books` scope and mypy rejects it. The trust hierarchy is now a fact about
-your types, not a convention in your code review checklist.
+`path=""` means the scope adds no URL segment; the view lives at `billing/`.
+But it demands a `Subscriber`, and the only place one is ever minted is that
+gate. Hang a billing view off a plain scope and mypy rejects it. The trust
+hierarchy is now a fact about your types, not a convention in your code review
+checklist.
 
 ## Wiring it up
 
@@ -179,10 +197,10 @@ it into a snapshot test and your URL surface is under version control:
 def test_routes() -> None:
     assert router.routes() == [
         ("books/", "books_list"),
-        ("books/export/", "books_export"),
+        ("books/search/", "books_search"),
         ("books/<int:book_id>/", "book_detail"),
         ("books/<int:book_id>/reviews/", "book_reviews"),
-        ("books/billing/", "owner_billing"),
+        ("billing/", "subscriber_billing"),
     ]
 ```
 
@@ -199,15 +217,15 @@ def test_book_detail(rf: RequestFactory, db: None) -> None:
     assert response.status_code == 200
 ```
 
-When you want the gates too — the full chain a URL would run —
+When you want the gates too, the full chain a URL would run,
 `router.endpoint()` hands you the Django-callable for any registered view:
 
 ```python
-def test_book_detail_requires_login(rf: RequestFactory) -> None:
-    request = rf.get("/books/1/")
+def test_shelf_requires_login(rf: RequestFactory) -> None:
+    request = rf.get("/shelf/")
     request.user = AnonymousUser()
 
-    response = router.endpoint(book_detail)(request, book_id=1)
+    response = router.endpoint(shelf_list)(request)
 
     assert response.status_code == 302  # login redirect, with next set
 ```
@@ -225,8 +243,8 @@ time it checks:
 - URL parameters must be annotated `int`, `str`, or `uuid.UUID`.
 - View names must start with their parent's name: `book_reviews` under `book`,
   never `reviews`.
-- Duplicate routes and duplicate reverse names are rejected — per router at
-  registration, and across all routers at `mount()`.
+- Duplicate routes and duplicate reverse names are rejected, per router at
+  registration and across all routers at `mount()`.
 - `path=` overrides may pin static words only. Parameters come from
   signatures, nowhere else.
 - Scope and view arities are enforced, so a gate cannot silently take the
@@ -241,7 +259,7 @@ for when the URL should not match the name.
 
 ```python
 @books.view(path="reading-list")
-def books_saved(member: models.Member, request: HttpRequest) -> HttpResponse:
+def books_saved(published: QuerySet[models.Book], request: HttpRequest) -> HttpResponse:
     ...
 ```
 
@@ -252,6 +270,6 @@ rename the function instead. It's usually right.
 
 The same scope tree serves [RPC](/documentation/rpc/). `@book.rpc` declares a
 procedure whose principal is the scope's product, gated by the identical
-chain — with a transport-appropriate denial: pages redirect to login,
-procedures return a 401. Prove who the user is once; every page _and_ every
-procedure underneath inherits the proof.
+chain, with a transport-appropriate denial: pages redirect to login,
+procedures return a 401. Resolve once; every page and every procedure
+underneath inherits it.

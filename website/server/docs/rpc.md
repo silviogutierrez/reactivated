@@ -41,7 +41,7 @@ urlpatterns = [
 ```
 
 That's the entire backend. On the client, a typed function now exists at the
-path mirroring the Python module — `server/store/api.py` becomes
+path mirroring the Python module. `server/store/api.py` becomes
 `server.store.api`:
 
 ```typescript
@@ -56,57 +56,70 @@ if (result.type === "success") {
 
 No fetch calls, no URL strings, no hand-written response types.
 
-## Scopes are the access control
+## Authentication
 
 A bare `@router.rpc` is public: the request itself is the handler's first
-argument. Everything else hangs off a _scope_ — the same gates that protect
-your views. A scope proves something once and returns a typed _product_;
-procedures registered on the scope receive that product as their first
-argument, the _principal_:
+argument. For everything else, the common case ships with the router:
 
 ```python
-from typing import Literal
+from reactivated.pick import Pick
+
+from . import models
 
 
-@router.scope
-def merchant(request: HttpRequest) -> models.Merchant | Literal[False]:
-    if not request.user.is_authenticated or not request.user.is_merchant:
-        return False
-    return models.Merchant.from_user(request.user)
+class ReviewForm(Pick):
+    book_id: int
+    rating: int
+    comment: str = ""
 
 
-class RenameForm(Pick):
-    name: str
-
-
-@merchant.rpc
-def rename_shop(who: models.Merchant, form: RenameForm) -> None:
-    who.shop.name = form.name
-    who.shop.save()
-```
-
-Look at the handler's signature. It doesn't take a request. It takes a
-`models.Merchant`, and mypy holds you to it. There's no `request.user`
-unwrapping, no `assert user.is_merchant` copy-pasted into every function, no
-decorator whose guarantees live only in your memory. If the scope returns
-`False`, the framework responds with a 401 and your handler never runs.
-
-The same scope gates pages, with a transport-appropriate denial: views
-redirect to login, procedures return `{"error": "UNAUTHORIZED"}` with a 401.
-One gate, both transports.
-
-For the everyday case, the router ships with batteries:
-
-```python
 @router.authenticated.rpc
 def create_review(user: models.User, form: ReviewForm) -> None:
     book = models.Book.objects.get(pk=form.book_id)
     models.Review.objects.create(book=book, user=user, rating=form.rating)
 ```
 
-`router.authenticated` injects your project's concrete `User` (via
-django-stubs) and denies anonymous callers. `router.maybe_authenticated` is
-the soft version: `User | None`, never denies.
+Look at the handler's signature. It doesn't take a request. It takes your
+project's concrete `User` (via django-stubs), and mypy holds you to it.
+There's no `request.user` unwrapping, no `assert user.is_authenticated`
+copy-pasted into every function, no decorator whose guarantees live only in
+your memory. An anonymous caller gets a 401 and your handler never runs.
+
+`router.maybe_authenticated` is the soft version: the handler receives
+`User | None` and nobody is denied.
+
+## Scopes gate procedures
+
+Past plain authentication, access control is a _scope_: the same gates that
+protect your [views](/documentation/views/). A scope proves something once and
+returns a typed product; procedures registered on the scope receive that
+product as their first argument:
+
+```python
+from typing import Literal
+
+
+@router.scope
+def staff(request: HttpRequest) -> HttpRequest | Literal[False]:
+    if not request.user.is_staff:
+        return False
+    return request
+
+
+@staff.rpc
+def purge_cache(request: HttpRequest) -> None:
+    ...
+```
+
+If the scope returns `False`, the framework responds with a 401 and
+`{"error": "UNAUTHORIZED"}`. The same scope gates pages with a
+transport-appropriate denial: views redirect to login, procedures get the 401.
+One gate, both transports.
+
+Scopes can resolve real objects too, so a whole family of procedures shares
+one lookup. The [views documentation](/documentation/views/) covers scope
+trees, products, and refinement in depth; everything there applies to
+procedures as well.
 
 ## Inputs
 
@@ -142,26 +155,52 @@ def archive_book(user: models.User, book_id: int) -> None:
 await server.store.api.archive_book({book_id: 42});
 ```
 
-> **Note**: For richer inputs, `FormField()` from `reactivated.forms` attaches
-> widget, label, and placeholder metadata to a field, so the client can render
-> real form controls from the schema alone.
+Inputs can also drive real form UIs. Decorate a `Pick` with `@form` and
+declare fields with `FormField` to attach widget, label, and placeholder
+metadata. The client renders controls from the schema alone:
+
+```python
+from reactivated.forms import FormField, form
+
+
+@form(exclude=["book_id"])
+class ReviewForm(Pick):
+    book_id: int
+    rating: int = FormField(label="Rating")
+    comment: str | None = FormField(widget="textarea", required=False)
+```
+
+`exclude` marks fields the rendered form never shows; the client supplies
+`book_id` programmatically.
 
 ## Outputs
 
 Return anything serializable: primitives, Pydantic models, enums, lists, or a
-pick's `.returns` so you can hand back Django instances directly:
+pick's `.returns` to hand back Django instances directly:
 
 ```python
 BookSummary = pick(models.Book, fields=["id", "title", "author.name"])
 
 
-@router.query(merchant)
-def search_books(who: models.Merchant, query: str) -> list[BookSummary.returns]:
+@router.query
+def search_books(request: HttpRequest, query: str) -> list[BookSummary.returns]:
     return list(models.Book.objects.filter(title__icontains=query)[:20])
 ```
 
 `router.query()` is the shorthand for read-only endpoints: GET, no
 transaction.
+
+Without `.returns`, the return type would be `BookSummary.output` and every
+handler would end in ceremony:
+
+```python
+return [BookSummary.output.model_validate(book) for book in found]
+```
+
+Worse than ceremony, it's a typing hole. `model_validate` accepts `Any`, so
+mypy will happily bless a call that validates the wrong object, and you find
+out at runtime. With `.returns`, the declared return type _is_ the model
+class. Hand back the wrong model and mypy flags the handler, not your pager.
 
 ## Handling the result
 
@@ -189,7 +228,7 @@ decide what a validation error looks like in your UI, at compile time.
 The decorator takes a few knobs, all with sensible defaults:
 
 ```python
-@merchant.rpc(
+@staff.rpc(
     atomic_requests=True,   # default: one transaction spans scopes, validation, handler
     csrf_exempt=False,      # default
     methods=["POST"],       # default; add "GET" for cacheable reads
@@ -198,11 +237,11 @@ The decorator takes a few knobs, all with sensible defaults:
 ```
 
 Handlers may be sync or async, and both honor `atomic_requests`: under the
-default, writes roll back on error either way — async handlers are bounced
-onto the transaction thread to get there, since Django transactions are
-sync-only. An async handler that needs the event loop (streaming, concurrent
-IO) and no transaction should say so with `atomic_requests=False`; that's the
-natively awaited path.
+default, writes roll back on error either way. Async handlers are bounced onto
+the transaction thread to get there, since Django transactions are sync-only.
+An async handler that needs the event loop (streaming, concurrent IO) and no
+transaction should say so with `atomic_requests=False`; that's the natively
+awaited path.
 
 ## Observing requests
 
@@ -254,11 +293,6 @@ be plain function calls.
 
 ## Status codes, for the curious
 
-| Scenario                  | Status | Client result  |
-| ------------------------- | ------ | -------------- |
-| Handler returns           | 200    | `success`      |
-| Validation fails          | 400    | `invalid`      |
-| The scope returns `False` | 401    | `unauthorized` |
-| Wrong HTTP method         | 405    | —              |
-
-You will rarely think about these. The generated client already did.
+A success is a 200. Validation failures are a 400 and arrive as `invalid`. A
+denied scope is a 401, `unauthorized` on the client. The wrong HTTP method is
+a 405. You'll rarely think about these; the generated client already did.

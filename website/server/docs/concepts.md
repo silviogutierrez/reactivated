@@ -158,8 +158,8 @@ The tried-and-true [Post/Redirect/Get](https://en.wikipedia.org/wiki/Post/Redire
 workflow for forms will serve you well. Server-rendered pages with full reloads get you
 much further than the SPA industry admits.
 
-When you do want app-like behavior — saving without a reload, live search, optimistic
-UI — Reactivated has a first-class answer: [RPC](/documentation/rpc/). Declare a
+When you do want app-like behavior (saving without a reload, live search, optimistic
+UI), Reactivated has a first-class answer: [RPC](/documentation/rpc/). Declare a
 procedure in Python, call it from TypeScript as a typed async function:
 
 ```python
@@ -207,6 +207,6 @@ Reactivated encourages the following structure, but we
             -   api.py
 ```
 
-Generated code lands in `client/generated/` — gitignored, regenerated on dev server
+Generated code lands in `client/generated/`: gitignored, regenerated on dev server
 start, and pruned of orphans automatically. You never edit it, but you can always read
 it.

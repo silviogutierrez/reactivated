@@ -11,8 +11,7 @@ deep field access on both sides.
 
 ## Declaring a template
 
-Subclass `Template` and annotate your props. By convention, templates live in
-`templates.py` of the corresponding app:
+Subclass `Template` and annotate your props:
 
 ```python
 from reactivated.pick import pick
@@ -28,6 +27,13 @@ class BookDetail(Template):
     review_count: int
     can_edit: bool
 ```
+
+Declare it wherever the rendering code lives. Some projects keep a
+`templates.py` per app; others define the class right above the view that
+renders it. Both work, and we lean toward
+[colocation](/documentation/philosophy-goals/#colocation-is-a-good-thing): the
+template and its view are the same concern. The one fixed point is the class
+name, because the component file must match it.
 
 Note the `.returns` annotation: it means the view can pass the Django model
 instance directly, and serialization picks out the declared fields. No manual
@@ -120,25 +126,22 @@ the view drift apart silently and you find out from a user.
 
 ## The entry point
 
-One file boots the client: `client/index.tsx` calls `reactivate()`.
+You don't need one. If `client/index.tsx` is missing, the framework injects a
+default entry that boots everything: parse the preloaded server data, resolve
+the template, hydrate the document.
+
+Create the file only when you want the hooks:
 
 ```typescript
 import {reactivate} from "@reactivated";
 
-reactivate();
-```
-
-Bare is the default behavior: parse the preloaded server data, resolve the
-template, hydrate the document. Three optional hooks cover everything else:
-
-```typescript
 reactivate({
     // Browser-only setup, awaited before hydration. Analytics, cordova,
     // anything window-flavored belongs here as dynamic imports.
     init: async () => { ... },
 
     // Wraps the rendered template with your app providers. Runs during SSR
-    // and in the browser — keep it pure so both sides agree on the markup.
+    // and in the browser, so keep it pure: both sides must agree on markup.
     render: (content, info) => <AppProviders>{content}</AppProviders>,
 
     // Take over mounting entirely. Skip hydration, mount an SPA root,

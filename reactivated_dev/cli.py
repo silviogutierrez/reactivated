@@ -28,6 +28,10 @@ build_mode = False
 banner_label = ""
 banner_port = 0
 
+# Used only when neither --port nor DEBUG_PORT names one: the conventional
+# Django dev port, for projects that manage their own environment.
+DEFAULT_PORT = 8000
+
 # (name, proc, process_group). Core processes (vite/tsc) run in their own
 # session and are group-killed; extras stay in our group so they die with the
 # terminal and get a plain SIGTERM.
@@ -164,6 +168,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--build", action="store_true")
+    parser.add_argument("--port", type=int, default=None)
     args = parser.parse_args()
 
     # A console script doesn't put cwd on sys.path the way `python file.py`
@@ -173,15 +178,14 @@ def main() -> None:
 
     # The user-facing port. In vite mode Vite listens here and proxies to
     # Django; in build mode Django serves the built assets here directly.
-    # Shell-owned static allocation: setup_environment.sh derives and exports
-    # a stable per-checkout value; export DEBUG_PORT yourself to override.
-    if "DEBUG_PORT" not in os.environ:
-        sys.exit(
-            "reactivate: DEBUG_PORT is not set — source "
-            "setup_environment.sh (which derives and exports it), or export "
-            "DEBUG_PORT yourself."
-        )
-    user_port = int(os.environ["DEBUG_PORT"])
+    # --port beats DEBUG_PORT (the project shell's stable per-checkout
+    # allocation — setup_environment.sh exports it, keeping parallel worktrees
+    # and their port-block companions collision-free) beats the conventional
+    # default.
+    user_port = args.port or int(os.environ.get("DEBUG_PORT") or DEFAULT_PORT)
+    # Extra processes resolve $DEBUG_PORT-derived values at spawn time, and
+    # children read the env — keep everything on the EFFECTIVE port.
+    os.environ["DEBUG_PORT"] = str(user_port)
 
     # A live server here means another instance (usually another worktree) owns
     # the port. Vite mode cannot detect this on its own: the express server

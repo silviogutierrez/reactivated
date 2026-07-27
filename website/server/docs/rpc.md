@@ -155,9 +155,9 @@ def archive_book(user: models.User, book_id: int) -> None:
 await server.store.api.archive_book({book_id: 42});
 ```
 
-Inputs can also drive real form UIs. Decorate a `Pick` with `@form` and
+Inputs can also carry form metadata. Decorate a `Pick` with `@form` and
 declare fields with `FormField` to attach widget, label, and placeholder
-metadata. The client renders controls from the schema alone:
+information:
 
 ```python
 from reactivated.forms import FormField, form
@@ -170,8 +170,13 @@ class ReviewForm(Pick):
     comment: str | None = FormField(widget="textarea", required=False)
 ```
 
-`exclude` marks fields the rendered form never shows; the client supplies
+`exclude` marks fields a rendered form should never show; the client supplies
 `book_id` programmatically.
+
+The metadata lands in the generated schema, so the client knows every field's
+widget, label, and required state. What we don't have yet is documentation and
+first-class helpers for _rendering_ it; projects currently read the schema and
+build their own field components. That guide is coming.
 
 ## Outputs
 

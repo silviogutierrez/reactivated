@@ -56,6 +56,23 @@ jobs:
                   sleep 20
                   curl -f http://localhost:8000/ | grep -q "The install worked successfully"
                   kill %1 || true
+            - name: Test dev server renders home page
+              run: |
+                  cd integration
+                  nix-shell --command "
+                    reactivate &
+                    pid=\$!
+                    ok=1
+                    for i in \$(seq 60); do
+                      if curl -sf http://localhost:\$DEBUG_PORT/ | grep -q 'The install worked successfully'; then
+                        ok=0
+                        break
+                      fi
+                      sleep 2
+                    done
+                    kill \$pid 2>/dev/null || true
+                    exit \$ok
+                  "
             - name: Run tests after removing example
               run: |
                   cd integration

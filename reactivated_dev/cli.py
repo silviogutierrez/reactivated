@@ -173,11 +173,13 @@ def main() -> None:
 
     # The user-facing port. In vite mode Vite listens here and proxies to
     # Django; in build mode Django serves the built assets here directly.
-    # Shell-owned static allocation: the project env derives and exports it.
+    # Shell-owned static allocation: setup_environment.sh derives and exports
+    # a stable per-checkout value; export DEBUG_PORT yourself to override.
     if "DEBUG_PORT" not in os.environ:
         sys.exit(
-            "reactivate: DEBUG_PORT is not set — the project shell environment "
-            "derives and exports it (see helpers.sh)."
+            "reactivate: DEBUG_PORT is not set — source "
+            "setup_environment.sh (which derives and exports it), or export "
+            "DEBUG_PORT yourself."
         )
     user_port = int(os.environ["DEBUG_PORT"])
 

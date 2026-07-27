@@ -53,3 +53,14 @@ if [ "$NEED_DATABASE" == true ]; then
 fi
 
 export DATABASE_URL="postgres:///database?host=$TMP_ENV&port=1"
+
+# The dev server (`reactivate`) and per-checkout companions (tunnels,
+# proxies) key their ports off DEBUG_PORT (+1, +2, ... for siblings). Derive
+# a stable per-checkout value from the checkout path; export DEBUG_PORT
+# before entering the shell to override. Echoed so a rare hash collision
+# between two checkouts is visible.
+if [ -z "${DEBUG_PORT:-}" ]; then
+    DEBUG_PORT=$((20000 + ($(readlink -f "$PWD" | cksum | cut -d ' ' -f 1) % 1000) * 10))
+    export DEBUG_PORT
+fi
+echo "Dev port: $DEBUG_PORT (http://localhost:$DEBUG_PORT/)"

@@ -178,6 +178,12 @@ widget, label, and required state. What we don't have yet is documentation and
 first-class helpers for _rendering_ it; projects currently read the schema and
 build their own field components. That guide is coming.
 
+If you'd rather not wait: the `@form` class is exported at its server path as
+a plain `as const` object. `server.store.api.ReviewForm` carries a `fields`
+map with each field's widget, label, placeholder, and required state, plus the
+field order, all typed. `Object.entries()` it and render whatever you like.
+That's exactly what our own projects do today.
+
 ## Outputs
 
 Return anything serializable: primitives, Pydantic models, enums, lists, or a

@@ -18,10 +18,12 @@ fi
 # Compile the TypeScript package to dist/.
 "$ROOT/node_modules/.bin/tsc" --project "$SUBTREE/packages/reactivated/tsconfig.json"
 
-# tsc emits the compiled bin entries without exec bits, and the re-link below
-# does not reliably restore them: a checkout whose install history ever
-# short-circuited bin fixup (e.g. --ignore-scripts) is left with dead bins —
-# "start_vite: Permission denied". Stamp them deterministically.
+# tsc emits the compiled bin entries without exec bits. The re-link below
+# only chmods bin targets for links it CREATES: on a first build the .bin
+# links don't exist yet (npm skips bins whose targets are absent), so fresh
+# checkouts come out executable — but once the links exist, a regenerated
+# dist/ stays non-executable and every bin dies with "Permission denied".
+# Stamp deterministically instead of depending on that state.
 chmod +x "$SUBTREE"/packages/reactivated/dist/*.mjs
 
 # Re-link the file: dependency: its bin entries point into dist/, which only

@@ -179,11 +179,11 @@ export const Template = (props: server.documentation.templates.HomePage) => (
                     <Code language="tsx">
                         {outdent`
                             import React from "react";
-                            import {CSRFToken, Form, templates} from "@reactivated";
+                            import {CSRFToken, Form, server} from "@reactivated";
 
                             import {Layout} from "@client/components/Layout";
 
-                            export const Template = (props: server.documentation.templates.HomePage) => (
+                            export const Template = (props: server.example.templates.HomePage) => (
                                 <Layout title="Sign Up">
                                     <h1>Sign Up</h1>
                                     <form method="POST">
@@ -214,7 +214,10 @@ export const Template = (props: server.documentation.templates.HomePage) => (
                 <div className="homePageFeatures">
                     <div>
                         <h2>Type Safe</h2>
-                        <p>TypeScript and Mypy built-in. Catch mistakes early.</p>
+                        <p>
+                            TypeScript and Mypy built-in. One set of types, from the
+                            database to the DOM.
+                        </p>
                     </div>
                     <div>
                         <h2>Deployment Ready</h2>
@@ -320,22 +323,58 @@ export const Template = (props: server.documentation.templates.HomePage) => (
                 <Highlight>
                     <Code language="python">
                         {outdent`
-                            class LoginForm(forms.Form):
-                                email = forms.EmailField()
-                                password = forms.PasswordField()
+                            from reactivated.pick import pick
+                            from reactivated.templates import Template
 
-                            @template
-                            class Login(NamedTuple):
-                                form: forms.LoginForm
+                            BookSummary = pick(models.Book, fields=["id", "title", "author.name"])
+
+                            class Library(Template):
+                                books: list[BookSummary.returns]
                         `}
                     </Code>
                     <div>
                         <h2>Type safety — everywhere</h2>
                         <p>All roads lead to types. So embrace them.</p>
                         <p>
-                            Type your Django code, and all of your React templates will
-                            be typed automatically.
+                            Pick the exact model fields you need. Your React templates
+                            are typed automatically, all the way down:{" "}
+                            <code>book.author.name</code> is a string on both sides.
                         </p>
+                    </div>
+                </Highlight>
+                <Highlight>
+                    <div>
+                        <h2>Call the server like a function</h2>
+                        <p>REST endpoints and ad-hoc fetch calls are no way to live.</p>
+                        <p>
+                            Declare a procedure in Python. Call it from TypeScript.
+                            Inputs validated, outputs typed, and even authentication is
+                            proven by mypy: the handler receives the logged-in user, not
+                            a request.
+                        </p>
+                    </div>
+                    <div>
+                        <Code language="python">
+                            {outdent`
+                                @router.authenticated.rpc
+                                def rate_book(user: User, form: RateForm) -> float:
+                                    book = models.Book.objects.get(pk=form.book_id)
+                                    book.ratings.create(user=user, stars=form.stars)
+                                    return book.average_rating
+                            `}
+                        </Code>
+                        <Code language="tsx">
+                            {outdent`
+                                const result = await server.store.api.rate_book({
+                                    book_id: 5,
+                                    stars: 4,
+                                });
+
+                                if (result.type === "success") {
+                                    setAverage(result.data); // number
+                                }
+                            `}
+                        </Code>
                     </div>
                 </Highlight>
                 <Highlight>
@@ -373,7 +412,7 @@ export const Template = (props: server.documentation.templates.HomePage) => (
                                 <CSRFToken />
                                 <Form handler={form} as="p" fields={fields} />
                                 <button type="submit">Send wire</button>
-                            </>;
+                            </form>;
                         };
                     `}</Code>
                     </div>

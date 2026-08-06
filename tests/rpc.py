@@ -339,6 +339,52 @@ def test_app_enum_serializes_by_name_outside_pick_context() -> None:
     assert third.dump_python(ThirdParty.A, mode="json") == "a-value"
 
 
+def test_literal_app_enum_serializes_by_name_outside_pick_context() -> None:
+    # Mirror of the bare-enum case for Literal[Enum.MEMBER]: an app-owned enum
+    # inside a Literal (a union discriminant, or a narrowed bare return)
+    # coerces and serializes by member NAME even with no Pick on the stack.
+    class Outcome(enum.Enum):
+        WON = "won-value"
+        LOST = "lost-value"
+
+    Outcome.__module__ = "sample.server.apps.samples.models"
+
+    adapter: TypeAdapter[Any] = TypeAdapter(Literal[Outcome.WON, Outcome.LOST])
+    assert adapter.dump_python(Outcome.WON, mode="json") == "WON"
+    assert adapter.validate_python("WON") is Outcome.WON
+
+    # A pure string Literal has no enum members to coerce — left untouched.
+    plain: TypeAdapter[Any] = TypeAdapter(Literal["a", "b"])
+    assert plain.dump_python("a", mode="json") == "a"
+
+
+def test_auto_export_names_direct_rpc_types() -> None:
+    from reactivated.rpc.core import _auto_export_name
+
+    app_module = "sample.server.apps.samples.models"
+
+    class WidgetResult(Pick):
+        status: str
+
+    WidgetResult.__module__ = app_module
+
+    # A Pick used directly as an RPC input/output names itself by qualname.
+    name = _auto_export_name(WidgetResult, app_module)
+    assert name is not None and name.endswith(".WidgetResult")
+
+    # A bare, unnamed Literal has no module-level binding — it stays inline and
+    # is named via the RPC's own output slot (P3) instead.
+    assert _auto_export_name(Literal["a", "b"], app_module) is None
+
+    # Enums are excluded (no input/output attrs); they keep explicit export()
+    # for the runtime value map.
+    class Flavor(enum.Enum):
+        SWEET = "sweet"
+
+    Flavor.__module__ = app_module
+    assert _auto_export_name(Flavor, app_module) is None
+
+
 def test_enums_pick_as_dict_by_name() -> None:
     class Status(enum.Enum):
         ACTIVE = "Active"
@@ -972,6 +1018,55 @@ def test_literal_enum_in_discriminated_union() -> None:
         Suggestion.model_validate(
             {"suggestion": {"action": "INVALID", "subject": "Hi"}}
         )
+
+
+def test_literal_enum_as_union_discriminator() -> None:
+    """Literal[Enum.MEMBER] works as an EXPLICIT Field(discriminator=...) tag.
+
+    Pydantic reads a tagged union's tag values statically out of the
+    discriminator field's core schema and refuses function-wrap validators
+    there — which the by-name enum coercion used to be. It is now an
+    after-validator over a names+members literal, which pydantic can see
+    through, so app enums can discriminate unions directly."""
+
+    class Kind(enum.Enum):
+        TIMED = "Timed"
+        ALL_DAY = "All Day"
+
+    class Timed(Pick):
+        kind: Literal[Kind.TIMED]
+        hour: int
+
+    class AllDay(Pick):
+        kind: Literal[Kind.ALL_DAY]
+        day: str
+
+    class Holder(Pick):
+        slot: Annotated[Timed | AllDay, Field(discriminator="kind")]
+
+    # Wire NAMES pick the arm, as do Python members and direct construction.
+    holder = Holder.model_validate({"slot": {"kind": "ALL_DAY", "day": "2026-08-04"}})
+    assert isinstance(holder.slot, AllDay)
+    assert holder.slot.kind is Kind.ALL_DAY
+    assert isinstance(
+        Holder.model_validate({"slot": {"kind": Kind.TIMED, "hour": 9}}).slot, Timed
+    )
+    Holder(slot=Timed(kind=Kind.TIMED, hour=9))
+
+    with pytest.raises(ValidationError):
+        Holder.model_validate({"slot": {"kind": "NOPE", "day": ""}})
+
+    # The wire and the arm field schemas — what generated TypeScript is built
+    # from (the generator reads oneOf + arm properties) — speak NAMES only.
+    assert holder.model_dump(mode="json")["slot"]["kind"] == "ALL_DAY"
+    schema = Holder.model_json_schema()
+    arm_kind = json.dumps(schema["$defs"]["AllDay"]["properties"]["kind"])
+    assert "ALL_DAY" in arm_kind
+    assert "All Day" not in arm_kind
+    # The openapi discriminator.mapping keys BOTH spellings to the same arm
+    # (runtime accepts both) — metadata the TS generator never reads.
+    mapping = schema["properties"]["slot"]["discriminator"]["mapping"]
+    assert mapping["ALL_DAY"] == mapping["All Day"]
 
 
 def test_literal_enum_name_value_mismatch() -> None:

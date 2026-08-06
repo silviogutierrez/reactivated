@@ -1977,6 +1977,11 @@ manually_exported_registry: dict[str, Type[object]] = {}
 # name -> (value, annotation or None)
 exported_values_registry: dict[str, tuple[Any, Any]] = {}
 value_registry: dict[str, type[enum.Enum]] = {}
+# Auto-exported types: the DIRECT input/output types of RPCs (and the named
+# arms of a union return) that carry a resolvable module-qualified name, so
+# they surface as server.<module>.<Name> without an explicit export(). Rebuilt
+# from the RPC registry each generation by _populate_auto_exports().
+auto_exported_registry: dict[str, Any] = {}
 
 
 class _NamespaceTree:
@@ -2028,7 +2033,65 @@ def _annotation_to_ts(annotation: Any) -> str | None:
     return None
 
 
+def _auto_export_name(type_obj: Any, module_name: str) -> str | None:
+    """Resolve a module-qualified name for a type referenced directly in an RPC
+    signature, or None if it can't be named. A Pick subclass names itself by
+    qualname; a bare Literal/Union alias is matched to a module-level binding in
+    the RPC's module. Enums (no input/output attrs, not a Literal/Union) and
+    unnameable inline types return None and stay inline — never asserts."""
+    if inspect.isclass(type_obj) and (
+        issubclass(type_obj, Pick)
+        or PickAsDict in getattr(type_obj, "__orig_bases__", ())
+    ):
+        # A @form'd Pick already owns its server.<app>.<Name> slot (the const is
+        # its form schema, the wire shape lives at models[...]); auto-exporting a
+        # wire-type alias of the same name would redeclare it. Leave those to the
+        # form emission. Otherwise a hand-written Pick/PickAsDict has one shape
+        # (no read/write-only split) and emits as a single alias — pick() holders
+        # (which do split) aren't Pick subclasses and stay in picks_registry.
+        from ..forms.core import form_registry
+
+        if type_obj in form_registry:
+            return None
+        app = module_name_to_app_name(type_obj.__module__)
+        return f"{app}.{type_obj.__qualname__}" if app is not None else None
+
+    if (
+        get_origin(type_obj) is Literal
+        or get_origin(type_obj) is Union
+        or isinstance(type_obj, UnionType)
+    ):
+        module = sys.modules.get(module_name)
+        app = module_name_to_app_name(module_name)
+        if module is not None and app is not None:
+            for var_name, value in vars(module).items():
+                if value is type_obj:
+                    return f"{app}.{var_name}"
+    return None
+
+
+def _populate_auto_exports() -> None:
+    """Auto-name the direct input/output types of every RPC (plus the named arms
+    of a union return) into auto_exported_registry. Conservative: only the
+    signature's own types, never types nested inside a Pick's fields (those stay
+    inline, reachable through their parent). Best-effort and idempotent."""
+    auto_exported_registry.clear()
+    for rpc_call in _get_combined_rpc_registry().values():
+        module_name = rpc_call["module"]
+        for edge in (rpc_call["input"], rpc_call["output"]):
+            if edge is None:
+                continue
+            candidates = [edge]
+            if get_origin(edge) is Union or isinstance(edge, UnionType):
+                candidates.extend(get_args(edge))
+            for candidate in candidates:
+                name = _auto_export_name(candidate, module_name)
+                if name is not None and name not in auto_exported_registry:
+                    auto_exported_registry[name] = candidate
+
+
 def generate_server_namespace() -> _NamespaceTree:
+    _populate_auto_exports()
     tree = _NamespaceTree()
     server = tree.at(["server"])
 
@@ -2062,7 +2125,13 @@ def generate_server_namespace() -> _NamespaceTree:
     # Manually exported types: Picks get input/output leaves; everything
     # else (Literal aliases, plain classes) is a type alias at its path.
     emitted_pick_leaves: set[str] = set()
-    for registry_name, exported in manually_exported_registry.items():
+    # Auto-exported RPC input/output types share this emission with explicit
+    # export()s; a manual export of the same name wins (identical output, but
+    # keeps a single source of truth).
+    for registry_name, exported in {
+        **auto_exported_registry,
+        **manually_exported_registry,
+    }.items():
         if registry_name in value_registry:
             continue  # enums already carry their own type
         *path, leaf = registry_name.split(".")
@@ -2122,7 +2191,31 @@ def generate_server_namespace() -> _NamespaceTree:
         node.body.append(
             f"export const {leaf} = {json.dumps(form_schema, indent=4)} as const;"
         )
-        node.body.append(f"export type {leaf} = typeof {leaf};")
+        # The type alias stays `typeof` the const — downstream apps pass the
+        # bare name as PFormHandler<server.x.y.Form>, so the type slot is
+        # load-bearing and must keep meaning the form schema. The WIRE shape
+        # is addressable as models["<app>.<module>.<Form>"] instead: form'd
+        # Picks are registered into the models bag above. Skip the alias when
+        # the Pick is also @export'ed (that path emits its own).
+        registry_name = f"{app_name}.{form_cls.__qualname__}"
+        if registry_name not in manually_exported_registry:
+            node.body.append(f"export type {leaf} = typeof {leaf};")
+
+    # An RPC's own output/input types live at its module path, so a bare
+    # `-> Literal[...]` (or any anonymous return) is nameable on the client as
+    # server.<module>.<rpc>.output with no wrapper Pick and no module-level
+    # alias — the RPC function name IS the name of its return shape. Same
+    # Schema field the generated client function returns, so the two never
+    # drift.
+    for rpc_name, rpc_call in _get_combined_rpc_registry().items():
+        app_path = module_name_to_app_name(rpc_call["module"])
+        if app_path is None:
+            continue
+        leaf = rpc_call["name"]
+        rpc_node = server.at([*app_path.split("."), leaf])
+        rpc_node.body.append(f'export type output = Schema["{rpc_name}_output"];')
+        if rpc_call["input"] is not None:
+            rpc_node.body.append(f'export type input = Schema["{rpc_name}_input"];')
 
     return tree
 
@@ -2950,6 +3043,38 @@ def generate_client_schema(skip_cache: bool = False) -> None:
         )
     for exported_model_pretty_name, cls in manually_exported_registry.items():
         model_fields[exported_model_pretty_name] = (cls, ...)  # type: ignore[assignment]
+
+    # Auto-exported RPC input/output types join the models bag so their
+    # namespace leaves resolve; an explicit export() of the same name already
+    # populated it and takes precedence.
+    for auto_name, auto_cls in auto_exported_registry.items():
+        if auto_name not in model_fields:
+            model_fields[auto_name] = (auto_cls, ...)
+        elif (
+            auto_name in manually_exported_registry and auto_name not in value_registry
+        ):
+            import warnings
+
+            warnings.warn(
+                f"export() of {auto_name!r} is redundant: it is the input or "
+                f"output of an RPC and is auto-exported as server.{auto_name}. "
+                f"Remove the explicit export().",
+                stacklevel=2,
+            )
+
+    # @form'd Picks join the models bag too, so their namespace TYPE can be
+    # the WIRE shape (the const stays the form schema — value and type
+    # positions disambiguate): `useAutoPform(server.x.y.Form)` reads the
+    # const, `f: server.x.y.Form | null` reads the wire type.
+    from ..forms.core import form_registry
+
+    for form_cls in form_registry:
+        form_app_name = module_name_to_app_name(form_cls.__module__)
+        if form_app_name is None:
+            continue
+        form_registry_name = f"{form_app_name}.{form_cls.__qualname__}"
+        if form_registry_name not in model_fields:
+            model_fields[form_registry_name] = (form_cls, ...)
 
     template_fields = {
         f"template_{template_name}": (template_class, ...)

@@ -162,34 +162,37 @@ file. Never suppress E402 to keep imports at the bottom; restructure instead.
 
 ## Authoring RPC return types (for consumers)
 
-Guidance for code that *consumes* this framework — app `@rpc` handlers. This
+Guidance for code that _consumes_ this framework — app `@rpc` handlers. This
 file ships to every consumer as the vendored `upstream/reactivated/CLAUDE.md`,
 so a project's own `CLAUDE.md` can point here instead of restating it.
 
 - **Return the value, not a wrapper.** An `@rpc` should return a bare
   `Literal[...]`, enum, or `Pick` directly. Do NOT invent a single-field
-  wrapper Pick (`class FooResult(Pick): status: Literal[...]`) just to carry
-  one value. An RPC's return type is addressable on the client at
+  wrapper Pick (`class FooResult(Pick): status: Literal[...]`) just to carry one
+  value. An RPC's return type is addressable on the client at
   `server.<module>.<rpc>.output`, so a bare return already has a named handle —
   the wrapper buys nothing and adds a field-read on every call site.
 - **Don't `export()` a direct RPC type.** A `Pick`/`Literal`/`Union` used
   directly as an RPC input or output auto-exports to `server.<module>.<Name>`;
   an explicit `export()` of it is redundant and emits a warning. Reserve
-  `export()` for enums (their runtime value map) and for constants/types not
-  in any RPC signature.
+  `export()` for enums (their runtime value map) and for constants/types not in
+  any RPC signature.
 - **Keep genuine multi-field Picks.** Bare returns are for single values; a
   result with several fields is a real shape — keep it a `Pick`. Don't add
   `Field(title=...)` to an inline `Literal` unless a client imports that title
   as a type.
-- **Two exceptions where the wrapper must stay** — no type checker catches
-  either, so they're the ones that bite:
-  1. When audit/logging code records RPC outputs by distinguishing an enum
-     member from a union arm (e.g. "a success returns a union arm; a refusal
-     returns the enum"), a bare enum return is silently mis-recorded. Keep the
-     wrapper (or a union arm) so the two stay distinguishable.
-  2. When the client discriminates a union return with `typeof data ===
-     "string"`, the success arm must stay an object — a bare `str` return
-     collapses both arms. Keep it an object.
+
+Two exceptions keep the wrapper — no type checker catches either, so they're the
+ones that bite:
+
+- **Audit/logging that distinguishes enum from union arm.** When logging records
+  RPC outputs by telling an enum member apart from a union arm (e.g. a success
+  returns a union arm; a refusal returns the enum), a bare enum return is
+  silently mis-recorded. Keep the wrapper (or a union arm) so the two stay
+  distinguishable.
+- **String-discriminated unions.** When the client narrows a union return with
+  `typeof data === "string"`, the success arm must stay an object; a bare `str`
+  return collapses both arms. Keep it an object.
 
 ## Blast Radius: Check Consumers Before Generator Changes
 

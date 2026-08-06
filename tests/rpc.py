@@ -974,6 +974,55 @@ def test_literal_enum_in_discriminated_union() -> None:
         )
 
 
+def test_literal_enum_as_union_discriminator() -> None:
+    """Literal[Enum.MEMBER] works as an EXPLICIT Field(discriminator=...) tag.
+
+    Pydantic reads a tagged union's tag values statically out of the
+    discriminator field's core schema and refuses function-wrap validators
+    there — which the by-name enum coercion used to be. It is now an
+    after-validator over a names+members literal, which pydantic can see
+    through, so app enums can discriminate unions directly."""
+
+    class Kind(enum.Enum):
+        TIMED = "Timed"
+        ALL_DAY = "All Day"
+
+    class Timed(Pick):
+        kind: Literal[Kind.TIMED]
+        hour: int
+
+    class AllDay(Pick):
+        kind: Literal[Kind.ALL_DAY]
+        day: str
+
+    class Holder(Pick):
+        slot: Annotated[Timed | AllDay, Field(discriminator="kind")]
+
+    # Wire NAMES pick the arm, as do Python members and direct construction.
+    holder = Holder.model_validate({"slot": {"kind": "ALL_DAY", "day": "2026-08-04"}})
+    assert isinstance(holder.slot, AllDay)
+    assert holder.slot.kind is Kind.ALL_DAY
+    assert isinstance(
+        Holder.model_validate({"slot": {"kind": Kind.TIMED, "hour": 9}}).slot, Timed
+    )
+    Holder(slot=Timed(kind=Kind.TIMED, hour=9))
+
+    with pytest.raises(ValidationError):
+        Holder.model_validate({"slot": {"kind": "NOPE", "day": ""}})
+
+    # The wire and the arm field schemas — what generated TypeScript is built
+    # from (the generator reads oneOf + arm properties) — speak NAMES only.
+    assert holder.model_dump(mode="json")["slot"]["kind"] == "ALL_DAY"
+    schema = Holder.model_json_schema()
+    arm_kind = json.dumps(schema["$defs"]["AllDay"]["properties"]["kind"])
+    assert "ALL_DAY" in arm_kind
+    assert "All Day" not in arm_kind
+    # The openapi discriminator.mapping keys BOTH spellings to the same arm
+    # (runtime accepts both) — metadata the TS generator never reads.
+    mapping = schema["properties"]["slot"]["discriminator"]["mapping"]
+    assert mapping["ALL_DAY"] == mapping["All Day"]
+
+
 def test_literal_enum_name_value_mismatch() -> None:
     """Literal[Enum.MEMBER] speaks member NAMES on the wire even when the
     member's value differs — validation, dump, and JSON schema agree."""

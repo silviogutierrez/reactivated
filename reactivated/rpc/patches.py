@@ -9,6 +9,33 @@ from pydantic_core import core_schema
 _original_enum_schema = GenerateSchema._enum_schema
 
 
+def _is_pick_type(t: Any) -> bool:
+    # Lazy import to avoid a circular dependency — patches.py loads before
+    # core.py, but these helpers only run during model construction.
+    from .core import Pick, PickAsDict
+
+    if not isinstance(t, type):
+        return False
+    if issubclass(t, Pick):
+        return True
+    # TypedDict doesn't support issubclass; check bases by identity.
+    return PickAsDict in getattr(t, "__orig_bases__", ())
+
+
+def _is_app_enum(t: type[enum.Enum]) -> bool:
+    # An enum DEFINED in an installed Django app speaks member names on every
+    # wire — including as a bare RPC-output arm or a Literal[member] tag built
+    # OUTSIDE any Pick context, where the stack check alone would fall through
+    # to pydantic's default VALUE serialization (one wire format for pick
+    # fields, another for direct returns). Ownership decides instead, with
+    # nothing to remember (export() is for the client's type + value map,
+    # never a serialization prerequisite). SDK enums (e.g. google-genai) never
+    # live in app modules and keep pydantic's default handling.
+    from .utils import module_name_to_app_name
+
+    return module_name_to_app_name(t.__module__) is not None
+
+
 # Pydantic 2.10+ deprecated schema_generator and 2.12 ignores it entirely.
 # Monkey-patch GenerateSchema._enum_schema so enums validate/serialize by
 # member NAME (e.g. "FOO") instead of by value (e.g. "Foo").
@@ -17,33 +44,6 @@ _original_enum_schema = GenerateSchema._enum_schema
 def _enum_schema_by_name(
     self: GenerateSchema, enum_type: type[enum.Enum]
 ) -> core_schema.CoreSchema:
-    # Lazy import to avoid circular dependency — patches.py is loaded before
-    # core.py, but this function is only called during model construction.
-    from .core import Pick, PickAsDict
-
-    def _is_pick_type(t: Any) -> bool:
-        if not isinstance(t, type):
-            return False
-        if issubclass(t, Pick):
-            return True
-        # TypedDict doesn't support issubclass; check bases by identity.
-        return PickAsDict in getattr(t, "__orig_bases__", ())
-
-    def _is_app_enum(t: type[enum.Enum]) -> bool:
-        # A bare enum arm of an RPC output (TypeAdapter over
-        # `MyEnum | SomePick`) is schema-built OUTSIDE any Pick context, so
-        # the stack check alone falls through to pydantic's default VALUE
-        # serialization — one wire format for pick fields, another for
-        # direct returns. Ownership decides instead: an enum DEFINED in an
-        # installed Django app speaks member names on every wire, with
-        # nothing to remember (export() is for the client's type + value
-        # map, never a serialization prerequisite). SDK enums (e.g.
-        # google-genai) never live in app modules and keep pydantic's
-        # default handling.
-        from .utils import module_name_to_app_name
-
-        return module_name_to_app_name(t.__module__) is not None
-
     is_pick_context = any(_is_pick_type(t) for t in self.model_type_stack._stack)
 
     if not is_pick_context and not _is_app_enum(enum_type):
@@ -91,25 +91,22 @@ _original_literal_schema = GenerateSchema._literal_schema
 def _literal_schema_with_enum_coercion(
     self: GenerateSchema, literal_type: Any
 ) -> core_schema.CoreSchema:
-    from .core import Pick, PickAsDict
+    original = _original_literal_schema(self, literal_type)
 
-    def _is_pick_type(t: Any) -> bool:
-        if not isinstance(t, type):
-            return False
-        if issubclass(t, Pick):
-            return True
-        return PickAsDict in getattr(t, "__orig_bases__", ())
+    expected = original.get("expected", [])
+    enum_members = [v for v in expected if isinstance(v, enum.Enum)]
 
     is_pick_context = any(_is_pick_type(t) for t in self.model_type_stack._stack)
 
-    if not is_pick_context:
-        return _original_literal_schema(self, literal_type)
+    # Outside a Pick context, only app-owned enum members coerce by name —
+    # mirroring _enum_schema_by_name, so a bare `-> Literal[AppEnum.A, ...]`
+    # return (and an app-enum Literal used as a union discriminant) speaks
+    # member names on the wire just like a bare enum return. A pure string/int
+    # Literal, or one over SDK enums, keeps pydantic's default handling.
+    if not is_pick_context and not any(_is_app_enum(type(m)) for m in enum_members):
+        return original
 
-    original = _original_literal_schema(self, literal_type)
-
-    # Only wrap if the literal contains enum members
-    expected = original.get("expected", [])
-    enum_members = [v for v in expected if isinstance(v, enum.Enum)]
+    # Only coerce when the literal actually contains enum members.
     if not enum_members:
         return original
 
@@ -123,28 +120,42 @@ def _literal_schema_with_enum_coercion(
     # the enum's *value*, so a model cannot round-trip its own model_dump and
     # the client types lie whenever a member's name differs from its value.
     renamed = [v.name if isinstance(v, enum.Enum) else v for v in expected]
-    name_schema = core_schema.literal_schema(renamed)
 
-    def coerce_enum_literal(
-        value: Any, handler: core_schema.ValidatorFunctionWrapHandler
-    ) -> Any:
+    # An AFTER validator over a heterogeneous literal, not a wrap: pydantic's
+    # discriminated-union builder must statically read each arm's tag values
+    # out of the discriminator field's core schema, and it can see through
+    # function-after ("after validators don't affect the discriminator
+    # values") but hard-refuses function-wrap/before/plain. The old wrap made
+    # Literal[Enum.MEMBER] unusable as a union discriminant. The literal
+    # accepts both spellings — wire NAMES (JSON input) and the members
+    # themselves (direct Python construction) — so the inferred tag set
+    # covers both, and the after step normalizes names to members.
+    def coerce_enum_literal(value: Any) -> Any:
         if isinstance(value, enum.Enum):
-            value = value.name
-        validated = handler(value)
-        return name_to_member.get(validated, validated)
+            return value
+        return name_to_member.get(value, value)
 
     def serialize(value: Any, info: core_schema.SerializationInfo) -> Any:
         if info.mode == "json" and isinstance(value, enum.Enum):
             return value.name
         return value
 
-    return core_schema.no_info_wrap_validator_function(
+    result = core_schema.no_info_after_validator_function(
         coerce_enum_literal,
-        name_schema,
+        core_schema.literal_schema(renamed + enum_members),
         serialization=core_schema.plain_serializer_function_ser_schema(
             serialize, info_arg=True
         ),
     )
+    # The heterogeneous literal would leak member VALUES into the JSON
+    # schema (and from there into generated TypeScript); advertise the wire
+    # NAMES only, same as the wire itself.
+    result["metadata"] = {
+        "pydantic_js_functions": [
+            lambda _core, handler: handler(core_schema.literal_schema(renamed))
+        ]
+    }
+    return result
 
 
 GenerateSchema._literal_schema = _literal_schema_with_enum_coercion  # type: ignore[method-assign]

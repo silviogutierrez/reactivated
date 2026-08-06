@@ -159,3 +159,16 @@ file. Never suppress E402 to keep imports at the bottom; restructure instead.
 - A namespace is a tree-shaking boundary: importing `server.core` pulls all
   of core's constants. That's fine _because_ exported values are primitives
   only — keep it that way.
+
+## Blast Radius: Check Downstream Repos Before Generator Changes
+
+Reactivated is consumed as a subtree by multiple apps (MCR, Joy, Fuel
+Meals). Any change to generated OUTPUT — the server namespace emission,
+type aliases, schema shapes, enum/wire serialization — must be checked
+against downstream usage before shipping, not just against the host repo:
+clone Joy (see the host CLAUDE.md for the command) and grep for the
+affected spelling. Concrete precedent: swapping a @form'd Pick's namespace
+type alias from `typeof` (form schema) to the wire shape passed every
+check in MCR — and would have broken six `PFormHandler<server.x.y.Form>`
+call sites in Joy, which pass the bare name in type position. A host-repo
+audit of a shared framework is the wrong scope.

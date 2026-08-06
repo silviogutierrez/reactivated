@@ -2122,7 +2122,31 @@ def generate_server_namespace() -> _NamespaceTree:
         node.body.append(
             f"export const {leaf} = {json.dumps(form_schema, indent=4)} as const;"
         )
-        node.body.append(f"export type {leaf} = typeof {leaf};")
+        # The type alias stays `typeof` the const — downstream apps pass the
+        # bare name as PFormHandler<server.x.y.Form>, so the type slot is
+        # load-bearing and must keep meaning the form schema. The WIRE shape
+        # is addressable as models["<app>.<module>.<Form>"] instead: form'd
+        # Picks are registered into the models bag above. Skip the alias when
+        # the Pick is also @export'ed (that path emits its own).
+        registry_name = f"{app_name}.{form_cls.__qualname__}"
+        if registry_name not in manually_exported_registry:
+            node.body.append(f"export type {leaf} = typeof {leaf};")
+
+    # An RPC's own output/input types live at its module path, so a bare
+    # `-> Literal[...]` (or any anonymous return) is nameable on the client as
+    # server.<module>.<rpc>.output with no wrapper Pick and no module-level
+    # alias — the RPC function name IS the name of its return shape. Same
+    # Schema field the generated client function returns, so the two never
+    # drift.
+    for rpc_name, rpc_call in _get_combined_rpc_registry().items():
+        app_path = module_name_to_app_name(rpc_call["module"])
+        if app_path is None:
+            continue
+        leaf = rpc_call["name"]
+        rpc_node = server.at([*app_path.split("."), leaf])
+        rpc_node.body.append(f'export type output = Schema["{rpc_name}_output"];')
+        if rpc_call["input"] is not None:
+            rpc_node.body.append(f'export type input = Schema["{rpc_name}_input"];')
 
     return tree
 
@@ -2950,6 +2974,20 @@ def generate_client_schema(skip_cache: bool = False) -> None:
         )
     for exported_model_pretty_name, cls in manually_exported_registry.items():
         model_fields[exported_model_pretty_name] = (cls, ...)  # type: ignore[assignment]
+
+    # @form'd Picks join the models bag too, so their namespace TYPE can be
+    # the WIRE shape (the const stays the form schema — value and type
+    # positions disambiguate): `useAutoPform(server.x.y.Form)` reads the
+    # const, `f: server.x.y.Form | null` reads the wire type.
+    from ..forms.core import form_registry
+
+    for form_cls in form_registry:
+        form_app_name = module_name_to_app_name(form_cls.__module__)
+        if form_app_name is None:
+            continue
+        form_registry_name = f"{form_app_name}.{form_cls.__qualname__}"
+        if form_registry_name not in model_fields:
+            model_fields[form_registry_name] = (form_cls, ...)
 
     template_fields = {
         f"template_{template_name}": (template_class, ...)

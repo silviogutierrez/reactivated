@@ -339,6 +339,52 @@ def test_app_enum_serializes_by_name_outside_pick_context() -> None:
     assert third.dump_python(ThirdParty.A, mode="json") == "a-value"
 
 
+def test_literal_app_enum_serializes_by_name_outside_pick_context() -> None:
+    # Mirror of the bare-enum case for Literal[Enum.MEMBER]: an app-owned enum
+    # inside a Literal (a union discriminant, or a narrowed bare return)
+    # coerces and serializes by member NAME even with no Pick on the stack.
+    class Outcome(enum.Enum):
+        WON = "won-value"
+        LOST = "lost-value"
+
+    Outcome.__module__ = "sample.server.apps.samples.models"
+
+    adapter: TypeAdapter[Any] = TypeAdapter(Literal[Outcome.WON, Outcome.LOST])
+    assert adapter.dump_python(Outcome.WON, mode="json") == "WON"
+    assert adapter.validate_python("WON") is Outcome.WON
+
+    # A pure string Literal has no enum members to coerce — left untouched.
+    plain: TypeAdapter[Any] = TypeAdapter(Literal["a", "b"])
+    assert plain.dump_python("a", mode="json") == "a"
+
+
+def test_auto_export_names_direct_rpc_types() -> None:
+    from reactivated.rpc.core import _auto_export_name
+
+    app_module = "sample.server.apps.samples.models"
+
+    class WidgetResult(Pick):
+        status: str
+
+    WidgetResult.__module__ = app_module
+
+    # A Pick used directly as an RPC input/output names itself by qualname.
+    name = _auto_export_name(WidgetResult, app_module)
+    assert name is not None and name.endswith(".WidgetResult")
+
+    # A bare, unnamed Literal has no module-level binding — it stays inline and
+    # is named via the RPC's own output slot (P3) instead.
+    assert _auto_export_name(Literal["a", "b"], app_module) is None
+
+    # Enums are excluded (no input/output attrs); they keep explicit export()
+    # for the runtime value map.
+    class Flavor(enum.Enum):
+        SWEET = "sweet"
+
+    Flavor.__module__ = app_module
+    assert _auto_export_name(Flavor, app_module) is None
+
+
 def test_enums_pick_as_dict_by_name() -> None:
     class Status(enum.Enum):
         ACTIVE = "Active"

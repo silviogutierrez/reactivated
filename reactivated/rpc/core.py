@@ -3050,7 +3050,9 @@ def generate_client_schema(skip_cache: bool = False) -> None:
     for auto_name, auto_cls in auto_exported_registry.items():
         if auto_name not in model_fields:
             model_fields[auto_name] = (auto_cls, ...)
-        elif auto_name in manually_exported_registry and auto_name not in value_registry:
+        elif (
+            auto_name in manually_exported_registry and auto_name not in value_registry
+        ):
             import warnings
 
             warnings.warn(

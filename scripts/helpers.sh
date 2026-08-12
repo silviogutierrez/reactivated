@@ -92,11 +92,6 @@ function capture_stdout_and_stderr_if_successful() {
     set -e
 }
 
-function open_browser() {
-    PORT=$((DEBUG_PORT + 200))
-    open http://"$ENTRYPOINT":$PORT/
-}
-
 function create_fix() {
     TITLE=$1
 

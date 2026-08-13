@@ -30,7 +30,7 @@ in with pkgs; {
 
     pkgs.shfmt
     pkgs.shellcheck
-    pkgs.nixfmt
+    pkgs.nixfmt-classic
   ];
   contributing_dependencies = [ pkgs.gitAndTools.gh pkgs.ripgrep pkgs.bash ];
 

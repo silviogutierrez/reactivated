@@ -13,11 +13,12 @@ from uvicorn.supervisors.watchfilesreload import WatchFilesReload
 
 from reactivated_dev.procs import (
     DJANGO_PORT_ENV,
-    PROCESSES_ENV,
     RENDERER_ENV,
     VITE_PORT_ENV,
+    collect_processes,
     get_free_port,
     is_serving,
+    is_socket_serving,
     spawn_tsc,
     spawn_vite,
     terminate_proc,
@@ -27,6 +28,10 @@ from reactivated_dev.procs import (
 build_mode = False
 banner_label = ""
 banner_port = 0
+banner_socket = ""
+# Unlinked on exit: uvicorn binds the socket but never removes the file, and a
+# leftover one makes the next run look like a stale-socket case.
+listen_socket = ""
 
 # Used only when neither --port nor DEBUG_PORT names one: the conventional
 # Django dev port, for projects that manage their own environment.
@@ -51,8 +56,12 @@ def print_banner(*, compact: bool = False) -> None:
     # dev URL when the project uses something richer than localhost (e.g. a
     # per-worktree hostname for cookie isolation), plus any additional fronts
     # the server is reachable through (e.g. a tailscale serve HTTPS proxy).
-    # Without them, plain localhost.
-    localhost_url = f"http://localhost:{banner_port}/"
+    # Without them, plain localhost — or the socket path under --socket, which
+    # has no URL of its own: whatever proxies it owns the address, so DEV_URL
+    # is the only thing that can name it.
+    localhost_url = (
+        f"unix:{banner_socket}" if banner_socket else f"http://localhost:{banner_port}/"
+    )
     dev_url = os.environ.get("DEV_URL", localhost_url)
     urls = [dev_url] + ([localhost_url] if dev_url != localhost_url else [])
     urls += os.environ.get("DEV_EXTRA_URLS", "").split()
@@ -106,11 +115,7 @@ def build_client() -> None:
 
 
 def spawn_extras() -> None:
-    commands = [
-        stripped
-        for line in os.environ.get(PROCESSES_ENV, "").splitlines()
-        if (stripped := line.strip())
-    ]
+    commands = collect_processes(os.environ)
     if not commands:
         return
 
@@ -143,6 +148,15 @@ def cleanup() -> None:
                 print(f"Error while terminating {name}: {e!r}")
         else:
             print(f"Process {name} already terminated (code={proc.returncode})")
+
+    # uvicorn binds the socket but leaves the file; a stale one makes the next
+    # run look like a crashed instance rather than a clean start.
+    if listen_socket and os.path.exists(listen_socket):
+        try:
+            os.unlink(listen_socket)
+        except OSError as e:  # noqa: BLE001
+            print(f"Error while removing {listen_socket}: {e!r}")
+
     print("Cleanup done.")
 
 
@@ -164,12 +178,32 @@ class SmartChangeReload(WatchFilesReload):
 
 
 def main() -> None:
-    global build_mode, banner_label, banner_port
+    global build_mode, banner_label, banner_port, banner_socket, listen_socket
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--build", action="store_true")
     parser.add_argument("--port", type=int, default=None)
+    # Build mode serves Django directly, so the listener is ours to choose:
+    # --socket binds a unix socket instead of TCP (what a reverse proxy in
+    # front of a preview/staging deploy wants — the path is stable, while a
+    # per-checkout DEBUG_PORT is not), and --host widens the bind beyond
+    # loopback (reachable from another machine without a forwarding side-car).
+    # Neither applies in vite mode: there the user-facing listener is Vite's
+    # express server, and uvicorn is an implementation detail behind it.
+    parser.add_argument("--socket", default=None)
+    parser.add_argument("--host", default="127.0.0.1")
     args = parser.parse_args()
+
+    if not args.build:
+        for flag, value in (("--socket", args.socket), ("--host", args.host)):
+            if value not in (None, parser.get_default(flag.lstrip("-"))):
+                sys.exit(
+                    f"reactivate: {flag} requires --build — in vite mode the "
+                    "user-facing listener is Vite, not Django."
+                )
+
+    if args.socket and args.port:
+        sys.exit("reactivate: --socket and --port are mutually exclusive.")
 
     # A console script doesn't put cwd on sys.path the way `python file.py`
     # does; the project's server.asgi (resolved in the reload worker, which
@@ -193,7 +227,18 @@ def main() -> None:
     # bind, so the loser "starts" cleanly but never receives traffic. Error out
     # like Django's runserver would. This also keeps wait_for_port honest — a
     # port verified free here can only have been opened by our own vite.
-    if is_serving(user_port):
+    if args.socket:
+        if is_socket_serving(args.socket):
+            sys.exit(
+                f"reactivate: {args.socket} is already serving — another "
+                "instance? Stop it or choose a different --socket."
+            )
+        # A crashed run leaves the file behind. bind() refuses to reuse it, so
+        # clear it now that we know nothing is accepting on it.
+        if os.path.exists(args.socket):
+            os.unlink(args.socket)
+        listen_socket = args.socket
+    elif is_serving(user_port):
         sys.exit(
             f"reactivate: port {user_port} is already serving — another "
             "worktree's dev server? Stop it or change DEBUG_PORT."
@@ -210,7 +255,10 @@ def main() -> None:
         # rebuild. Slower per change and no HMR, but reliable behind a proxy.
         build_mode = True
         backend_port = user_port
-        os.environ[DJANGO_PORT_ENV] = str(backend_port)
+        # Only when we actually bind a port: under --socket there is none, and
+        # an extra reading this would get an address nothing listens on.
+        if not listen_socket:
+            os.environ[DJANGO_PORT_ENV] = str(backend_port)
         spawn_extras()
         generate_client_assets(wait=True)
         build_client()
@@ -245,11 +293,15 @@ def main() -> None:
 
     banner_label = label
     banner_port = user_port
+    banner_socket = listen_socket
     print_banner()
 
+    # uds wins over host/port inside uvicorn's bind_socket, so passing both is
+    # unambiguous — and keeps one Config call instead of two near-identical ones.
     config = Config(
         "reactivated_dev.asgi:create_application",
-        host="127.0.0.1",
+        host=args.host,
+        uds=listen_socket or None,
         factory=True,
         reload=True,
         port=backend_port,

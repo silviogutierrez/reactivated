@@ -7,7 +7,7 @@ import json
 import sys
 import uuid
 import warnings
-from typing import Annotated, Any, Literal, TypedDict
+from typing import Annotated, Any, Literal, NewType, TypedDict
 from unittest.mock import Mock
 
 import pytest
@@ -1524,3 +1524,20 @@ async def test_failing_observer_cannot_roll_back_a_reported_success(rf: Any) -> 
     assert json.loads(response.content) == "registered"
     assert observed_in_atomic == [False]
     assert await sync_to_async(User.objects.filter(username="registered").exists)()
+
+
+def test_get_field_schema_unwraps_newtype() -> None:
+    """A NewType identifier resolves to its supertype's schema — the
+    instance-vs-class fallback must never emit `typing.NewType` itself
+    (which pydantic cannot build a schema for)."""
+    DeviceId = NewType("DeviceId", str)
+
+    result = get_field_schema(DeviceId, mode="output")
+    assert result["type"] == "field"
+    assert result["field_class"] == "builtins.str"
+    assert result["nullable"] is False
+
+    nullable_result = get_field_schema(DeviceId | None, mode="output")
+    assert nullable_result["type"] == "field"
+    assert nullable_result["field_class"] == "builtins.str"
+    assert nullable_result["nullable"] is True

@@ -4,7 +4,7 @@ Without any configuration, you can write CSS files and import them from your com
 No magic, no tooling.
 
 The simplest approach would be to import your stylesheet in your layout component.
-Imagine our templates all render inside `BASE_DIR/components/Layout.tsx`:
+Imagine our templates all render inside `BASE_DIR/client/components/Layout.tsx`:
 
 ```typescript
 import React from "react";
@@ -16,7 +16,7 @@ export const Layout = (props: {children: React.ReactNode}) => (
 );
 ```
 
-And inside `BASE_DIR/style.css` write our styles:
+And inside `client/styles.css` write our styles:
 
 ```css
 .layout {
@@ -27,50 +27,56 @@ And inside `BASE_DIR/style.css` write our styles:
 
 No magic, no tooling. Just classic CSS.
 
-## Zero runtime CSS-in-JS
+## Tailwind, built in
 
-Classic CSS is fine, but it's not great. But we firmly believe the best approach is
-CSS-in-JS that statically compiles to a CSS stylesheet.
+Classic CSS is fine, but most projects reach for [Tailwind](https://tailwindcss.com)
+these days, and we get the appeal: utilities colocate with the markup, and colocation
+is [kind of our thing](/documentation/philosophy-goals/#colocation-is-a-good-thing).
 
-[Vanilla Extract](https://vanilla-extract.style) is one of the newer libraries in the
-space. Reactivated comes with built-in support. No extra tooling or configuration
-needed.
+So Reactivated ships it. Tailwind 4 runs inside the dev server and the production
+build automatically. There's no `tailwind.config.js`, no PostCSS setup, no plugin to
+wire. Start your stylesheet with the import and you're done:
 
-**There is no [colocation](https://kentcdodds.com/blog/colocation)** with Vanilla
-Extract. Styles _need_ to be in a separate file. Still written in TypeScript though.
-
-Our simple example would have `@client/components/Banner.css.ts`:
-
-```typescript
-import {style} from "@vanilla-extract/css";
-
-export const banner = style({
-    background: "red",
-    border: "1px solid black",
-});
-
-export const highlighted = style({
-    backgroundColor: "blue",
-});
+```css
+@import "tailwindcss";
 ```
 
-And our `@client/components/Banner.tsx`:
+That's the entire setup. Utilities now work in any component:
 
 ```typescript
-import React from "react";
+export const Card = (props: {children: React.ReactNode}) => (
+    <div className="rounded border p-4 shadow">{props.children}</div>
+);
+```
 
+Tailwind 4 is configured in CSS, not JavaScript. Design tokens go in a `@theme`
+block in the same file:
+
+```css
+@import "tailwindcss";
+
+@theme {
+    --color-brand: #1c1917;
+    --font-sans: "Inter", sans-serif;
+}
+```
+
+And every token mints its utilities: `bg-brand`, `text-brand`, `font-sans`, and so
+on.
+
+For conditional classes, `classNames` from `@reactivated` keeps the markup tidy:
+
+```typescript
 import {classNames} from "@reactivated";
 
-import * as css from "./Banner.css";
-
 export const Banner = (props: {
-    children: React.React.Node;
+    children: React.ReactNode;
     isHighlighted?: boolean;
 }) => (
     <div
         className={classNames(
-            css.banner,
-            props.isHighlighted === true && css.highlighted,
+            "rounded border p-4",
+            props.isHighlighted === true && "bg-brand text-white",
         )}
     >
         {props.children}
@@ -78,16 +84,18 @@ export const Banner = (props: {
 );
 ```
 
-You can see Vanilla Extract encourages type safety and pure TypeScript usage. It has a
-powerful [API](https://vanilla-extract.style/documentation).
-
-## Next steps
-
-Be sure to read our [request for comments](/documentation/rfc/) to provide feedback.
+> **Note**: Import your stylesheet from a component like `Layout`, or from
+> `client/index.tsx` if you [have one](/documentation/templates/#the-entry-point).
+> Either way it flows through Vite, so Tailwind processes it in dev and in the
+> production build alike.
 
 ## Other tools
 
 You can likely use JS-only CSS-in-JS libraries like [emotion](https://emotion.sh/) and
 [styled-components](https://styled-components.com).
 
-So long as you stick their runtime-only, no-tooling offerings.
+So long as you stick to their runtime-only, no-tooling offerings.
+
+## Next steps
+
+Be sure to read our [request for comments](/documentation/rfc/) to provide feedback.

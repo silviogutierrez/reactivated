@@ -6,6 +6,23 @@ import ReactMarkdown from "react-markdown";
 import {Code} from "@client/components/Code";
 import {Layout} from "@client/components/Layout";
 
+// JSON.stringify cannot walk an element tree: under React 19 a context is
+// circular (Context.Provider === Context), so any context in the tree throws.
+const safeStringify = (value: unknown): string => {
+    const seen = new WeakSet();
+    return (
+        JSON.stringify(value, (_, child: unknown) => {
+            if (typeof child === "object" && child !== null) {
+                if (seen.has(child)) {
+                    return undefined;
+                }
+                seen.add(child);
+            }
+            return child;
+        }) ?? ""
+    );
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getAnchor = (children: any) => {
     const heading: string = // eslint-disable-line
@@ -13,7 +30,7 @@ const getAnchor = (children: any) => {
 
     // Brittle and doesn't always work.
     // const keepDots: boolean = children?.[0]?.type === "code";
-    const keepDots: boolean = JSON.stringify(children).includes("code");
+    const keepDots: boolean = safeStringify(children).includes("code");
     const regex = keepDots === true ? /[^.a-zA-Z0-9 ]/g : /[^a-zA-Z0-9 ]/g;
     const anchor = heading.toLowerCase().replace(regex, "").replace(/\s+/g, "-");
 
@@ -124,7 +141,7 @@ export const Template = (props: server.documentation.templates.Documentation) =>
                                 return <h3 id={anchor}>{children}</h3>;
                             },
                             blockquote: (props) => {
-                                const isWarning = JSON.stringify(
+                                const isWarning = safeStringify(
                                     props.children,
                                 ).includes("Warning");
                                 return (

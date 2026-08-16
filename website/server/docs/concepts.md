@@ -17,40 +17,50 @@ Imagine we have a template that expects an instance of a `Book` model and a
 Without Reactivated, we would render the template like so:
 
 ```python
-render(request, "my_template.html", {"book": book_instance, "form": form_instance})`
+render(request, "my_template.html", {"book": book_instance, "form": form_instance})
 ```
 
 With Reactivated, we first declare our template structure:
 
 ```python
-from reactivated import Pick, template
-from typing import Literal
+from typing import Annotated
 
-@template
-class MyTemplate(NamedTuple):
-    book: Pick[models.Book, Literal["name"]]
-    form: forms.CommentForm
+from reactivated.forms import DjangoForm
+from reactivated.pick import pick
+from reactivated.templates import Template
+
+from . import forms, models
+
+BookPick = pick(models.Book, fields=["name"])
+
+
+class MyTemplate(Template):
+    book: BookPick.returns
+    form: Annotated[forms.CommentForm, DjangoForm]
 ```
 
 Then we render it like so, giving us an `HttpResponse`:
 
 ```python
-MyTemplate(book=book_instance, form=form_instance).render(request)
+MyTemplate(book=book_instance, form=comment_form).render(request)
 ```
 
 ### Models
 
-Something surely stands out in the template above: we wrapped `Book` with `Pick` and
-specified a `"name"` field. This is because we need to tell Reactivated what fields we
+Something surely stands out in the template above: we declared a _pick_ of `Book` with
+just the `"name"` field. This is because we need to tell Reactivated what fields we
 want sent to React from the model instance. You _cannot_ pass entire models as
 Reactivated would have no way of knowing what fields you are going to use.
 
-Think of `Pick` as a very quick way to create a serializer for your models.
+Think of a pick as a very quick way to create a serializer for your models. Except it
+validates, generates TypeScript, and supports deep field access on both sides. Picks
+are worth understanding well; they have [their own documentation](/documentation/picks/).
 
 ### Forms
 
-Unlike models, forms can be passed whole to your templates. Reactivated knows what to
-do.
+Django forms can be passed to your templates through the `DjangoForm` annotation shown
+above. Reactivated knows what to do: the form renders with its fields, errors, and
+widgets fully typed on the React side.
 
 ## Views
 
@@ -69,21 +79,29 @@ def comment_on_book(request: HttpRequest, *, book_id: int) -> HttpResponse:
     return MyTemplate(book=book_instance, form=comment_form).render(request)
 ```
 
+Classic `urls.py` wiring works exactly as you know it. But Reactivated also ships a
+[router](/documentation/views/) that derives URLs from your function signatures and
+makes access control structural. Use it when the bookkeeping starts to hurt.
+
 ## The React Side
 
 With your Python code declared above, Reactivated would expect a `Template` export at
 `client/templates/MyTemplate.tsx` for a React component that accepts the context you
-declared. As you can see, types are automatically generated:
+declared.
+
+Types are generated automatically under the `server` namespace, which mirrors your
+Python tree: a template declared in `server/books_app/templates.py` is typed as
+`server.books_app.templates.MyTemplate`.
 
 ```typescript
 import React from "react";
 
-import {templates, Form} from "@reactivated";
+import {Form, server} from "@reactivated";
 
-export const Template = (props: templates.MyTemplate) => (
+export const Template = (props: server.books_app.templates.MyTemplate) => (
     <div>
         <h1>{props.book.name}</h1>
-        <form>
+        <form method="POST">
             <Form as="p" form={props.form} />
             <button type="submit">Submit</button>
         </form>
@@ -107,17 +125,17 @@ include items, the request object, settings, and more into your template context
 The main examples are your CSRF token, the request object, and
 [messages](https://docs.djangoproject.com/en/4.0/ref/contrib/messages/).
 
-When using a React template, you'll have access to your `props` as declared using the
-`template` decorator. But you can also access context processors by importing `Context`
+When using a React template, you'll have access to your `props` as declared on your
+`Template` class. But you can also access context processors by importing `Context`
 and using `React.useContext`. Like everything else in Reactivated, this will be
 statically typed.
 
 ```typescript
 import React from "react";
 
-import {templates, Context} from "@reactivated";
+import {Context, server} from "@reactivated";
 
-export const Template = (props: templates.MyTemplate) => {
+export const Template = (props: server.books_app.templates.MyTemplate) => {
     const context = React.useContext(Context);
 
     return (
@@ -134,141 +152,32 @@ Currently, only your own context processors and a few built-in ones are supporte
 you write your own context processor, be sure to add it to the `TEMPLATES` setting, and
 make sure to properly annotate its return value.
 
-### AJAX
+### Dynamic behavior
 
 The tried-and-true [Post/Redirect/Get](https://en.wikipedia.org/wiki/Post/Redirect/Get)
-workflow for forms will serve you well. But sometimes you want more dynamic, app-like
-behavior. Enter AJAX.
+workflow for forms will serve you well. Server-rendered pages with full reloads get you
+much further than the SPA industry admits.
 
-From our example app, you can see how to use `fetch` and `FormData` to submit a form
-without reloading the browser.
+When you do want app-like behavior (saving without a reload, live search, optimistic
+UI), Reactivated has a first-class answer: [RPC](/documentation/rpc/). Declare a
+procedure in Python, call it from TypeScript as a typed async function:
 
 ```python
-def poll_comments(request: HttpRequest, question_id: int) -> HttpResponse:
-    question = get_object_or_404(models.Question, id=question_id)
-    form = forms.Comment(
-        request.POST or None, instance=models.Comment(question=question)
-    )
-
-    if form.is_valid():
-        form.save()
-
-        if request.accepts("application/json") is False:
-            return redirect("poll_comments", question.pk)
-
-    return templates.PollComments(question=question, form=form).render(request)
+@router.authenticated.rpc
+def comment_on_book(user: User, form: CommentForm) -> None:
+    ...
 ```
-
-And a redacted version of the React template:
 
 ```typescript
-export const Template = (props: templates.PollComments) => {
-    const {question} = props;
-    const {request} = React.useContext(Context);
-    const [comments, setComments] = React.useState(question.comments);
-    const form = useForm({form: props.form});
-    const title = `${props.question.question_text} comments`;
-
-    const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const formElement = event.currentTarget;
-        const formData = new FormData(formElement);
-
-        const response = await fetch(request.path, {
-            method: "POST",
-            body: formData,
-            headers: {
-                Accept: "application/json",
-            },
-        });
-
-        const data = (
-            (await response.json()) as {props: templates.PollComments}
-        ).props;
-
-        setComments(data.question.comments);
-
-        if (data.form.errors != null) {
-            form.setErrors(data.form.errors);
-        } else {
-            form.reset();
-        }
-    };
-
-    return (
-        <Layout title={title}>
-            <form
-                action={request.path}
-                method="post"
-                onSubmit={onSubmit}
-            >
-
-                <Form as="p" form={form} />
-                <button type="submit">Comment</forms.button>
-            </form>
-        </Layout>
-    );
-};
-```
-
-You'll notice this will work with or without JavaScript enabled. Moreover, data is
-reloaded with a single request.
-
-You can use our [setup script](/documentation/getting-started/) to try out the full
-example and review the code.
-
-In the future, Reactivated will provide higher-level helpers to streamline this process
-but this should illustrate the general flow.
-
-### REST-style endpoint
-
-We may want to create an AJAX only endpoint. Basically a read-only REST-style view that
-serializes a model. This is easy to do using the `interface` decorator.
-
-Inside `interfaces.py`:
-
-```python
-from typing import Literal, NamedTuple
-
-from reactivated import interface, Pick
-
-from . import models
-
-@interface
-class WidgetDetail(NamedTuple):
-    widget: Pick[models.Widget, Literal["name", "price"]]
-```
-
-Then in our `views.py`:
-
-```python
-from . import models, interfaces
-
-def widget_detail_api(request: HttpRequest, *, widget_id: int) -> HttpResponse:
-    widget = get_object_or_404(models.Widget, pk=widget_id)
-    return interfaces.WidgetDetail(widget=widget).render(request)
-```
-
-Assuming we connected this view to `/widgets/<int:question_id>/`, we could now use this
-anywhere in the React side of things by importing `interfaces` from `@reactivated`
-
-Here's a redacted example:
-
-```typescript
-import {interfaces} from "@reactivated";
-
-const response = await fetch("/widgets/5/", {
-    headers: {
-        Accept: "application/json",
-    },
+const result = await server.books_app.api.comment_on_book({
+    book_id: 5,
+    comment: "A masterpiece.",
 });
-
-const data: interfaces.WidgetDetail = await response.json();
-const {widget} = data;
 ```
 
-> **Note**: This is highly experimental. Reactivated will support first-class AJAX APIs
-> with minimal code and strong type safety.
+Inputs are validated, outputs are typed, and there are no endpoints, URLs, or response
+shapes to hand-maintain. The [RPC documentation](/documentation/rpc/) covers the whole
+system, including access control and testing.
 
 ## Project Structure
 
@@ -295,5 +204,9 @@ Reactivated encourages the following structure, but we
             -   models.py
             -   forms.py
             -   templates.py
-            -   interfaces.py
+            -   api.py
 ```
+
+Generated code lands in `client/generated/`: gitignored, regenerated on dev server
+start, and pruned of orphans automatically. You never edit it, but you can always read
+it.

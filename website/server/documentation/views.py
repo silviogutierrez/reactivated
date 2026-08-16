@@ -73,10 +73,15 @@ mkShell {
 
 toc = [
     templates.TocEntry(href="getting-started", title="Getting Started"),
+    templates.TocEntry(href="dev-server", title="The Dev Server"),
     templates.TocEntry(href="concepts", title="Concepts"),
     templates.TocEntry(href="philosophy-goals", title="Philosophy & Goals"),
     # Maybe call concepts basics?
     # TocEntry(href="basics", title="Basics"),
+    templates.TocEntry(href="picks", title="Picks"),
+    templates.TocEntry(href="templates", title="Templates"),
+    templates.TocEntry(href="views", title="Views"),
+    templates.TocEntry(href="rpc", title="RPC"),
     templates.TocEntry(href="api", title="API"),
     templates.TocEntry(href="existing-projects", title="Existing Projects"),
     templates.TocEntry(href="deploying", title="Deploying a Reactivated Project"),

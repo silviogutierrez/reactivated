@@ -108,7 +108,7 @@ const rendererConfig = {
                 codeSplitting: false,
                 entryFileNames: `renderer.mjs`,
                 chunkFileNames: `renderer.mjs`,
-                assetFileNames: `renderer.[ext]`,
+                assetFileNames: `[name].[ext]`,
             },
             external,
         },

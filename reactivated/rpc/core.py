@@ -1575,6 +1575,16 @@ def get_field_schema(
         )
         return {**pick_schema, "nullable": nullable}
 
+    # NewType identifiers (names.Email, names.DeviceId, …) carry their wire
+    # type in __supertype__. Unwrap BEFORE the instance-vs-class fallback: a
+    # NewType instance is not a `type`, so that branch would take __class__ —
+    # `typing.NewType` itself — and the generated pick_schema annotation
+    # becomes unbuildable for pydantic.
+    if hasattr(type_class_or_instance, "__supertype__"):
+        return get_field_schema(
+            type_class_or_instance.__supertype__, mode=mode, nullable=nullable
+        )
+
     # Model field descriptors are instances, so we need the class from the descriptor.
     type_class = (
         type_class_or_instance

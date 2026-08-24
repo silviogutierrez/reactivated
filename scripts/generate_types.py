@@ -36,5 +36,10 @@ process = subprocess.Popen(
 )
 out, error = process.communicate(encoded_schema)
 
+if process.returncode != 0 or not out.strip():
+    raise SystemExit(
+        f"json2ts failed with exit code {process.returncode}; refusing to write an empty generated.tsx"
+    )
+
 with open("packages/reactivated/src/generated.tsx", "w+b") as output:
     output.write(out)
